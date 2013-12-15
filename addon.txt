@@ -1,0 +1,9 @@
+"AddonInfo"
+{
+	"name"        "Metrotrains (soviet subways)"
+	"version"     "1"
+	"author_name" "Black Phoenix"
+	"author_url"  "http://brain.wireos.com/"
+	"info"        "yoba"
+	"override"    "0"
+}

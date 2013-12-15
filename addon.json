@@ -1,0 +1,9 @@
+{
+	"title"		:	"Metrostroi Alpha",
+	"type"		:	"gamemode",
+	"tags"		:	[ "fun", "realism" ],
+	"ignore"	:
+	[
+		"*.txt"
+	]
+}

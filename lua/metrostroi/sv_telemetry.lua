@@ -1,0 +1,340 @@
+--local canPost = true
+local function onSuccess(content)
+  local data = string.Explode("\n",content)
+--  print(data[1])
+  if data[1] == "OK" then
+    for i=2,#data do
+      if data[i] and (data[i] ~= "") then
+        PrintMessage(HUD_PRINTTALK,"Dispatcher: "..data[i])
+        print("Dispatcher: "..data[i])
+        
+        for k,v in pairs(Metrostroi.DriverChatBacklog) do
+          if (k.DriverMode or 0) > 0 then
+            table.insert(v,"Dispatcher: "..data[i])
+          end
+        end
+      end
+    end
+  end
+
+--  print(content)
+end
+local function onFailure(reason)
+
+end
+
+
+
+
+--------------------------------------------------------------------------------
+-- Sends asynchronous HTTP request
+--------------------------------------------------------------------------------
+timer.Simple(0.01, function() require("socket") end)
+
+local s
+local http_data
+function Metrostroi.HTTPRequest(request)
+  -- Process data
+--  print(string.gsub(data," ","+"))
+
+  -- Re-create socket
+  if s then s:close() end
+  s = socket.connect("foxworks.wireos.com", 80)
+--  s:send("GET /metrostroi/ms-act.php HTTP/1.1\n")
+  s:send("POST /metrostroi/ms-act.php HTTP/1.0\n")
+  s:send("Host: foxworks.wireos.com\n")
+  s:send("User-Agent: GMod10\n")
+  s:send("Connection: Close\n")
+  s:send("Content-Type: application/x-www-form-urlencoded\n")
+  s:send("Content-Length: "..#request.."\n")
+  s:send("\n")
+  s:send(request)
+  http_data = ""
+
+  -- Create timer
+  timer.Create("Metrostroi_HTTPRequest",0.01,0,function()
+    if not s then return end
+    s:settimeout(0.01)
+    local data, status, rdata = s:receive(2^10)
+    data = data or rdata
+    
+    -- Gather HTTP data
+    if data then http_data = http_data .. data end
+
+    -- Check timeout/error
+    if status and (status ~= "timeout") then
+      local data = string.Explode("\r\n\r\n",http_data)
+      table.remove(data,1)
+      local content = string.Implode("\n\n",data)
+      
+      timer.Destroy("Metrostroi_HTTPRequest")
+      onSuccess(content)
+    end
+  end)
+end
+
+  
+
+
+
+
+--------------------------------------------------------------------------------
+-- Generate HTTP request
+--------------------------------------------------------------------------------
+local function bool2str(b) if b then return "1" else return "0" end end
+Metrostroi.TrafficLightStates = {}
+Metrostroi.SwitchStates = {}
+function Metrostroi.UpdateTelemetry()
+  if not Metrostroi.TrainPositions then return end
+  
+  local request = "query=update&r={ \"trains\": {"
+  local f = false
+  for train,data in pairs(Metrostroi.TrainPositions) do
+    if train:IsValid() and train.WagonID then
+      if f == true then request = request.."," end
+      if f == false then f = true end
+
+--      print(train.WagonID)
+      request = request.."\""..train.WagonID.."\": {"
+  
+      request = request.."\"wid\":"..train.WagonID..","
+      request = request.."\"tid\":"..train.TrainID..","
+      request = request.."\"mod\":"..train.Mode..","
+      request = request.."\"pos\":"..Format("%.1f",data.position)..","
+      request = request.."\"sec\":"..Format("%d",  data.section)..","
+      request = request.."\"pth\":"..Format("%d",  data.path)..","
+      
+      if train.NextLightRed then
+        request = request.."\"nxt\":1,"
+      elseif train.NextLightYellow then
+        request = request.."\"nxt\":2,"
+      else
+        request = request.."\"nxt\":3,"
+      end
+      
+      request = request.."\"spd\":"..Format("%.1f",train.Speed or 0)..","
+      request = request.."\"ars\":"..Format("%.1f",train.ARSSpeed or -1)..","
+      
+      if train.Reverse then
+        request = request.."\"d1\":"..bool2str(train.DoorState[1])..","
+        request = request.."\"d2\":"..bool2str(train.DoorState[0])..","
+      else
+        request = request.."\"d1\":"..bool2str(train.DoorState[0])..","
+        request = request.."\"d2\":"..bool2str(train.DoorState[1])..","
+      end
+      request = request.."\"l1\":"..bool2str(train.LightState[0])..","
+      request = request.."\"l2\":"..bool2str(train.LightState[1])..","
+      request = request.."\"r\":"..bool2str(train.Reverse)..","
+      request = request.."\"m\":"..bool2str(train.MasterTrain == nil)..","
+      request = request.."\"at\":"..bool2str(train.AlternateTrack)..","
+      request = request.."\"sat\":"..bool2str(train.SelectAlternateTrack)..","
+      request = request.."\"atb\":"..bool2str(train.AlternateTrackBlocked)..","
+      
+      Metrostroi.DriverChatBacklog[train] = Metrostroi.DriverChatBacklog[train] or {}
+      local chatlog = "{"
+      for k,v in pairs(Metrostroi.DriverChatBacklog[train]) do
+        chatlog = chatlog.."\""..k.."\":".."\""..v.."\""
+        if k ~= #Metrostroi.DriverChatBacklog[train] then
+          chatlog = chatlog..","
+        end
+      end
+      Metrostroi.DriverChatBacklog[train] = {}
+      request = request.."\"log\":"..chatlog.."}"
+      
+      request = request.."}"
+    end
+  end
+  request = request.."},"
+  request = request.."\"lights\":{"
+  local f = false
+  for light,data in pairs(Metrostroi.TrafficLightPositions) do
+    if light:IsValid() and light.EquipmentID then
+      local bits = 0
+      if light.LightStates[1] then bits = bits + 1 end
+      if light.LightStates[2] then bits = bits + 2 end
+      if light.LightStates[3] then bits = bits + 4 end
+      
+      if (not Metrostroi.TrafficLightStates[light]) or
+         (Metrostroi.TrafficLightStates[light].state ~= bits) or
+         (CurTime() - Metrostroi.TrafficLightStates[light].time > 120) then
+        if f == true then request = request.."," end
+        f = true
+        Metrostroi.TrafficLightStates[light] = {
+          state = bits,
+          time = CurTime(),
+        }
+        
+        request = request.."\""..light.EquipmentID.."\": {"
+        request = request.."\"id\":"..light.EquipmentID..","
+        request = request.."\"state\":"..bits..","
+        request = request.."\"pos\":"..Format("%.1f",data.position)..","
+        request = request.."\"pth\":"..Format("%d",  data.path)..","
+        request = request.."\"fwd\":"..bool2str(data.forward_facing)
+        request = request.."}"
+      end
+    end
+  end
+  --[[request = request.."\"switches\":{"
+  local f = false
+  for index,switch in pairs(Metrostroi.PicketSignByIndex) do
+    if switch:IsValid() and switch.TrackSwitchName then
+      local state = switch:GetTrackSwitchState()
+
+      if (not Metrostroi.SwitchStates[switch]) or
+         (Metrostroi.SwitchStates[switch].state ~= bits) or
+         (CurTime() - Metrostroi.SwitchStates[switch].time > 120) then
+        if f == true then request = request.."," end
+        f = true
+        Metrostroi.SwitchStates[switch] = {
+          state = state,
+          time = CurTime(),
+        }
+
+        request = request.."\""..index.."\": {"
+        request = request.."\"id\":"..index..","
+        request = request.."\"state\":"..bool2str(state)
+        request = request.."}"
+      end
+    end
+  end]]--
+  request = request.."}}"
+  Metrostroi.HTTPRequest(request)
+--  print(request)
+--  http.Post("http://foxworks.wireos.com/metrostroi/ms-act.php",{ r = request, query = "update" },onSuccess,onFailure)
+--  print("POST",CurTime())
+end
+
+timer.Create("Metrostroi_UpdateTelemetry",1.0,0,Metrostroi.UpdateTelemetry)
+
+
+
+
+--------------------------------------------------------------------------------
+-- Get driver chats
+--------------------------------------------------------------------------------
+if not Metrostroi.DriverChatBacklog then
+  Metrostroi.DriverChatBacklog = {}
+end
+
+--[[hook.Add("PlayerSay", "Metrostroi_PlayerSay", function(ply,text,team)
+  local name = ply:GetName()
+  local trains = ents.FindInSphere(ply:GetPos(),768) --512)
+  local train = nil
+  for k,v in pairs(trains) do
+    if v.IsSubwayTrain then train = v end
+  end
+  
+  if not train then
+    local trains = ents.FindByClass("gmod_subway_81-717")
+    if trains[1] then train = trains[1] end
+    name = name.."[a]"
+  end
+
+  if train then
+    Metrostroi.DriverChatBacklog[train] = Metrostroi.DriverChatBacklog[train] or {}
+    table.insert(Metrostroi.DriverChatBacklog[train],name..": "..text)
+  end
+  return text
+end)]]--
+
+
+
+
+
+--------------------------------------------------------------------------------
+-- Bug reporting system
+--------------------------------------------------------------------------------
+local buglast = {}
+hook.Add("PlayerSay", "Metrostroi_BugAsdPlayerSay", function(ply,text,team)
+  local name = ply:GetName()
+  local trains = ents.FindInSphere(ply:GetPos(),768) --512)
+  local train = nil
+  for k,v in pairs(trains) do
+    if v.IsSubwayTrain then train = v end
+  end
+
+  if not train then
+    local trains = ents.FindByClass("gmod_subway_81-717")
+    if trains[1] then train = trains[1] end
+    name = name.."[a]"
+  end
+
+  if train then
+    Metrostroi.DriverChatBacklog[train] = Metrostroi.DriverChatBacklog[train] or {}
+    table.insert(Metrostroi.DriverChatBacklog[train],name..": "..text)
+  end
+  
+  
+  --Process stuff
+  if string.sub(text,1,1) == "!" then
+    buglast[ply:SteamID()] = buglast[ply:SteamID()] or (-1e99)
+    if CurTime() - buglast[ply:SteamID()] < 5.0 then
+      ply:PrintMessage(HUD_PRINTTALK, "Sending bugs too fast!")
+      return ""
+    end
+    buglast[ply:SteamID()] = CurTime()
+
+    local report = { name,ply:GetPos().x,ply:GetPos().y,ply:GetPos().z,
+      ply:GetAimVector().x,ply:GetAimVector().y,ply:GetAimVector().z,
+      string.sub(text,2)}
+    print("BUG:",string.Implode("\t",report))
+    
+    file.Append("bugs.txt", string.Implode("\t",report).."\r\n")
+    return "[BUG ACCEPTED] "..string.sub(text,2)
+  end
+end)
+
+concommand.Add("bug_next", function(ply, _, args)
+  if ply:SteamID() ~= "STEAM_0:1:11146643" then return end
+
+  local bugs = file.Read("bugs.txt") or ""
+  local reports = string.Explode("\r\n",bugs)
+  if reports[#reports-1] then
+    local report = string.Explode("\t",reports[#reports-1])
+    ply:PrintMessage(HUD_PRINTTALK, "[BUG] "..report[1]..": "..report[8])
+    
+    ply:SetPos(Vector(report[2],report[3],report[4]))
+    ply:SetEyeAngles(Vector(report[5],report[6],report[7]):Angle())
+    
+    local r = reports[#reports-1]
+    table.remove(reports,#reports-1)
+--    PrintTable(reports)
+    table.insert(reports,1,r)
+--    PrintTable(reports)
+    file.Write("bugs.txt",string.Implode("\r\n",reports))
+  else
+    ply:PrintMessage(HUD_PRINTTALK, "[BUG] None listed")
+  end
+end)
+
+concommand.Add("bug_accept", function(ply, _, args)
+  if ply:SteamID() ~= "STEAM_0:1:11146643" then return end
+  
+  local bugs = file.Read("bugs.txt") or ""
+  local reports = string.Explode("\r\n",bugs)
+  if reports[1] then
+    file.Append("old_bugs.txt",reports[1].."\r\n")
+    local report = string.Explode("\t",reports[1])
+    ply:PrintMessage(HUD_PRINTTALK, "[BUG ACK] "..report[1]..": "..report[8])
+    table.remove(reports,1)
+    
+    file.Write("bugs.txt",string.Implode("\r\n",reports))
+  end
+end)
+
+timer.Create("Metrostroi_BugFinderReminder",5.0*60.0,0,function()
+  PrintMessage(HUD_PRINTTALK,"If you notice a problem within the map, please report by aiming at the problem and typing in chat '!description of the problem here'")
+end)
+
+hook.Add("PlayerInitialSpawn", "Metrostroi_BugFinderPlayerConnect", function(ply)
+  ply:PrintMessage(HUD_PRINTTALK,"=========================")
+  ply:PrintMessage(HUD_PRINTTALK,"If you notice a problem within the map, please report by aiming at the problem and typing in chat '!description of the problem here'")
+  ply:PrintMessage(HUD_PRINTTALK,"=========================")
+  ply:ConCommand("rate 1000000")
+  
+  if ply:SteamID() == "STEAM_0:1:11146643" then
+    local bugs = file.Read("bugs.txt") or ""
+    local reports = string.Explode("\r\n",bugs)
+    ply:PrintMessage(HUD_PRINTTALK,"Bug reports count: "..#reports)
+  end
+end)
