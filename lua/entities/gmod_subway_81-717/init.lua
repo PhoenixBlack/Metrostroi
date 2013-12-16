@@ -1062,6 +1062,16 @@ function ENT:ProcessBogey(bogey)
   return absSpeed,totalPower
 end
 
+//Do something with cabin button presses
+function ENT:OnButtonPress(panel,button)
+
+	if panel == 0 then
+		if button == 1 then
+			//Toggle lights or something
+		end
+	end
+	
+end
 
 --------------------------------------------------------------------------------
 -- Process train logic

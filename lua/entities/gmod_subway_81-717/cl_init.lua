@@ -142,6 +142,34 @@ local digit_bitmap = {
      1 },
 }
 
+ENT.ButtonMap = {}
+
+//General Panel
+ENT.ButtonMap[0] = {
+	pos = Vector(-455,-10,7),
+	ang = Angle(0,90,40),
+	scale = 0.0625,
+	
+	buttons = {
+		{205,28}
+	}
+}
+
+//Main panel
+ENT.ButtonMap[1] = {
+	pos = Vector(-455,-27,15),
+	ang = Angle(0,90,60),
+	scale = 0.0625,
+	
+	buttons = {
+		{50,50},
+		{50,100},
+		{100,50},
+		{100,100}
+	}
+}
+
+
 function ENT:DrawSegment(x,y,w,h)
   for z=1,6,1 do
     surface.SetDrawColor(Color(100,255,0,math.max(0,13-1*z*z)))
@@ -250,6 +278,7 @@ function ENT:Draw()
       
   -- Draw model
   self:DrawModel()
+  
   
   
   
@@ -371,7 +400,7 @@ function ENT:Draw()
     self:DrawIndicator("Restrict", 750,24+20*8,nexty,Color(255,255,0,255))
     self:DrawIndicator("", 750-16,24+20*8,nextr,Color(255,0,0,255))
     
-    draw.DrawText(Format("TRAIN #%02d",self:GetNWFloat("TrainID",1)),"Subway81717_Indicator",16,265,Color(0,0,0,255))
+    draw.DrawText(Format("TRAIN #%02d",self:GetNWFloat("TrainID",1)),"Subway81717_Indicator",16,265,Color(0,0,0,255))	
     
     
     -- Draw pressure indicators
@@ -447,6 +476,19 @@ function ENT:Draw()
     end
 
   cam.End3D2D()
+
+	if GetConVarNumber("metrostroi_drawdebug") > 0 then
+		for kp,panel in pairs(self.ButtonMap) do
+			cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
+			surface.SetDrawColor(255,255,0)
+			
+			for kb,button in pairs(panel.buttons) do
+				self:DrawCircle(button[1],button[2],10)
+			end
+			
+			cam.End3D2D()
+		end
+	end
   
   
   -- Front of the train
