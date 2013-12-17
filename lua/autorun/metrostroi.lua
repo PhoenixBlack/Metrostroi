@@ -1,6 +1,6 @@
-util.AddNetworkString("metrostroi-cabin-button")
-
 if SERVER then
+	util.AddNetworkString("metrostroi-cabin-button")
+
   resource.AddFile("materials/myproject/22_-_Default.vmt")
   resource.AddFile("materials/myproject/cyan_-_Default.vmt")
   resource.AddFile("materials/myproject/grey_-_Default.vmt")
