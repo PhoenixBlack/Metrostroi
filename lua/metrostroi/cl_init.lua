@@ -14,22 +14,12 @@ local function WorldToScreen(vWorldPos,vPos,vScale,aRot)
     return vWorldPos.x/vScale,(-vWorldPos.y)/vScale;
 end
 
-//There's got to be a better way to do this all
-local function copyVec(v)
-	return Vector(v[1],v[2],v[3])
-end
-
-//I seriously ragequit developing this function, not because of the math but because vector functions modify the original,
-//wich fucks up references
+//Calculates line-plane intersect location
 local function LinePlaneIntersect(PlanePos,PlaneNormal,LinePos,LineDir)
 	local dot = LineDir:Dot(PlaneNormal)
-	local fac = copyVec(LinePos) //Stupid Sub modifying the origional
-	fac:Sub(PlanePos)
+	local fac = LinePos-PlanePos 
 	local dis = -PlaneNormal:Dot(fac) / dot
-	local LdCopy = copyVec(LineDir)
-	LdCopy:Mul(dis)
-	LinePos:Add(LdCopy)
-	return LinePos
+	return LineDir * dis + LinePos
 end
 
 hook.Add("KeyPress", "Metrostroi_Cabin_Buttons", function(ply, key)
@@ -51,14 +41,10 @@ hook.Add("KeyPress", "Metrostroi_Cabin_Buttons", function(ply, key)
 		local wpos = train:LocalToWorld(panel.pos)
 		local wang = train:LocalToWorldAngles(panel.ang)
 		
-		//See note at definition
-		local v1 = copyVec(wpos)
-		local v2 = copyVec(wang:Up())
-		local v3 = copyVec(tr.StartPos)
-		local v4 = copyVec(tr.Normal)
-		local isectPos = LinePlaneIntersect(v1,v2,v3,v4)
+		local isectPos = LinePlaneIntersect(wpos,wang:Up(),tr.StartPos,tr.Normal)
 		local localx,localy = WorldToScreen(isectPos,wpos,panel.scale,wang)
 		debugoverlay.Cross(isectPos,2,10,Color(255,255,255),true) //Only shows up when developer = 1
+		
 		for kb,button in pairs(panel.buttons) do
 			if math.Dist(button[1],button[2],localx,localy) < 10 then
 				net.Start("metrostroi-cabin-button")
