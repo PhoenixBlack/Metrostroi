@@ -145,24 +145,29 @@ local digit_bitmap = {
 ENT.ButtonMap = {}
 
 //General Panel
-ENT.ButtonMap[0] = {
+ENT.ButtonMap[1] = {
 	pos = Vector(-455,-10,7),
 	ang = Angle(0,90,40),
+	width = 440,
+	height = 190,
 	scale = 0.0625,
 	
 	buttons = {
-		{205,28}
+		{205,28},
+		{440,190}
 	}
 }
 
 //Main panel
-ENT.ButtonMap[1] = {
+ENT.ButtonMap[2] = {
 	pos = Vector(-455,-27,15),
 	ang = Angle(0,90,60),
+	width = 860,
+	height = 290,
 	scale = 0.0625,
 	
 	buttons = {
-		{50,50},
+		{860,290},
 		{50,100},
 		{100,50},
 		{100,100}
@@ -572,3 +577,6 @@ hook.Add("CalcView", "Metrostroi_ThirdPersonMirrorView", function(ply,pos,ang,fo
     end
   end
 end)
+
+
+ 
