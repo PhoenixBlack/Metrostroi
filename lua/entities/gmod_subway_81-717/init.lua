@@ -1064,7 +1064,7 @@ end
 
 //Do something with cabin button presses
 function ENT:OnButtonPress(panel,button,key)
-	//print(panel,button,key)
+	print(panel,button,key)
 end
 
 --------------------------------------------------------------------------------
