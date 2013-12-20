@@ -1063,14 +1063,8 @@ function ENT:ProcessBogey(bogey)
 end
 
 //Do something with cabin button presses
-function ENT:OnButtonPress(panel,button)
-
-	if panel == 0 then
-		if button == 1 then
-			//Toggle lights or something
-		end
-	end
-	
+function ENT:OnButtonPress(panel,button,key)
+	print(panel,button,key)
 end
 
 --------------------------------------------------------------------------------

@@ -1,4 +1,3 @@
-AddCSLuaFile("cl_init.lua")
 --------------------------------------------------------------------------------
 -- Lists of picket signs
 --------------------------------------------------------------------------------
@@ -745,12 +744,15 @@ end
 net.Receive("metrostroi-cabin-button", function(len, ply)
 	local panel = net.ReadInt(8)
 	local button = net.ReadInt(8)
+	local key = net.ReadInt(8)
 	
+	//print(panel,button,key)
+
 	local seat = ply:GetVehicle()
 	if (not seat) or (not seat:IsValid()) then return end
 	local train = seat:GetNWEntity("TrainEntity")
 	if (not train) or (not train:IsValid()) then return end
 	if seat != train.DriverSeat then return end
 	
-	train:OnButtonPress(panel,button)
+	train:OnButtonPress(panel,button,key)
 end)
