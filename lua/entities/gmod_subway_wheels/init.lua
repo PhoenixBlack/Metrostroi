@@ -6,14 +6,15 @@ include("shared.lua")
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
-  self:SetModel("models/props_phx/trains/double_wheels.mdl")
+--  self:SetModel("models/props_phx/trains/double_wheels.mdl")
+  self:SetModel("models/Metrostroi/props_models/train_wheel_test.mdl")
   self:PhysicsInit(SOLID_VPHYSICS)
   self:SetMoveType(MOVETYPE_VPHYSICS)
   self:SetSolid(SOLID_VPHYSICS)
 end
 
 function ENT:PhysicsCollide(data,physobj)
---  print(speed,data.Speed,data.DeltaTime)
+--  print(data.Speed,data.DeltaTime)
 --      self:EmitSound("subway_trains/junct_"..math.random(1,4)..".wav",100,100)
 
   -- Generate junction sounds
@@ -39,7 +40,7 @@ function ENT:PhysicsCollide(data,physobj)
   end
 
   -- Generate flange sounds
-  if (data.Speed > 150) and (data.DeltaTime > 0.085) then
+  if (data.Speed > 115) and (data.DeltaTime > 0.085) then
     self:EmitSound("subway_trains/flange_"..math.random(1,8)..".wav",55,math.random(80,120))
   end
 end

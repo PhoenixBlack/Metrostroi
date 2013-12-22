@@ -522,7 +522,7 @@ function Metrostroi.FindTrainOrLight(source,min_offset,index,checkedPickets,faci
         within_bounds = (pos < min_offset) and (pos > (v_offset or (-1e99)))
       end
       
-      if (v ~= source) and within_bounds and (facing ==  face) then
+      if (not v.Disabled) and (v ~= source) and within_bounds and (facing ==  face) then
         min_index = index
         min_type = "light"
         min_v = v
@@ -728,7 +728,7 @@ end
 function Metrostroi.NextWagonID()
   local id = Metrostroi.WagonID
   Metrostroi.WagonID = Metrostroi.WagonID + 1
---  if Metrostroi.WagonID > 99 then Metrostroi.WagonID = 1 end
+  if Metrostroi.WagonID > 99 then Metrostroi.WagonID = 1 end
   return id
 end
 
@@ -756,3 +756,90 @@ net.Receive("metrostroi-cabin-button", function(len, ply)
 	
 	train:OnButtonPress(panel,button,key)
 end)
+
+--------------------------------------------------------------------------------
+local SYSTEM = {}
+Metrostroi.Systems = {}
+Metrostroi.Systems.Announcer = function(train)
+  local n = {}
+  for k,v in pairs(Metrostroi.Systems._BaseAnnouncer) do n[k] = v end
+  n.Train = train
+  n:Initialize()
+  return n
+end
+
+local SYSTEM = {}
+Metrostroi.Announcements = {
+  [0001] = { 2.1 + 1.5, "subway_announcer/00_01.wav" },
+  [0002] = { 1.1 + 0.0, "subway_announcer/00_02.wav" },
+  [0101] = { 2.2 + 1.5, "subway_announcer/01_01.wav" },
+  [0102] = { 1.4 + 0.0, "subway_announcer/01_02.wav" },
+  [0201] = { 8.0 + 1.5, "subway_announcer/02_01.wav" },
+  [0202] = { 4.7 + 1.5, "subway_announcer/02_02.wav" },
+  [0203] = { 4.7 + 1.5, "subway_announcer/02_03.wav" },
+  [0204] = { 7.5 + 1.5, "subway_announcer/02_04.wav" },
+  [0205] = { 4.4 + 1.5, "subway_announcer/02_05.wav" },
+}
+  
+function SYSTEM:Initialize()
+  for k,v in pairs(Metrostroi.Announcements) do
+    util.PrecacheSound(v[2])
+    v[3] = k
+  end
+  
+  self.AnnouncementSchedule = {}
+  self.CurrentAnnouncement = nil
+end
+
+function SYSTEM:Queue(id)
+  if not Metrostroi.Announcements[id] then return end
+  
+  -- Add announcement to queue
+  if #self.AnnouncementSchedule < 10 then
+    table.insert(self.AnnouncementSchedule, Metrostroi.Announcements[id])
+  end
+end
+
+function SYSTEM:Play(id)
+  if not Metrostroi.Announcements[id] then return end
+
+  -- Clear queue
+  self.AnnouncementSchedule = {}
+  self.AnnouncementSchedule[1] = Metrostroi.Announcements[id]
+end
+
+function SYSTEM:Think()
+  -- Check if announcement ended
+  if (self.CurrentAnnouncement) and
+     (self.AnnouncementEndTime) and
+     (CurTime() > self.AnnouncementEndTime) then
+    self.CurrentAnnouncement = nil
+  end
+  
+  -- Get play sound from master announcer
+  if self.Train.MasterTrain and self.Train.MasterTrain:IsValid() then
+    if not self.CurrentAnnouncement then
+      self.CurrentAnnouncement = self.Train.MasterTrain.Announcer.CurrentAnnouncement
+      if self.CurrentAnnouncement then
+        self.AnnouncementEndTime = CurTime() + self.CurrentAnnouncement[1]
+        if self.CurrentAnnouncement[2] ~= "" then
+          self.Train:EmitSound(self.CurrentAnnouncement[2], 70, 100)
+        end
+      end
+    end
+  end
+  
+  -- Check if new one must be played
+  if (not self.CurrentAnnouncement) and (self.AnnouncementSchedule[1]) then
+    self.CurrentAnnouncement = self.AnnouncementSchedule[1]
+    table.remove(self.AnnouncementSchedule,1)
+    
+    self.AnnouncementEndTime = CurTime() + self.CurrentAnnouncement[1]
+    if self.CurrentAnnouncement[2] ~= "" then
+      self.Train:EmitSound(self.CurrentAnnouncement[2], 70, 100)
+    end
+  end
+end
+
+
+Metrostroi.Systems._BaseAnnouncer = SYSTEM

@@ -17,6 +17,7 @@ if SERVER then
   resource.AddFile("materials/Metrostroi/props/metalhull010b.vmt")
   resource.AddFile("materials/Metrostroi/props/metalwall030a.vmt")
   resource.AddFile("materials/Metrostroi/props/reflectivity_40.vmt")
+  resource.AddFile("materials/Metrostroi/props/metalstainless01.vmt")
   
   resource.AddFile("models/myproject/81-717_bogey.mdl")
   resource.AddFile("models/myproject/81-717_door_cab.mdl")
@@ -32,6 +33,7 @@ if SERVER then
   resource.AddFile("models/Metrostroi/props_models/light_2_3.mdl")
   resource.AddFile("models/Metrostroi/props_models/light_2_outside.mdl")
   resource.AddFile("models/Metrostroi/props_models/light_3_outside.mdl")
+  resource.AddFile("models/Metrostroi/props_models/train_wheel_test.mdl")
     
   resource.AddFile("sound/subway_trains/81717_bpsn.wav")
   resource.AddFile("sound/subway_trains/81717_brake.wav")
@@ -66,6 +68,16 @@ if SERVER then
   resource.AddFile("sound/subway_trains/junct_2.wav")
   resource.AddFile("sound/subway_trains/junct_3.wav")
   resource.AddFile("sound/subway_trains/junct_4.wav")
+  
+  resource.AddFile("sound/subway_announcer/00_01.wav")
+  resource.AddFile("sound/subway_announcer/00_02.wav")
+  resource.AddFile("sound/subway_announcer/01_01.wav")
+  resource.AddFile("sound/subway_announcer/01_02.wav")
+  resource.AddFile("sound/subway_announcer/02_01.wav")
+  resource.AddFile("sound/subway_announcer/02_02.wav")
+  resource.AddFile("sound/subway_announcer/02_03.wav")
+  resource.AddFile("sound/subway_announcer/02_04.wav")
+  resource.AddFile("sound/subway_announcer/02_05.wav")
 end
 
 -- Create subway manager

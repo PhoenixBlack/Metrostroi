@@ -23,18 +23,21 @@ function ENT:Initialize()
     self.Inputs = Wire_CreateInputs(self,{
       "NextMode", "PreviousMode", "ToggleReverse",
       "ToggleLeftDoors", "ToggleRightDoors",
-      "ToggleCockpitLight", "ToggleInteriorLight",
+      "ToggleHeadLight", "ToggleInteriorLight",
       "DisableDeadmansSwitch",
       "Horn",
       "SetMode", "SetReverse",
-      "SelectAlternateTrack", "SelectMainTrack" })
+      "SelectAlternateTrack", "SelectMainTrack",
+      "PlayAnnouncement", "QueueAnnouncement" })
 
     self.Outputs = Wire_CreateOutputs(self, {
       "Speed", "Mode", "Reverse",
       "CurrentPath", "CurrentOffset",
       "ARSSpeed",
       "NextLightYellow", "NextLightRed",
-      "DistanceToLight" } )
+      "DistanceToLight",
+      "AlternateTrack", "SelectingAlternate", "TrackSwitchBlocked",
+      "Announcement" } )
   end
   
   -- Setup initial position
@@ -121,15 +124,18 @@ function ENT:Initialize()
     self.DriverSeat = self:CreateSeat(0, 0,"driver")
                       self:CreateSeat(0, 1,"driver")
   end
-  for i = 1,14,2 do
---    self:CreateSeat(i,0,"passenger")
---    self:CreateSeat(i,1,"passenger")
+  for i = 1,14,4 do
+    self:CreateSeat(i,0,"passenger")
+    self:CreateSeat(i,1,"passenger")
   end
   
   -- Create horn sound from drivers seat
   if self.DriverSeat then
     self.Sounds["horn"] = CreateSound(self.DriverSeat, Sound(self.SoundNames["horn"]))
   end
+  
+  -- Announcer system
+  self.Announcer = Metrostroi.Systems.Announcer(self)
   
   -- Create train state
   self.DoorState = {}
@@ -165,7 +171,7 @@ function ENT:Initialize()
   self.KeyFunction[IN_MOVELEFT]  = function() self:TriggerInput("ToggleLeftDoors",1.0) end
   self.KeyFunction[IN_MOVERIGHT] = function() self:TriggerInput("ToggleRightDoors",1.0) end
   self.KeyFunction[IN_JUMP]      = function() self:TriggerInput("SetMode",1.0) end
-  self.KeyFunction[IN_ATTACK]    = function() self:TriggerInput("ToggleCockpitLight",1.0) end
+  self.KeyFunction[IN_ATTACK]    = function() self:TriggerInput("ToggleHeadLight",1.0) end
   self.KeyFunction[IN_ATTACK2]   = function() self:TriggerInput("ToggleInteriorLight",1.0) end
 --  self.ReleaseFunction[IN_SPEED] = function() self:TriggerInput("Horn",0.0) end
   
@@ -435,30 +441,41 @@ function ENT:CreateBogey(pos,forward)
     0,0,0,1,Vector(0,0,1),false)
 
   -- Create wheels
-  local wheel1 = ents.Create("gmod_subway_wheels")
-  wheel1:SetPos(bogey:LocalToWorld(wheel1Offset))
-  wheel1:SetAngles(bogey:GetAngles() + Angle(0,0,90))
-  wheel1:Spawn()
-  wheel1:GetPhysicsObject():SetMass(1000)
+--  local wheel1 = ents.Create("gmod_subway_wheels")
+--  wheel1:SetPos(bogey:LocalToWorld(wheel1Offset))
+--  wheel1:SetAngles(bogey:GetAngles() + Angle(0,0,90))
+--  wheel1:Spawn()
+--  wheel1:GetPhysicsObject():SetMass(1000)
 
-  local wheel2 = ents.Create("gmod_subway_wheels")
-  wheel2:SetPos(bogey:LocalToWorld(wheel2Offset))
-  wheel2:SetAngles(bogey:GetAngles() + Angle(0,0,90))
-  wheel2:Spawn()
-  wheel2:GetPhysicsObject():SetMass(1000)
+--  local wheel2 = ents.Create("gmod_subway_wheels")
+--  wheel2:SetPos(bogey:LocalToWorld(wheel2Offset))
+--  wheel2:SetAngles(bogey:GetAngles() + Angle(0,0,90))
+--  wheel2:Spawn()
+--  wheel2:GetPhysicsObject():SetMass(1000)
+
+  local wheels = ents.Create("gmod_subway_wheels")
+  wheels:SetPos(bogey:LocalToWorld(Vector(0,0.0,-14)))
+  wheels:SetAngles(bogey:GetAngles() + Angle(0,90,0))
+  wheels:Spawn()
+--  wheels:GetPhysicsObject():SetMass(2000)
 
   -- Nocollide wheels from the chassis
-  constraint.NoCollide(wheel1,self,0,0)
-  constraint.NoCollide(wheel2,self,0,0)
-  constraint.Weld(wheel1,bogey,0,0,0,1,0)
-  constraint.Weld(wheel2,bogey,0,0,0,1,0)
+  constraint.NoCollide(wheels,self,0,0)
+  constraint.Weld(wheels,bogey,0,0,0,1,0)
+
+--  constraint.NoCollide(wheel1,self,0,0)
+--  constraint.NoCollide(wheel2,self,0,0)
+--  constraint.Weld(wheel1,bogey,0,0,0,1,0)
+--  constraint.Weld(wheel2,bogey,0,0,0,1,0)
 
   -- Add to cleanup list
   table.insert(self.TrainEnts,bogey)
-  table.insert(self.TrainEnts,wheel1)
-  table.insert(self.TrainEnts,wheel2)
-  table.insert(self.Wheels,wheel1)
-  table.insert(self.Wheels,wheel2)
+  table.insert(self.TrainEnts,wheels)
+  table.insert(self.Wheels,wheels)
+--  table.insert(self.TrainEnts,wheel1)
+--  table.insert(self.TrainEnts,wheel2)
+--  table.insert(self.Wheels,wheel1)
+--  table.insert(self.Wheels,wheel2)
 
   return bogey
 end
@@ -557,16 +574,16 @@ function ENT:SetLightPower(index,power)
       self.HeadLight:SetKeyValue("lightfov", 120)
 
       -- Set Brightness
-      local brightness = 0.75
-      self.HeadLight:SetKeyValue("lightcolor",Format("%i %i %i 255",255*brightness,255*brightness,255*brightness))
+      local brightness = 1.25
+      self.HeadLight:SetKeyValue("lightcolor",Format("%i %i %i 255",176*brightness,161*brightness,132*brightness))
 
       -- Turn light on
-      self.HeadLight:Spawn()
+      self.HeadLight:Spawn() --"effects/flashlight/caustics")--
       self.HeadLight:Input("SpotlightTexture",nil,nil,"effects/flashlight001")
       
       -- Spawn headlight glow
       for i=1,6 do
-        local light = ents.Create("env_lightglow")
+        local light = ents.Create("env_sprite")
         light:SetParent(self)
     
         -- Set position
@@ -580,12 +597,13 @@ function ENT:SetLightPower(index,power)
         light:SetLocalAngles(Angle(0,180,0))
     
         -- Set parameters
-        light:SetKeyValue("rendercolor","255 255 255")
-        light:SetKeyValue("HorizontalGlowSize", 16)
-        light:SetKeyValue("VerticalGlowSize", 16)
-        light:SetKeyValue("MinDist", 8)
-        light:SetKeyValue("MaxDist", 96)
-        light:SetKeyValue("OuterMaxDist", 12000)
+        local b = 0.5
+        light:SetKeyValue("rendercolor",Format("%d %d %d",255*b,255*b,255*b))
+        light:SetKeyValue("rendermode", 3) -- 9: WGlow, 3: Glow
+        light:SetKeyValue("model", "sprites/glow1.vmt")
+--      light:SetKeyValue("model", "sprites/light_glow02.vmt")
+--      light:SetKeyValue("model", "sprites/yellowflare.vmt")
+        light:SetKeyValue("scale", 1.0)
         light:SetKeyValue("spawnflags", 1)
     
         -- Turn light on
@@ -604,7 +622,7 @@ function ENT:SetLightPower(index,power)
 
     if power then
       for i=1,2 do
-        local light = ents.Create("env_lightglow")
+        local light = ents.Create("env_sprite")
         light:SetParent(self)
 
         -- Set position
@@ -614,11 +632,11 @@ function ENT:SetLightPower(index,power)
 
         -- Set parameters
         light:SetKeyValue("rendercolor","255 0 0")
-        light:SetKeyValue("HorizontalGlowSize", 8)
-        light:SetKeyValue("VerticalGlowSize", 8)
-        light:SetKeyValue("MinDist", 8)
-        light:SetKeyValue("MaxDist", 96)
-        light:SetKeyValue("OuterMaxDist", 12000)
+        light:SetKeyValue("rendermode", 9) -- 9: WGlow, 3: Glow
+--        light:SetKeyValue("model", "sprites/glow1.vmt")
+        light:SetKeyValue("model", "sprites/light_glow02.vmt")
+--      light:SetKeyValue("model", "sprites/yellowflare.vmt")
+        light:SetKeyValue("scale", 0.50)
         light:SetKeyValue("spawnflags", 1)
 
         -- Turn light on
@@ -626,7 +644,7 @@ function ENT:SetLightPower(index,power)
         self.RedLightGlow[light] = light
       end
     end
-  else
+  elseif index == 1 then
     if self.InteriorLights then
       for k,v in pairs(self.InteriorLights) do
         SafeRemoveEntity(v)
@@ -643,7 +661,7 @@ function ENT:SetLightPower(index,power)
         light:SetLocalAngles(Angle(0,180,0))
 
         -- Set parameters
-        light:SetKeyValue("_light","255 255 255 255")
+        light:SetKeyValue("_light","255 255 200 255")
         light:SetKeyValue("style", 0)
         light:SetKeyValue("distance", 300)
         light:SetKeyValue("brightness", 2)
@@ -653,6 +671,43 @@ function ENT:SetLightPower(index,power)
         light:Fire("TurnOn","","0")
         table.insert(self.InteriorLights,light)
       end
+    end
+  elseif index >= 3 then
+    self.SpecialLights = self.SpecialLights or {}
+
+    if power and (not self.SpecialLights[index]) then
+      self.SpecialLights[index] = {}
+      for i=1,2 do
+        local light = ents.Create("env_sprite")
+        light:SetParent(self)
+
+        -- Set position
+        local j = (i-1) % 2
+        if self.PassengerWagon
+        then light:SetLocalPos(Vector(45-j*89.5,j*67.5*2-67.5,61-(index-3)*3.5))
+        else light:SetLocalPos(Vector(47-j*89.5,j*67.5*2-67.5,61-(index-3)*3.5))
+        end
+        light:SetLocalAngles(Angle(0,180,0))
+
+        -- Set parameters
+        if index == 3 then light:SetKeyValue("rendercolor","255 200 0") end
+        if index == 4 then light:SetKeyValue("rendercolor","0 255 0") end
+        if index == 5 then light:SetKeyValue("rendercolor","255 255 255") end
+        
+        light:SetKeyValue("rendermode", 9) -- 9: WGlow, 3: Glow
+        light:SetKeyValue("model", "sprites/light_glow02.vmt")
+        light:SetKeyValue("scale", 0.09)
+        light:SetKeyValue("spawnflags", 1)
+
+        -- Turn light on
+        light:Spawn()
+        self.SpecialLights[index][light] = light
+      end
+    elseif (not power) and self.SpecialLights[index] then
+      for k,v in pairs(self.SpecialLights[index]) do
+        SafeRemoveEntity(v)
+      end
+      self.SpecialLights[index] = nil
     end
   end
 end
@@ -951,7 +1006,7 @@ function ENT:TriggerInput(iname, value)
     if (value > 0.0) and (self.DriverMode > 0) then self:SetDoors(0,not self.DoorState[0]) end
   elseif iname == "ToggleRightDoors" then
     if (value > 0.0) and (self.DriverMode > 0) then self:SetDoors(1,not self.DoorState[1]) end
-  elseif iname == "ToggleCockpitLight" then
+  elseif iname == "ToggleHeadLight" then
     if (value > 0.0) then self:SetLights(0,not self.LightState[0]) end
   elseif iname == "ToggleInteriorLight" then
     if (value > 0.0) and (self.DriverMode > 0) then self:SetLights(1,not self.LightState[1]) end
@@ -992,6 +1047,14 @@ function ENT:TriggerInput(iname, value)
 --      self.LastSwitchError = err
 --    end
 --    end
+  elseif iname == "PlayAnnouncement" then
+    if self.Announcer and (self.Mode > 0) then
+      self.Announcer:Play(math.floor(value))
+    end
+  elseif iname == "QueueAnnouncement" then
+    if self.Announcer and (self.Mode > 0) then
+      self.Announcer:Queue(math.floor(value))
+    end
   end
 end
 
@@ -1017,7 +1080,7 @@ function ENT:ProcessBogey(bogey)
   self.MotorSettings[3] = { -1.00, 20  } -- T2
   self.MotorSettings[4] = { -0.50, 40  } -- T1A
   self.MotorSettings[5] = { -0.25, 90  } -- T1
-  self.MotorSettings[7] = {  0.20, 25  } -- X1
+  self.MotorSettings[7] = {  0.30, 20  } -- X1
   self.MotorSettings[8] = {  0.45, 40  } -- X2
   self.MotorSettings[9] = {  0.60, 90  } -- X3
   
@@ -1051,7 +1114,7 @@ function ENT:ProcessBogey(bogey)
   end
   
   -- Apply force and subtract friction
-  local force = 48000*motorPower + 49000*math.min(0.7,0.5*absSpeed/50)*sign
+  local force = 48000*motorPower + 0*15000*math.min(0.7,0.5*absSpeed/50)*sign
   
   if forward
   then bogey:GetPhysicsObject():ApplyForceCenter(-bogey:GetAngles():Forward()*force)
@@ -1302,7 +1365,7 @@ function ENT:Think()
 
   -- Check ARS signals
   self.ARSTimer = self.ARSTimer or CurTime()
-  if (CurTime() - self.ARSTimer > 0.25) and (not self.PassengerWagon) and (self.Mode > 0) then
+  if (CurTime() - self.ARSTimer > 0.10) and (not self.PassengerWagon) and (self.Mode > 0) then
     self.ARSTimer = CurTime()
 
     local dist = 1e9
@@ -1319,36 +1382,6 @@ function ENT:Think()
           self.ARSSpeed = tonumber(v:GetNWString("Value1"))
           self.ARSChangeTime = CurTime()
         end
-        
-        if v.TrafficLight and (v.LightStates[1] == true) then
-          local ignore_light = false
-          if Metrostroi.TrafficLightPositions[v] and Metrostroi.TrainPositions[self] then
-            local facing_light = Metrostroi.TrafficLightPositions[v].forward_facing
-            local facing_train = Metrostroi.TrainPositions[self].forward_facing
-            local path_light = Metrostroi.TrafficLightPositions[v].path
-            local path_train = Metrostroi.TrainPositions[self].path
-            local light_pos = Metrostroi.TrafficLightPositions[v].position
-            local train_pos = Metrostroi.TrainPositions[self].position
-            ignore_light = (facing_light ~= facing_train) or (path_light ~= path_train)
-            -- FIXME check path
---            print(self,facing_light,facing_train,path_light,path_train)
---            if ignore_light then
---              print(self,"IGNORE LIGHT",self.DriverMode)
---            end
-            if self.NextLightRed and (d < 240) and (self.Speed > 21) and (not ignore_light) and (self.DriverMode > 2) then
-              print("STOP",train_pos,light_pos,facing_light,facing_train,path_light,path_train)
-            end
-          end
---          print(self,"DIST",d)
---          local ignore_light = false
-          if self.NextLightRed and (d < 240) and (self.Speed > 21) and (not ignore_light) then
---            print("STOPPED AT LIGHT")
-            if self.DriverMode > 2 then
-              self:SetDriverMode(1)
-              self:PlayOnce("warning",true)
-            end
-          end
-        end
       end
     end
     
@@ -1363,14 +1396,14 @@ function ENT:Think()
     -- Execute logic
     if self.DriverMode > 0 then
       if (self.SelectAlternateTrack == true) and switch then
-        self.AlternateTrackBlocked = not switch:SetTrackSwitchState(true,self)
+        self.TrackSwitchBlocked = not switch:SetTrackSwitchState(true,self)
       elseif (self.SelectAlternateTrack == false) and (self.AlternateTrack == true) and switch then
-        self.AlternateTrackBlocked = not switch:SetTrackSwitchState(false,self)
+        self.TrackSwitchBlocked = not switch:SetTrackSwitchState(false,self)
       else
-        self.AlternateTrackBlocked = false
+        self.TrackSwitchBlocked = false
       end
     else
-      self.AlternateTrackBlocked = true
+      self.TrackSwitchBlocked = true
     end
     
     -- Auto-shutdown track switch logic thing
@@ -1403,11 +1436,21 @@ function ENT:Think()
       elseif foundType == "train" then
         self.NextLightRed = true
         self.NextLightYellow = true
-        self.DistanceToLight = -1
+        self.DistanceToLight = 0.1
       else
         self.NextLightRed = false
         self.NextLightYellow = false
         self.DistanceToLight = -1
+      end
+      
+      -- Red light run logic
+      if (foundType == "light") and foundEnt and (self.DistanceToLight < 3) then
+        if foundEnt.LightStates[1] == true then
+          if (self.DriverMode > 2) and (self.Speed > 11) and (self.Reverse == false) then
+            self:SetDriverMode(1)
+            self:PlayOnce("warning",true)
+          end
+        end
       end
     else
       self.NextLightRed = false
@@ -1467,6 +1510,47 @@ function ENT:Think()
       Wire_TriggerOutput(self, "CurrentOffset", 0)
       Wire_TriggerOutput(self, "CurrentPath", -1)
     end
+    
+    
+    if self.AlternateTrack == true
+    then Wire_TriggerOutput(self, "AlternateTrack", 1.0)
+    else Wire_TriggerOutput(self, "AlternateTrack", 0.0)
+    end
+    if self.TrackSwitchBlocked == true
+    then Wire_TriggerOutput(self, "TrackSwitchBlocked", 1.0)
+    else Wire_TriggerOutput(self, "TrackSwitchBlocked", 0.0)
+    end
+    if self.SelectAlternateTrack == true
+    then Wire_TriggerOutput(self, "SelectingAlternate", 1.0)
+    else Wire_TriggerOutput(self, "SelectingAlternate", 0.0)
+    end
+    
+    if self.Announcer then
+      if self.Announcer.CurrentAnnouncement then
+        Wire_TriggerOutput(self, "Announcement", self.Announcer.CurrentAnnouncement[3] or 0)
+      else
+        Wire_TriggerOutput(self, "Announcement", 0.0)
+      end
+    end
+  end
+  
+  
+  -- Update systems
+--    self.Announcer = nil
+--    self.Announcer = Metrostroi.Systems.Announcer(self)
+  if self.Announcer then
+    self.Announcer:Think()
+  end
+  
+  -- Display status lights
+  if self.Mode > 0 then
+    self:SetLightPower(3,self.Mode <= 2)
+    self:SetLightPower(4,(self.MasterTrain == nil) and (self.PassengerWagon))
+    self:SetLightPower(5,(self.DoorPosition[0] > 0.1) or (self.DoorPosition[1] > 0.1))
+  else
+    self:SetLightPower(3,false)
+    self:SetLightPower(4,false)
+    self:SetLightPower(5,false)
   end
   
   
@@ -1481,7 +1565,7 @@ function ENT:Think()
   self:SetNWBool("InteriorLight",self.LightState[1])
   self:SetNWBool("AlternateTrack",self.AlternateTrack)
   self:SetNWBool("SelectAlternateTrack",self.SelectAlternateTrack or false)
-  self:SetNWBool("AlternateTrackBlocked",self.AlternateTrackBlocked)
+  self:SetNWBool("TrackSwitchBlocked",self.TrackSwitchBlocked)
   self:SetNWBool("NextLightYellow",self.NextLightYellow)
   self:SetNWBool("NextLightRed",self.NextLightRed)
   if self.ARSSpeed

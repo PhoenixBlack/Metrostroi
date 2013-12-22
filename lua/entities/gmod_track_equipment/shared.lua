@@ -18,11 +18,17 @@ function ENT:SetupDataTables()
     type = "Boolean" } } )
     
   self:NetworkVar("Bool", 1, "PropRedOnAlternateTrack", { KeyName = "kvb", Edit = {
-    title = "Red when track switch is alternate?",
+    title = "Red on alternate track?",
+    category = "Traffic Light",
+    type = "Boolean" } } )
+    
+  self:NetworkVar("Bool", 2, "PropOverrideToRed", { KeyName = "kvc", Edit = {
+    title = "Always red?",
     category = "Traffic Light",
     type = "Boolean" } } )
     
   if SERVER then
+    self:NetworkVarNotify("PropOverrideToRed",       self.OnVariableChanged)
     self:NetworkVarNotify("PropDisabled",            self.OnVariableChanged)
     self:NetworkVarNotify("PropRedOnAlternateTrack", self.OnVariableChanged)
   end

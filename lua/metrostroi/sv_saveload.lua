@@ -52,7 +52,12 @@ function Metrostroi.Load(filename)
     -- Read entities from file
     if filename then
       local code = file.Read(filename)
-      if code then RunString(code) else print("Read error",filename) end
+      if code then
+        code = "local player = nil\r\n"..code
+        RunString(code)
+      else
+        print("Read error",filename)
+      end
     end
     
     -- Fix links between pickets
@@ -120,12 +125,12 @@ hook.Add("Initialize", "Metrostroi_MapInitialize", function()
 end)
 
 concommand.Add("metrostroi_save", function(ply, _, args)
---  if plyply:SteamID() ~= "STEAM_0:1:11146643" then return end
+  if (ply:IsValid()) and (not ply:IsAdmin()) then return end
   Metrostroi.Save()
 end)
 
 concommand.Add("metrostroi_load", function(ply, _, args)
---  if ply:SteamID() ~= "STEAM_0:1:11146643" then return end
+  if (ply:IsValid()) and (not ply:IsAdmin()) then return end
   Metrostroi.Load()
 end)
 

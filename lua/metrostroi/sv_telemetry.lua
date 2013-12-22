@@ -1,18 +1,45 @@
 --local canPost = true
+local function onDispatcherMessage(msg)
+  if string.sub(msg,1,1) == "@" then
+    local cmd = string.Explode(",",string.sub(msg,2))
+    if cmd[1] == "red" then
+      for k,v in pairs(Metrostroi.TrafficLights) do
+        if v:IsValid() and (v.EquipmentID == tonumber(cmd[2])) then
+          v.TelemetryOverrideToRed = true
+          if Metrostroi.TrafficLightStates[v] then
+            Metrostroi.TrafficLightStates[v].state = -1
+          end
+        end
+      end
+    elseif cmd[1] == "auto" then
+      for k,v in pairs(Metrostroi.TrafficLights) do
+        if v:IsValid() and (v.EquipmentID == tonumber(cmd[2])) then
+          v.TelemetryOverrideToRed = nil
+          if Metrostroi.TrafficLightStates[v] then
+            Metrostroi.TrafficLightStates[v].state = -1
+          end
+        end
+      end
+    end
+    
+    print("Dispatcher command: "..msg)
+  else
+    PrintMessage(HUD_PRINTTALK,"Dispatcher: "..msg)
+    print("Dispatcher: "..msg)
+  
+    Metrostroi.DriverChatBacklog["global"] =
+      Metrostroi.DriverChatBacklog["global"] or {}
+      
+    table.insert(Metrostroi.DriverChatBacklog["global"],"Dispatcher: "..msg)
+  end
+end
+
 local function onSuccess(content)
   local data = string.Explode("\n",content)
---  print(data[1])
   if data[1] == "OK" then
     for i=2,#data do
       if data[i] and (data[i] ~= "") then
-        PrintMessage(HUD_PRINTTALK,"Dispatcher: "..data[i])
-        print("Dispatcher: "..data[i])
-        
-        for k,v in pairs(Metrostroi.DriverChatBacklog) do
-          if (k.DriverMode or 0) > 0 then
-            table.insert(v,"Dispatcher: "..data[i])
-          end
-        end
+        onDispatcherMessage(data[i])
       end
     end
   end
@@ -128,9 +155,9 @@ function Metrostroi.UpdateTelemetry()
       request = request.."\"m\":"..bool2str(train.MasterTrain == nil)..","
       request = request.."\"at\":"..bool2str(train.AlternateTrack)..","
       request = request.."\"sat\":"..bool2str(train.SelectAlternateTrack)..","
-      request = request.."\"atb\":"..bool2str(train.AlternateTrackBlocked)..","
+      request = request.."\"atb\":"..bool2str(train.AlternateTrackBlocked)
       
-      Metrostroi.DriverChatBacklog[train] = Metrostroi.DriverChatBacklog[train] or {}
+      --[[Metrostroi.DriverChatBacklog[train] = Metrostroi.DriverChatBacklog[train] or {}
       local chatlog = "{"
       for k,v in pairs(Metrostroi.DriverChatBacklog[train]) do
         chatlog = chatlog.."\""..k.."\":".."\""..v.."\""
@@ -139,11 +166,44 @@ function Metrostroi.UpdateTelemetry()
         end
       end
       Metrostroi.DriverChatBacklog[train] = {}
-      request = request.."\"log\":"..chatlog.."}"
+      request = request.."\"log\":"..chatlog.."}" ]]--
       
       request = request.."}"
     end
   end
+  request = request.."},"
+  request = request.."\"chat\":{"
+  
+  local i = 1
+  local f = false
+  for train,data in pairs(Metrostroi.DriverChatBacklog) do
+    if (train ~= "global") and train:IsValid() then
+      for k,v in pairs(data) do
+        if f == true then request = request.."," end
+        f = true
+        
+        request = request.."\""..i.."\":{"
+          request = request.."\"t\":".."\""..v.."\","
+          request = request.."\"w\":".."\""..train.WagonID.."\""
+        request = request.."}"
+        i = i + 1
+      end
+      Metrostroi.DriverChatBacklog[train] = {}
+    else
+      for k,v in pairs(data) do
+        if f == true then request = request.."," end
+        f = true
+  
+        request = request.."\""..i.."\":{"
+          request = request.."\"t\":".."\""..v.."\","
+          request = request.."\"w\":".."\"global\""
+        request = request.."}"
+        i = i + 1
+      end
+      Metrostroi.DriverChatBacklog[train] = {}
+    end
+  end
+
   request = request.."},"
   request = request.."\"lights\":{"
   local f = false
@@ -167,9 +227,11 @@ function Metrostroi.UpdateTelemetry()
         request = request.."\""..light.EquipmentID.."\": {"
         request = request.."\"id\":"..light.EquipmentID..","
         request = request.."\"state\":"..bits..","
+        request = request.."\"ovrd\":"..bool2str(light.TelemetryOverrideToRed)..","
         request = request.."\"pos\":"..Format("%.1f",data.position)..","
         request = request.."\"pth\":"..Format("%d",  data.path)..","
-        request = request.."\"fwd\":"..bool2str(data.forward_facing)
+        request = request.."\"fwd\":"..bool2str(data.forward_facing)..","
+        request = request.."\"lgh\":\""..string.lower(light.TrafficLight).."\" "
         request = request.."}"
       end
     end
@@ -253,15 +315,12 @@ hook.Add("PlayerSay", "Metrostroi_BugAsdPlayerSay", function(ply,text,team)
     if v.IsSubwayTrain then train = v end
   end
 
-  if not train then
-    local trains = ents.FindByClass("gmod_subway_81-717")
-    if trains[1] then train = trains[1] end
-    name = name.."[a]"
-  end
-
   if train then
     Metrostroi.DriverChatBacklog[train] = Metrostroi.DriverChatBacklog[train] or {}
     table.insert(Metrostroi.DriverChatBacklog[train],name..": "..text)
+  else
+    Metrostroi.DriverChatBacklog["global"] = Metrostroi.DriverChatBacklog["global"] or {}
+    table.insert(Metrostroi.DriverChatBacklog["global"],name..": "..text)
   end
   
   
@@ -330,7 +389,12 @@ hook.Add("PlayerInitialSpawn", "Metrostroi_BugFinderPlayerConnect", function(ply
   ply:PrintMessage(HUD_PRINTTALK,"=========================")
   ply:PrintMessage(HUD_PRINTTALK,"If you notice a problem within the map, please report by aiming at the problem and typing in chat '!description of the problem here'")
   ply:PrintMessage(HUD_PRINTTALK,"=========================")
-  ply:ConCommand("rate 1000000")
+  local info = file.Read("motd.txt") or ""
+  local infos = string.Explode("\r\n",info)
+  for k,v in pairs(infos) do
+    ply:PrintMessage(HUD_PRINTTALK,"> "..v)
+  end
+  ply:PrintMessage(HUD_PRINTTALK,"=========================")
   
   if ply:SteamID() == "STEAM_0:1:11146643" then
     local bugs = file.Read("bugs.txt") or ""

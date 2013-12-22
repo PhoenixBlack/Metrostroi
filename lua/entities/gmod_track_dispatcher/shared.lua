@@ -7,5 +7,5 @@ ENT.Contact         = ""
 ENT.Purpose         = ""
 ENT.Instructions    = ""
 
-ENT.Spawnable       = true
+ENT.Spawnable       = false
 ENT.AdminSpawnable  = false

@@ -295,10 +295,12 @@ end
 
 function ENT:SpawnRest()
   self:PhysicsInit(SOLID_VPHYSICS)
---  self:SetMoveType(MOVETYPE_NONE)
-  self:SetMoveType(MOVETYPE_VPHYSICS)
+  self:SetMoveType(MOVETYPE_NONE)
   self:SetSolid(SOLID_VPHYSICS)
-  self:GetPhysicsObject():EnableMotion(false)
+  
+--  self:SetMoveType(MOVETYPE_VPHYSICS)
+--  self:SetSolid(SOLID_VPHYSICS)
+--  self:GetPhysicsObject():EnableMotion(false)
   
   if self.PoleMount or self.SignIndex or self.SpeedLimit or
      self.TrackSlope or self.BrakeZone or self.DangerZone or
@@ -311,6 +313,8 @@ function ENT:SpawnRest()
       self:GetAngles(),
       self.PoleMount,self.SignIndex,self.SpeedLimit,self.SectionLength,
       self.TrackSlope,self.BrakeZone,self.DangerZone,self.PicketSign)
+      
+    ent:SetNetworkedString("Owner", self:GetNetworkedString("Owner"))
 
     ent.OriginalVariables = nil
     table.insert(self.ExtraEnts,ent)
@@ -487,7 +491,7 @@ function ENT:IsTrackSwitchBlocked(caller)
     local trains = ents.FindInSphere(v:GetPos(),512)
     for k2,v2 in pairs(trains) do
       local CLASS_PREFIX = "gmod_subway"
-      if (string.sub(v2:GetClass(),1,#CLASS_PREFIX) == CLASS_PREFIX) and (v2 ~= caller) then
+      if (string.sub(v2:GetClass(),1,#CLASS_PREFIX) == CLASS_PREFIX) then --and (v2 ~= caller) then
 --        print("PHYSICALLY BLOCKED")
         return true
       end
@@ -654,7 +658,7 @@ function ENT:UpdateTrafficLight(trainBlocksNext,trainBlocksAlt,nextLight,alterna
     self:SetAmbientLight(6,false)
     return
   end
-  
+
   -- Check if next lights values must be delegated to this one
   local delegateState = false
   if self.NextTrafficLight then
@@ -665,7 +669,7 @@ function ENT:UpdateTrafficLight(trainBlocksNext,trainBlocksAlt,nextLight,alterna
   end
   
   -- Check if next section is blocked and how
-  local blockedByTrain = self.TrainBlocksNext
+  local blockedByTrain = self.TrainBlocksNext or self.OverrideToRed
   local blockedBySwitch = (self.RedOnAlternateTrack == true) and
                           (nextSwitch) and (nextSwitch:GetTrackSwitchState())
   local blockedByDeadEnd = not self.NextTrafficLight
@@ -697,8 +701,13 @@ function ENT:UpdateTrafficLight(trainBlocksNext,trainBlocksAlt,nextLight,alterna
        (self.TrafficLight == "BYG_RY") then
       if nextSwitchActive then
         self:SetAmbientLight(3,false)
+        
+        local nextLightRed = false
+        if delegateState then
+          nextLightRed = self.NextTrafficLight.LightStates[1]
+        end
 
-        if blockedByTrain or blockedBySwitch then
+        if blockedByTrain or blockedBySwitch or nextLightRed then
           self:SetAmbientLight(1,true)
           self:SetAmbientLight(5,false)
           self:SetAmbientLight(2,true)
@@ -717,7 +726,6 @@ function ENT:UpdateTrafficLight(trainBlocksNext,trainBlocksAlt,nextLight,alterna
         end
 
         retainNormalLogic = false
-        delegateState = false
       else
         self:SetAmbientLight(5,false)
       end
@@ -749,7 +757,7 @@ function ENT:UpdateTrafficLight(trainBlocksNext,trainBlocksAlt,nextLight,alterna
         end
       else
         self:SetAmbientLight(1,true)
-        self:SetAmbientLight(2,true)
+        self:SetAmbientLight(2,false)
         self:SetAmbientLight(3,false)
       end
     end
@@ -845,18 +853,23 @@ function ENT:KeyValue(key, value)
 end
 
 function ENT:OnVariableChanged()
-  if self.CanEditSpecialVariables then
+--  if self.CanEditSpecialVariables then
 --    print("VAR CHANGED")
 --    self.RedOnAlternateTrack = self:GetPropRedOnAlternateTrack()
 --    self.Disabled = self:GetPropDisabled()
---    print("SET",self.Disabled,self.RedOnAlternateTrack)
-  end
+--    self.OverrideToRed = self:GetPropOverrideToRed()
+--    print("SET",self.Disabled,self.RedOnAlternateTrack,self.OverrideToRed)
+--  end
 end
 
 function ENT:Think()
-  self:SetPropRedOnAlternateTrack(self.RedOnAlternateTrack == true)
-  self:SetPropDisabled(self.Disabled == true)
-  self.CanEditSpecialVariables = true
+  if not self.CanEditSpecialVariables then
+    self:SetPropRedOnAlternateTrack(self.RedOnAlternateTrack == true)
+    self:SetPropDisabled(self.Disabled == true)
+    self.CanEditSpecialVariables = true
+  else
+    self.OverrideToRed = self.TelemetryOverrideToRed or self:GetPropOverrideToRed()
+  end
   
 --  local data = self:GetKeyValues()
 --  for k,v in pairs(data) do
@@ -897,6 +910,9 @@ function MakeSubwayTrackEquipment(player, pos, ang,
 
   -- Spawn entity
   ent:Spawn()
+  if not player then
+    ent:SetNetworkedString("Owner", "World")
+  end
   --player:AddCount("wire_clutchs", controller)
   return ent
 end
