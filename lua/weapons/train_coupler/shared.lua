@@ -4,25 +4,25 @@ if (SERVER) then
 	SWEP.Weight				= 1
 	SWEP.AutoSwitchTo		= false
 	SWEP.AutoSwitchFrom		= false
-	util.AddNetworkString("traincouplernotify") 
+	util.AddNetworkString("traintoolnotify") 
 end
 
 if (CLIENT) then
-	SWEP.PrintName			= "Train (de)coupler"
+	SWEP.PrintName			= "Train Engineering Tool"
 	SWEP.Slot = 3
 	SWEP.SlotPos = 1
 	SWEP.DrawAmmo			= false
 	SWEP.DrawCrosshair		= true
 	
-	net.Receive("traincouplernotify", function( length, client )
-	notification.AddLegacy(net.ReadString(),net.ReadInt(4),net.ReadInt(4))
-end)
+	net.Receive("traintoolnotify", function( length, client )
+		notification.AddLegacy(net.ReadString(),net.ReadInt(4),net.ReadInt(4))
+	end)
 	
 end
 
 SWEP.Author		= "TP Hunter NL"
-SWEP.Contact		= "http://steamcommunity.com/profiles/76561197997546755"
-SWEP.Purpose		= "Couling and de-coupling train wagons"
+SWEP.Contact		= "http://facepunch.com/showthread.php?t=1328089"
+SWEP.Purpose		= "Coupling, decoupling, switching"
 SWEP.Instructions	= "Click on 1 bogey, then click on another. Right click decouples, reload cancels"
 
 SWEP.Spawnable			= true
@@ -60,6 +60,15 @@ function SWEP:IsValidBogey(s)
 	if not IsValid(s) then return false end
 	local s = s:GetModel() or s
 	return self.ValidBogeys[s] != nil
+end
+
+function SWEP:GetSwitchPicket(ent)
+	if !IsValid(ent) then return false end
+	if ent:GetClass() != "prop_door_rotating" then return false end
+	local picketlist = self:SortEntTableByDistance(ents.FindByClass("gmod_track_equipment"),ent:GetPos())
+	for k,v in pairs(picketlist) do
+		if v.TrackSwitchName == ent:GetName() then return v end
+	end
 end
 
 //Apply the ballsocket
@@ -100,7 +109,7 @@ end
 //0=generic 1=error 2=undo 3=hint 4=cleanup
 //Message, type, delay
 function SWEP:SendNotification(s,e,n)
-	net.Start("traincouplernotify")
+	net.Start("traintoolnotify")
 	net.WriteString(s)
 	net.WriteInt(e,4)
 	net.WriteInt(n,4)
@@ -125,6 +134,24 @@ function SWEP:AreCoupled(ent1,ent2)
 	end
 	
 	return coupled
+end
+
+function SWEP:SortEntTableByDistance(tbl,pos)
+	local newtable = {}
+	for k,v in pairs(tbl) do
+		if IsValid(v) then
+			table.insert(newtable,v)
+		else 
+			Error("Table contains non-entity")
+		end
+	end
+	
+	table.sort(newtable, function( ent1, ent2 )
+		return ent1:GetPos():Distance(pos) < ent2:GetPos():Distance(pos)
+	end)
+	
+	return newtable
+	
 end
 
 //Get the most likely canidate for a connection
@@ -197,8 +224,12 @@ function SWEP:PrimaryAttack()
 		else
 			self:SendNotification("No other bogeys nearby",0,5)
 		end
-	elseif IsValid(ent1)  then
-		self:SendNotification("Invalid bogey",1,3) 
+	else
+		local picket = self:GetSwitchPicket(ent1)
+		if IsValid(picket) then
+			picket:SetTrackSwitchState(true)
+		end
+		
 	end
 end
 
@@ -229,6 +260,11 @@ function SWEP:SecondaryAttack()
 		if didsomething then 
 			self:SendNotification("Decoupled",0,3) 
 			sound.Play("buttons/lever8.wav",(ent1:GetPos()+ent2:GetPos())/2)
+		end
+	else
+		local picket = self:GetSwitchPicket(ent)
+		if IsValid(picket) then
+			picket:SetTrackSwitchState(false)
 		end
 	end
 end
