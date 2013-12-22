@@ -1,0 +1,7 @@
+*.bak
+data/*
+maps/*
+materials/*
+models/*
+resource/*
+sound/*
