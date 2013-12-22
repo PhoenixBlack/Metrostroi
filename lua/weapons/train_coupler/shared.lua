@@ -179,20 +179,40 @@ end
 function SWEP:Reload()
 	if CurTime() > self.NextReloadTime then
 		self.NextReloadTime = CurTime() + .2
-		self.Weapon:SendWeaponAnim(ACT_VM_HITCENTER) 
-		self.Owner:SetAnimation( PLAYER_ATTACK1 );
 		if CLIENT then return end
 		
-		local ent = self.Owner:GetEyeTrace().Entity
-		if !self:IsValidBogey(ent) then return end
+		local tr = self.Owner:GetEyeTrace()
+		local ent = tr.Entity
 		
-		local train = ent
-                if ent.IsSubwayTrain ~= true then
-                  train = ent:GetNWEntity("TrainEntity")
-                end
-		
-		if train and IsValid(train) then
-			train:ReleaseBrakes()
+		if self:IsValidBogey(ent) then 
+			local train = ent
+			if ent.IsSubwayTrain ~= true then
+				train = ent:GetNWEntity("TrainEntity")
+			end
+			
+			if train and IsValid(train) then
+				train:ReleaseBrakes()
+				self.Weapon:SendWeaponAnim(ACT_VM_HITCENTER) 
+				self.Owner:SetAnimation( PLAYER_ATTACK1 );
+			end
+		else
+			print("Making equipment")
+			local sign = MakeSubwayTrackEquipment(self.Owner,tr.HitPos+tr.HitNormal+Vector(0,0,24),Angle(180,self.Owner:GetAngles().y,180),
+				nil, //pole mount
+				nil, //sign index
+				nil, //speed limit
+				nil, //section length
+				nil, //track slope
+				1, //brake zone
+				1, //danger zone
+				0, //picket sign
+				nil
+			) //tlight
+			undo.Create("gmod_track_equipment")
+				undo.AddEntity(sign)
+				undo.SetPlayer(self.Owner)
+			undo.Finish()
+			
 		end
 	end
 end
