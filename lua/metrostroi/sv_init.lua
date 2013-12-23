@@ -741,6 +741,11 @@ function Metrostroi.NextEquipmentID()
   return id
 end
 
+
+
+--------------------------------------------------------------------------------
+-- Handle cabin buttons
+--------------------------------------------------------------------------------
 net.Receive("metrostroi-cabin-button", function(len, ply)
 	local panel = net.ReadInt(8)
 	local button = net.ReadInt(8)
@@ -756,3 +761,62 @@ net.Receive("metrostroi-cabin-button", function(len, ply)
 	
 	train:OnButtonPress(panel,button,key)
 end)
+
+--------------------------------------------------------------------------------
+-- Rerail tool
+--------------------------------------------------------------------------------
+local function rerailtrain(ply,cmd,args,fullstring)
+	local train = ply:GetEyeTrace().Entity
+	if !IsValid(train) then return end
+	if !ply:IsAdmin() and ent:GetOwner() != train then return end
+	print(1)
+	if !train.IsSubwayTrain then
+		train = train:GetNWEntity("TrainEntity")
+		if !train.IsSubwayTrain then return end
+	end
+	print(2)
+	//Original trace down
+	local trace = {
+		start = train:GetPos(),
+		endpos = train:GetPos()+Vector(0,0,-100),
+		Entity = train.TrainEnts
+	}
+	local tr = util.TraceLine(trace)
+	if !tr.Hit then return end
+	print(3)
+	local baseNormal = tr.HitNormal
+	
+	//Trace to the right rail
+	local trace = {
+		start = tr.HitPos + Vector(0,0,3),
+		endpos = tr.HitPos + Vector(0,0,3) + train:GetAngles():Right()*80,
+		Entity = train.TrainEnts
+	}
+	local tr = util.TraceLine(trace)
+	if !tr.Hit then return end
+	print(4)
+	
+	local hit1 = tr.HitPos
+	local normal1 = tr.HitNormal
+	
+	//Trace to the opposite rail
+	local trace = {
+		start = tr.HitPos,
+		endPos = tr.HitPos + tr.HitNormal * 80,
+		Entity = train.TrainEnts
+	}
+	local tr = util.TraceLine(trace)
+	if !tr.Hit then return end
+	print(5)
+	
+	if tr.HitNormal != -normal1  then return end //Normals don't match, no valid track
+	
+	print(6)
+	
+	local basePos = (tr.HitPos + hit1)/2
+	
+	train:SetPos(basePos+Vector(0,0,200))
+	
+
+end
+concommand.Add("metrostroi_rerail",rerailtrain)

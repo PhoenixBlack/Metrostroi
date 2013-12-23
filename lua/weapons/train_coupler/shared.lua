@@ -196,7 +196,6 @@ function SWEP:Reload()
 				self.Owner:SetAnimation( PLAYER_ATTACK1 );
 			end
 		else
-			print("Making equipment")
 			local sign = MakeSubwayTrackEquipment(self.Owner,tr.HitPos+tr.HitNormal+Vector(0,0,24),Angle(180,self.Owner:GetAngles().y,180),
 				nil, //pole mount
 				nil, //sign index
