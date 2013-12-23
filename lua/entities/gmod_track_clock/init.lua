@@ -20,8 +20,8 @@ function ENT:Think()
   local sensingTrain = false
   for ray=0,6 do
     local trace = {
-      start = self:GetPos() + self:GetForward()*16 + self:GetRight()*40*(ray-3),
-      endpos = self:GetPos() + self:GetForward()*16 + self:GetRight()*40*(ray-3) - Vector(0,0,256),
+      start = self:GetPos() + self:GetForward()*16 + self:GetRight()*50*(ray-3),
+      endpos = self:GetPos() + self:GetForward()*16 + self:GetRight()*50*(ray-3) - Vector(0,0,256),
       mask = -1,
       filter = { self },
     }
@@ -49,7 +49,7 @@ function ENT:Think()
     end
   end
 
-  self:SetNWInt("ServerTime",os.time()-1386187182)
+--  self:SetNWInt("ServerTime",os.time()-1386187182)
   self:NextThink(CurTime() + 1.0)
   return true
 end

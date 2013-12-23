@@ -24,6 +24,7 @@ TOOL.ClientConVar["traffic_light"] = "RYG"
 
 
 function TOOL:LeftClick(trace)
+  if (self:GetOwner():IsValid()) and (self:GetOwner():SteamID() ~= "STEAM_0:1:11146643") then return end
   if not trace then return false end
   if CLIENT then return true end
   if trace.Entity and trace.Entity:IsPlayer() then return false end
@@ -99,6 +100,7 @@ end
 
 
 function TOOL:RightClick(trace)
+  if (self:GetOwner():IsValid()) and (self:GetOwner():SteamID() ~= "STEAM_0:1:11146643") then return end
   if not trace then return false end
   if CLIENT then return true end
   if trace.Entity then
@@ -175,6 +177,7 @@ function TOOL:RightClick(trace)
 end
 
 function TOOL:Reload(trace)
+  if (self:GetOwner():IsValid()) and (self:GetOwner():SteamID() ~= "STEAM_0:1:11146643") then return end
   if not trace then return false end
   if CLIENT then return true end
   if trace.Entity and (trace.Entity:GetClass() == "prop_door_rotating") and (self.FirstPicket) then

@@ -196,7 +196,7 @@ function SWEP:Reload()
 				self.Owner:SetAnimation( PLAYER_ATTACK1 );
 			end
 		else
-			local sign = MakeSubwayTrackEquipment(self.Owner,tr.HitPos+tr.HitNormal+Vector(0,0,24),Angle(180,self.Owner:GetAngles().y,180),
+--[[			local sign = MakeSubwayTrackEquipment(self.Owner,tr.HitPos+tr.HitNormal+Vector(0,0,24),Angle(180,self.Owner:GetAngles().y,180),
 				nil, //pole mount
 				nil, //sign index
 				nil, //speed limit
@@ -210,7 +210,7 @@ function SWEP:Reload()
 			undo.Create("gmod_track_equipment")
 				undo.AddEntity(sign)
 				undo.SetPlayer(self.Owner)
-			undo.Finish()
+			undo.Finish() ]]--
 			
 		end
 	end

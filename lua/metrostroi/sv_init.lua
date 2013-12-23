@@ -284,7 +284,7 @@ end
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateEntityPosition(pos_table,ent)
   local X_PAD = 0
-  local Y_PAD = 384 --256
+  local Y_PAD = 384
   local Z_PAD = 192
 
 --  for idx1,sign1 in pairs(Metrostroi.PicketSignByIndex) do
@@ -512,6 +512,7 @@ function Metrostroi.FindTrainOrLight(source,min_offset,index,checkedPickets,faci
       end
     end
   end
+    
   if Metrostroi.TrafficLightsAtSection[sign.Index] then
     for k,v in pairs(Metrostroi.TrafficLightsAtSection[sign.Index]) do
       local pos = Metrostroi.TrafficLightPositions[v].position
@@ -560,7 +561,7 @@ function Metrostroi.FindTrainOrLight(source,min_offset,index,checkedPickets,faci
   if min_index then
     return min_index,min_type,min_v,v_offset,firstSwitch
   end
-
+  
   local nextIndex = sign.NextIndex
   local nextPicket = sign.NextPicket
   if facing == false then
@@ -574,19 +575,27 @@ function Metrostroi.FindTrainOrLight(source,min_offset,index,checkedPickets,faci
 
     -- Follow the alternate path if not blocking
     if sign.TrackSwitchName and (sign:GetTrackSwitchState() == true) then
+      local backupCheckedPickets = {}
+      for k,v in pairs(checkedPickets) do
+        backupCheckedPickets[k] = v
+      end
+      
       local i,t,v,o,s = Metrostroi.FindTrainOrLight(source,
         sign.AlternatePicket.SectionOffset or min_offset,
         sign.AlternateIndex,checkedPickets,facing,firstSwitch or sign)
 
       -- If the next light is green, check other way too
-      if t == "light" then
-        if not v.TrainBlocksNext then
+      if (t == "light") or (not t) then
+        if (not t) or (not v.TrainBlocksNext) then
+          for k,v in pairs(backupCheckedPickets) do
+            checkedPickets[k] = v
+          end
           checkedPickets[sign.AlternateIndex] = nil
 
           local i2,t2,v2,o2,s2 = Metrostroi.FindTrainOrLight(source,
               sign.AlternatePicket.SectionOffset or min_offset,
-              sign.AlternateIndex,checkedPickets, not facing,firstSwitch or sign)
-
+              sign.AlternateIndex,checkedPickets,not facing,firstSwitch or sign)
+              
           if i2 then return i2,t2,v2,o2,s2 end
         end
       end
@@ -604,6 +613,7 @@ function Metrostroi.FindTrainOrLight(source,min_offset,index,checkedPickets,faci
     end
   end
   
+
   -- 3. Check if any next index is available
   if nextIndex then
     if facing == true then -- Facing forward and there's a discontinuity
@@ -617,6 +627,7 @@ function Metrostroi.FindTrainOrLight(source,min_offset,index,checkedPickets,faci
         min_offset = new_offset
       end
     end
+
     return Metrostroi.FindTrainOrLight(source,min_offset,nextIndex,checkedPickets,facing,firstSwitch)
   end
 end
@@ -633,7 +644,8 @@ function Metrostroi.UpdateTrafficLight(ent)
   local facing = Metrostroi.TrafficLightPositions[ent].forward_facing
   
   -- Find train or light
-  local foundIndex,foundType,foundEnt,foundOffset,foundSwitch = Metrostroi.FindTrainOrLight(ent,startOffset,startIndex,{},facing)
+  local c = {}
+  local foundIndex,foundType,foundEnt,foundOffset,foundSwitch = Metrostroi.FindTrainOrLight(ent,startOffset,startIndex,c,facing)
   -- Find track switch
 --  local foundSwitch = Metrostroi.GetNextTrackSwitch(ent,true)
 
@@ -839,7 +851,7 @@ local function rerailTrain(ply,cmd,args,fullstring)
 	//Check if player is looking at valid train
 	local train = ply:GetEyeTrace().Entity
 	if !IsValid(train) then return end
-	if !ply:IsAdmin() and ent:GetOwner() != train then return end
+	if !ply:IsAdmin() and (train:GetOwner() != train) then return end
 	if !train.IsSubwayTrain then
 		train = train:GetNWEntity("TrainEntity")
 		if !train.IsSubwayTrain then return end

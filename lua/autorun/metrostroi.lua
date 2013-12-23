@@ -120,6 +120,7 @@ if SERVER then
   resource.AddFile("sound/subway_announcer/11_05b.mp3")
   resource.AddFile("sound/subway_announcer/11_06b.mp3")
   resource.AddFile("sound/subway_announcer/11_07b.mp3")
+  resource.AddFile("sound/subway_announcer/11_08.mp3")
   
   resource.AddFile("sound/subway_announcer/12_08b.mp3")
   resource.AddFile("sound/subway_announcer/12_09b.mp3")

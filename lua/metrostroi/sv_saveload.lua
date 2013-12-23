@@ -117,6 +117,21 @@ function Metrostroi.Load(filename)
     Metrostroi.InhibitSectionUpdates = false
     Metrostroi.UpdateSections()
     Metrostroi.UpdateTrafficLightPositions()
+    
+    -- Check erroneous traffic lights
+    for k,v in pairs(equipment) do
+      if v.TrafficLight then
+        if not Metrostroi.TrafficLightPositions[v] then
+          print("WARNING: Traffic light out of network at ",v:GetPos())
+        else
+          local d = Metrostroi.TrafficLightPositions[v]
+          if Metrostroi.PicketSignByIndex[d.section] and
+             Metrostroi.PicketSignByIndex[d.section].AlternateIndex then
+            print("WARNING: Traffic light cannot be in junction section (X = "..d.position.." m)",v:GetPos())
+          end
+        end
+      end
+    end
   end)
 end
 

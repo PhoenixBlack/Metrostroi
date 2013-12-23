@@ -1114,7 +1114,8 @@ function ENT:ProcessBogey(bogey)
   end
   
   -- Apply force and subtract friction
-  local force = 48000*motorPower + 0*15000*math.min(0.7,0.5*absSpeed/50)*sign
+  local dt_scale = 66.6/(1/self.DeltaTime)
+  local force = dt_scale*(48000*motorPower + 0*15000*math.min(0.7,0.5*absSpeed/50)*sign)
   
   if forward
   then bogey:GetPhysicsObject():ApplyForceCenter(-bogey:GetAngles():Forward()*force)
@@ -1134,6 +1135,10 @@ end
 -- Process train logic
 --------------------------------------------------------------------------------
 function ENT:Think()
+  self.PrevTime = self.PrevTime or CurTime()
+  self.DeltaTime = (CurTime() - self.PrevTime)
+  self.PrevTime = CurTime()
+
   -- Compute user input
   if self.DriverSeat and self.DriverSeat:IsValid() and self.DriverSeat.GetPassenger then
 
@@ -1626,3 +1631,17 @@ function ENT:SpawnFunction(ply, tr)
   ent:Activate()
   return ent
 end
+
+
+    local function MoveExitingPlayer(ply, vehicle)
+            local train = vehicle:GetNWEntity("TrainEntity")
+            if IsValid(train) then
+--                    local type = vehicle:GetNWString("SeatType")
+--                    if type == "driver" then
+--                            ply:SetPos(vehicle:GetPos()+Vector(0,0,-20))
+--                    elseif type == "passenger" then
+--                            ply:SetPos(vehicle:GetPos()+vehicle:GetForward()*40+Vector(0,0,-10))
+--                    end
+            end
+    end
+    hook.Add("PlayerLeaveVehicle", "gmod_subway_81-717-cabin-exit", MoveExitingPlayer )

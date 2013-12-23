@@ -67,6 +67,7 @@ function Metrostroi.HTTPRequest(request)
   -- Re-create socket
   if s then s:close() end
   s = socket.connect("foxworks.wireos.com", 80)
+  s:settimeout(0.00)
 --  s:send("GET /metrostroi/ms-act.php HTTP/1.1\n")
   s:send("POST /metrostroi/ms-act.php HTTP/1.0\n")
   s:send("Host: foxworks.wireos.com\n")
@@ -81,7 +82,7 @@ function Metrostroi.HTTPRequest(request)
   -- Create timer
   timer.Create("Metrostroi_HTTPRequest",0.01,0,function()
     if not s then return end
-    s:settimeout(0.01)
+    s:settimeout(0.00)
     local data, status, rdata = s:receive(2^10)
     data = data or rdata
     
@@ -112,6 +113,7 @@ local function bool2str(b) if b then return "1" else return "0" end end
 Metrostroi.TrafficLightStates = {}
 Metrostroi.SwitchStates = {}
 function Metrostroi.UpdateTelemetry()
+--  if true then return end
   if not Metrostroi.TrainPositions then return end
   
   local request = "query=update&r={ \"trains\": {"
