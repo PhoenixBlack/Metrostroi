@@ -1,5 +1,8 @@
+--------------------------------------------------------------------------------
+-- Add all required clientside files
+--------------------------------------------------------------------------------
 if SERVER then
-	util.AddNetworkString("metrostroi-cabin-button")
+  util.AddNetworkString("metrostroi-cabin-button")
 
   resource.AddFile("materials/myproject/22_-_Default.vmt")
   resource.AddFile("materials/myproject/cyan_-_Default.vmt")
@@ -68,22 +71,92 @@ if SERVER then
   resource.AddFile("sound/subway_trains/junct_2.wav")
   resource.AddFile("sound/subway_trains/junct_3.wav")
   resource.AddFile("sound/subway_trains/junct_4.wav")
+
+  resource.AddFile("sound/subway_announcer/00_00.mp3")
+  resource.AddFile("sound/subway_announcer/00_01.mp3")
+  resource.AddFile("sound/subway_announcer/00_02.mp3")
+  resource.AddFile("sound/subway_announcer/01_01.mp3")
+  resource.AddFile("sound/subway_announcer/01_02.mp3")
+  resource.AddFile("sound/subway_announcer/02_01.mp3")
+  resource.AddFile("sound/subway_announcer/02_02.mp3")
+  resource.AddFile("sound/subway_announcer/02_03.mp3")
+  resource.AddFile("sound/subway_announcer/02_04.mp3")
+  resource.AddFile("sound/subway_announcer/02_05.mp3")
   
-  resource.AddFile("sound/subway_announcer/00_01.wav")
-  resource.AddFile("sound/subway_announcer/00_02.wav")
-  resource.AddFile("sound/subway_announcer/01_01.wav")
-  resource.AddFile("sound/subway_announcer/01_02.wav")
-  resource.AddFile("sound/subway_announcer/02_01.wav")
-  resource.AddFile("sound/subway_announcer/02_02.wav")
-  resource.AddFile("sound/subway_announcer/02_03.wav")
-  resource.AddFile("sound/subway_announcer/02_04.wav")
-  resource.AddFile("sound/subway_announcer/02_05.wav")
+  resource.AddFile("sound/subway_announcer/05_01.mp3")
+  resource.AddFile("sound/subway_announcer/05_02.mp3")
+  resource.AddFile("sound/subway_announcer/05_03.mp3")
+  resource.AddFile("sound/subway_announcer/05_04.mp3")
+  resource.AddFile("sound/subway_announcer/05_05.mp3")
+  resource.AddFile("sound/subway_announcer/05_06.mp3")
+  resource.AddFile("sound/subway_announcer/05_07.mp3")
+  resource.AddFile("sound/subway_announcer/05_08.mp3")
+  
+  resource.AddFile("sound/subway_announcer/06_08.mp3")
+  resource.AddFile("sound/subway_announcer/06_09.mp3")
+  resource.AddFile("sound/subway_announcer/06_10.mp3")
+  resource.AddFile("sound/subway_announcer/06_11.mp3")
+  resource.AddFile("sound/subway_announcer/06_12.mp3")
+  resource.AddFile("sound/subway_announcer/06_13.mp3")
+  resource.AddFile("sound/subway_announcer/06_14.mp3")
+  resource.AddFile("sound/subway_announcer/06_15.mp3")
+  resource.AddFile("sound/subway_announcer/06_16.mp3")
+  resource.AddFile("sound/subway_announcer/06_17.mp3")
+  resource.AddFile("sound/subway_announcer/06_18.mp3")
+  resource.AddFile("sound/subway_announcer/06_19.mp3")
+  resource.AddFile("sound/subway_announcer/06_20.mp3")
+  resource.AddFile("sound/subway_announcer/06_21.mp3")
+  resource.AddFile("sound/subway_announcer/06_22.mp3")
+  resource.AddFile("sound/subway_announcer/06_23.mp3")
+  
+  resource.AddFile("sound/subway_announcer/07_15.mp3")
+  
+  resource.AddFile("sound/subway_announcer/08_01.mp3")
+
+  resource.AddFile("sound/subway_announcer/11_01b.mp3")
+  resource.AddFile("sound/subway_announcer/11_02b.mp3")
+  resource.AddFile("sound/subway_announcer/11_03b.mp3")
+  resource.AddFile("sound/subway_announcer/11_04b.mp3")
+  resource.AddFile("sound/subway_announcer/11_05b.mp3")
+  resource.AddFile("sound/subway_announcer/11_06b.mp3")
+  resource.AddFile("sound/subway_announcer/11_07b.mp3")
+  
+  resource.AddFile("sound/subway_announcer/12_08b.mp3")
+  resource.AddFile("sound/subway_announcer/12_09b.mp3")
+  resource.AddFile("sound/subway_announcer/12_10b.mp3")
+  resource.AddFile("sound/subway_announcer/12_11b.mp3")
+  resource.AddFile("sound/subway_announcer/12_12b.mp3")
+  resource.AddFile("sound/subway_announcer/12_13b.mp3")
+  resource.AddFile("sound/subway_announcer/12_14b.mp3")
+  resource.AddFile("sound/subway_announcer/12_15b.mp3")
+  resource.AddFile("sound/subway_announcer/12_16b.mp3")
+  resource.AddFile("sound/subway_announcer/12_17b.mp3")
+  resource.AddFile("sound/subway_announcer/12_18b.mp3")
+  resource.AddFile("sound/subway_announcer/12_19b.mp3")
+  resource.AddFile("sound/subway_announcer/12_20b.mp3")
+  resource.AddFile("sound/subway_announcer/12_21b.mp3")
+  resource.AddFile("sound/subway_announcer/12_22b.mp3")
+  resource.AddFile("sound/subway_announcer/12_23b.mp3")
+
+  resource.AddFile("sound/subway_announcer/13_15b.mp3")
 end
 
--- Create subway manager
-Metrostroi = {}
 
--- Load everything else
+--------------------------------------------------------------------------------
+-- Create subway manager
+--------------------------------------------------------------------------------
+if not Metrostroi then
+  -- Subway manager
+  Metrostroi = {}
+  
+  -- List of all systems
+  Metrostroi.Systems = {}
+end
+
+
+--------------------------------------------------------------------------------
+-- Load core files
+--------------------------------------------------------------------------------
 if SERVER then
   include("metrostroi/sv_init.lua")
   include("metrostroi/sv_saveload.lua")
@@ -104,3 +177,39 @@ if SERVER then
     file.Write("alpha_testers.txt",string.Implode("\r\n",tbl))
   end)
 end
+
+
+--------------------------------------------------------------------------------
+-- Load systems (shared)
+--------------------------------------------------------------------------------
+local function LoadSystem(cond,name)
+  if not cond then return end
+
+  include("metrostroi/systems/sys_"..string.lower(name)..".lua")
+  
+  Metrostroi.Systems["_"..name] = TRAIN_SYSTEM
+  Metrostroi.Systems[name] = function(train)
+    local tbl = { _base = "_"..name }
+    for k,v in pairs(TRAIN_SYSTEM) do
+      if type(v) == "function" then
+        tbl[k] = function(...) return Metrostroi.Systems[tbl._base][k](...) end
+      else
+        tbl[k] = v
+      end
+    end
+    
+    tbl.Train = train
+    tbl:Initialize()
+    return tbl
+  end
+end
+
+function Metrostroi.DefineSystem(name)
+  if not Metrostroi.Systems["_"..name] then
+    Metrostroi.Systems["_"..name] = {}
+  end
+  TRAIN_SYSTEM = Metrostroi.Systems["_"..name]
+end
+
+-- Load systems
+LoadSystem(SERVER,"Announcer")

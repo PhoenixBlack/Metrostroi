@@ -1218,8 +1218,8 @@ function ENT:Think()
   -- Compute speed
   local speed1,power1 = self:ProcessBogey(self.FrontBogey)
   local speed2,power2 = self:ProcessBogey(self.RearBogey)
-  local speed = (speed1 + speed2) / 2
-  local power = (power1 + power2) / 2
+  local speed = ((speed1 or 0) + (speed2 or 0)) / 2
+  local power = ((power1 or 0) + (power2 or 0)) / 2
   self.Speed = speed
   
   
