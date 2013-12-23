@@ -741,6 +741,11 @@ function Metrostroi.NextEquipmentID()
   return id
 end
 
+
+
+--------------------------------------------------------------------------------
+-- Handle cabin buttons
+--------------------------------------------------------------------------------
 net.Receive("metrostroi-cabin-button", function(len, ply)
 	local panel = net.ReadInt(8)
 	local button = net.ReadInt(8)
@@ -756,3 +761,151 @@ net.Receive("metrostroi-cabin-button", function(len, ply)
 	
 	train:OnButtonPress(panel,button,key)
 end)
+
+--------------------------------------------------------------------------------
+-- Rerail tool
+--------------------------------------------------------------------------------
+local function dirdebug(v1,v2)
+	debugoverlay.Line(v1,v1+v2*30,10,Color(255,0,0),true)
+end
+
+//Takes datatable from getTrackData
+local function debugtrackdata(data) 
+	dirdebug(data.centerpos,data.forward)
+	dirdebug(data.centerpos,data.right)
+	dirdebug(data.centerpos,data.up)
+end
+
+//Helper for commonly used trace
+local function traceWorldOnly(pos,dir)
+	return util.TraceLine({
+		start = pos,
+		endpos = pos+dir,
+		mask = MASK_NPCWORLDSTATIC
+	})
+end
+
+//Go over the enttable, bogeys and train and reset them
+local function resetSolids(enttable,train)
+	for k,v in pairs(enttable) do
+		k:SetSolid(v)
+	end
+	
+	train.FrontBogey:GetPhysicsObject():EnableMotion(true)
+	train.RearBogey:GetPhysicsObject():EnableMotion(true)
+	
+	train:GetPhysicsObject():EnableMotion(true)
+end
+
+//Takes position and initial rough forward vector, return table of track data
+local function getTrackData(pos,forward)	
+	//Trace down
+	local tr = traceWorldOnly(pos,Vector(0,0,-100))
+	if !tr or !tr.Hit then return false end
+	
+	//debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
+	
+	local updir = tr.HitNormal
+	local right = forward:Cross(updir)
+	
+	//Trace right
+	local tr = traceWorldOnly(pos,right*500)
+	if !tr or !tr.Hit then return false end
+	
+	//debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
+	
+	local trackforward = tr.HitNormal:Cross(updir)
+	local trackright = trackforward:Cross(updir)
+	
+	//debugoverlay.Line(pos,pos+trackforward*30,10,Color(255,0,0),true)
+	
+	//Trace right with proper right
+	local tr = traceWorldOnly(pos,trackright*80)
+	if !tr.Hit then return false end
+	
+	local centerpos = tr.HitPos+tr.HitNormal*40
+	
+	local data = {
+		forward = trackforward,
+		right = trackright,
+		up = updir,
+		centerpos = centerpos
+	}
+	return data
+
+end
+
+local function rerailTrain(ply,cmd,args,fullstring)
+	//Check if player is looking at valid train
+	local train = ply:GetEyeTrace().Entity
+	if !IsValid(train) then return end
+	if !ply:IsAdmin() and ent:GetOwner() != train then return end
+	if !train.IsSubwayTrain then
+		train = train:GetNWEntity("TrainEntity")
+		if !train.IsSubwayTrain then return end
+	end
+	if timer.Exists("metrostroi_rerailer_solid_reset_"..train:EntIndex()) then return end
+	
+	//Trace down to get the track
+	local tr = traceWorldOnly(train:GetPos(),Vector(0,0,-500))
+	if !tr or !tr.Hit then 
+		tr = traceWorldOnly(train:GetPos(),train:GetAngles():Up()*-500)
+		if !tr or !tr.Hit then return end
+	end
+	
+	//Get track data below the train
+	local trackdata = getTrackData(tr.HitPos+tr.HitNormal*3,train:GetAngles():Forward()) 
+	if !trackdata then return end
+	
+	local ang = trackdata.forward:Angle()
+	
+	//Get the positions of the bogeys if we'd rerail the train now
+	local frontpos = LocalToWorld(train:WorldToLocal(train.FrontBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,95),ang)
+	local rearpos = LocalToWorld(train:WorldToLocal(train.RearBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,95),ang)
+	
+	//Get thet track data at these locations
+	local tr = traceWorldOnly(frontpos,-trackdata.up*500)
+	if !tr or !tr.Hit then return end
+	local frontdata = getTrackData(tr.HitPos+tr.HitNormal*3,trackdata.forward)
+	if !frontdata then return end
+	
+	local tr = traceWorldOnly(rearpos,-trackdata.up*500)
+	if !tr or !tr.Hit then return end
+	local reardata = getTrackData(tr.HitPos+tr.HitNormal*3,trackdata.forward)
+	if !reardata then return end
+	
+	//Final trains pos is the average of the 2 bogey locations
+	local trainpos = (frontdata.centerpos+reardata.centerpos)/2+trackdata.up*107
+	
+	//Store and set solids
+	local solids = {}
+	for k,v in pairs(train.Wheels) do
+		solids[v]=v:GetSolid()
+		v:SetSolid(SOLID_NONE)
+	end
+	
+	solids[train.FrontBogey]=train.FrontBogey:GetSolid()
+	solids[train.RearBogey]=train.RearBogey:GetSolid()
+	
+	train.FrontBogey:SetSolid(SOLID_NONE)
+	train.RearBogey:SetSolid(SOLID_NONE)
+	
+	train:SetPos(trainpos)
+	train:SetAngles(ang)
+	
+	train.FrontBogey:SetPos(frontdata.centerpos+frontdata.up*40)
+	train.RearBogey:SetPos(reardata.centerpos+reardata.up*40)
+	
+	train.FrontBogey:SetAngles(frontdata.forward:Angle())
+	train.RearBogey:SetAngles((reardata.forward*-1):Angle())
+	
+	train:GetPhysicsObject():EnableMotion(false)
+	
+	train.FrontBogey:GetPhysicsObject():EnableMotion(false)
+	train.RearBogey:GetPhysicsObject():EnableMotion(false)
+	
+	timer.Create("metrostroi_rerailer_solid_reset_"..train:EntIndex(),1,1,function() resetSolids(solids,train) end )
+end
+
+
+concommand.Add("metrostroi_rerail",rerailTrain)
