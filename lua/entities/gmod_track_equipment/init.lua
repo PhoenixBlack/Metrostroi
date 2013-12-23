@@ -297,6 +297,7 @@ function ENT:SpawnRest()
   self:PhysicsInit(SOLID_VPHYSICS)
   self:SetMoveType(MOVETYPE_NONE)
   self:SetSolid(SOLID_VPHYSICS)
+  self:SetCollisionGroup(COLLISION_GROUP_WORLD)
   
 --  self:SetMoveType(MOVETYPE_VPHYSICS)
 --  self:SetSolid(SOLID_VPHYSICS)

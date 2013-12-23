@@ -1572,7 +1572,7 @@ function ENT:Think()
   then self:SetNWFloat("ARSSpeed",self.ARSSpeed)
   else self:SetNWFloat("ARSSpeed",-1.0)
   end
---  print("THINK")
+
 --  self:NextThink(CurTime() + 0.0)
   self:NextThink(0.05)
   return true
