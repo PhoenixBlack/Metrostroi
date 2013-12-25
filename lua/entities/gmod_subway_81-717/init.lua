@@ -161,6 +161,12 @@ function ENT:Initialize()
   self:SetDoors(1,false)
   
   -- Setup drivers controls
+  self.KeyBuffer = {}
+  self.KeyMap = {
+	[KEY_ENTER] = 1,
+	[KEY_INSERT] = 2,
+	[KEY_W] = 3
+  }
   self.LastPressedKey = {}
   self.AltLastPressedKey = {}
   self.KeyFunction = {}
@@ -1136,6 +1142,15 @@ function ENT:OnButtonRelease(button)
 	print("Released",button)
 end
 
+function ENT:ClearKeyBuffer()
+	for k,v in pairs(self.KeyBuffer) do
+		local button = self.KeyMap[k]
+		if button != nil then
+			self:OnButtonRelease(button)
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Process train logic
 --------------------------------------------------------------------------------
@@ -1149,6 +1164,30 @@ function ENT:Think()
 
     local player = self.DriverSeat:GetPassenger(0)
     if player and player:IsValid() then
+		
+		//Button input
+		//Check for newly pressed keys
+		for k,v in pairs(player.keystate) do
+			if self.KeyBuffer[k] == nil then
+				self.KeyBuffer[k] = true
+				local button = self.KeyMap[k]
+				if button != nil then
+					self:OnButtonPress(button)
+				end
+			end
+		end
+		
+		//Check for newly released keys
+		for k,v in pairs(self.KeyBuffer) do
+			if player.keystate[k] == nil then
+				self.KeyBuffer[k] = nil
+				local button = self.KeyMap[k]
+				if button != nil then
+					self:OnButtonRelease(button)
+				end
+			end
+		end
+	
       -- Main set of keys
       for k,v in pairs(self.KeyFunction) do
         if (not player:KeyDownLast(IN_SPEED)) and player:KeyDownLast(k) then
@@ -1684,7 +1723,7 @@ local function HandleExitingPlayer(ply, vehicle)
 
 	local train = vehicle:GetNWEntity("TrainEntity")
 	if IsValid(train) then
-	
+		
 		//Move exiting player
 		local seattype = vehicle:GetNWString("SeatType")
 		if seattype == "driver" then
@@ -1694,6 +1733,11 @@ local function HandleExitingPlayer(ply, vehicle)
 		end
 		
 		//Reset cabin
+		
+		//Server
+		train:ClearKeyBuffer()
+		
+		//Client
 		net.Start("metrostroi-cabin-reset")
 		net.WriteEntity(train)
 		net.Send(ply)
