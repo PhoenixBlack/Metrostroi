@@ -174,12 +174,40 @@ ENT.ButtonMap[2] = {
 	}
 }
 
+//Clientside decoration props
+ENT.ClientProps = {
+	{ 
+		model = "models/props_lab/reciever01a.mdl",
+		pos = Vector(-445,40,10),
+		ang = Angle(0,0,0)
+	}
+}
+
+//Populate button table
 for pk,panel in pairs(ENT.ButtonMap) do
 	for bk,button in pairs(panel.buttons) do
 		button[5]=false
 	end
 end
 
+function ENT:Initialize()
+
+	self.ClientEnts = {}
+	//Create clientside props
+	for k,v in pairs(self.ClientProps) do
+		local cent = ents.CreateClientProp(v.model)
+		cent:SetPos(self:LocalToWorld(v.pos))
+		cent:SetAngles(self:LocalToWorldAngles(v.ang))
+		cent:SetParent(self)
+		table.insert(self.ClientEnts,cent)
+	end
+end
+
+function ENT:OnRemove()
+	for k,v in pairs(self.ClientEnts) do
+		v:Remove()
+	end
+end
 
 function ENT:DrawSegment(x,y,w,h)
   for z=1,6,1 do
@@ -487,7 +515,8 @@ function ENT:Draw()
     end
 
   cam.End3D2D()
-
+	
+	//Debug draw for buttons
 	if GetConVarNumber("metrostroi_drawdebug") > 0 then
 		for kp,panel in pairs(self.ButtonMap) do
 			cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
