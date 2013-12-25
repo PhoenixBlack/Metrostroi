@@ -1127,8 +1127,13 @@ function ENT:ProcessBogey(bogey)
 end
 
 //Do something with cabin button presses
-function ENT:OnButtonPress(panel,button,key)
-	print(panel,button,key)
+//See cl_init buttonmap table
+function ENT:OnButtonPress(button)
+	print("Pressed", button)
+end
+
+function ENT:OnButtonRelease(button)
+	print("Released",button)
 end
 
 --------------------------------------------------------------------------------
@@ -1636,31 +1641,64 @@ end
 -- Handle cabin buttons
 --------------------------------------------------------------------------------
 net.Receive("metrostroi-cabin-button", function(len, ply)
-	local panel = net.ReadInt(8)
 	local button = net.ReadInt(8)
-	local key = net.ReadInt(8)
-	
-	//print(panel,button,key)
-
+	local eventtype = net.ReadBit()
 	local seat = ply:GetVehicle()
-	if (not seat) or (not seat:IsValid()) then return end
-	local train = seat:GetNWEntity("TrainEntity")
-	if (not train) or (not train:IsValid()) then return end
-	if seat != train.DriverSeat then return end
+	local train 
 	
-	train:OnButtonPress(panel,button,key)
+	if seat and IsValid(seat) then 
+		//Player currently driving
+		train = seat:GetNWEntity("TrainEntity")
+		if (not train) or (not train:IsValid()) then return end
+		if seat != train.DriverSeat then return end
+	else
+		//Player not driving, check recent train
+		train = ply.lastVehicleDriven:GetNWEntity("TrainEntity")
+		if !IsValid(train) then return end
+		if ply != train.DriverSeat.lastDriver then return end
+		if CurTime() - train.DriverSeat.lastDriverTime > 1  then return end
+	end
+
+	if eventtype > 0 then
+		train:OnButtonPress(button)
+	else
+		train:OnButtonRelease(button)
+	end
 end)
 
+local function CanPlayerEnter(ply,vec,role)
+	local train = vec:GetNWEntity("TrainEntity")
+	
+	if IsValid(train) then
+		local driver = vec.lastDriver
+		if IsValid(driver) then
+			if driver == ply and CurTime() - vec.lastDriverTime < 1 then return false end
+		end
+	end
+end
 
-    local function MoveExitingPlayer(ply, vehicle)
-            local train = vehicle:GetNWEntity("TrainEntity")
-            if IsValid(train) then
---                    local type = vehicle:GetNWString("SeatType")
---                    if type == "driver" then
---                            ply:SetPos(vehicle:GetPos()+Vector(0,0,-20))
---                    elseif type == "passenger" then
---                            ply:SetPos(vehicle:GetPos()+vehicle:GetForward()*40+Vector(0,0,-10))
---                    end
-            end
-    end
-    hook.Add("PlayerLeaveVehicle", "gmod_subway_81-717-cabin-exit", MoveExitingPlayer )
+local function HandleExitingPlayer(ply, vehicle)
+	vehicle.lastDriver = ply
+	vehicle.lastDriverTime = CurTime()
+	ply.lastVehicleDriven = vehicle
+
+	local train = vehicle:GetNWEntity("TrainEntity")
+	if IsValid(train) then
+	
+		//Move exiting player
+		local seattype = vehicle:GetNWString("SeatType")
+		if seattype == "driver" then
+			ply:SetPos(vehicle:GetPos()+Vector(0,0,-20))
+		elseif seattype == "passenger" then
+			ply:SetPos(vehicle:GetPos()+vehicle:GetForward()*40+Vector(0,0,-10))
+		end
+		
+		//Reset cabin
+		net.Start("metrostroi-cabin-reset")
+		net.WriteEntity(train)
+		net.Send(ply)
+	end
+end
+
+hook.Add("PlayerLeaveVehicle", "gmod_subway_81-717-cabin-exit", HandleExitingPlayer )
+hook.Add("CanPlayerEnterVehicle","gmod_subway_81-717-cabin-entry", CanPlayerEnter )

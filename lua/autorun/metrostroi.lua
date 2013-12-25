@@ -3,6 +3,7 @@
 --------------------------------------------------------------------------------
 if SERVER then
   util.AddNetworkString("metrostroi-cabin-button")
+  util.AddNetworkString("metrostroi-cabin-reset")
 
   resource.AddFile("materials/myproject/22_-_Default.vmt")
   resource.AddFile("materials/myproject/cyan_-_Default.vmt")
