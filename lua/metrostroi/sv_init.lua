@@ -769,11 +769,13 @@ end
 
 //Helper for commonly used trace
 local function traceWorldOnly(pos,dir)
-	return util.TraceLine({
+	local tr = util.TraceLine({
 		start = pos,
 		endpos = pos+dir,
 		mask = MASK_NPCWORLDSTATIC
 	})
+	//debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
+	return tr
 end
 
 //Go over the enttable, bogeys and train and reset them
@@ -788,6 +790,24 @@ local function resetSolids(enttable,train)
 	train:GetPhysicsObject():EnableMotion(true)
 end
 
+local function findTrackHeight(pos,right,up)
+	local step = 1
+	local previousTrackValid = false
+	local gotValidTrack = false
+	local trackHeight = -1
+	local possiblePos = Vector(0,0,0)
+	while true do
+		trackHeight = trackHeight + 1
+		local tr1 = traceWorldOnly(pos+up*trackHeight,right*100)
+		local tr2 = traceWorldOnly(pos+up*trackHeight,right*100*-1)
+		gotValidTrack = (math.abs(tr1.HitPos:Distance(tr2.HitPos)-80) < 0.5)
+		if not gotValidTrack and previousTrackValid then return possiblePos end
+		possiblePos = (tr1.HitPos+tr2.HitPos)/2
+		previousTrackValid=gotValidTrack
+		if trackHeight > 200 then return false end
+	end
+end
+
 //Takes position and initial rough forward vector, return table of track data
 local function getTrackData(pos,forward)	
 	//Trace down
@@ -795,7 +815,7 @@ local function getTrackData(pos,forward)
 	if !tr or !tr.Hit then return false end
 	
 	//debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
-	
+	local floor = tr.HitPos
 	local updir = tr.HitNormal
 	local right = forward:Cross(updir)
 	
@@ -814,7 +834,11 @@ local function getTrackData(pos,forward)
 	local tr = traceWorldOnly(pos,trackright*80)
 	if !tr.Hit then return false end
 	
-	local centerpos = tr.HitPos+tr.HitNormal*40
+	local centerpos = findTrackHeight(floor,tr.HitNormal,updir)
+	
+	if !centerpos then return false end
+		
+	debugoverlay.Cross(centerpos,5,10,Color(255,0,0),true)
 	
 	local data = {
 		forward = trackforward,
@@ -827,6 +851,9 @@ local function getTrackData(pos,forward)
 end
 
 local function rerailTrain(ply,cmd,args,fullstring)
+	local trainOffset = 101.3
+	local bogeyOffset = 36
+
 	//Check if player is looking at valid train
 	local train = ply:GetEyeTrace().Entity
 	if !IsValid(train) then return end
@@ -866,7 +893,7 @@ local function rerailTrain(ply,cmd,args,fullstring)
 	if !reardata then return end
 	
 	//Final trains pos is the average of the 2 bogey locations
-	local trainpos = (frontdata.centerpos+reardata.centerpos)/2+trackdata.up*107
+	local trainpos = (frontdata.centerpos+reardata.centerpos)/2+trackdata.up*trainOffset
 	
 	//Store and set solids
 	local solids = {}
@@ -884,8 +911,8 @@ local function rerailTrain(ply,cmd,args,fullstring)
 	train:SetPos(trainpos)
 	train:SetAngles(ang)
 	
-	train.FrontBogey:SetPos(frontdata.centerpos+frontdata.up*40)
-	train.RearBogey:SetPos(reardata.centerpos+reardata.up*40)
+	train.FrontBogey:SetPos(frontdata.centerpos+frontdata.up*bogeyOffset)
+	train.RearBogey:SetPos(reardata.centerpos+reardata.up*bogeyOffset)
 	
 	train.FrontBogey:SetAngles(frontdata.forward:Angle())
 	train.RearBogey:SetAngles((reardata.forward*-1):Angle())
