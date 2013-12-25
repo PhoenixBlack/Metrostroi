@@ -174,10 +174,6 @@ ENT.ButtonMap[2] = {
 	}
 }
 
-//Setup shortcuts [<ENUM>]=<BUTTONID>
-ENT.ButtonShortcuts = {}
-ENT.ButtonShortcuts[KEY_ENTER] = 1
-
 for pk,panel in pairs(ENT.ButtonMap) do
 	for bk,button in pairs(panel.buttons) do
 		button[5]=false
