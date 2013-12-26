@@ -161,6 +161,7 @@ function ENT:Initialize()
   self:SetDoors(1,false)
   
   -- Setup drivers controls
+  self.ButtonBuffer = {}
   self.KeyBuffer = {}
   self.KeyMap = {
 	[KEY_ENTER] = 1,
@@ -1132,8 +1133,11 @@ function ENT:ProcessBogey(bogey)
   return absSpeed,totalPower
 end
 
-//Do something with cabin button presses
-//See cl_init buttonmap table
+
+--------------------------------------------------------------------------------
+-- Process Cabin button and keyboard input
+--------------------------------------------------------------------------------
+//Use these two functions 
 function ENT:OnButtonPress(button)
 	print("Pressed", button)
 end
@@ -1141,11 +1145,26 @@ end
 function ENT:OnButtonRelease(button)
 	print("Released",button)
 end
+--------------------------------------------------------------------------------
 
+//Clears the serverside keybuffer and fires events
 function ENT:ClearKeyBuffer()
 	for k,v in pairs(self.KeyBuffer) do
 		local button = self.KeyMap[k]
 		if button != nil then
+			self:ButtonEvent(button,false)
+		end
+	end
+	self.KeyBuffer = {}
+end
+
+//Checks a button with the buffer and calls OnButtonPress/Release
+function ENT:ButtonEvent(button,state)
+	if self.ButtonBuffer[button] != state then
+		self.ButtonBuffer[button]=state
+		if state then
+			self:OnButtonPress(button)
+		else
 			self:OnButtonRelease(button)
 		end
 	end
@@ -1172,7 +1191,7 @@ function ENT:Think()
 				self.KeyBuffer[k] = true
 				local button = self.KeyMap[k]
 				if button != nil then
-					self:OnButtonPress(button)
+					self:ButtonEvent(button,true)
 				end
 			end
 		end
@@ -1183,7 +1202,7 @@ function ENT:Think()
 				self.KeyBuffer[k] = nil
 				local button = self.KeyMap[k]
 				if button != nil then
-					self:OnButtonRelease(button)
+					self:ButtonEvent(button,false)
 				end
 			end
 		end
@@ -1679,6 +1698,7 @@ end
 --------------------------------------------------------------------------------
 -- Handle cabin buttons
 --------------------------------------------------------------------------------
+//Receiver for CS buttons, Checks if people are the legit driver and calls buttonevent on the train
 net.Receive("metrostroi-cabin-button", function(len, ply)
 	local button = net.ReadInt(8)
 	local eventtype = net.ReadBit()
@@ -1697,14 +1717,12 @@ net.Receive("metrostroi-cabin-button", function(len, ply)
 		if ply != train.DriverSeat.lastDriver then return end
 		if CurTime() - train.DriverSeat.lastDriverTime > 1  then return end
 	end
-
-	if eventtype > 0 then
-		train:OnButtonPress(button)
-	else
-		train:OnButtonRelease(button)
-	end
+	
+	train:ButtonEvent(button,(eventtype > 0))
 end)
 
+//Denies entry if player recently sat in the same train seat
+//This prevents getting stuck in seats when trying to exit
 local function CanPlayerEnter(ply,vec,role)
 	local train = vec:GetNWEntity("TrainEntity")
 	
@@ -1716,6 +1734,7 @@ local function CanPlayerEnter(ply,vec,role)
 	end
 end
 
+//Exiting player hook, stores some vars and moves player if vehicle was train seat
 local function HandleExitingPlayer(ply, vehicle)
 	vehicle.lastDriver = ply
 	vehicle.lastDriverTime = CurTime()

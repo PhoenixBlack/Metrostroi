@@ -145,7 +145,7 @@ local digit_bitmap = {
 ENT.ButtonMap = {}
 
 //General Panel
-ENT.ButtonMap[1] = {
+local p = {
 	pos = Vector(-455,-10,7),
 	ang = Angle(0,90,40),
 	width = 440,
@@ -157,9 +157,10 @@ ENT.ButtonMap[1] = {
 		{2,440,190}
 	}
 }
+table.insert(ENT.ButtonMap,p)
 
 //Main panel
-ENT.ButtonMap[2] = {
+local p = {
 	pos = Vector(-455,-27,15),
 	ang = Angle(0,90,60),
 	width = 860,
@@ -173,15 +174,41 @@ ENT.ButtonMap[2] = {
 		{6,100,100}
 	}
 }
+table.insert(ENT.ButtonMap,p)
+
+
 
 //Clientside decoration props
-ENT.ClientProps = {
-	{ 
-		model = "models/props_lab/reciever01a.mdl",
-		pos = Vector(-445,40,10),
-		ang = Angle(0,0,0)
-	}
+ENT.ClientProps = {}
+local p = {
+	model = "models/props_lab/reciever01a.mdl",
+	pos = Vector(-445,40,8.4),
+	ang = Angle(0,0,0)
 }
+table.insert(ENT.ClientProps,p)
+
+local p = {
+	model = "models/props_lab/huladoll.mdl",
+	pos = Vector(-453,-32,0.5),
+	ang = Angle(0,0,0)
+}
+table.insert(ENT.ClientProps,p)
+
+local p = {
+	model = "models/props_lab/reciever01b.mdl",
+	pos = Vector(-453,-18.3,1),
+	ang = Angle(-45,0,0)
+}
+table.insert(ENT.ClientProps,p)
+
+local p = {
+	model = "models/props_lab/reciever01d.mdl",
+	pos = Vector(-457.9,-15,8.1),
+	ang = Angle(-30,0,0)
+}
+table.insert(ENT.ClientProps,p)
+
+
 
 //Populate button table
 for pk,panel in pairs(ENT.ButtonMap) do
@@ -194,12 +221,28 @@ function ENT:ShouldRenderClientEnts()
 	return self:LocalToWorld(Vector(-450,0,0)):Distance(LocalPlayer():GetPos()) < 512
 end
 
-//True to render, false to hide
+function ENT:CreateCSEnts()
+	for k,v in pairs(self.ClientProps) do
+		local cent = ClientsideModel(v.model,RENDERGROUP_OPAQUE)
+		cent:SetPos(self:LocalToWorld(v.pos))
+		cent:SetAngles(self:LocalToWorldAngles(v.ang))
+		cent:SetParent(self)
+		table.insert(self.ClientEnts,cent)
+	end
+end
+
+function ENT:RemoveCSEnts()
+	for k,v in pairs(self.ClientEnts) do
+		v:Remove()
+	end
+	self.ClientEnts = {}
+end
+
+
+//True to render, false to hide //Unused
 function ENT:ApplyCSEntRenderMode(render)
-	print("Applying render mode",render)
 	for k,v in pairs(self.ClientEnts) do
 		if render then
-			print(k,v)
 			v:SetRenderMode(RENDERMODE_NORMAL)
 		else
 			v:SetRenderMode(RENDERMODE_NONE)
@@ -208,23 +251,16 @@ function ENT:ApplyCSEntRenderMode(render)
 end
 
 function ENT:Initialize()
+	//Create clientside props
 	self.ClientEnts = {}
 	self.RenderClientEnts = self:ShouldRenderClientEnts()
-	//Create clientside props
-	for k,v in pairs(self.ClientProps) do
-		local cent = ClientsideModel(v.model,RENDERGROUP_OPAQUE)
-		cent:SetPos(self:LocalToWorld(v.pos))
-		cent:SetAngles(self:LocalToWorldAngles(v.ang))
-		cent:SetParent(self)
-		print("created",cent)
-		table.insert(self.ClientEnts,cent)
+	if self.RenderClientEnts then
+		self:CreateCSEnts()
 	end
 end
 
 function ENT:OnRemove()
-	for k,v in pairs(self.ClientEnts) do
-		v:Remove()
-	end
+	self:RemoveCSEnts()
 end
 
 function ENT:Think()
@@ -234,8 +270,13 @@ function ENT:Think()
 		local shouldrender = self:ShouldRenderClientEnts()
 		if self.RenderClientEnts != shouldrender then
 			self.RenderClientEnts = shouldrender
-			self:ApplyCSEntRenderMode(shouldrender)
+			if self.RenderClientEnts then
+				self:CreateCSEnts()
+			else
+				self:RemoveCSEnts()
+			end
 		end
+		
 	end
 end
 
@@ -790,6 +831,7 @@ local function handleKeyEvent(ply,key,pressed)
 	end
 end
 
+//Hook for clearing the buttons when player exits
 net.Receive("metrostroi-cabin-reset",function(len,_)
 	local ent = net.ReadEntity()
 	if IsValid(ent) then
