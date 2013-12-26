@@ -277,7 +277,24 @@ function ENT:Think()
 			end
 		end
 		
+		//Uncomment for skin disco \o/
+		/*
+		for k,v in pairs(self.ClientEnts) do
+			if v:SkinCount() > 0 then
+				v:SetSkin((v:GetSkin()+1)%(v:SkinCount()-1))
+			end
+		end
+		*/
 	end
+	
+	//Example of pose parameter
+	/*
+	for k,v in pairs(self.ClientEnts) do
+		if v:GetPoseParameterRange(0) != nil then
+			v:SetPoseParameter("switch",math.sin(CurTime()*4)/2+0.5)
+		end
+	end
+	*/
 end
 
 function ENT:DrawSegment(x,y,w,h)
