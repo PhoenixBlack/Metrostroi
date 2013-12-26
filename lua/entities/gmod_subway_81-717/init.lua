@@ -161,6 +161,13 @@ function ENT:Initialize()
   self:SetDoors(1,false)
   
   -- Setup drivers controls
+  self.ButtonBuffer = {}
+  self.KeyBuffer = {}
+  self.KeyMap = {
+	[KEY_ENTER] = 1,
+	[KEY_INSERT] = 2,
+	[KEY_W] = 3
+  }
   self.LastPressedKey = {}
   self.AltLastPressedKey = {}
   self.KeyFunction = {}
@@ -1126,9 +1133,41 @@ function ENT:ProcessBogey(bogey)
   return absSpeed,totalPower
 end
 
-//Do something with cabin button presses
-function ENT:OnButtonPress(panel,button,key)
-	print(panel,button,key)
+
+--------------------------------------------------------------------------------
+-- Process Cabin button and keyboard input
+--------------------------------------------------------------------------------
+//Use these two functions 
+function ENT:OnButtonPress(button)
+	print("Pressed", button)
+end
+
+function ENT:OnButtonRelease(button)
+	print("Released",button)
+end
+--------------------------------------------------------------------------------
+
+//Clears the serverside keybuffer and fires events
+function ENT:ClearKeyBuffer()
+	for k,v in pairs(self.KeyBuffer) do
+		local button = self.KeyMap[k]
+		if button != nil then
+			self:ButtonEvent(button,false)
+		end
+	end
+	self.KeyBuffer = {}
+end
+
+//Checks a button with the buffer and calls OnButtonPress/Release
+function ENT:ButtonEvent(button,state)
+	if self.ButtonBuffer[button] != state then
+		self.ButtonBuffer[button]=state
+		if state then
+			self:OnButtonPress(button)
+		else
+			self:OnButtonRelease(button)
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -1144,6 +1183,30 @@ function ENT:Think()
 
     local player = self.DriverSeat:GetPassenger(0)
     if player and player:IsValid() then
+		
+		//Button input
+		//Check for newly pressed keys
+		for k,v in pairs(player.keystate) do
+			if self.KeyBuffer[k] == nil then
+				self.KeyBuffer[k] = true
+				local button = self.KeyMap[k]
+				if button != nil then
+					self:ButtonEvent(button,true)
+				end
+			end
+		end
+		
+		//Check for newly released keys
+		for k,v in pairs(self.KeyBuffer) do
+			if player.keystate[k] == nil then
+				self.KeyBuffer[k] = nil
+				local button = self.KeyMap[k]
+				if button != nil then
+					self:ButtonEvent(button,false)
+				end
+			end
+		end
+	
       -- Main set of keys
       for k,v in pairs(self.KeyFunction) do
         if (not player:KeyDownLast(IN_SPEED)) and player:KeyDownLast(k) then
@@ -1632,16 +1695,73 @@ function ENT:SpawnFunction(ply, tr)
   return ent
 end
 
+--------------------------------------------------------------------------------
+-- Handle cabin buttons
+--------------------------------------------------------------------------------
+//Receiver for CS buttons, Checks if people are the legit driver and calls buttonevent on the train
+net.Receive("metrostroi-cabin-button", function(len, ply)
+	local button = net.ReadInt(8)
+	local eventtype = net.ReadBit()
+	local seat = ply:GetVehicle()
+	local train 
+	
+	if seat and IsValid(seat) then 
+		//Player currently driving
+		train = seat:GetNWEntity("TrainEntity")
+		if (not train) or (not train:IsValid()) then return end
+		if seat != train.DriverSeat then return end
+	else
+		//Player not driving, check recent train
+		train = ply.lastVehicleDriven:GetNWEntity("TrainEntity")
+		if !IsValid(train) then return end
+		if ply != train.DriverSeat.lastDriver then return end
+		if CurTime() - train.DriverSeat.lastDriverTime > 1  then return end
+	end
+	
+	train:ButtonEvent(button,(eventtype > 0))
+end)
 
-    local function MoveExitingPlayer(ply, vehicle)
-            local train = vehicle:GetNWEntity("TrainEntity")
-            if IsValid(train) then
---                    local type = vehicle:GetNWString("SeatType")
---                    if type == "driver" then
---                            ply:SetPos(vehicle:GetPos()+Vector(0,0,-20))
---                    elseif type == "passenger" then
---                            ply:SetPos(vehicle:GetPos()+vehicle:GetForward()*40+Vector(0,0,-10))
---                    end
-            end
-    end
-    hook.Add("PlayerLeaveVehicle", "gmod_subway_81-717-cabin-exit", MoveExitingPlayer )
+//Denies entry if player recently sat in the same train seat
+//This prevents getting stuck in seats when trying to exit
+local function CanPlayerEnter(ply,vec,role)
+	local train = vec:GetNWEntity("TrainEntity")
+	
+	if IsValid(train) then
+		local driver = vec.lastDriver
+		if IsValid(driver) then
+			if driver == ply and CurTime() - vec.lastDriverTime < 1 then return false end
+		end
+	end
+end
+
+//Exiting player hook, stores some vars and moves player if vehicle was train seat
+local function HandleExitingPlayer(ply, vehicle)
+	vehicle.lastDriver = ply
+	vehicle.lastDriverTime = CurTime()
+	ply.lastVehicleDriven = vehicle
+
+	local train = vehicle:GetNWEntity("TrainEntity")
+	if IsValid(train) then
+		
+		//Move exiting player
+		local seattype = vehicle:GetNWString("SeatType")
+		if seattype == "driver" then
+			ply:SetPos(vehicle:GetPos()+Vector(0,0,-20))
+		elseif seattype == "passenger" then
+			ply:SetPos(vehicle:GetPos()+vehicle:GetForward()*40+Vector(0,0,-10))
+		end
+		ply:SetEyeAngles(vehicle:GetForward():Angle())
+		//Reset cabin
+		
+		//Server
+		train:ClearKeyBuffer()
+		
+		//Client
+		net.Start("metrostroi-cabin-reset")
+		net.WriteEntity(train)
+		net.Send(ply)
+	end
+end
+
+hook.Add("PlayerLeaveVehicle", "gmod_subway_81-717-cabin-exit", HandleExitingPlayer )
+hook.Add("CanPlayerEnterVehicle","gmod_subway_81-717-cabin-entry", CanPlayerEnter )

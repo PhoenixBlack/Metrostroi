@@ -145,7 +145,7 @@ local digit_bitmap = {
 ENT.ButtonMap = {}
 
 //General Panel
-ENT.ButtonMap[1] = {
+local p = {
 	pos = Vector(-455,-10,7),
 	ang = Angle(0,90,40),
 	width = 440,
@@ -153,13 +153,14 @@ ENT.ButtonMap[1] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{205,28,20},
-		{440,190}
+		{1,205,28,20},
+		{2,440,190}
 	}
 }
+table.insert(ENT.ButtonMap,p)
 
 //Main panel
-ENT.ButtonMap[2] = {
+local p = {
 	pos = Vector(-455,-27,15),
 	ang = Angle(0,90,60),
 	width = 860,
@@ -167,13 +168,117 @@ ENT.ButtonMap[2] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{860,290},
-		{50,100},
-		{100,50},
-		{100,100}
+		{3,860,290},
+		{4,50,100},
+		{5,100,50},
+		{6,100,100}
 	}
 }
+table.insert(ENT.ButtonMap,p)
 
+
+
+//Clientside decoration props
+ENT.ClientProps = {}
+local p = {
+	model = "models/props_lab/reciever01a.mdl",
+	pos = Vector(-445,40,8.4),
+	ang = Angle(0,0,0)
+}
+table.insert(ENT.ClientProps,p)
+
+local p = {
+	model = "models/props_lab/huladoll.mdl",
+	pos = Vector(-453,-32,0.5),
+	ang = Angle(0,0,0)
+}
+table.insert(ENT.ClientProps,p)
+
+local p = {
+	model = "models/props_lab/reciever01b.mdl",
+	pos = Vector(-453,-18.3,1),
+	ang = Angle(-45,0,0)
+}
+table.insert(ENT.ClientProps,p)
+
+local p = {
+	model = "models/props_lab/reciever01d.mdl",
+	pos = Vector(-457.9,-15,8.1),
+	ang = Angle(-30,0,0)
+}
+table.insert(ENT.ClientProps,p)
+
+
+
+//Populate button table
+for pk,panel in pairs(ENT.ButtonMap) do
+	for bk,button in pairs(panel.buttons) do
+		button[5]=false
+	end
+end
+
+function ENT:ShouldRenderClientEnts()
+	return self:LocalToWorld(Vector(-450,0,0)):Distance(LocalPlayer():GetPos()) < 512
+end
+
+function ENT:CreateCSEnts()
+	for k,v in pairs(self.ClientProps) do
+		local cent = ClientsideModel(v.model,RENDERGROUP_OPAQUE)
+		cent:SetPos(self:LocalToWorld(v.pos))
+		cent:SetAngles(self:LocalToWorldAngles(v.ang))
+		cent:SetParent(self)
+		table.insert(self.ClientEnts,cent)
+	end
+end
+
+function ENT:RemoveCSEnts()
+	for k,v in pairs(self.ClientEnts) do
+		v:Remove()
+	end
+	self.ClientEnts = {}
+end
+
+
+//True to render, false to hide //Unused
+function ENT:ApplyCSEntRenderMode(render)
+	for k,v in pairs(self.ClientEnts) do
+		if render then
+			v:SetRenderMode(RENDERMODE_NORMAL)
+		else
+			v:SetRenderMode(RENDERMODE_NONE)
+		end
+	end
+end
+
+function ENT:Initialize()
+	//Create clientside props
+	self.ClientEnts = {}
+	self.RenderClientEnts = self:ShouldRenderClientEnts()
+	if self.RenderClientEnts then
+		self:CreateCSEnts()
+	end
+end
+
+function ENT:OnRemove()
+	self:RemoveCSEnts()
+end
+
+function ENT:Think()
+	if CurTime() - (self.PrevThinkTime or 0) > .5 then
+		self.PrevThinkTime = CurTime()
+		
+		local shouldrender = self:ShouldRenderClientEnts()
+		if self.RenderClientEnts != shouldrender then
+			self.RenderClientEnts = shouldrender
+			if self.RenderClientEnts then
+				self:CreateCSEnts()
+			else
+				self:RemoveCSEnts()
+			end
+		end
+		
+	end
+end
 
 function ENT:DrawSegment(x,y,w,h)
   for z=1,6,1 do
@@ -481,14 +586,20 @@ function ENT:Draw()
     end
 
   cam.End3D2D()
-
+	
+	//Debug draw for buttons
 	if GetConVarNumber("metrostroi_drawdebug") > 0 then
 		for kp,panel in pairs(self.ButtonMap) do
 			cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
-			surface.SetDrawColor(255,255,0)
+			
 			
 			for kb,button in pairs(panel.buttons) do
-				self:DrawCircle(button[1],button[2],button[3] or 10)
+				if button[5] then
+					surface.SetDrawColor(255,0,0)
+				else
+					surface.SetDrawColor(0,255,0)
+				end
+				self:DrawCircle(button[2],button[3],button[4] or 10)
 			end
 			
 			cam.End3D2D()
@@ -613,12 +724,17 @@ local function isValidTrainDriver(ply)
 	return train
 end
 
+//Checks what button/panel is being looked at and check for custom crosshair
 hook.Add("Think","metrostroi-cabin-panel",function()
-	if !IsValid(LocalPlayer()) then return end
-	local train = isValidTrainDriver(LocalPlayer())
-	if(IsValid(train)) then
+	local ply = LocalPlayer()
+	if !IsValid(ply) then return end
+	local train = isValidTrainDriver(ply)
+	if(IsValid(train) and not ply:GetVehicle():GetThirdPersonMode()) then
 		if(train.ButtonMap != nil) then
-			local tr = LocalPlayer():GetEyeTrace()
+			
+			local tr = ply:GetEyeTrace()
+			
+			//Loop trough every panel
 			for k2,panel in pairs(train.ButtonMap) do
 				local wpos = train:LocalToWorld(panel.pos)
 				local wang = train:LocalToWorldAngles(panel.ang)
@@ -630,53 +746,101 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 				panel.aimY = localy
 				panel.aimedAt = (localx > 0 and localx < panel.width and localy > 0 and localy < panel.height)
 			end
-			LocalPlayer().drawCabinCrosshair = false
+			
+			//Check if we should draw the crosshair
+			ply.drawCabinCrosshair = false
 			for kp,panel in pairs(train.ButtonMap) do
 				if panel.aimedAt then 
-					LocalPlayer().drawCabinCrosshair = true
+					ply.drawCabinCrosshair = true
 					break
 				end
 			end
 		end
-	else
-		LocalPlayer().drawCabinCrosshair = false
+	else 
+		ply.drawCabinCrosshair = false
 	end
 end)
 
+//TODO: Move to serverside PlayerLeaveVehicle hook?
 
-hook.Add("KeyPress", "metrostroi-cabin-buttons", function(ply, key)
-	if !IsFirstTimePredicted() then return end
-	if not(key==IN_ATTACK or key==IN_ATTACK2) then return end 
-	//Filter out the most common thing the quickest
-	
-	local train = isValidTrainDriver(ply)
-	if !IsValid(train) then return end
-	if train.ButtonMap == nil then return end
-	for kp,panel in pairs(train.ButtonMap) do
-		if panel.aimedAt then
-			for kb,button in pairs(panel.buttons) do
-				if math.Dist(button[1],button[2],panel.aimX,panel.aimY) < (button[3] or 10) then
-					net.Start("metrostroi-cabin-button")
-					net.WriteInt(kp,8) //Panel
-					net.WriteInt(kb,8) //Button
-					
-					//print(panel,button,key)
-					
-					//Key
-					if(key==IN_ATTACK) then
-						net.WriteInt(1,8)
-					elseif (key==IN_ATTACK2) then
-						net.WriteInt(2,8)
-					else
-						net.WriteInt(0,8)
-					end
-					
-					net.SendToServer()
-				end
+
+//Takes button table, sends current status
+local function sendButtonMessage(button)
+	net.Start("metrostroi-cabin-button")
+	net.WriteInt(button[1],8) 
+	net.WriteBit(button[5])
+	net.SendToServer()
+end
+
+//Goes over a train's buttons and clears them, sending a message if needed
+function ENT:clearButtons()
+	if self.ButtonMap == nil then return end
+	for kp,panel in pairs(self.ButtonMap) do
+		for kb,button in pairs(panel.buttons) do
+			if button[5] == true then
+				button[5] = false
+				sendButtonMessage(button)
 			end
 		end
 	end
+end
+
+local lastbutton
+
+//Args are player, IN_ enum and bool for press/release
+local function handleKeyEvent(ply,key,pressed)
+	//if !IsFirstTimePredicted() then return end
+	if key != IN_ATTACK then return end
+	if !IsValid(ply) then return end
+	local train = isValidTrainDriver(ply)
+	if !IsValid(train) then return end
+	if train.ButtonMap == nil then return end
+
+	if pressed then
+		//For every panel
+		for kp,panel in pairs(train.ButtonMap) do
+			
+			//If player is looking at this panel
+			if panel.aimedAt then
+				
+				//Loop trough every button on it
+				for kb,button in pairs(panel.buttons) do
+					
+					//If the aim location is withing button radis
+					if math.Dist(button[2],button[3],panel.aimX,panel.aimY) < (button[4] or 10) then
+					
+						//Note: pressed is always true in current code version
+						if button[5]!=pressed then
+							
+							button[5]=pressed
+							sendButtonMessage(button)
+							lastbutton = button
+						end
+					end
+				end
+			end
+		end
+	else 
+		//Reset the last button pressed
+		if lastbutton != nil then
+			if lastbutton[5] == true then
+				lastbutton[5] = false
+				sendButtonMessage(lastbutton)
+			end
+		end
+	end
+end
+
+//Hook for clearing the buttons when player exits
+net.Receive("metrostroi-cabin-reset",function(len,_)
+	local ent = net.ReadEntity()
+	if IsValid(ent) then
+		ent:clearButtons()
+	end
 end)
+
+hook.Add("KeyPress", "metrostroi-cabin-buttons", function(ply,key) handleKeyEvent(ply, key,true) end)
+hook.Add("KeyRelease", "metrostroi-cabin-buttons", function(ply,key) handleKeyEvent(ply, key,false) end)
 
 hook.Add( "HUDPaint", "metrostroi-draw-custom-crosshair", function()
 	if IsValid(LocalPlayer()) then
