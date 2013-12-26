@@ -1731,7 +1731,7 @@ local function HandleExitingPlayer(ply, vehicle)
 		elseif seattype == "passenger" then
 			ply:SetPos(vehicle:GetPos()+vehicle:GetForward()*40+Vector(0,0,-10))
 		end
-		
+		ply:SetEyeAngles(vehicle:GetForward():Angle())
 		//Reset cabin
 		
 		//Server

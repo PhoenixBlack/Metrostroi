@@ -190,15 +190,33 @@ for pk,panel in pairs(ENT.ButtonMap) do
 	end
 end
 
-function ENT:Initialize()
+function ENT:ShouldRenderClientEnts()
+	return self:LocalToWorld(Vector(-450,0,0)):Distance(LocalPlayer():GetPos()) < 512
+end
 
+//True to render, false to hide
+function ENT:ApplyCSEntRenderMode(render)
+	print("Applying render mode",render)
+	for k,v in pairs(self.ClientEnts) do
+		if render then
+			print(k,v)
+			v:SetRenderMode(RENDERMODE_NORMAL)
+		else
+			v:SetRenderMode(RENDERMODE_NONE)
+		end
+	end
+end
+
+function ENT:Initialize()
 	self.ClientEnts = {}
+	self.RenderClientEnts = self:ShouldRenderClientEnts()
 	//Create clientside props
 	for k,v in pairs(self.ClientProps) do
-		local cent = ents.CreateClientProp(v.model)
+		local cent = ClientsideModel(v.model,RENDERGROUP_OPAQUE)
 		cent:SetPos(self:LocalToWorld(v.pos))
 		cent:SetAngles(self:LocalToWorldAngles(v.ang))
 		cent:SetParent(self)
+		print("created",cent)
 		table.insert(self.ClientEnts,cent)
 	end
 end
@@ -206,6 +224,18 @@ end
 function ENT:OnRemove()
 	for k,v in pairs(self.ClientEnts) do
 		v:Remove()
+	end
+end
+
+function ENT:Think()
+	if CurTime() - (self.PrevThinkTime or 0) > .5 then
+		self.PrevThinkTime = CurTime()
+		
+		local shouldrender = self:ShouldRenderClientEnts()
+		if self.RenderClientEnts != shouldrender then
+			self.RenderClientEnts = shouldrender
+			self:ApplyCSEntRenderMode(shouldrender)
+		end
 	end
 end
 
