@@ -72,35 +72,49 @@ surface.CreateFont("SubwayTrackSign_D", {
 
 
 local modelOffset1 = {
- ["models/props_trainstation/tracksign10.mdl"] =
-   { 0.13, Vector(10.5,0,-1), Angle(0,90,90) },
- ["models/props_trainstation/tracksign09.mdl"] =
-   { 0.13, Vector(10.5,0,6),  Angle(0,90,90) },
- ["models/props_trainstation/tracksign08.mdl"] =
-   { 0.25, Vector(10.5,0,-1), Angle(0,90,90) },
- ["models/props_trainstation/tracksign02.mdl"] =
-   { 0.13, Vector(8.5,0,1.5), Angle(73,0,0)  },
- ["models/props_trainstation/tracksign07.mdl"] =
-   { 0.25, Vector(2,0,27),    Angle(0,90,90) },
- ["models/props_trainstation/tracksign03.mdl"] =
-   { 0.13, Vector(2,0,37),    Angle(0,90,90) },
- ["models/props_trainstation/light_signal001b.mdl"] =
-   { 1.00, Vector(27,8.5,83), Angle(0,90,90) },
- ["models/props_trainstation/tracklight01.mdl"] =
-   { 1.00, Vector(4,-1.7,15), Angle(0,90,90) },
-   
- ["models/metrostroi/props/picket.mdl"] =
-   { 0.07, Vector(4.6,-10,0), Angle(0,66,90) },
+  ["models/props_trainstation/tracksign10.mdl"] =
+    { 0.13, Vector(10.5,0,-1), Angle(0,90,90) },
+  ["models/props_trainstation/tracksign09.mdl"] =
+    { 0.13, Vector(10.5,0,6),  Angle(0,90,90) },
+  ["models/props_trainstation/tracksign08.mdl"] =
+    { 0.25, Vector(10.5,0,-1), Angle(0,90,90) },
+  ["models/props_trainstation/tracksign02.mdl"] =
+    { 0.13, Vector(8.5,0,1.5), Angle(73,0,0)  },
+  ["models/props_trainstation/tracksign07.mdl"] =
+    { 0.25, Vector(2,0,27),    Angle(0,90,90) },
+  ["models/props_trainstation/tracksign03.mdl"] =
+    { 0.13, Vector(2,0,37),    Angle(0,90,90) },
+  ["models/props_trainstation/light_signal001b.mdl"] =
+    { 1.00, Vector(27,8.5,83), Angle(0,90,90) },
+  ["models/props_trainstation/tracklight01.mdl"] =
+    { 1.00, Vector(4,-1.7,15), Angle(0,90,90) },
+    
+  ["models/metrostroi/props/picket.mdl"] =
+    { 0.07, Vector(4.6,-10,0), Angle(0,66,90) },
+ 
+  ["models/metrostroi/props_models/light_2.mdl"] =
+    { 0.05, Vector(1,6,60), Angle(0,90,90) },
+  ["models/metrostroi/props_models/light_3.mdl"] =
+    { 0.05, Vector(1,6,60), Angle(0,90,90) },
+  ["models/metrostroi/props_models/light_2_2.mdl"] =
+    { 0.05, Vector(1,6,60), Angle(0,90,90) },
+  ["models/metrostroi/props_models/light_2_3.mdl"] =
+    { 0.05, Vector(1,6,60), Angle(0,90,90) },
+  
+  ["models/metrostroi/props_models/light_2_outside.mdl"] =
+    { 0.05, Vector(1,0,25), Angle(0,90,90) },
+  ["models/metrostroi/props_models/light_3_outside.mdl"] =
+    { 0.05, Vector(1,-4,110), Angle(0,90,90) },
 }
    
 local modelOffset2 = {
- ["models/props_trainstation/tracksign02.mdl"] =
-   { 0.13, Vector(-7.5,0,1.5), Angle(-73,0,0) },
- ["models/props_trainstation/tracksign03.mdl"] =
-   { 0.13, Vector(-2,0,37),   Angle(0,270,90) },
-   
- ["models/metrostroi/props/picket.mdl"] =
-   { 0.07, Vector(-4.6,-10,0), Angle(0,-66,90) },
+  ["models/props_trainstation/tracksign02.mdl"] =
+    { 0.13, Vector(-7.5,0,1.5), Angle(-73,0,0) },
+  ["models/props_trainstation/tracksign03.mdl"] =
+    { 0.13, Vector(-2,0,37),   Angle(0,270,90) },
+    
+  ["models/metrostroi/props/picket.mdl"] =
+    { 0.07, Vector(-4.6,-10,0), Angle(0,-66,90) },
 }
 
 
@@ -135,11 +149,12 @@ function ENT:Draw()
   -- Get information about sign
   local graphic = self:GetNWString("Graphic") or ""
   local var = {
-    self:GetNWString("Value1") or "",
-    self:GetNWString("Value2") or "",
-    self:GetNWString("Value3") or "",
-    self:GetNWString("Value4") or "",
+    self:GetNWInt("Value1"),
+    self:GetNWInt("Value2"),
+    self:GetNWInt("Value3"),
+    self:GetNWInt("Value4"),
   }
+  local id = self:GetNWInt("ID")
   
 
   -- Quit drawing pickets that aren't nice
@@ -147,7 +162,7 @@ function ENT:Draw()
     if graphic == "picket" then
       local d1 = tonumber(var[1]) or 0
       local d2 = tonumber(var[2]) or 1000
-      if math.abs(d2-d1) < 25 then return end
+--      if math.abs(d2-d1) < 25 then return end
     end
   end
   self:DrawModel()
@@ -170,11 +185,11 @@ function ENT:Draw()
   cam.Start3D2D(pos1, ang1, scale1)
     if graphic == "speed_limit" then
       draw.DrawText(var[1], "SubwayTrackSign_B",0,-90,Color(0,0,0,255),TEXT_ALIGN_CENTER)
-      draw.DrawText("KM", "SubwayTrackSign_D",0, 25,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+      draw.DrawText("KM",   "SubwayTrackSign_D",0, 25,Color(0,0,0,255),TEXT_ALIGN_CENTER)
     end
     if graphic == "slope" then
       draw.DrawText(math.abs(var[1]), "SubwayTrackSign_D",-40,-90,Color(0,0,0,255),TEXT_ALIGN_CENTER)
-      draw.DrawText(var[2], "SubwayTrackSign_D",15, 20,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+      draw.DrawText(var[2],           "SubwayTrackSign_D",15, 20,Color(0,0,0,255),TEXT_ALIGN_CENTER)
       if var[1] > 0
       then draw.DrawText("k", "SubwayTrackSign_C",0,-70,Color(0,0,0,255),TEXT_ALIGN_CENTER)
       else draw.DrawText("m", "SubwayTrackSign_C",0,-70,Color(0,0,0,255),TEXT_ALIGN_CENTER)
@@ -187,60 +202,46 @@ function ENT:Draw()
     if graphic == "danger_zone" then
       draw.DrawText("r", "SubwayTrackSign_C",0,-70,Color(0,0,0,255),TEXT_ALIGN_CENTER)
       draw.DrawText("!", "SubwayTrackSign_A",0,-48,Color(0,0,0,255),TEXT_ALIGN_CENTER)
-      if var[1] ~= "" then
+      if var[1] > 0 then
         draw.DrawText(var[1].." m", "SubwayTrackSign_D",0, 110,Color(0,0,0,255),TEXT_ALIGN_CENTER)
       end
     end
     if graphic == "prohibit" then
---      draw.DrawText("r", "SubwayTrackSign_C",0,-70,Color(0,0,0,255),TEXT_ALIGN_CENTER)
---      draw.DrawText("", "SubwayTrackSign_A",0,-40,Color(0,0,0,255),TEXT_ALIGN_CENTER)
-
-      draw.DrawText("r", "SubwayTrackSign_C",0,-65,Color(0,0,0,255),TEXT_ALIGN_CENTER)
-      draw.DrawText("!", "SubwayTrackSign_A",0,-43,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+      draw.DrawText("r",   "SubwayTrackSign_C",0,-65,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+      draw.DrawText("!",   "SubwayTrackSign_A",0,-43,Color(0,0,0,255),TEXT_ALIGN_CENTER)
       
-      draw.DrawText("NO", "SubwayTrackSign_D",0,-90,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+      draw.DrawText("NO",  "SubwayTrackSign_D",0,-90,Color(0,0,0,255),TEXT_ALIGN_CENTER)
       draw.DrawText("WAY", "SubwayTrackSign_D",0,35,Color(0,0,0,255),TEXT_ALIGN_CENTER)
     end
     if graphic == "picket" then
---      draw.DrawText("FWD", "SubwayTrackSign_D",0,-95,Color(0,0,0,255),TEXT_ALIGN_CENTER)
-      draw.DrawText(math.floor((tonumber(var[1]) or 0)/10), "SubwayTrackSign_B",0,-70,Color(0,0,0,255),TEXT_ALIGN_CENTER)
---      draw.DrawText(tonumber(var[1]) or "", "SubwayTrackSign_B",0,-90,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+      draw.DrawText(var[1], "SubwayTrackSign_B",0,-70,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+
       if GetConVarNumber("metrostroi_drawdebug") > 0 then
-        draw.DrawText(tonumber(var[3]) or "", "SubwayTrackSign_D",0, 20,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+        draw.DrawText("N="..var[3], "SubwayTrackSign_D",0, 25,Color(0,0,0,255),TEXT_ALIGN_CENTER)
       end
     end
---[[    if graphic == "RYG" then
---      surface.SetMaterial(0)
-      surface.SetDrawColor(255,0,0,255)
-      if var[1] == "1" then self:DrawCircle(0,0,4) end
-      surface.SetDrawColor(255,255,0,255)
-      if var[2] == "1" then self:DrawCircle(0,12,4) end
-      surface.SetDrawColor(0,255,0,255)
-      if var[3] == "1" then self:DrawCircle(0,24,4) end
+    if graphic == "light" then
+      local id1 = id % 10
+      local id2 = math.floor(id / 10) % 10
+      local id3 = math.floor(id / 100) % 10
+      
+      surface.SetDrawColor(Color(255,255,255))
+      surface.DrawRect(-50,0,100,310)
+      draw.DrawText(id3, "SubwayTrackSign_B",0,  0,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+      draw.DrawText(id2, "SubwayTrackSign_B",0, 90,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+      draw.DrawText(id1, "SubwayTrackSign_B",0,180,Color(0,0,0,255),TEXT_ALIGN_CENTER)
     end
-    if graphic == "RG" then
-      surface.SetDrawColor(255,0,0,255)
-      if var[1] == "1" then self:DrawCircle(0,0,2) end
-      surface.SetDrawColor(0,255,0,255)
-      if var[2] == "1" then self:DrawCircle(0,15,2) end
-    end
-    if graphic == "RG" then
-      if self:GetNWBool("Disabled",false) then
-        surface.SetDrawColor(255,255,0,255)
-        surface.DrawRect(-1,-5,3,25)
-      end
-    end]]--
+
   cam.End3D2D()
   
   
   -- Draw second surface
   cam.Start3D2D(pos2, ang2, scale2)
     if graphic == "picket" then
-      draw.DrawText(math.floor((tonumber(var[2]) or 0)/10), "SubwayTrackSign_B",0,-70,Color(0,0,0,255),TEXT_ALIGN_CENTER)
---      draw.DrawText((tonumber(var[2]) or 0), "SubwayTrackSign_B",0,-90,Color(0,0,0,255),TEXT_ALIGN_CENTER)
-      if GetConVarNumber("metrostroi_drawdebug") > 0 then
-        draw.DrawText(tonumber(var[3]) or "", "SubwayTrackSign_D",0, 20,Color(0,0,0,255),TEXT_ALIGN_CENTER)
-      end
+      draw.DrawText(var[2], "SubwayTrackSign_B",0,-70,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+--      if GetConVarNumber("metrostroi_drawdebug") > 0 then
+--        draw.DrawText("N="..var[3], "SubwayTrackSign_D",0, 20,Color(0,0,0,255),TEXT_ALIGN_CENTER)
+--      end
     end
   cam.End3D2D()
   

@@ -1122,7 +1122,7 @@ function ENT:ProcessBogey(bogey)
   
   -- Apply force and subtract friction
   local dt_scale = 66.6/(1/self.DeltaTime)
-  local force = dt_scale*(48000*motorPower + 0*15000*math.min(0.7,0.5*absSpeed/50)*sign)
+  local force = dt_scale*(50000*motorPower + 0*15000*math.min(0.7,0.5*absSpeed/50)*sign)
   
   if forward
   then bogey:GetPhysicsObject():ApplyForceCenter(-bogey:GetAngles():Forward()*force)
@@ -1447,7 +1447,7 @@ function ENT:Think()
           if not self.ARSSpeed then
 --            self:PlayOnce("warning",true)
           end
-          self.ARSSpeed = tonumber(v:GetNWString("Value1"))
+          self.ARSSpeed = v:GetNWInt("Value1")
           self.ARSChangeTime = CurTime()
         end
       end
