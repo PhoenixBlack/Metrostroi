@@ -1692,7 +1692,6 @@ function ENT:SpawnFunction(ply, tr)
   ent:SetAngles(ang + Angle(0,180,0))
   ent:Spawn()
   ent:Activate()
-  ent:SetOwner(ply)
   return ent
 end
 
