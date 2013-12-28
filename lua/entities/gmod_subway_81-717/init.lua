@@ -1240,6 +1240,19 @@ function ENT:Think()
           self.AltLastPressedKey[k] = false
         end
       end
+	  
+	//Joystick support
+	if joystick then
+		local con_axis = joystick.Get(player,"met_controller")
+		if con_axis != nil then
+			local mode = math.Round(con_axis/(255/9)) //Need to round this better
+			self:SetDriverMode(mode)
+			print("setmode",con_axis,mode)
+		end
+	end
+	  
+	  
+	  
     else -- Dead mans switch
       if (self.DriverMode > 2) and (self.DisableDeadmansSwitch == false) then
         self:SetDriverMode(1)
@@ -1726,7 +1739,7 @@ end)
 local function CanPlayerEnter(ply,vec,role)
 	local train = vec:GetNWEntity("TrainEntity")
 	
-	if IsValid(train) then
+	if IsValid(train) and IsValid(ply.lastVehicleDriven) and ply.lastVehicleDriven.lastDriverTime != nil then
 		if CurTime() - ply.lastVehicleDriven.lastDriverTime < 1 then return false end
 	end
 end
@@ -1760,5 +1773,17 @@ local function HandleExitingPlayer(ply, vehicle)
 	end
 end
 
+local function joyregister()
+	jcon.register{
+		uid = "met_controller",
+		type = "analog",
+		description = "Controller",
+		category = "Metrostroi",
+	}
+end
+
+
 hook.Add("PlayerLeaveVehicle", "gmod_subway_81-717-cabin-exit", HandleExitingPlayer )
 hook.Add("CanPlayerEnterVehicle","gmod_subway_81-717-cabin-entry", CanPlayerEnter )
+
+hook.Add("JoystickInitialize","metroistroi_cabin",joyregister)
