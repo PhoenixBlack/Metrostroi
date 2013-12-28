@@ -358,6 +358,11 @@ function ENT:CreateSeat(i,side,type)
   seat:Spawn()
   seat:GetPhysicsObject():SetMass(10)
   seat:SetCollisionGroup(COLLISION_GROUP_WORLD)
+
+  if CPPI then
+    seat:CPPISetOwner(self.Owner)
+  end
+
   table.insert(self.TrainEnts,seat)
   table.insert(self.Seats,seat)
 
@@ -398,6 +403,9 @@ function ENT:CreateDoor(i,pair,side,type)
   door:Spawn()
   door:GetPhysicsObject():SetMass(10)
   door:SetCollisionGroup(COLLISION_GROUP_WORLD)
+  if CPPI then
+    door:CPPISetOwner(self.Owner)
+  end
   table.insert(self.TrainEnts,door)
   table.insert(self.AllDoors,door)
 
@@ -439,6 +447,10 @@ function ENT:CreateBogey(pos,forward)
   bogey:Spawn()
   bogey:GetPhysicsObject():SetMass(5000)
 
+  if CPPI then
+    bogey:CPPISetOwner(self.Owner)
+  end
+
   bogey:SetNWBool("IsForwardBogey", forward)
   bogey:SetNWEntity("TrainEntity", self)
 
@@ -464,6 +476,11 @@ function ENT:CreateBogey(pos,forward)
   wheels:SetPos(bogey:LocalToWorld(Vector(0,0.0,-14)))
   wheels:SetAngles(bogey:GetAngles() + Angle(0,90,0))
   wheels:Spawn()
+
+  if CPPI then
+    wheels:CPPISetOwner(self.Owner)
+  end
+
 --  wheels:GetPhysicsObject():SetMass(2000)
 
   -- Nocollide wheels from the chassis
@@ -1690,6 +1707,7 @@ function ENT:SpawnFunction(ply, tr)
   local ent = ents.Create(self.ClassName)
   ent:SetPos(pos)
   ent:SetAngles(ang + Angle(0,180,0))
+  ent.Owner = ply
   ent:Spawn()
   ent:Activate()
   return ent
