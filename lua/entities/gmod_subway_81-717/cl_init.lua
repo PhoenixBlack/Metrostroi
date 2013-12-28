@@ -1,5 +1,13 @@
 include("shared.lua")
 
+CreateClientConVar("metrostroi_tooltipdelay",0,true)
+//TODO: Seriously look what facepunch' lua conventions are
+local lastbutton
+local drawcrosshair
+local tooltiptext
+local lastaimbuttonchange
+local lastaimbutton
+
 --------------------------------------------------------------------------------
 surface.CreateFont("Subway81717_Indicator", {
   font = "Arial",
@@ -153,8 +161,9 @@ local p = {
 	scale = 0.0625,
 	
 	buttons = {
-		{1,205,28,20},
-		{2,440,190}
+		{ID=1,x=205,y=28,radius=20,tooltip="Debugging"},
+		{ID=7,x=200,y=28,radius=20,tooltip="Rawr"},
+		{ID=2,x=440,y=190,tooltip="Living on the edge"}
 	}
 }
 table.insert(ENT.ButtonMap,p)
@@ -168,10 +177,10 @@ local p = {
 	scale = 0.0625,
 	
 	buttons = {
-		{3,860,290},
-		{4,50,100},
-		{5,100,50},
-		{6,100,100}
+		{ID=3,x=860,y=290},
+		{ID=4,x=50,y=100},
+		{ID=5,x=100,y=50},
+		{ID=6,x=100,y=100}
 	}
 }
 table.insert(ENT.ButtonMap,p)
@@ -209,13 +218,14 @@ local p = {
 table.insert(ENT.ClientProps,p)
 
 
-
+/*
 //Populate button table
 for pk,panel in pairs(ENT.ButtonMap) do
 	for bk,button in pairs(panel.buttons) do
-		button[5]=false
+		button.state=false
 	end
 end
+*/
 
 function ENT:ShouldRenderClientEnts()
 	return self:LocalToWorld(Vector(-450,0,0)):Distance(LocalPlayer():GetPos()) < 512
@@ -277,7 +287,24 @@ function ENT:Think()
 			end
 		end
 		
+		//Uncomment for skin disco \o/
+		/*
+		for k,v in pairs(self.ClientEnts) do
+			if v:SkinCount() > 0 then
+				v:SetSkin((v:GetSkin()+1)%(v:SkinCount()-1))
+			end
+		end
+		*/
 	end
+	
+	//Example of pose parameter
+	/*
+	for k,v in pairs(self.ClientEnts) do
+		if v:GetPoseParameterRange(0) != nil then
+			v:SetPoseParameter("switch",math.sin(CurTime()*4)/2+0.5)
+		end
+	end
+	*/
 end
 
 function ENT:DrawSegment(x,y,w,h)
@@ -594,12 +621,12 @@ function ENT:Draw()
 			
 			
 			for kb,button in pairs(panel.buttons) do
-				if button[5] then
+				if button.state then
 					surface.SetDrawColor(255,0,0)
 				else
 					surface.SetDrawColor(0,255,0)
 				end
-				self:DrawCircle(button[2],button[3],button[4] or 10)
+				self:DrawCircle(button.x,button.y,button.radius or 10)
 			end
 			
 			cam.End3D2D()
@@ -724,51 +751,101 @@ local function isValidTrainDriver(ply)
 	return train
 end
 
+local function findAimButton(ply)
+	local train = isValidTrainDriver(ply)
+	if IsValid(train) and train.ButtonMap != nil then
+		local foundbuttons = {}
+		for kp,panel in pairs(train.ButtonMap) do
+			
+			//If player is looking at this panel
+			if panel.aimedAt then
+				
+				//Loop trough every button on it
+				for kb,button in pairs(panel.buttons) do
+					
+					//If the aim location is withing button radis
+					local dist = math.Dist(button.x,button.y,panel.aimX,panel.aimY)
+					if dist < (button.radius or 10) then
+						table.insert(foundbuttons,{button,dist})
+					end
+				end
+			end
+		end
+		
+		if #foundbuttons > 0 then
+			table.SortByMember(foundbuttons,2,true)
+			return foundbuttons[1][1]
+		else 
+			return false
+		end
+	end
+end
+
 //Checks what button/panel is being looked at and check for custom crosshair
 hook.Add("Think","metrostroi-cabin-panel",function()
 	local ply = LocalPlayer()
 	if !IsValid(ply) then return end
 	local train = isValidTrainDriver(ply)
-	if(IsValid(train) and not ply:GetVehicle():GetThirdPersonMode()) then
-		if(train.ButtonMap != nil) then
+	if(IsValid(train) and not ply:GetVehicle():GetThirdPersonMode() and train.ButtonMap != nil) then
+		
+		local tr = ply:GetEyeTrace()
+		
+		//Loop trough every panel
+		for k2,panel in pairs(train.ButtonMap) do
+			local wpos = train:LocalToWorld(panel.pos)
+			local wang = train:LocalToWorldAngles(panel.ang)
 			
-			local tr = ply:GetEyeTrace()
+			local isectPos = LinePlaneIntersect(wpos,wang:Up(),tr.StartPos,tr.Normal)
+			local localx,localy = WorldToScreen(isectPos,wpos,panel.scale,wang)
 			
-			//Loop trough every panel
-			for k2,panel in pairs(train.ButtonMap) do
-				local wpos = train:LocalToWorld(panel.pos)
-				local wang = train:LocalToWorldAngles(panel.ang)
-				
-				local isectPos = LinePlaneIntersect(wpos,wang:Up(),tr.StartPos,tr.Normal)
-				local localx,localy = WorldToScreen(isectPos,wpos,panel.scale,wang)
-				
-				panel.aimX = localx
-				panel.aimY = localy
-				panel.aimedAt = (localx > 0 and localx < panel.width and localy > 0 and localy < panel.height)
-			end
-			
-			//Check if we should draw the crosshair
-			ply.drawCabinCrosshair = false
-			for kp,panel in pairs(train.ButtonMap) do
-				if panel.aimedAt then 
-					ply.drawCabinCrosshair = true
-					break
-				end
+			panel.aimX = localx
+			panel.aimY = localy
+			panel.aimedAt = (localx > 0 and localx < panel.width and localy > 0 and localy < panel.height)
+		end
+		
+		//Check if we should draw the crosshair
+		drawcrosshair = false
+		for kp,panel in pairs(train.ButtonMap) do
+			if panel.aimedAt then 
+				drawcrosshair = true
+				break
 			end
 		end
+		
+		//Tooltips
+		local ttdelay = GetConVarNumber("metrostroi_tooltipdelay")
+		if ttdelay and ttdelay >= 0 then
+			local button = findAimButton(ply)
+			
+			if button != lastaimbutton then
+				lastaimbuttonchange = CurTime()
+				lastaimbutton = button
+			end
+			
+			
+			if button then
+				if ttdelay == 0 or CurTime() - lastaimbuttonchange > ttdelay then
+					tooltiptext = findAimButton(ply).tooltip
+				end
+			else
+				tooltiptext = nil
+			end
+		else
+			tooltiptext = nil
+		end
+		
+		
 	else 
-		ply.drawCabinCrosshair = false
+		drawcrosshair = false
 	end
 end)
-
-//TODO: Move to serverside PlayerLeaveVehicle hook?
 
 
 //Takes button table, sends current status
 local function sendButtonMessage(button)
 	net.Start("metrostroi-cabin-button")
-	net.WriteInt(button[1],8) 
-	net.WriteBit(button[5])
+	net.WriteInt(button.ID,8) 
+	net.WriteBit(button.state)
 	net.SendToServer()
 end
 
@@ -777,15 +854,14 @@ function ENT:clearButtons()
 	if self.ButtonMap == nil then return end
 	for kp,panel in pairs(self.ButtonMap) do
 		for kb,button in pairs(panel.buttons) do
-			if button[5] == true then
-				button[5] = false
+			if button.state == true then
+				button.state = false
 				sendButtonMessage(button)
 			end
 		end
 	end
 end
 
-local lastbutton
 
 //Args are player, IN_ enum and bool for press/release
 local function handleKeyEvent(ply,key,pressed)
@@ -797,34 +873,17 @@ local function handleKeyEvent(ply,key,pressed)
 	if train.ButtonMap == nil then return end
 
 	if pressed then
-		//For every panel
-		for kp,panel in pairs(train.ButtonMap) do
-			
-			//If player is looking at this panel
-			if panel.aimedAt then
-				
-				//Loop trough every button on it
-				for kb,button in pairs(panel.buttons) do
-					
-					//If the aim location is withing button radis
-					if math.Dist(button[2],button[3],panel.aimX,panel.aimY) < (button[4] or 10) then
-					
-						//Note: pressed is always true in current code version
-						if button[5]!=pressed then
-							
-							button[5]=pressed
-							sendButtonMessage(button)
-							lastbutton = button
-						end
-					end
-				end
-			end
+		local button = findAimButton(ply)
+		if button and !button.state then
+			button.state = true
+			sendButtonMessage(button)
+			lastbutton = button
 		end
 	else 
 		//Reset the last button pressed
 		if lastbutton != nil then
-			if lastbutton[5] == true then
-				lastbutton[5] = false
+			if lastbutton.state == true then
+				lastbutton.state = false
 				sendButtonMessage(lastbutton)
 			end
 		end
@@ -844,8 +903,13 @@ hook.Add("KeyRelease", "metrostroi-cabin-buttons", function(ply,key) handleKeyEv
 
 hook.Add( "HUDPaint", "metrostroi-draw-custom-crosshair", function()
 	if IsValid(LocalPlayer()) then
-		if LocalPlayer().drawCabinCrosshair then
-			surface.DrawCircle(surface.ScreenWidth()/2,surface.ScreenHeight()/2,4.1,Color(255,255,150))
+		local scrX,scrY = surface.ScreenWidth(),surface.ScreenHeight()
+		if drawcrosshair then
+			surface.DrawCircle(scrX/2,scrY/2,4.1,Color(255,255,150))
+		end
+		if tooltiptext != nil then
+			surface.SetTextPos(scrX/2,scrY/2+10)
+			surface.DrawText(tooltiptext)
 		end
 	end
 end)

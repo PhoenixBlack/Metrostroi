@@ -1727,10 +1727,7 @@ local function CanPlayerEnter(ply,vec,role)
 	local train = vec:GetNWEntity("TrainEntity")
 	
 	if IsValid(train) then
-		local driver = vec.lastDriver
-		if IsValid(driver) then
-			if driver == ply and CurTime() - vec.lastDriverTime < 1 then return false end
-		end
+		if CurTime() - ply.lastVehicleDriven.lastDriverTime < 1 then return false end
 	end
 end
 

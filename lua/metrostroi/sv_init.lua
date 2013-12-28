@@ -857,7 +857,7 @@ local function rerailTrain(ply,cmd,args,fullstring)
 	//Check if player is looking at valid train
 	local train = ply:GetEyeTrace().Entity
 	if !IsValid(train) then return end
-	if !ply:IsAdmin() and (train:GetOwner() != train) then return end
+	if !ply:IsAdmin() and (train.Player != ply) then return end
 	if !train.IsSubwayTrain then
 		train = train:GetNWEntity("TrainEntity")
 		if !train.IsSubwayTrain then return end
