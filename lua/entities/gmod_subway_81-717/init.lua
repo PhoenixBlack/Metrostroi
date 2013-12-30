@@ -49,10 +49,11 @@ function ENT:Initialize()
   self.SoundNames["bpsn"]          = "subway_trains/81717_bpsn.wav"
   self.SoundNames["brake"]         = "subway_trains/81717_brake.wav"
   self.SoundNames["brake_hard"]    = "subway_trains/81717_brake_hard.wav"
+  self.SoundNames["release_slow"]  = "subway_trains/81717_release_slow.wav"
   self.SoundNames["compressor"]    = "subway_trains/81717_compressor.wav"
   self.SoundNames["engine"]        = "subway_trains/81717_engine.wav"
   self.SoundNames["horn"]          = "subway_trains/81717_horn.wav"
-  self.SoundNames["release_slow"]  = "subway_trains/81717_release_slow.wav"
+
   self.SoundNames["run1"]          = "subway_trains/81717_run1.wav"
   self.SoundNames["run2"]          = "subway_trains/81717_run2.wav"
   self.SoundNames["run3"]          = "subway_trains/81717_run3.wav"
