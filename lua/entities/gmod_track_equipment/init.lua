@@ -53,9 +53,12 @@ function ENT:Initialize()
   
   -- Assign equipment ID to this
   self.EquipmentID = Metrostroi.NextEquipmentID()
+  self:SetNWInt("ID",self.EquipmentID)
   
   -- Traffic light
   if self.TrafficLight then
+    self:SetNWString("Graphic","light")
+    
     self.LightStates = {
       false, -- Red
       false, -- Yellow
@@ -174,9 +177,9 @@ function ENT:Initialize()
     self.IsPicketSign = true
     self:SetNWString("Graphic","picket")
 
-    self:SetNWString("Value1","")
-    self:SetNWString("Value2","")
-    self:SetNWString("Value3","")
+    self:SetNWInt("Value1",0)
+    self:SetNWInt("Value2",0)
+    self:SetNWInt("Value3",0)
     self:SetModel(model["picket"])
     self.SignHeight = 0
 
@@ -202,7 +205,7 @@ function ENT:Initialize()
   -- Speed limit sign on a pole
   if self.PoleMount and self.SpeedLimit then
     self:SetNWString("Graphic","speed_limit")
-    self:SetNWString("Value1",self.SpeedLimit)
+    self:SetNWInt("Value1",self.SpeedLimit)
     self:SetModel(model["large_pole"])
     self.SignHeight = 12
     self.SignXOffset = -8.5
@@ -217,7 +220,7 @@ function ENT:Initialize()
   -- Speed limit
   if (not self.PoleMount) and self.SpeedLimit then
     self:SetNWString("Graphic","speed_limit")
-    self:SetNWString("Value1",self.SpeedLimit)
+    self:SetNWInt("Value1",self.SpeedLimit)
     self:SetModel(model["large"])
     self.SignHeight = 39
 
@@ -229,8 +232,8 @@ function ENT:Initialize()
   -- Track slope
   if self.TrackSlope then
     self:SetNWString("Graphic","slope")
-    self:SetNWString("Value1",self.TrackSlope)
-    self:SetNWString("Value2",self.SectionLength or "")
+    self:SetNWInt("Value1",self.TrackSlope)
+    self:SetNWInt("Value2",self.SectionLength or 0)
     self:SetModel(model["small"])
     self.SignHeight = 28
 
@@ -258,7 +261,6 @@ function ENT:Initialize()
   -- Brake Zone
   if self.BrakeZone then
     self:SetNWString("Graphic","brake_zone")
---    self:SetNWString("Value1",self.TrackSlope)
     self:SetModel(model["small"])
     self.SignHeight = 28
 
@@ -271,7 +273,7 @@ function ENT:Initialize()
   if self.DangerZone then
     self:SetNWString("Graphic","danger_zone")
     if self.SectionLength then
-      self:SetNWString("Value1",self.SectionLength)
+      self:SetNWInt("Value1",self.SectionLength)
       self:SetModel(model["small_extra"])
       self.SignHeight = 32
       self:SetPos(self:GetPos() - self:GetAngles():Up()*5)
@@ -342,7 +344,7 @@ end
 function ENT:SetPicketIndex(index)
   if self.IsPicketSign then
     self.Index = index
---    self:SetNWString("Value1",index)
+--    self:SetNWInt("Value1",index)
   end
 end
 
@@ -381,7 +383,7 @@ function ENT:SetPreviousPicket(sign)
     then self.PreviousIndex = sign.Index
     else self.PreviousIndex = nil
     end
---    self:SetNWString("Value2",self.PreviousIndex or "")
+--    self:SetNWInt("Value2",self.PreviousIndex or "")
   end
 end
 
@@ -408,11 +410,11 @@ end
 
 function ENT:SetPicketOffset(offset)
   self.PicketOffset = offset
-  self:SetNWString("Value3",self.Index)
+  self:SetNWInt("Value3",self.Index)
 
-  self:SetNWString("Value1",math.floor((offset or 0)/10)*10)
+  self:SetNWInt("Value1",math.floor((offset or 0)/10))
   if self.PreviousPicket then
-    self:SetNWString("Value2",math.floor((self.PreviousPicket.PicketOffset or 0)/10)*10)
+    self:SetNWInt("Value2",math.floor((self.PreviousPicket.PicketOffset or 0)/10))
   end
 end
 

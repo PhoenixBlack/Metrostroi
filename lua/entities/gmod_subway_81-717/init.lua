@@ -49,10 +49,11 @@ function ENT:Initialize()
   self.SoundNames["bpsn"]          = "subway_trains/81717_bpsn.wav"
   self.SoundNames["brake"]         = "subway_trains/81717_brake.wav"
   self.SoundNames["brake_hard"]    = "subway_trains/81717_brake_hard.wav"
+  self.SoundNames["release_slow"]  = "subway_trains/81717_release_slow.wav"
   self.SoundNames["compressor"]    = "subway_trains/81717_compressor.wav"
   self.SoundNames["engine"]        = "subway_trains/81717_engine.wav"
   self.SoundNames["horn"]          = "subway_trains/81717_horn.wav"
-  self.SoundNames["release_slow"]  = "subway_trains/81717_release_slow.wav"
+
   self.SoundNames["run1"]          = "subway_trains/81717_run1.wav"
   self.SoundNames["run2"]          = "subway_trains/81717_run2.wav"
   self.SoundNames["run3"]          = "subway_trains/81717_run3.wav"
@@ -1122,7 +1123,7 @@ function ENT:ProcessBogey(bogey)
   
   -- Apply force and subtract friction
   local dt_scale = 66.6/(1/self.DeltaTime)
-  local force = dt_scale*(48000*motorPower + 0*15000*math.min(0.7,0.5*absSpeed/50)*sign)
+  local force = dt_scale*(50000*motorPower + 0*15000*math.min(0.7,0.5*absSpeed/50)*sign)
   
   if forward
   then bogey:GetPhysicsObject():ApplyForceCenter(-bogey:GetAngles():Forward()*force)
@@ -1460,7 +1461,7 @@ function ENT:Think()
           if not self.ARSSpeed then
 --            self:PlayOnce("warning",true)
           end
-          self.ARSSpeed = tonumber(v:GetNWString("Value1"))
+          self.ARSSpeed = v:GetNWInt("Value1")
           self.ARSChangeTime = CurTime()
         end
       end

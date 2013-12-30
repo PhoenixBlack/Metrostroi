@@ -209,8 +209,8 @@ Metrostroi.AnnouncementSequences = {
   [1730] = { 1108, 1409 },
 }
 
-Metrostroi.AnnouncementSequences[999] = {1101, 1102, 1103, 1104, 1105, 1106, 1107 }
 
+--------------------------------------------------------------------------------
 function TRAIN_SYSTEM:Initialize()
   for k,v in pairs(Metrostroi.Announcements) do
     util.PrecacheSound(v[2])
@@ -221,6 +221,11 @@ function TRAIN_SYSTEM:Initialize()
   self.CurrentAnnouncement = nil
 end
 
+function TRAIN_SYSTEM:ClientInitialize()
+end
+
+
+--------------------------------------------------------------------------------
 function TRAIN_SYSTEM:Queue(id)
   if (not Metrostroi.Announcements[id]) and
      (not Metrostroi.AnnouncementSequences[id]) then return end
