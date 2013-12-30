@@ -23,14 +23,26 @@ end
 SWEP.Author		= "TP Hunter NL"
 SWEP.Contact		= "http://facepunch.com/showthread.php?t=1328089"
 SWEP.Purpose		= "Coupling, decoupling, switching"
-SWEP.Instructions	= "Click on 1 bogey, then click on another. Right click decouples, reload cancels"
+SWEP.Instructions	= "Hit bogeys and switches"
 
 SWEP.Spawnable			= true
 SWEP.AdminSpawnable		= true
 
+
+
+--Crowbar
 SWEP.ViewModel			= "models/weapons/c_crowbar.mdl"
 SWEP.WorldModel			= "models/weapons/w_crowbar.mdl"
-SWEP.UseHands = true //Fancy GM13 hands
+
+
+--Hammer
+--[[
+SWEP.ViewModelFOV   = 62
+SWEP.ViewModel      = "models/gamma_ballpein/v_gamma_ballpein.mdl"
+SWEP.WorldModel   = "models/gamma_ballpein/w_gamma_ballpein.mdl"
+]]--
+
+SWEP.UseHands = true --Fancy GM13 hands
 
 SWEP.Primary.ClipSize		= -1
 SWEP.Primary.DefaultClip	= -1
@@ -42,20 +54,17 @@ SWEP.Secondary.DefaultClip	= -1
 SWEP.Secondary.Automatic	= false
 SWEP.Secondary.Ammo			= "none"
 
+SWEP.ValidBogeys = {
+	["models/myproject/81-717_bogey.mdl"] = Vector(-162,0,13)
+}
 
 
 function SWEP:Initialize()
-	
 	self:SetWeaponHoldType("melee")
-	
-	self.ValidBogeys = {
-		["models/myproject/81-717_bogey.mdl"] = Vector(-162,0,13)
-	}
 	self.NextReloadTime = CurTime() + .2
-	
 end
 
-//Check if the ent is valid and model matches
+--Check if the ent is valid and model matches
 function SWEP:IsValidBogey(s)
 	if not IsValid(s) then return false end
 	local s = s:GetModel() or s
@@ -71,7 +80,7 @@ function SWEP:GetSwitchPicket(ent)
 	end
 end
 
-//Apply the ballsocket
+--Apply the ballsocket
 function SWEP:Finalize(ent1,ent2)
 	if constraint.CanConstrain(ent1,0) and constraint.CanConstrain(ent2,0) then
 		if IsValid(constraint.AdvBallsocket(
@@ -106,8 +115,8 @@ function SWEP:Finalize(ent1,ent2)
 end
 
 
-//0=generic 1=error 2=undo 3=hint 4=cleanup
-//Message, type, delay
+--0=generic 1=error 2=undo 3=hint 4=cleanup
+--Message, type, delay
 function SWEP:SendNotification(s,e,n)
 	net.Start("traintoolnotify")
 	net.WriteString(s)
@@ -116,12 +125,12 @@ function SWEP:SendNotification(s,e,n)
 	net.Send(self.Owner)
 end
 
-//Checks the offset table of given entities and returns distance
+--Checks the offset table of given entities and returns distance
 function SWEP:GetCouplerDistance(ent1,ent2)
 	return ent1:LocalToWorld(self.ValidBogeys[ent1:GetModel()]):Distance(ent2:LocalToWorld(self.ValidBogeys[ent2:GetModel()]))
 end
 
-//Checks if there's an advballsocket between two entities
+--Checks if there's an advballsocket between two entities
 function SWEP:AreCoupled(ent1,ent2)
 	local constrainttable = constraint.FindConstraints(ent1,"AdvBallsocket")
 	local coupled = false
@@ -154,8 +163,8 @@ function SWEP:SortEntTableByDistance(tbl,pos)
 	
 end
 
-//Get the most likely canidate for a connection
-//Returns nil if none
+--Get the most likely canidate for a connection
+--Returns nil if none
 function SWEP:GetBogeyBuddy(ent)
 	local enttable = ents.FindInSphere(ent:GetPos(),360)
 	local filteredtable = {}
@@ -175,7 +184,7 @@ function SWEP:IsWithinActionDistance(trace)
 	return trace.StartPos:Distance(trace.HitPos) < 512
 end
 
-//Releases breaks, sometime later in development
+--Releases breaks, sometime later in development
 function SWEP:Reload()
 	if CurTime() > self.NextReloadTime then
 		self.NextReloadTime = CurTime() + .2
@@ -217,7 +226,7 @@ function SWEP:Reload()
 end
 
 
-//Couple
+--Couple
 function SWEP:PrimaryAttack()
 	self.Weapon:SetNextPrimaryFire(CurTime() + .2)
 	self.Weapon:SendWeaponAnim(ACT_VM_HITCENTER) 
@@ -252,7 +261,7 @@ function SWEP:PrimaryAttack()
 	end
 end
 
-//Decouple
+--Decouple
 function SWEP:SecondaryAttack()
 	self.Weapon:SetNextSecondaryFire(CurTime() + .2)
 	self.Weapon:SendWeaponAnim(ACT_VM_HITCENTER)
