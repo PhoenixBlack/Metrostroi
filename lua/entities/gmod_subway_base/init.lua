@@ -275,17 +275,51 @@ local function HandleExitingPlayer(ply, vehicle)
 	end
 end
 
---[[local function joyregister()
+--Register joystick buttons
+--Won't get called if joystick isn't installed
+local function JRegisterInput(uid,analog,desc) 
+	local atype 
+	if analog then
+		atype = "analog"
+	else
+		atype = "digital"
+	end
+	jcon.register {
+		uid = uid,
+		type = atype,
+		description = desc,
+		category = "Metrostroi"
+	}
+end
+
+
+local function JoystickRegister()
+	JRegisterInput("met_controller",true,"Controller")
+	JRegisterInput("met_reverse",false,"Reverse")
+	--Controller
+	--[[
 	jcon.register{
 		uid = "met_controller",
 		type = "analog",
 		description = "Controller",
 		category = "Metrostroi",
 	}
-end]]--
+	
+	--reverse
+	jcon.register{
+		uid = "met_controller",
+		type = "analog",
+		description = "Controller",
+		category = "Metrostroi",
+	}
+	--]]
+	
+	
+end
 
+hook.Add("JoystickInitialize","metroistroi_cabin",JoystickRegister)
 
 hook.Add("PlayerLeaveVehicle", "gmod_subway_81-717-cabin-exit", HandleExitingPlayer )
 hook.Add("CanPlayerEnterVehicle","gmod_subway_81-717-cabin-entry", CanPlayerEnter )
 
---hook.Add("JoystickInitialize","metroistroi_cabin",joyregister)
+
