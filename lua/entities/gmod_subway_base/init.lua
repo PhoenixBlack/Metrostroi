@@ -37,9 +37,9 @@ function ENT:Initialize()
 	self.ButtonBuffer = {}
 	self.KeyBuffer = {}
 	self.KeyMap = {
-		[KEY_ENTER] = 1,
-		[KEY_INSERT] = 2,
-		[KEY_W] = 3
+		[KEY_1] = "D_1",
+		[KEY_2] = "D_2",
+		[KEY_3] = "D_3"
 	}
 	
 	-- Entities that belong to train and must be cleaned up later
@@ -98,6 +98,28 @@ function ENT:CreateBogey(pos,ang,forward)
 end
 
 
+function ENT:CreateSeat(offset,type)
+  local seat = ents.Create("prop_vehicle_prisoner_pod")
+  seat:SetModel("models/props_phx/carseat3.mdl")
+
+    seat:SetPos(self:LocalToWorld(offset))
+    seat:SetAngles(self:GetAngles()+Angle(0,-90,0))
+
+  seat:Spawn()
+  seat:GetPhysicsObject():SetMass(10)
+  seat:SetCollisionGroup(COLLISION_GROUP_WORLD)
+  table.insert(self.TrainEntities,seat)
+  
+  --table.insert(self.Seats,seat) --No longer used?
+
+  seat:SetNWEntity("TrainEntity", self)
+  seat:SetNWString("SeatType", type)
+
+  -- Constrain seat to this object
+--  constraint.NoCollide(self,seat,0,0)
+  seat:SetParent(self)
+  return seat
+end
 
 
 --------------------------------------------------------------------------------
@@ -149,6 +171,34 @@ function ENT:Think()
 	self.PrevTime = self.PrevTime or CurTime()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
+	
+	--Handle player input
+	local ply = self.DriverSeat:GetPassenger(0) 
+	if ply and IsValid(ply) then
+	
+		//Keypresses
+		//Check for newly pressed keys
+		for k,v in pairs(ply.keystate) do
+			if self.KeyBuffer[k] == nil then
+				self.KeyBuffer[k] = true
+				local button = self.KeyMap[k]
+				if button != nil then
+					self:ButtonEvent(button,true)
+				end
+			end
+		end
+		
+		//Check for newly released keys
+		for k,v in pairs(self.KeyBuffer) do
+			if ply.keystate[k] == nil then
+				self.KeyBuffer[k] = nil
+				local button = self.KeyMap[k]
+				if button != nil then
+					self:ButtonEvent(button,false)
+				end
+			end
+		end
+	end
 	
 	for k,v in pairs(self.Systems) do
 		v:Think()
@@ -216,7 +266,7 @@ end
 --------------------------------------------------------------------------------
 -- Receiver for CS buttons, Checks if people are the legit driver and calls buttonevent on the train
 net.Receive("metrostroi-cabin-button", function(len, ply)
-	local button = net.ReadInt(8)
+	local button = net.ReadString()
 	local eventtype = net.ReadBit()
 	local seat = ply:GetVehicle()
 	local train 

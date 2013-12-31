@@ -16,6 +16,23 @@ table.insert(ENT.ClientProps,{
 	})
 end]]--
 
+ENT.ButtonMap = {}
+
+--Main panel
+table.insert(ENT.ButtonMap,{
+	pos = Vector(427.5,-33.3,-18.23),
+	ang = Angle(0,-90,11.3),
+	width = 281,
+	height = 145,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID="D_1",x=50,y=70,radius=20,tooltip="Debugging 1"},
+		{ID="D_2",x=100,y=70,radius=20,tooltip="Debugging 2"},
+		{ID="D_3",x=150,y=70,radius=20,tooltip="Debugging 3"}
+	}
+})
+
 for i=1,6 do
 	table.insert(ENT.ClientProps,{
 		model = "models/metrostroi/81-717/switch01.mdl",

@@ -31,7 +31,7 @@ end)
 --------------------------------------------------------------------------------
 -- Buttons layout
 --------------------------------------------------------------------------------
-ENT.ButtonMap = {}
+--ENT.ButtonMap = {} Leave nil if unused
 
 -- General Panel
 --[[table.insert(ENT.ButtonMap,{
@@ -152,7 +152,7 @@ function ENT:Think()
 	if CurTime() - (self.PrevThinkTime or 0) > .5 then
 		self.PrevThinkTime = CurTime()
 		
-		-- Invalidate entities if needed
+		-- Invalidate entities if needed, for hotloading purposes
 		if not self.ClientPropsInitialized then
 			self.ClientPropsInitialized = true
 			self:RemoveCSEnts()
@@ -215,28 +215,41 @@ end
 function ENT:Draw()
 	self.dT = CurTime() - (self.PrevTime or CurTime())
 	self.PrevTime = CurTime()
+	
+	
 
 	-- Draw model
 	self:DrawModel()
 	
 	-- Debug draw for buttons
 	if GetConVarNumber("metrostroi_drawdebug") > 0 then
-		for kp,panel in pairs(self.ButtonMap) do
-			cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
-			
-				--surface.SetDrawColor(255,255,255)
-				--surface.DrawRect(0,0,panel.width,panel.height)
-				for kb,button in pairs(panel.buttons) do
-					if button.state then
-						surface.SetDrawColor(255,0,0)
-					else
-						surface.SetDrawColor(0,255,0)
-					end
-					self:DrawCircle(button.x,button.y,button.radius or 10)
-					surface.DrawRect(button.x-8,button.y-8,16,16)
+		if self.ButtonMap ~= nil then
+			for kp,panel in pairs(self.ButtonMap) do
+				if kp ~= "BaseClass" then
+
+					
+					cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
+					
+						
+						surface.SetDrawColor(0,0,255)
+						surface.DrawOutlinedRect(0,0,panel.width,panel.height)
+						
+					
+						--surface.SetDrawColor(255,255,255)
+						--surface.DrawRect(0,0,panel.width,panel.height)
+						for kb,button in pairs(panel.buttons) do
+							if button.state then
+								surface.SetDrawColor(255,0,0)
+							else
+								surface.SetDrawColor(0,255,0)
+							end
+							self:DrawCircle(button.x,button.y,button.radius or 10)
+							surface.DrawRect(button.x-8,button.y-8,16,16)
+						end
+					
+					cam.End3D2D()
 				end
-			
-			cam.End3D2D()
+			end
 		end
 	end
 end
@@ -411,7 +424,7 @@ end)
 -- Takes button table, sends current status
 local function sendButtonMessage(button)
 	net.Start("metrostroi-cabin-button")
-	net.WriteInt(button.ID,8) 
+	net.WriteString(button.ID) 
 	net.WriteBit(button.state)
 	net.SendToServer()
 end
