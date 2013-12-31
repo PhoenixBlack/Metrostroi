@@ -850,38 +850,50 @@ local function getTrackData(pos,forward)
 
 end
 
-local function rerailTrain(ply,cmd,args,fullstring)
-	local trainOffset = 101.3
-	local bogeyOffset = 36
 
-	//Check if player is looking at valid train
+--ConCMD for rerailer
+local function RerailConCMDHandler(ply,cmd,args,fullstring)
 	local train = ply:GetEyeTrace().Entity
-	if !IsValid(train) then return end
-	if !(ply:IsAdmin() or (CPPI and train:CPPIGetOwner() == ply))then return end
-	if !train.IsSubwayTrain then
-		train = train:GetNWEntity("TrainEntity")
-		if !train.IsSubwayTrain then return end
+	if not(train and train.SubwayTrain ~= nil) then return end
+	
+	
+	--If we're aiming at bogeys or wheels
+	local nwent = train:GetNWEntity("TrainEntity")
+	if nwent and nwent.SubwayTrain ~= nil then 
+		train = nwent
 	end
+	
+	if !(ply:IsAdmin() or (CPPI and train:CPPIGetOwner() == ply))then return end
+	Metrostroi.RerailTrain(train)
+end
+concommand.Add("metrostroi_rerail",RerailConCMDHandler)
+
+--Rerails given train entity
+Metrostroi.RerailTrain = function(train)
+	local bogeyOffset = 36 --Z distance between bogey origin and top of track
+
+	--Safety checks
+	if not IsValid(train) or train.SubwayTrain == nil then return end
 	if timer.Exists("metrostroi_rerailer_solid_reset_"..train:EntIndex()) then return end
 	
-	//Trace down to get the track
+	--Trace down to get the track
 	local tr = traceWorldOnly(train:GetPos(),Vector(0,0,-500))
 	if !tr or !tr.Hit then 
 		tr = traceWorldOnly(train:GetPos(),train:GetAngles():Up()*-500)
 		if !tr or !tr.Hit then return end
 	end
 	
-	//Get track data below the train
+	--Get track data below the train
 	local trackdata = getTrackData(tr.HitPos+tr.HitNormal*3,train:GetAngles():Forward()) 
 	if !trackdata then return end
 	
 	local ang = trackdata.forward:Angle()
 	
-	//Get the positions of the bogeys if we'd rerail the train now
+	--Get the positions of the bogeys if we'd rerail the train now
 	local frontpos = LocalToWorld(train:WorldToLocal(train.FrontBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,95),ang)
 	local rearpos = LocalToWorld(train:WorldToLocal(train.RearBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,95),ang)
 	
-	//Get thet track data at these locations
+	--Get thet track data at these locations
 	local tr = traceWorldOnly(frontpos,-trackdata.up*500)
 	if !tr or !tr.Hit then return end
 	local frontdata = getTrackData(tr.HitPos+tr.HitNormal*3,trackdata.forward)
@@ -892,21 +904,30 @@ local function rerailTrain(ply,cmd,args,fullstring)
 	local reardata = getTrackData(tr.HitPos+tr.HitNormal*3,trackdata.forward)
 	if !reardata then return end
 	
-	//Final trains pos is the average of the 2 bogey locations
-	local trainpos = (frontdata.centerpos+reardata.centerpos)/2+trackdata.up*trainOffset
+	--Find the current difference between the bogeys and the train's model center
+	local TrainOriginToBogeyOffset = (train:WorldToLocal(train.FrontBogey:GetPos())+train:WorldToLocal(train.RearBogey:GetPos()))/2
 	
-	//Store and set solids
+	--Final trains pos is the average of the 2 bogey locations
+	local trainpos = (frontdata.centerpos+reardata.centerpos)/2
+	
+	--Apply bogey-origin and bogey-track offsets
+	trainpos = LocalToWorld(TrainOriginToBogeyOffset*-1,ang,trainpos,ang) + Vector(0,0,bogeyOffset)
+	--Not sure if this is neccesary anymore, but I'm not touching this anytime soon
+	
+	--Store and set solids
+	local entlist = {
+		train,
+		train.FrontBogey,
+		train.RearBogey,
+		train.FrontBogey.Wheels,
+		train.RearBogey.Wheels
+	}
+	
 	local solids = {}
-	for k,v in pairs(train.Wheels) do
+	for k,v in pairs(entlist) do
 		solids[v]=v:GetSolid()
 		v:SetSolid(SOLID_NONE)
 	end
-	
-	solids[train.FrontBogey]=train.FrontBogey:GetSolid()
-	solids[train.RearBogey]=train.RearBogey:GetSolid()
-	
-	train.FrontBogey:SetSolid(SOLID_NONE)
-	train.RearBogey:SetSolid(SOLID_NONE)
 	
 	train:SetPos(trainpos)
 	train:SetAngles(ang)
@@ -914,8 +935,8 @@ local function rerailTrain(ply,cmd,args,fullstring)
 	train.FrontBogey:SetPos(frontdata.centerpos+frontdata.up*bogeyOffset)
 	train.RearBogey:SetPos(reardata.centerpos+reardata.up*bogeyOffset)
 	
-	train.FrontBogey:SetAngles(frontdata.forward:Angle())
-	train.RearBogey:SetAngles((reardata.forward*-1):Angle())
+	train.FrontBogey:SetAngles((frontdata.forward*-1):Angle())
+	train.RearBogey:SetAngles(reardata.forward:Angle())
 	
 	train:GetPhysicsObject():EnableMotion(false)
 	
@@ -926,4 +947,4 @@ local function rerailTrain(ply,cmd,args,fullstring)
 end
 
 
-concommand.Add("metrostroi_rerail",rerailTrain)
+
