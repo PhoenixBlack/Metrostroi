@@ -367,6 +367,10 @@ end
 hook.Add("Think","metrostroi-cabin-panel",function()
 	local ply = LocalPlayer()
 	if !IsValid(ply) then return end
+	
+	toolTipText = nil
+	drawCrosshair = false
+	
 	local train = isValidTrainDriver(ply)
 	if(IsValid(train) and not ply:GetVehicle():GetThirdPersonMode() and train.ButtonMap != nil) then
 		
@@ -386,7 +390,7 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 		end
 		
 		-- Check if we should draw the crosshair
-		drawCrosshair = false
+		
 		for kp,panel in pairs(train.ButtonMap) do
 			if panel.aimedAt then 
 				drawCrosshair = true
@@ -409,16 +413,8 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 				if ttdelay == 0 or CurTime() - lastAimButtonChange > ttdelay then
 					toolTipText = findAimButton(ply).tooltip
 				end
-			else
-				toolTipText = nil
 			end
-		else
-			toolTipText = nil
 		end
-		
-		
-	else 
-		drawCrosshair = false
 	end
 end)
 
