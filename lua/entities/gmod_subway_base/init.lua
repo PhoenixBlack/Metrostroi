@@ -274,7 +274,6 @@ function ENT:Think()
 								for _,system in pairs(self.Systems) do
 									local inputname = Metrostroi.JoystickSystemMap[k]
 									if inputname then
-										print("triggered",k,jvalue)
 										system:TriggerInput(inputname,jvalue)
 									end
 								end

@@ -832,7 +832,7 @@ local function traceWorldOnly(pos,dir)
 		endpos = pos+dir,
 		mask = MASK_NPCWORLDSTATIC
 	})
-	debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
+	--debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
 	return tr
 end
 
@@ -918,24 +918,17 @@ end
 local function getTrackDataBelowEnt(ent)
 	local forward = ent:GetAngles():Forward()
 	
-	print(1)
 	local tr = traceWorldOnly(ent:GetPos(),Vector(0,0,-500))
 	if tr.Hit then
-		print(2)
 		local td = getTrackData(tr.HitPos,forward)
-		PrintTable(td)
 		if td then return td end
 	end
 	
-	print(3)
-	local tr = traceWorldOnly(ent:GetPos(),ent:Up()*-500)
+	local tr = traceWorldOnly(ent:GetPos(),ent:GetAngles():Up()*-500)
 	if tr.Hit then
-		print(4)
 		local td = getTrackData(tr.HitPos,forward)
 		if td then return td end
 	end
-	
-	print(5)
 	
 	return false 
 end
@@ -965,10 +958,7 @@ Metrostroi.RerailBogey = function(bogey)
 	if timer.Exists("metrostroi_rerailer_solid_reset_"..bogey:EntIndex()) then return false end
 	local bogeyOffset = 36 
 	local trackData = getTrackDataBelowEnt(bogey)
-	print("precheck")
-	PrintTable(trackData)
-	if trackData == nil then return false end
-	print("postcheck")
+	if not trackData then return false end
 	
 	bogey:SetPos(trackData.centerpos+trackData.up*bogeyOffset)
 	bogey:SetAngles(trackData.forward:Angle())
@@ -979,10 +969,12 @@ Metrostroi.RerailBogey = function(bogey)
 	local wheels = bogey.Wheels
 	
 	solids[bogey]=bogey:GetSolid()
-	solids[wheels]=wheels:GetSolid()
-	
 	bogey:SetSolid(SOLID_NONE)
-	wheels:SetSolid(SOLID_NONE)
+	
+	if wheels ~= nil then
+		solids[wheels]=wheels:GetSolid()
+		wheels:SetSolid(SOLID_NONE)
+	end
 	
 	timer.Create("metrostroi_rerailer_solid_reset_"..bogey:EntIndex(),1,1,function() resetSolids(solids) end )
 	return true
