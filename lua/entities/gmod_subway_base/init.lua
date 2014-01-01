@@ -53,8 +53,17 @@ function ENT:Initialize()
 			end
 		end
 		
+		--Custom driver seat
+		table.insert(inputs,"Seat")
+		table.insert(inputTypes,"ENTITY")
+		
 		self.Inputs = WireLib.CreateSpecialInputs(self,inputs,inputTypes)
 		self.Outputs = WireLib.CreateSpecialOutputs(self,outputs,outputTypes)
+		
+		--[[
+			To use the special types, make a system return a table with name,type instead of just name
+			EG: { Mode , Speed , { Name , "STRING" }}
+		--]]
 	end
 
 	-- Setup drivers controls
@@ -94,6 +103,15 @@ end
 
 -- Trigger input
 function ENT:TriggerInput(name, value)
+	--Custom seat 
+	if name == "Seat" then
+		if IsValid(value) and value:IsVehicle() then
+			self.DriverSeat = value
+		else
+			self.DriverSeat = nil
+		end
+	end
+
 	for k,v in pairs(self.Systems) do
 		v:TriggerInput(name,value)
 	end
