@@ -12,7 +12,7 @@ end
 
 function TRAIN_SYSTEM:WireInputs()
 	return { "SetController", "ControllerUp", "ControllerDown",
-			 "SetReverser" }
+			 "SetReverser" , "ReverserUp" , "ReverserDown"}
 end
 
 function TRAIN_SYSTEM:WireOutputs()
@@ -21,9 +21,9 @@ end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
 	if name == "SetController" then
-		self.Position = math.floor(value)
+		self.Position = math.Round(value) --Rounding handles joystick input better
 	elseif name == "SetReverser" then
-		self.Reverser = math.floor(value)
+		self.Reverser = math.Round(value)
 	elseif (name == "ControllerUp") and (value > 0.5) then
 		if self.Train.MotorSettings[self.Position+1] then
 			self.Position = self.Position + 1
@@ -32,6 +32,14 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 		if self.Train.MotorSettings[self.Position-1] then
 			self.Position = self.Position - 1
 		end
+	elseif (name == "ReverserUp") and (value > 0.5) then
+		if self.Reverser < 1 then
+			self.Reverser = self.Reverser + 1
+		end
+	elseif (name == "ReverserDown") and (value > 0.5) then
+		if self.Reverser > -1 then
+			self.Reverser = self.Reverser - 1
+		end		
 	end
 end
 

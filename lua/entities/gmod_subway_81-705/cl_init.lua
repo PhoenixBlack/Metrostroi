@@ -27,9 +27,10 @@ table.insert(ENT.ButtonMap,{
 	scale = 0.0625,
 	
 	buttons = {
-		{ID="ControllerUp",x=50,y=70,radius=20,tooltip="Mode Up"},
-		{ID="ControllerDown",x=100,y=70,radius=20,tooltip="Mode Down"},
-		{ID="D_3",x=150,y=70,radius=20,tooltip="Debugging 3"}
+		{ID="ControllerUp",x=50,y=60,radius=20,tooltip="Mode Up"},
+		{ID="ControllerDown",x=50,y=100,radius=20,tooltip="Mode Down"},
+		{ID="ReverserUp",x=100,y=60,radius=20,tooltip="Reverser Up"},
+		{ID="ReverserDown",x=100,y=100,radius=20,tooltip="Reverser Down"}
 	}
 })
 
