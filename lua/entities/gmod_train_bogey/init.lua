@@ -16,6 +16,9 @@ function ENT:Initialize()
 	-- Set proper parameters for the bogey
 	self:GetPhysicsObject():SetMass(5000)
 	
+	-- Store coupling point offset
+	self.CouplingPointOffset = Vector(-162,0,13)
+	
 	-- Create wire controls
 	if Wire_CreateInputs then
 		self.Inputs = Wire_CreateInputs(self,{
@@ -119,6 +122,89 @@ function ENT:TriggerInput(iname, value)
 		self.Reversed = value > 0.5
 	end
 end
+
+--Checks if there's an advballsocket between two entities
+local function AreCoupled(ent1,ent2)
+	local constrainttable = constraint.FindConstraints(ent1,"AdvBallsocket")
+	local coupled = false
+	for k,v in pairs(constrainttable) do
+		if v.Type == "AdvBallsocket" then 
+			if( (v.Ent1 == ent1 or v.Ent1 == ent2) and (v.Ent2 == ent1 or v.Ent2 == ent2)) then
+				coupled = true
+			end
+		end
+	end
+	
+	return coupled
+end
+
+--Adv ballsockets ents by their CouplingPointOffset 
+local function Couple(ent1,ent2) 
+	if IsValid(constraint.AdvBallsocket(
+		ent1,
+		ent2,
+		0, --bone
+		0, --bone
+		ent1.CouplingPointOffset,
+		ent2.CouplingPointOffset,
+		0, --forcelimit
+		0, --torquelimit
+		-180, --xmin
+		-180, --ymin
+		-180, --zmin
+		180, --xmax
+		180, --ymax
+		180, --zmax
+		0, --xfric
+		0, --yfric
+		0, --zfric
+		0, --rotonly
+		1 --nocollide
+	)) then
+		sound.Play("buttons/lever2.wav",(ent1:GetPos()+ent2:GetPos())/2)
+	else
+		ErrorNoHalt("Error contraining 2 bogeys, please report")
+	end
+end
+
+--Quick and simple check, maybe expand later?
+local function IsValidBogey(ent)
+	return IsValid(ent) and ent:GetClass() == "gmod_train_bogey"
+end
+
+--Used the couple with other bogeys
+function ENT:StartTouch(ent) 
+	if IsValidBogey(ent) and
+	not AreCoupled(ent,self) and 
+	constraint.CanConstrain(self,0) and
+	constraint.CanConstrain(ent,0) then
+		Couple(self,ent)
+	end
+end
+
+
+
+--Used to decouple
+function ENT:Use(ply)
+	local constrainttable = constraint.FindConstraints(self,"AdvBallsocket")
+	local didsomething = false
+	local ent1,ent2 = nil
+	
+	for k,v in pairs(constrainttable) do
+		if IsValidBogey(v.Ent1) and IsValidBogey(v.Ent2) then
+			v.Constraint:Remove()
+			didsomething = true
+			ent1=v.Ent1
+			ent2=v.Ent2
+			break
+		end
+	end
+	
+	if didsomething then 
+		sound.Play("buttons/lever8.wav",(ent1:GetPos()+ent2:GetPos())/2)
+	end
+end
+
 
 function ENT:Think()
 	-- Re-initialize wheels
