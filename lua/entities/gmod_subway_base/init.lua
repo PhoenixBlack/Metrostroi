@@ -259,6 +259,8 @@ function ENT:SpawnFunction(ply, tr)
 	local verticaloffset = 0 -- Offset for the train model, gmod seems to add z by default, nvm its you adding 170 :V
 	local distancecap = 2000 -- When to ignore hitpos and spawn at set distanace
 	local pos, ang = nil
+	local inhinitererail = false
+	
 	if tr.Hit then
 		-- Setup trace to find out of this is a track
 		local tracesetup = {}
@@ -269,22 +271,24 @@ function ENT:SpawnFunction(ply, tr)
 		local tracedata = util.TraceLine(tracesetup)
 
 		if tracedata.Hit then
-				-- Trackspawn
-				pos = (tr.HitPos + tracedata.HitPos)/2 + Vector(0,0,verticaloffset)
-				ang = tracedata.HitNormal
-				ang:Rotate(Angle(0,90,0))
-				ang = ang:Angle()
-				-- Bit ugly because Rotate() messes with the orthogonal vector
+			-- Trackspawn
+			pos = (tr.HitPos + tracedata.HitPos)/2 + Vector(0,0,verticaloffset)
+			ang = tracedata.HitNormal
+			ang:Rotate(Angle(0,90,0))
+			ang = ang:Angle()
+			inhibitrerail = true
+			-- Bit ugly because Rotate() messes with the orthogonal vector | Orthogonal? I wrote "origional?!" :V
 		else
-				-- Regular spawn
-				if tr.HitPos:Distance(tr.StartPos) > distancecap then
-						-- Spawnpos is far away, put it at distancecap instead
-						pos = tr.StartPos + tr.Normal * distancecap
-				else
-						-- Spawn is near
-						pos = tr.HitPos + tr.HitNormal * verticaloffset
-				end
-				ang = Angle(0,tr.Normal:Angle().y,0)
+			-- Regular spawn
+			if tr.HitPos:Distance(tr.StartPos) > distancecap then
+				-- Spawnpos is far away, put it at distancecap instead
+				pos = tr.StartPos + tr.Normal * distancecap
+				inhibitrerail = true
+			else
+				-- Spawn is near
+				pos = tr.HitPos + tr.HitNormal * verticaloffset
+			end
+			ang = Angle(0,tr.Normal:Angle().y,0)
 		end
 	else
 		-- Trace didn't hit anything, spawn at distancecap
@@ -297,6 +301,9 @@ function ENT:SpawnFunction(ply, tr)
 	ent:SetAngles(ang)
 	ent:Spawn()
 	ent:Activate()
+	
+	if not inhabitrerail then Metrostroi.RerailTrain(ent) end
+	
 	return ent
 end
 

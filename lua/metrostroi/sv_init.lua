@@ -931,19 +931,19 @@ Metrostroi.RerailTrain = function(train)
 	local bogeyOffset = 36 --Z distance between bogey origin and top of track
 
 	--Safety checks
-	if not IsValid(train) or train.SubwayTrain == nil then return end
-	if timer.Exists("metrostroi_rerailer_solid_reset_"..train:EntIndex()) then return end
+	if not IsValid(train) or train.SubwayTrain == nil then return false end
+	if timer.Exists("metrostroi_rerailer_solid_reset_"..train:EntIndex()) then return false end
 	
 	--Trace down to get the track
 	local tr = traceWorldOnly(train:GetPos(),Vector(0,0,-500))
 	if !tr or !tr.Hit then 
 		tr = traceWorldOnly(train:GetPos(),train:GetAngles():Up()*-500)
-		if !tr or !tr.Hit then return end
+		if !tr or !tr.Hit then return false end
 	end
 	
 	--Get track data below the train
 	local trackdata = getTrackData(tr.HitPos+tr.HitNormal*3,train:GetAngles():Forward()) 
-	if !trackdata then return end
+	if !trackdata then return false end
 	
 	local ang = trackdata.forward:Angle()
 	
@@ -953,14 +953,14 @@ Metrostroi.RerailTrain = function(train)
 	
 	--Get thet track data at these locations
 	local tr = traceWorldOnly(frontpos,-trackdata.up*500)
-	if !tr or !tr.Hit then return end
+	if !tr or !tr.Hit then return false end
 	local frontdata = getTrackData(tr.HitPos+tr.HitNormal*3,trackdata.forward)
-	if !frontdata then return end
+	if !frontdata then return false end
 	
 	local tr = traceWorldOnly(rearpos,-trackdata.up*500)
-	if !tr or !tr.Hit then return end
+	if !tr or !tr.Hit then return false end
 	local reardata = getTrackData(tr.HitPos+tr.HitNormal*3,trackdata.forward)
-	if !reardata then return end
+	if !reardata then return false end
 	
 	--Find the current difference between the bogeys and the train's model center
 	local TrainOriginToBogeyOffset = (train:WorldToLocal(train.FrontBogey:GetPos())+train:WorldToLocal(train.RearBogey:GetPos()))/2
@@ -1002,6 +1002,7 @@ Metrostroi.RerailTrain = function(train)
 	train.RearBogey:GetPhysicsObject():EnableMotion(false)
 	
 	timer.Create("metrostroi_rerailer_solid_reset_"..train:EntIndex(),1,1,function() resetSolids(solids,train) end )
+	return true
 end
 
 
