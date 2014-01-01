@@ -818,34 +818,36 @@ local function dirdebug(v1,v2)
 	debugoverlay.Line(v1,v1+v2*30,10,Color(255,0,0),true)
 end
 
-//Takes datatable from getTrackData
+--Takes datatable from getTrackData
 local function debugtrackdata(data) 
 	dirdebug(data.centerpos,data.forward)
 	dirdebug(data.centerpos,data.right)
 	dirdebug(data.centerpos,data.up)
 end
 
-//Helper for commonly used trace
+--Helper for commonly used trace
 local function traceWorldOnly(pos,dir)
 	local tr = util.TraceLine({
 		start = pos,
 		endpos = pos+dir,
 		mask = MASK_NPCWORLDSTATIC
 	})
-	//debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
+	debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
 	return tr
 end
 
-//Go over the enttable, bogeys and train and reset them
+--Go over the enttable, bogeys and train and reset them
 local function resetSolids(enttable,train)
 	for k,v in pairs(enttable) do
 		k:SetSolid(v)
+		k:GetPhysicsObject():EnableMotion(true)
 	end
-	
-	train.FrontBogey:GetPhysicsObject():EnableMotion(true)
-	train.RearBogey:GetPhysicsObject():EnableMotion(true)
-	
-	train:GetPhysicsObject():EnableMotion(true)
+	if train ~= nil then
+		train.FrontBogey:GetPhysicsObject():EnableMotion(true)
+		train.RearBogey:GetPhysicsObject():EnableMotion(true)
+		
+		train:GetPhysicsObject():EnableMotion(true)
+	end
 end
 
 local function findTrackHeight(pos,right,up)
@@ -866,29 +868,33 @@ local function findTrackHeight(pos,right,up)
 	end
 end
 
-//Takes position and initial rough forward vector, return table of track data
+
+
+--Takes position and initial rough forward vector, return table of track data
+--Position needs to be between/below the tracks already, don't use a props origin
+--Only needs a rough forward vector, ent:GetAngles():Forward() suffices
 local function getTrackData(pos,forward)	
-	//Trace down
+	--Trace down
 	local tr = traceWorldOnly(pos,Vector(0,0,-100))
 	if !tr or !tr.Hit then return false end
 	
-	//debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
+	--debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
 	local floor = tr.HitPos
 	local updir = tr.HitNormal
 	local right = forward:Cross(updir)
 	
-	//Trace right
+	--Trace right
 	local tr = traceWorldOnly(pos,right*500)
 	if !tr or !tr.Hit then return false end
 	
-	//debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
+	--debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
 	
 	local trackforward = tr.HitNormal:Cross(updir)
 	local trackright = trackforward:Cross(updir)
 	
-	//debugoverlay.Line(pos,pos+trackforward*30,10,Color(255,0,0),true)
+	--debugoverlay.Line(pos,pos+trackforward*30,10,Color(255,0,0),true)
 	
-	//Trace right with proper right
+	--Trace right with proper right
 	local tr = traceWorldOnly(pos,trackright*80)
 	if !tr.Hit then return false end
 	
@@ -908,11 +914,36 @@ local function getTrackData(pos,forward)
 
 end
 
+--Helper function that tries to find trackdata at -z or -ent:Up()
+local function getTrackDataBelowEnt(ent)
+	local forward = ent:GetAngles():Forward()
+	
+	print(1)
+	local tr = traceWorldOnly(ent:GetPos(),Vector(0,0,-500))
+	if tr.Hit then
+		print(2)
+		local td = getTrackData(tr.HitPos,forward)
+		PrintTable(td)
+		if td then return td end
+	end
+	
+	print(3)
+	local tr = traceWorldOnly(ent:GetPos(),ent:Up()*-500)
+	if tr.Hit then
+		print(4)
+		local td = getTrackData(tr.HitPos,forward)
+		if td then return td end
+	end
+	
+	print(5)
+	
+	return false 
+end
 
 --ConCMD for rerailer
 local function RerailConCMDHandler(ply,cmd,args,fullstring)
 	local train = ply:GetEyeTrace().Entity
-	if not(train and train.SubwayTrain ~= nil) then return end
+	if not IsValid(train) then return end
 	
 	
 	--If we're aiming at bogeys or wheels
@@ -922,9 +953,40 @@ local function RerailConCMDHandler(ply,cmd,args,fullstring)
 	end
 	
 	if !(ply:IsAdmin() or (CPPI and train:CPPIGetOwner() == ply))then return end
-	Metrostroi.RerailTrain(train)
+	if train:GetClass() == "gmod_train_bogey" then
+		Metrostroi.RerailBogey(train)
+	else
+		Metrostroi.RerailTrain(train)
+	end
 end
 concommand.Add("metrostroi_rerail",RerailConCMDHandler)
+
+Metrostroi.RerailBogey = function(bogey)
+	if timer.Exists("metrostroi_rerailer_solid_reset_"..bogey:EntIndex()) then return false end
+	local bogeyOffset = 36 
+	local trackData = getTrackDataBelowEnt(bogey)
+	print("precheck")
+	PrintTable(trackData)
+	if trackData == nil then return false end
+	print("postcheck")
+	
+	bogey:SetPos(trackData.centerpos+trackData.up*bogeyOffset)
+	bogey:SetAngles(trackData.forward:Angle())
+	
+	bogey:GetPhysicsObject():EnableMotion(false)
+	
+	local solids = {}
+	local wheels = bogey.Wheels
+	
+	solids[bogey]=bogey:GetSolid()
+	solids[wheels]=wheels:GetSolid()
+	
+	bogey:SetSolid(SOLID_NONE)
+	wheels:SetSolid(SOLID_NONE)
+	
+	timer.Create("metrostroi_rerailer_solid_reset_"..bogey:EntIndex(),1,1,function() resetSolids(solids) end )
+	return true
+end
 
 --Rerails given train entity
 Metrostroi.RerailTrain = function(train)
@@ -933,7 +995,7 @@ Metrostroi.RerailTrain = function(train)
 	--Safety checks
 	if not IsValid(train) or train.SubwayTrain == nil then return false end
 	if timer.Exists("metrostroi_rerailer_solid_reset_"..train:EntIndex()) then return false end
-	
+	--[[
 	--Trace down to get the track
 	local tr = traceWorldOnly(train:GetPos(),Vector(0,0,-500))
 	if !tr or !tr.Hit then 
@@ -944,6 +1006,8 @@ Metrostroi.RerailTrain = function(train)
 	--Get track data below the train
 	local trackdata = getTrackData(tr.HitPos+tr.HitNormal*3,train:GetAngles():Forward()) 
 	if !trackdata then return false end
+	--]]
+	local trackdata = getTrackDataBelowEnt(train)
 	
 	local ang = trackdata.forward:Angle()
 	
