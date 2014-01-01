@@ -754,6 +754,64 @@ function Metrostroi.NextEquipmentID()
 end
 
 --------------------------------------------------------------------------------
+-- Register Joystick Controlls
+--------------------------------------------------------------------------------
+
+if not Metrostroi.JoystickValueRemap then
+	Metrostroi.JoystickValueRemap = {}
+	Metrostroi.JoystickSystemMap = {}
+end
+
+Metrostroi.RegisterJoystickInput = function(uid,analog,desc,min,max) 
+	if not joystick then
+		Error("Joystick Input registered without joystick addon installed, get it at https://github.com/MattJeanes/Joystick-Module") 
+	end
+	--If this is only called in a JoystickRegister hook it should never even happen
+	
+	if #uid > 20 then 
+		print("Metrostroi Joystick UID too long, trimming") 
+		local uid = string.Left(uid,20)
+	end
+	
+	
+	local atype 
+	if analog then
+		atype = "analog"
+	else
+		atype = "digital"
+	end
+	
+	local temp = {
+		uid = uid,
+		type = atype,
+		description = desc,
+		category = "Metrostroi" --Just Metrostroi for now, seperate catagories for different trains later?
+		--Catergory is also checked in subway base, don't just change
+	}
+	
+	
+	--Joystick addon's build-in remapping doesn't work so well, so we're doing this instead
+	if min ~= nil and max ~= nil and analog then
+		Metrostroi.JoystickValueRemap[uid]={min,max}
+	end
+	
+	jcon.register(temp)
+end
+
+--Wrapper around joystick get to implement our own remapping
+Metrostroi.GetJoystickInput = function(ply,uid) 
+	local remapinfo = Metrostroi.JoystickValueRemap[uid]
+	local jvalue = joystick.Get(ply,uid)
+	if remapinfo == nil then
+		return jvalue
+	elseif jvalue ~= nil then
+		return math.Remap(joystick.Get(ply,uid),0,255,remapinfo[1],remapinfo[2])
+	else
+		return jvalue
+	end
+end
+
+--------------------------------------------------------------------------------
 -- Rerail tool
 --------------------------------------------------------------------------------
 local function dirdebug(v1,v2)

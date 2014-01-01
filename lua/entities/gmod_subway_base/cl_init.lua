@@ -124,6 +124,8 @@ end
 
 function ENT:OnRemove()
 	self:RemoveCSEnts()
+	drawCrosshair = false
+	toolTipText = nil
 end
 
 function ENT:LoadSystem(name)

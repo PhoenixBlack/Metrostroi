@@ -39,8 +39,14 @@ function ENT:Initialize()
 	self.KeyMap = {
 		[KEY_1] = "D_1",
 		[KEY_2] = "D_2",
-		[KEY_3] = "D_3"
+		[KEY_3] = "D_3",
+		[KEY_W] = "ControllerUp",
+		[KEY_S] = "ControllerDown"
 	}
+	
+	if joystick then
+		self.JoystickBuffer = {}
+	end
 	
 	-- Entities that belong to train and must be cleaned up later
 	self.TrainEntities = {}
@@ -144,10 +150,25 @@ function ENT:ClearKeyBuffer()
 	self.KeyBuffer = {}
 end
 
--- Checks a button with the buffer and calls OnButtonPress/Release
+-- Checks a button with the buffer and calls 
+-- OnButtonPress/Release as well as TriggerInput
 function ENT:ButtonEvent(button,state)
 	if self.ButtonBuffer[button] != state then
 		self.ButtonBuffer[button]=state
+		
+		for k,v in pairs(self.Systems) do
+			if type(state) == "boolean" then
+				if state then
+					state = 1
+				else
+					state = 0
+				end
+			end
+			print(state)
+			v:TriggerInput(button,state)
+		end
+		
+		
 		if state then
 			self:OnButtonPress(button)
 		else
@@ -195,6 +216,27 @@ function ENT:Think()
 				local button = self.KeyMap[k]
 				if button != nil then
 					self:ButtonEvent(button,false)
+				end
+			end
+		end
+		
+		//Joystick
+		if joystick then
+			for k,v in pairs(jcon.binds) do
+				if v:GetCategory() == "Metrostroi" then
+					local jvalue = Metrostroi.GetJoystickInput(ply,k)
+					if jvalue != nil then
+						if self.JoystickBuffer[k]~=jvalue then
+							self.JoystickBuffer[k]=jvalue
+							for _,system in pairs(self.Systems) do
+								local inputname = Metrostroi.JoystickSystemMap[k]
+								if inputname then
+									print("triggered",k,jvalue)
+									system:TriggerInput(inputname,jvalue)
+								end
+							end
+						end
+					end
 				end
 			end
 		end
@@ -252,7 +294,7 @@ function ENT:SpawnFunction(ply, tr)
 
 	local ent = ents.Create(self.ClassName)
 	ent:SetPos(pos)
-	ent:SetAngles(ang + Angle(0,180,0))
+	ent:SetAngles(ang)
 	ent:Spawn()
 	ent:Activate()
 	return ent
@@ -325,46 +367,17 @@ local function HandleExitingPlayer(ply, vehicle)
 	end
 end
 
+
+
 --Register joystick buttons
 --Won't get called if joystick isn't installed
-local function JRegisterInput(uid,analog,desc) 
-	local atype 
-	if analog then
-		atype = "analog"
-	else
-		atype = "digital"
-	end
-	jcon.register {
-		uid = uid,
-		type = atype,
-		description = desc,
-		category = "Metrostroi"
-	}
-end
-
-
+--I've put it here for now, trains will likely share these inputs anyway
 local function JoystickRegister()
-	JRegisterInput("met_controller",true,"Controller")
-	JRegisterInput("met_reverse",false,"Reverse")
-	--Controller
-	--[[
-	jcon.register{
-		uid = "met_controller",
-		type = "analog",
-		description = "Controller",
-		category = "Metrostroi",
-	}
+	Metrostroi.RegisterJoystickInput("met_controller",true,"Controller",-3,3)
+	Metrostroi.RegisterJoystickInput("met_reverser",true,"Reverser",-1,1)
 	
-	--reverse
-	jcon.register{
-		uid = "met_controller",
-		type = "analog",
-		description = "Controller",
-		category = "Metrostroi",
-	}
-	--]]
-	
-	
+	Metrostroi.JoystickSystemMap["met_controller"]="SetController"
+	Metrostroi.JoystickSystemMap["met_reverser"]="SetReverser"
 end
 
 hook.Add("JoystickInitialize","metroistroi_cabin",JoystickRegister)
