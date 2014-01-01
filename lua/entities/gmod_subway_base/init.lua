@@ -22,15 +22,39 @@ function ENT:Initialize()
 	if Wire_CreateInputs then
 		local inputs = {}
 		local outputs = {}
+		local inputTypes = {}
+		local outputTypes = {}
 		for k,v in pairs(self.Systems) do
 			local i = v:WireInputs()
 			local o = v:WireOutputs()
-			for _,v2 in pairs(i) do table.insert(inputs,v2) end
-			for _,v2 in pairs(o) do table.insert(outputs,v2) end
+			
+			for _,v2 in pairs(i) do 
+				if type(v2) == "string" then
+					table.insert(inputs,v2) 
+					table.insert(inputTypes,"NORMAL")
+				elseif type(v2) == "table" then
+					table.insert(inputs,v2[1])
+					table.insert(inputTypes,v2[2])
+				else
+					ErrorNoHalt("Metrostroi System gave invalid input")
+				end
+			end
+			
+			for _,v2 in pairs(o) do 
+				if type(v2) == "string" then
+					table.insert(outputs,v2) 
+					table.insert(outputTypes,"NORMAL")
+				elseif type(v2) == "table" then
+					table.insert(outputs,v2[1])
+					table.insert(outputTypes,v2[2])
+				else
+					ErrorNoHalt("Metrostroi System gave invalid output")
+				end
+			end
 		end
 		
-		self.Inputs = Wire_CreateInputs(self,inputs)
-		self.Outputs = Wire_CreateOutputs(self,outputs)
+		self.Inputs = WireLib.CreateSpecialInputs(self,inputs,inputTypes)
+		self.Outputs = WireLib.CreateSpecialOutputs(self,outputs,outputTypes)
 	end
 
 	-- Setup drivers controls
@@ -194,45 +218,47 @@ function ENT:Think()
 	self.PrevTime = CurTime()
 	
 	--Handle player input
-	local ply = self.DriverSeat:GetPassenger(0) 
-	if ply and IsValid(ply) then
-	
-		//Keypresses
-		//Check for newly pressed keys
-		for k,v in pairs(ply.keystate) do
-			if self.KeyBuffer[k] == nil then
-				self.KeyBuffer[k] = true
-				local button = self.KeyMap[k]
-				if button != nil then
-					self:ButtonEvent(button,true)
+	if IsValid(self.DriverSeat) then
+		local ply = self.DriverSeat:GetPassenger(0) 
+		if ply and IsValid(ply) then
+		
+			//Keypresses
+			//Check for newly pressed keys
+			for k,v in pairs(ply.keystate) do
+				if self.KeyBuffer[k] == nil then
+					self.KeyBuffer[k] = true
+					local button = self.KeyMap[k]
+					if button != nil then
+						self:ButtonEvent(button,true)
+					end
 				end
 			end
-		end
-		
-		//Check for newly released keys
-		for k,v in pairs(self.KeyBuffer) do
-			if ply.keystate[k] == nil then
-				self.KeyBuffer[k] = nil
-				local button = self.KeyMap[k]
-				if button != nil then
-					self:ButtonEvent(button,false)
+			
+			//Check for newly released keys
+			for k,v in pairs(self.KeyBuffer) do
+				if ply.keystate[k] == nil then
+					self.KeyBuffer[k] = nil
+					local button = self.KeyMap[k]
+					if button != nil then
+						self:ButtonEvent(button,false)
+					end
 				end
 			end
-		end
-		
-		//Joystick
-		if joystick then
-			for k,v in pairs(jcon.binds) do
-				if v:GetCategory() == "Metrostroi" then
-					local jvalue = Metrostroi.GetJoystickInput(ply,k)
-					if jvalue != nil then
-						if self.JoystickBuffer[k]~=jvalue then
-							self.JoystickBuffer[k]=jvalue
-							for _,system in pairs(self.Systems) do
-								local inputname = Metrostroi.JoystickSystemMap[k]
-								if inputname then
-									print("triggered",k,jvalue)
-									system:TriggerInput(inputname,jvalue)
+			
+			//Joystick
+			if joystick then
+				for k,v in pairs(jcon.binds) do
+					if v:GetCategory() == "Metrostroi" then
+						local jvalue = Metrostroi.GetJoystickInput(ply,k)
+						if jvalue != nil then
+							if self.JoystickBuffer[k]~=jvalue then
+								self.JoystickBuffer[k]=jvalue
+								for _,system in pairs(self.Systems) do
+									local inputname = Metrostroi.JoystickSystemMap[k]
+									if inputname then
+										print("triggered",k,jvalue)
+										system:TriggerInput(inputname,jvalue)
+									end
 								end
 							end
 						end
