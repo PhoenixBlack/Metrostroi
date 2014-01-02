@@ -1000,6 +1000,7 @@ Metrostroi.RerailTrain = function(train)
 	if !trackdata then return false end
 	--]]
 	local trackdata = getTrackDataBelowEnt(train)
+	if not trackdata then return false end
 	
 	local ang = trackdata.forward:Angle()
 	
