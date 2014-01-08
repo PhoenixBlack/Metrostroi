@@ -25,45 +25,40 @@ function ENT:Initialize()
 		local inputTypes = {}
 		local outputTypes = {}
 		for k,v in pairs(self.Systems) do
-			local i = v:WireInputs()
-			local o = v:WireOutputs()
+			local i = v:Inputs()
+			local o = v:Outputs()
 			
 			for _,v2 in pairs(i) do 
 				if type(v2) == "string" then
-					table.insert(inputs,v2) 
+					table.insert(inputs,(v.Name or "")..v2) 
 					table.insert(inputTypes,"NORMAL")
 				elseif type(v2) == "table" then
-					table.insert(inputs,v2[1])
+					table.insert(inputs,(v.Name or "")..v2[1])
 					table.insert(inputTypes,v2[2])
 				else
-					ErrorNoHalt("Metrostroi System gave invalid input")
+					ErrorNoHalt("Invalid wire input for metrostroi subway entity")
 				end
 			end
 			
 			for _,v2 in pairs(o) do 
 				if type(v2) == "string" then
-					table.insert(outputs,v2) 
+					table.insert(outputs,(v.Name or "")..v2) 
 					table.insert(outputTypes,"NORMAL")
 				elseif type(v2) == "table" then
-					table.insert(outputs,v2[1])
+					table.insert(outputs,(v.Name or "")..v2[1])
 					table.insert(outputTypes,v2[2])
 				else
-					ErrorNoHalt("Metrostroi System gave invalid output")
+					ErrorNoHalt("Invalid wire output for metrostroi subway entity")
 				end
 			end
 		end
 		
-		--Custom driver seat
-		table.insert(inputs,"Seat")
+		-- Add input for a custom driver seat
+		table.insert(inputs,"DriverSeat")
 		table.insert(inputTypes,"ENTITY")
 		
 		self.Inputs = WireLib.CreateSpecialInputs(self,inputs,inputTypes)
 		self.Outputs = WireLib.CreateSpecialOutputs(self,outputs,outputTypes)
-		
-		--[[
-			To use the special types, make a system return a table with name,type instead of just name
-			EG: { Mode , Speed , { Name , "STRING" }}
-		--]]
 	end
 
 	-- Setup drivers controls
@@ -77,6 +72,7 @@ function ENT:Initialize()
 		[KEY_S] = "ControllerDown"
 	}
 	
+	-- Joystick module support
 	if joystick then
 		self.JoystickBuffer = {}
 	end
@@ -103,8 +99,8 @@ end
 
 -- Trigger input
 function ENT:TriggerInput(name, value)
-	--Custom seat 
-	if name == "Seat" then
+	-- Custom seat 
+	if name == "DriverSeat" then
 		if IsValid(value) and value:IsVehicle() then
 			self.DriverSeat = value
 		else
@@ -112,6 +108,7 @@ function ENT:TriggerInput(name, value)
 		end
 	end
 
+	-- Propagate inputs to relevant systems
 	for k,v in pairs(self.Systems) do
 		v:TriggerInput(name,value)
 	end
@@ -223,12 +220,6 @@ end
 --------------------------------------------------------------------------------
 -- Process train logic
 --------------------------------------------------------------------------------
--- Load system
-function ENT:LoadSystem(name)
-	self[name] = Metrostroi.Systems[name](self)
-	self.Systems[name] = self[name]
-end
-
 -- Think and execute systems stuff
 function ENT:Think()
 	self.PrevTime = self.PrevTime or CurTime()
@@ -285,8 +276,12 @@ function ENT:Think()
 		end
 	end
 	
-	for k,v in pairs(self.Systems) do
-		v:Think()
+	-- Run iterations on systems simulation
+	local maxIterations = 4
+	for iteration=1,maxIterations do
+		for k,v in pairs(self.Systems) do
+			v:Think(self.DeltaTime / maxIterations)
+		end
 	end
 	self:NextThink(CurTime())
 	return true

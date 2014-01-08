@@ -8,7 +8,6 @@ local function resource_AddDir(dir)
 	end
  
 	for k,v in pairs(files) do
-		print("ADD",dir.."/"..v)
 		resource.AddFile(dir.."/"..v)
 	end
 end
@@ -48,7 +47,7 @@ end
 -- Load core files
 --------------------------------------------------------------------------------
 if SERVER then
-	include("metrostroi/sv_init.lua")
+	include("metrostroi/sv_railnetwork.lua")
 	include("metrostroi/sv_saveload.lua")
 	include("metrostroi/sv_debug.lua")
 	include("metrostroi/sv_telemetry.lua")
@@ -70,7 +69,18 @@ end
 
 
 --------------------------------------------------------------------------------
--- Load systems (shared)
+-- Load shared files
+--------------------------------------------------------------------------------
+AddCSLuaFile("metrostroi/sh_failsim.lua")
+if SERVER then
+	include("metrostroi/sh_failsim.lua")
+else
+	timer.Simple(0.05, function() include("metrostroi/sh_failsim.lua") end)
+end
+
+
+--------------------------------------------------------------------------------
+-- Load systems
 --------------------------------------------------------------------------------
 local function LoadSystem(name)
 	local filename = "metrostroi/systems/sys_"..string.lower(name)..".lua"
@@ -85,11 +95,17 @@ local function LoadSystem(name)
 	
 	-- Load train systems
 	Metrostroi.Systems["_"..name] = TRAIN_SYSTEM
-	Metrostroi.Systems[name] = function(train)
+	Metrostroi.Systems[name] = function(train,...)
 		local tbl = { _base = "_"..name }
+		local TRAIN_SYSTEM = Metrostroi.Systems[tbl._base]
 		for k,v in pairs(TRAIN_SYSTEM) do
 			if type(v) == "function" then
-				tbl[k] = function(...) return Metrostroi.Systems[tbl._base][k](...) end
+				tbl[k] = function(...) 
+					if not Metrostroi.Systems[tbl._base][k] then
+						print("ERROR",k,tbl._base)
+					end
+					return Metrostroi.Systems[tbl._base][k](...) 
+				end
 			else
 				tbl[k] = v
 			end
@@ -100,15 +116,16 @@ local function LoadSystem(name)
 		tbl.Think = tbl.Think or function() end
 		tbl.ClientThink = tbl.ClientThink or function() end
 		tbl.ClientDraw = tbl.ClientDraw or function() end
-		tbl.WireInputs = tbl.WireInputs or function() return {} end
-		tbl.WireOutputs = tbl.WireOutputs or function() return {} end
+		tbl.Inputs = tbl.Inputs or function() return {} end
+		tbl.Outputs = tbl.Outputs or function() return {} end
+		tbl.TriggerOutput = tbl.TriggerOutput or function() end
 		tbl.TriggerInput = tbl.TriggerInput or function() end
 		
 		tbl.Train = train
 		if SERVER then
-			tbl:Initialize()
+			tbl:Initialize(...)
 		else
-			tbl:ClientInitialize()
+			tbl:ClientInitialize(...)
 		end
 		return tbl
 	end
@@ -122,5 +139,23 @@ function Metrostroi.DefineSystem(name)
 end
 
 -- Load systems
-LoadSystem("Announcer")
-LoadSystem("Controller")
+--LoadSystem("Announcer")
+--LoadSystem("Controller")
+LoadSystem("Fuse")
+LoadSystem("Relay")
+
+--LoadSystem("81_717_Electric")
+--LoadSystem("AK_63B_Relays")
+--LoadSystem("BPSN_5U2M")
+
+--LoadSystem("NK_80")
+--LoadSystem("YAK_36")
+--LoadSystem("YAK_37E")
+
+LoadSystem("81_705_Electric")
+LoadSystem("DK_117DM")
+LoadSystem("TR_3B")
+LoadSystem("YAP_57")
+LoadSystem("EKG_17B")
+LoadSystem("KF_47A")
+LoadSystem("GV_10ZH")

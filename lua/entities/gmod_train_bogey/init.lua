@@ -123,7 +123,7 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
---Checks if there's an advballsocket between two entities
+-- Checks if there's an advballsocket between two entities
 local function AreCoupled(ent1,ent2)
 	local constrainttable = constraint.FindConstraints(ent1,"AdvBallsocket")
 	local coupled = false
@@ -138,7 +138,7 @@ local function AreCoupled(ent1,ent2)
 	return coupled
 end
 
---Adv ballsockets ents by their CouplingPointOffset 
+-- Adv ballsockets ents by their CouplingPointOffset 
 local function Couple(ent1,ent2) 
 	if IsValid(constraint.AdvBallsocket(
 		ent1,
@@ -167,12 +167,12 @@ local function Couple(ent1,ent2)
 	end
 end
 
---Quick and simple check, maybe expand later?
+-- Quick and simple check, maybe expand later?
 local function IsValidBogey(ent)
 	return IsValid(ent) and ent:GetClass() == "gmod_train_bogey"
 end
 
---Used the couple with other bogeys
+-- Used the couple with other bogeys
 function ENT:StartTouch(ent) 
 	if IsValidBogey(ent) and
 	not AreCoupled(ent,self) and 
@@ -184,7 +184,7 @@ end
 
 
 
---Used to decouple
+-- Used to decouple
 function ENT:Use(ply)
 	local constrainttable = constraint.FindConstraints(self,"AdvBallsocket")
 	local didsomething = false
@@ -233,10 +233,13 @@ function ENT:Think()
 	local sign = 1
 	if localSpeed < 0 then sign = -1 end
 	self.Speed = absSpeed
+	
+	self.Acc = (self.Speed - (self.PrevSpeed or 0)) / self.DeltaTime
+	self.PrevSpeed = self.Speed
 
 
 	-- Apply specific rate to equalize pressure
-	local function equalizePressure(pressure,target,rate,fill_rate)
+	--[[local function equalizePressure(pressure,target,rate,fill_rate)
 		if fill_rate and (target > self[pressure]) then rate = fill_rate end
 		
 		-- Calculate derivative
@@ -295,7 +298,8 @@ function ENT:Think()
 		self.Wheels:GetPhysicsObject():SetMaterial("gmod_silent")
 	else
 		self.Wheels:GetPhysicsObject():SetMaterial("gmod_ice")
-	end
+	end]]--
+	self.Wheels:GetPhysicsObject():SetMaterial("gmod_ice")
 
 	-- Calculate motor power
 	local motorPower = 0.0
@@ -310,7 +314,7 @@ function ENT:Think()
 	
 	-- Calculate forces
 	local motorForce = self.MotorForce*motorPower
-	local pneumaticForce = -sign*self.PneumaticBrakeForce*(self.BrakeCylinderPressure / 4.5)
+	local pneumaticForce = 0 -- -sign*self.PneumaticBrakeForce*(self.BrakeCylinderPressure / 4.5)
 	
 	-- Apply sideways friction
 --	local sideSpeed = -self:GetVelocity():Dot(self:GetAngles():Right()) * 0.06858
@@ -328,17 +332,17 @@ function ENT:Think()
 	-- Send parameters to client
 	self:SetMotorPower(motorPower)
 	self:SetSpeed(absSpeed)
-	self:SetdPdT(self.BrakeLinePressure_dPdT)
+	self:SetdPdT(0) --self.BrakeLinePressure_dPdT)
 	self:NextThink(CurTime())
 	
 	-- Trigger outputs
-	if Wire_TriggerOutput then
+	--[[if Wire_TriggerOutput then
 		Wire_TriggerOutput(self, "Speed", absSpeed)
 		Wire_TriggerOutput(self, "ReservoirPressure",		 ReservoirPressure)
 		Wire_TriggerOutput(self, "TrainLinePressure",		 TrainLinePressure)
 		Wire_TriggerOutput(self, "BrakeLinePressure",		 BrakeLinePressure)
 		Wire_TriggerOutput(self, "BrakeCylinderPressure", BrakeCylinderPressure)
-	end
+	end]]--
 	return true
 end
 

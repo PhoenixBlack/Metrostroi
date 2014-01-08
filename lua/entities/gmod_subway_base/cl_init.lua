@@ -128,11 +128,6 @@ function ENT:OnRemove()
 	toolTipText = nil
 end
 
-function ENT:LoadSystem(name)
-	self[name] = Metrostroi.Systems[name](self)
-	self.Systems[name] = self[name]
-end
-
 
 
 
@@ -228,15 +223,10 @@ function ENT:Draw()
 		if self.ButtonMap ~= nil then
 			for kp,panel in pairs(self.ButtonMap) do
 				if kp ~= "BaseClass" then
-
-					
 					cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
-					
-						
 						surface.SetDrawColor(0,0,255)
 						surface.DrawOutlinedRect(0,0,panel.width,panel.height)
 						
-					
 						--surface.SetDrawColor(255,255,255)
 						--surface.DrawRect(0,0,panel.width,panel.height)
 						for kb,button in pairs(panel.buttons) do
@@ -298,7 +288,7 @@ end)
 --------------------------------------------------------------------------------
 -- Buttons/panel clicking
 --------------------------------------------------------------------------------
---T hanks old gmod wiki!
+--Thanks old gmod wiki!
 --[[
 Converts from world coordinates to Draw3D2D screen coordinates.
 vWorldPos is a vector in the world nearby a Draw3D2D screen.
