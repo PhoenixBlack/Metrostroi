@@ -22,25 +22,64 @@ function ENT:Initialize()
 	if Wire_CreateInputs then
 		local inputs = {}
 		local outputs = {}
+		local inputTypes = {}
+		local outputTypes = {}
 		for k,v in pairs(self.Systems) do
 			local i = v:WireInputs()
 			local o = v:WireOutputs()
-			for _,v2 in pairs(i) do table.insert(inputs,v2) end
-			for _,v2 in pairs(o) do table.insert(outputs,v2) end
+			
+			for _,v2 in pairs(i) do 
+				if type(v2) == "string" then
+					table.insert(inputs,v2) 
+					table.insert(inputTypes,"NORMAL")
+				elseif type(v2) == "table" then
+					table.insert(inputs,v2[1])
+					table.insert(inputTypes,v2[2])
+				else
+					ErrorNoHalt("Metrostroi System gave invalid input")
+				end
+			end
+			
+			for _,v2 in pairs(o) do 
+				if type(v2) == "string" then
+					table.insert(outputs,v2) 
+					table.insert(outputTypes,"NORMAL")
+				elseif type(v2) == "table" then
+					table.insert(outputs,v2[1])
+					table.insert(outputTypes,v2[2])
+				else
+					ErrorNoHalt("Metrostroi System gave invalid output")
+				end
+			end
 		end
 		
-		self.Inputs = Wire_CreateInputs(self,inputs)
-		self.Outputs = Wire_CreateOutputs(self,outputs)
+		--Custom driver seat
+		table.insert(inputs,"Seat")
+		table.insert(inputTypes,"ENTITY")
+		
+		self.Inputs = WireLib.CreateSpecialInputs(self,inputs,inputTypes)
+		self.Outputs = WireLib.CreateSpecialOutputs(self,outputs,outputTypes)
+		
+		--[[
+			To use the special types, make a system return a table with name,type instead of just name
+			EG: { Mode , Speed , { Name , "STRING" }}
+		--]]
 	end
 
 	-- Setup drivers controls
 	self.ButtonBuffer = {}
 	self.KeyBuffer = {}
 	self.KeyMap = {
-		[KEY_ENTER] = 1,
-		[KEY_INSERT] = 2,
-		[KEY_W] = 3
+		[KEY_1] = "D_1",
+		[KEY_2] = "D_2",
+		[KEY_3] = "D_3",
+		[KEY_W] = "ControllerUp",
+		[KEY_S] = "ControllerDown"
 	}
+	
+	if joystick then
+		self.JoystickBuffer = {}
+	end
 	
 	-- Entities that belong to train and must be cleaned up later
 	self.TrainEntities = {}
@@ -64,6 +103,15 @@ end
 
 -- Trigger input
 function ENT:TriggerInput(name, value)
+	--Custom seat 
+	if name == "Seat" then
+		if IsValid(value) and value:IsVehicle() then
+			self.DriverSeat = value
+		else
+			self.DriverSeat = nil
+		end
+	end
+
 	for k,v in pairs(self.Systems) do
 		v:TriggerInput(name,value)
 	end
@@ -98,6 +146,28 @@ function ENT:CreateBogey(pos,ang,forward)
 end
 
 
+function ENT:CreateSeat(offset,type)
+  local seat = ents.Create("prop_vehicle_prisoner_pod")
+  seat:SetModel("models/props_phx/carseat3.mdl")
+
+    seat:SetPos(self:LocalToWorld(offset))
+    seat:SetAngles(self:GetAngles()+Angle(0,-90,0))
+
+  seat:Spawn()
+  seat:GetPhysicsObject():SetMass(10)
+  seat:SetCollisionGroup(COLLISION_GROUP_WORLD)
+  table.insert(self.TrainEntities,seat)
+  
+  --table.insert(self.Seats,seat) --No longer used?
+
+  seat:SetNWEntity("TrainEntity", self)
+  seat:SetNWString("SeatType", type)
+
+  -- Constrain seat to this object
+--  constraint.NoCollide(self,seat,0,0)
+  seat:SetParent(self)
+  return seat
+end
 
 
 --------------------------------------------------------------------------------
@@ -122,10 +192,25 @@ function ENT:ClearKeyBuffer()
 	self.KeyBuffer = {}
 end
 
--- Checks a button with the buffer and calls OnButtonPress/Release
+-- Checks a button with the buffer and calls 
+-- OnButtonPress/Release as well as TriggerInput
 function ENT:ButtonEvent(button,state)
 	if self.ButtonBuffer[button] != state then
 		self.ButtonBuffer[button]=state
+		
+		for k,v in pairs(self.Systems) do
+			if type(state) == "boolean" then
+				if state then
+					state = 1
+				else
+					state = 0
+				end
+			end
+			print(state)
+			v:TriggerInput(button,state)
+		end
+		
+		
 		if state then
 			self:OnButtonPress(button)
 		else
@@ -150,6 +235,56 @@ function ENT:Think()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
 	
+	--Handle player input
+	if IsValid(self.DriverSeat) then
+		local ply = self.DriverSeat:GetPassenger(0) 
+		if ply and IsValid(ply) then
+		
+			//Keypresses
+			//Check for newly pressed keys
+			for k,v in pairs(ply.keystate) do
+				if self.KeyBuffer[k] == nil then
+					self.KeyBuffer[k] = true
+					local button = self.KeyMap[k]
+					if button != nil then
+						self:ButtonEvent(button,true)
+					end
+				end
+			end
+			
+			//Check for newly released keys
+			for k,v in pairs(self.KeyBuffer) do
+				if ply.keystate[k] == nil then
+					self.KeyBuffer[k] = nil
+					local button = self.KeyMap[k]
+					if button != nil then
+						self:ButtonEvent(button,false)
+					end
+				end
+			end
+			
+			//Joystick
+			if joystick then
+				for k,v in pairs(jcon.binds) do
+					if v:GetCategory() == "Metrostroi" then
+						local jvalue = Metrostroi.GetJoystickInput(ply,k)
+						if jvalue != nil then
+							if self.JoystickBuffer[k]~=jvalue then
+								self.JoystickBuffer[k]=jvalue
+								for _,system in pairs(self.Systems) do
+									local inputname = Metrostroi.JoystickSystemMap[k]
+									if inputname then
+										system:TriggerInput(inputname,jvalue)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
 	for k,v in pairs(self.Systems) do
 		v:Think()
 	end
@@ -167,6 +302,8 @@ function ENT:SpawnFunction(ply, tr)
 	local verticaloffset = 0 -- Offset for the train model, gmod seems to add z by default, nvm its you adding 170 :V
 	local distancecap = 2000 -- When to ignore hitpos and spawn at set distanace
 	local pos, ang = nil
+	local inhinitererail = false
+	
 	if tr.Hit then
 		-- Setup trace to find out of this is a track
 		local tracesetup = {}
@@ -177,22 +314,24 @@ function ENT:SpawnFunction(ply, tr)
 		local tracedata = util.TraceLine(tracesetup)
 
 		if tracedata.Hit then
-				-- Trackspawn
-				pos = (tr.HitPos + tracedata.HitPos)/2 + Vector(0,0,verticaloffset)
-				ang = tracedata.HitNormal
-				ang:Rotate(Angle(0,90,0))
-				ang = ang:Angle()
-				-- Bit ugly because Rotate() messes with the orthogonal vector
+			-- Trackspawn
+			pos = (tr.HitPos + tracedata.HitPos)/2 + Vector(0,0,verticaloffset)
+			ang = tracedata.HitNormal
+			ang:Rotate(Angle(0,90,0))
+			ang = ang:Angle()
+			inhibitrerail = true
+			-- Bit ugly because Rotate() messes with the orthogonal vector | Orthogonal? I wrote "origional?!" :V
 		else
-				-- Regular spawn
-				if tr.HitPos:Distance(tr.StartPos) > distancecap then
-						-- Spawnpos is far away, put it at distancecap instead
-						pos = tr.StartPos + tr.Normal * distancecap
-				else
-						-- Spawn is near
-						pos = tr.HitPos + tr.HitNormal * verticaloffset
-				end
-				ang = Angle(0,tr.Normal:Angle().y,0)
+			-- Regular spawn
+			if tr.HitPos:Distance(tr.StartPos) > distancecap then
+				-- Spawnpos is far away, put it at distancecap instead
+				pos = tr.StartPos + tr.Normal * distancecap
+				inhibitrerail = true
+			else
+				-- Spawn is near
+				pos = tr.HitPos + tr.HitNormal * verticaloffset
+			end
+			ang = Angle(0,tr.Normal:Angle().y,0)
 		end
 	else
 		-- Trace didn't hit anything, spawn at distancecap
@@ -202,9 +341,12 @@ function ENT:SpawnFunction(ply, tr)
 
 	local ent = ents.Create(self.ClassName)
 	ent:SetPos(pos)
-	ent:SetAngles(ang + Angle(0,180,0))
+	ent:SetAngles(ang)
 	ent:Spawn()
 	ent:Activate()
+	
+	if not inhabitrerail then Metrostroi.RerailTrain(ent) end
+	
 	return ent
 end
 
@@ -216,7 +358,7 @@ end
 --------------------------------------------------------------------------------
 -- Receiver for CS buttons, Checks if people are the legit driver and calls buttonevent on the train
 net.Receive("metrostroi-cabin-button", function(len, ply)
-	local button = net.ReadInt(8)
+	local button = net.ReadString()
 	local eventtype = net.ReadBit()
 	local seat = ply:GetVehicle()
 	local train 
@@ -275,17 +417,22 @@ local function HandleExitingPlayer(ply, vehicle)
 	end
 end
 
---[[local function joyregister()
-	jcon.register{
-		uid = "met_controller",
-		type = "analog",
-		description = "Controller",
-		category = "Metrostroi",
-	}
-end]]--
 
+
+--Register joystick buttons
+--Won't get called if joystick isn't installed
+--I've put it here for now, trains will likely share these inputs anyway
+local function JoystickRegister()
+	Metrostroi.RegisterJoystickInput("met_controller",true,"Controller",-3,3)
+	Metrostroi.RegisterJoystickInput("met_reverser",true,"Reverser",-1,1)
+	
+	Metrostroi.JoystickSystemMap["met_controller"]="SetController"
+	Metrostroi.JoystickSystemMap["met_reverser"]="SetReverser"
+end
+
+hook.Add("JoystickInitialize","metroistroi_cabin",JoystickRegister)
 
 hook.Add("PlayerLeaveVehicle", "gmod_subway_81-717-cabin-exit", HandleExitingPlayer )
 hook.Add("CanPlayerEnterVehicle","gmod_subway_81-717-cabin-entry", CanPlayerEnter )
 
---hook.Add("JoystickInitialize","metroistroi_cabin",joyregister)
+

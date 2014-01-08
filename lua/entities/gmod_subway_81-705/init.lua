@@ -16,6 +16,8 @@ function ENT:Initialize()
 	self.BaseClass.Initialize(self)
 	self:SetPos(self:GetPos() + Vector(0,0,140))
 	
+	self.DriverSeat = self:CreateSeat(Vector(400,-40,-30),"driver")
+	
 	-- Define controller parameters
 	self.MotorSettings = {}
 	self.MotorForce = 30000
