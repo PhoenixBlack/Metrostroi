@@ -20,8 +20,6 @@ function ENT:InitializeSystems()
 	
 	-- Токоприёмник
 	self:LoadSystem("TR","TR_3B")	
-	-- Электросистема 81-705
-	self:LoadSystem("Electric","81_705_Electric")
 	-- Электротяговой двигатель
 	self:LoadSystem("Engine","DK_117DM")
 	-- Резисторы для реостата/пусковых сопротивлений
@@ -30,4 +28,9 @@ function ENT:InitializeSystems()
 	self:LoadSystem("RheostatController","EKG_17B")
 	-- Кулачковый контроллер
 	self:LoadSystem("KV","KV_66")
+	
+	-- Электросистема 81-705
+	self:LoadSystem("Electric","81_705_Electric")
+	-- Пневмосистема 81-705
+	self:LoadSystem("Pneumatic","81_717_Pneumatic")
 end

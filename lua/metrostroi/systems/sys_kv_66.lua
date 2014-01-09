@@ -10,7 +10,8 @@ end
 
 function TRAIN_SYSTEM:Inputs()
 	return { "ControllerSet", "ReverserSet",
-			 "ControllerUp","ControllerDown","ReverserUp","ReverserDown" }
+			 "ControllerUp","ControllerDown","ReverserUp","ReverserDown",
+			 "SetX1", "SetX2", "SetX3", "Set0", "SetT1", "SetT1A", "SetT2" }
 end
 
 function TRAIN_SYSTEM:Outputs()
@@ -18,6 +19,8 @@ function TRAIN_SYSTEM:Outputs()
 end
 
 function TRAIN_SYSTEM:Step()
+	self.Train:PlayOnce("switch",true)
+
 	local Train = self.Train
 	if self.ReverserPosition > 0 then
 		Train.PR_772:TriggerInput("Open",1.0)
@@ -64,7 +67,10 @@ function TRAIN_SYSTEM:Step()
 		Train.KSH1:TriggerInput("Close",1.0)
 		Train.KSH2:TriggerInput("Close",1.0)
 		Train.KSH3:TriggerInput("Close",1.0)
-		Train.KSH4:TriggerInput("Close",1.0)	
+		Train.KSH4:TriggerInput("Close",1.0)
+		--if self.ControllerPosition == 3 then
+			--Train.RheostatController.Position = 18
+		--end
 	end
 end
 
@@ -91,6 +97,20 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 		self:TriggerInput("ReverserSet",self.ReverserPosition+1)
 	elseif (name == "ReverserDown") and (value > 0.5) then
 		self:TriggerInput("ReverserSet",self.ReverserPosition-1)
+	elseif (name == "SetX1") and (value > 0.5) then
+		self:TriggerInput("ControllerSet",1)
+	elseif (name == "SetX2") and (value > 0.5) then
+		self:TriggerInput("ControllerSet",2)
+	elseif (name == "SetX3") and (value > 0.5) then
+		self:TriggerInput("ControllerSet",3)
+	elseif (name == "Set0") and (value > 0.5) then
+		self:TriggerInput("ControllerSet",0)		
+	elseif (name == "SetT1") and (value > 0.5) then
+		self:TriggerInput("ControllerSet",-1)
+	elseif (name == "SetT1A") and (value > 0.5) then
+		self:TriggerInput("ControllerSet",-2)
+	elseif (name == "SetT2") and (value > 0.5) then
+		self:TriggerInput("ControllerSet",-3)
 	end
 end
 

@@ -39,9 +39,9 @@ function TRAIN_SYSTEM:Initialize(parameters,power_supply)
 
 	-- Relay parameters
 	FailSim.AddParameter(self,		"CloseTime",
-		{ value =  parameters.on_time or 0.050, min = 0.010, varies = true })
+		{ value =  parameters.close_time or 0.050, min = 0.010, varies = true })
 	FailSim.AddParameter(self,		"OpenTime", 
-		{ value = parameters.off_time or 0.050, min = 0.010, varies = true })
+		{ value = parameters.open_time or 0.050, min = 0.010, varies = true })
 		
 	-- Did relay short-circuit?
 	FailSim.AddParameter(self,		"ShortCircuit",		{ value = 0.000, precision = 0.00 })

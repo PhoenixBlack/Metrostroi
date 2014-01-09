@@ -27,11 +27,18 @@ function ENT:Initialize()
 	
 	-- Initialize key mapping
 	self.KeyMap = {
-		[KEY_1] = "D_1",
-		[KEY_2] = "D_2",
-		[KEY_3] = "D_3",
+		[KEY_1] = "KVSetX1",
+		[KEY_2] = "KVSetX2",
+		[KEY_3] = "KVSetX3",
+		[KEY_4] = "KVSet0",
+		[KEY_5] = "KVSetT1",
+		[KEY_6] = "KVSetT1A",
+		[KEY_7] = "KVSetT2",
+		
 		[KEY_W] = "KVControllerUp",
-		[KEY_S] = "KVControllerDown"
+		[KEY_S] = "KVControllerDown",
+		[KEY_F] = "PneumaticBrakeUp",
+		[KEY_R] = "PneumaticBrakeDown",
 	}
 end
 
@@ -39,5 +46,13 @@ end
 --------------------------------------------------------------------------------
 function ENT:Think()
 	self:SetNWFloat("Controller",self.KV.ControllerPosition)
+	self:SetNWFloat("DriverValve",self.Pneumatic.DriverValvePosition)	
+	self:SetNWFloat("BrakeLine",self.Pneumatic.BrakeLinePressure)
+	self:SetNWFloat("TrainLine",self.Pneumatic.TrainLinePressure)
+	self:SetNWFloat("BrakeCylinder",self.Pneumatic.BrakeCylinderPressure)
+	
+	self:SetNWFloat("Volts",self.Electric.Power750V)
+	self:SetNWFloat("Amperes",self.Engine.RUTCurrent)
+	self:SetNWFloat("Speed",(self.FrontBogey.Speed + self.RearBogey.Speed)/2)
 	return self.BaseClass.Think(self)
 end

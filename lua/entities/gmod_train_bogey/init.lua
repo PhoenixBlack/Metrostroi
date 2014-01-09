@@ -36,48 +36,12 @@ function ENT:Initialize()
 	self.MotorForce = 30000.0
 	self.MotorPower = 0.0
 	self.Speed = 0
+	self.PneumaticBrakeForce = 60000.0
 	
-
-	-- Maximum pneumatic brake force at P = 4.5 atm
-	self.PneumaticBrakeForce = 45000.0
-	-- Pressure in reservoir
-	self.ReservoirPressure = 4.0 -- atm
-	-- Pressure in trains feed line
-	self.TrainLinePressure = 4.5 -- atm
-	-- Pressure in trains brake line
-	self.BrakeLinePressure = 4.0 -- atm
 	-- Pressure in brake cylinder
 	self.BrakeCylinderPressure = 0.0 -- atm
-	
-	
-	-- Position of the train drivers valve
-	-- 1 Charge/brake release
-	-- 2 Driving
-	-- 3 Closed
-	-- 4 Service application
-	-- 5 Emergency application
-	self.DriverValvePosition = 1
-
-	-- Rate of brake line filling from train line
-	self.BrakeLineFillRate			= 0.700 -- atm/sec
-	-- Rate of equalizing reservoir filling from train line
-	self.ReservoirFillRate			= 1.500 -- atm/sec
-	-- Replenish rate for brake line
-	self.BrakeLineReplenishRate 	= 0.100 -- atm/sec
-	-- Replenish rate for reservoir
-	self.ReservoirReplenishRate 	= 1.000 -- atm/sec
-	-- Release to atmosphere rate
-	self.ReservoirReleaseRate	 	= 1.500 -- atm/sec
-
-	-- Rate of pressure leak from reservoir
-	self.ReservoirLeakRate			= 1e-3	-- atm/sec
-	-- Rate of pressure leak from brake line
-	self.BrakeLineLeakRate			= 1e-4	-- atm/sec
-	-- Rate of release to reservoir
-	self.BrakeLineReleaseRate	 	= 0.350 -- atm/sec
-
-	-- Emergency release rate
-	self.BrakeLineEmergencyRate 	= 0.800 -- atm/sec
+	-- Speed at which pressure in cylinder changes
+	self.BrakeCylinderPressure_dPdT = 0.0
 end
 
 function ENT:InitializeWheels()
@@ -238,67 +202,13 @@ function ENT:Think()
 	self.PrevSpeed = self.Speed
 
 
-	-- Apply specific rate to equalize pressure
-	--[[local function equalizePressure(pressure,target,rate,fill_rate)
-		if fill_rate and (target > self[pressure]) then rate = fill_rate end
-		
-		-- Calculate derivative
-		local dPdT = rate
-		if target < self[pressure] then dPdT = -dPdT end
-		local dPdTramp = math.min(1.0,math.abs(target - self[pressure])*1.0)
-		dPdT = dPdT*dPdTramp
-
-		-- Update pressure
-		self[pressure] = self[pressure] + self.DeltaTime * dPdT
-		self[pressure] = math.max(0.0,math.min(7.0,self[pressure]))
-		self[pressure.."_dPdT"] = (self[pressure.."_dPdT"] or 0) + dPdT
-		return dPdT
-	end
-	
-
-	-- Accumulate derivatives
-	self.BrakeLinePressure_dPdT = 0.0
-	self.ReservoirPressure_dPdT = 0.0
-
-	-- Fill reservoir from train line, fill brake line from train line
-	if self.DriverValvePosition == 1 then
-		equalizePressure("BrakeLinePressure", self.TrainLinePressure, self.BrakeLineFillRate)
-		equalizePressure("ReservoirPressure", self.TrainLinePressure, self.ReservoirFillRate)
-	end
-	-- Brake line, reservoir replenished from train line
-	if self.DriverValvePosition == 2 then
-		equalizePressure("BrakeLinePressure", self.TrainLinePressure, self.BrakeLineReplenishRate)
-		equalizePressure("ReservoirPressure", self.TrainLinePressure, self.ReservoirReplenishRate)
-	end
-	-- Equalize pressure between reservoir and brake line
-	if self.DriverValvePosition == 3 then
-		equalizePressure("ReservoirPressure", self.BrakeLinePressure, self.ReservoirReleaseRate,self.ReservoirFillRate)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, self.BrakeLineReleaseRate,self.BrakeLineFillRate)
-	end
-	-- Reservoir open to atmosphere, brake line open to reservoir
-	if self.DriverValvePosition == 4 then
-		equalizePressure("ReservoirPressure", 0.0,										self.ReservoirReleaseRate)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, self.BrakeLineReleaseRate)
-	end
-	-- Reservoir and brake line open to atmosphere
-	if self.DriverValvePosition == 5 then
-		equalizePressure("ReservoirPressure", 0.0, self.ReservoirReleaseRate)
-		equalizePressure("BrakeLinePressure", 0.0, self.BrakeLineEmergencyRate)
-	end
-	
-	-- Brake line leaks
-	equalizePressure("BrakeLinePressure", 0.0, self.BrakeLineLeakRate)
-	-- Reservoir leaks
-	equalizePressure("ReservoirPressure", 0.0, self.ReservoirLeakRate)
-	
-	
 	-- Final brake cylinder pressure
-	self.BrakeCylinderPressure = math.max(0.0,4.5 - self.BrakeLinePressure)
+	--self.BrakeCylinderPressure = math.max(0.0,4.5 - self.BrakeLinePressure)
 	if (self.BrakeCylinderPressure > 1.5) and (absSpeed < 0.5) then
 		self.Wheels:GetPhysicsObject():SetMaterial("gmod_silent")
 	else
 		self.Wheels:GetPhysicsObject():SetMaterial("gmod_ice")
-	end]]--
+	end
 	self.Wheels:GetPhysicsObject():SetMaterial("gmod_ice")
 
 	-- Calculate motor power
@@ -314,7 +224,7 @@ function ENT:Think()
 	
 	-- Calculate forces
 	local motorForce = self.MotorForce*motorPower
-	local pneumaticForce = 0 -- -sign*self.PneumaticBrakeForce*(self.BrakeCylinderPressure / 4.5)
+	local pneumaticForce = -sign*self.PneumaticBrakeForce*(self.BrakeCylinderPressure / 4.5)
 	
 	-- Apply sideways friction
 --	local sideSpeed = -self:GetVelocity():Dot(self:GetAngles():Right()) * 0.06858
@@ -332,17 +242,14 @@ function ENT:Think()
 	-- Send parameters to client
 	self:SetMotorPower(motorPower)
 	self:SetSpeed(absSpeed)
-	self:SetdPdT(0) --self.BrakeLinePressure_dPdT)
+	self:SetdPdT(self.BrakeCylinderPressure_dPdT)
 	self:NextThink(CurTime())
 	
 	-- Trigger outputs
-	--[[if Wire_TriggerOutput then
+	if Wire_TriggerOutput then
 		Wire_TriggerOutput(self, "Speed", absSpeed)
-		Wire_TriggerOutput(self, "ReservoirPressure",		 ReservoirPressure)
-		Wire_TriggerOutput(self, "TrainLinePressure",		 TrainLinePressure)
-		Wire_TriggerOutput(self, "BrakeLinePressure",		 BrakeLinePressure)
-		Wire_TriggerOutput(self, "BrakeCylinderPressure", BrakeCylinderPressure)
-	end]]--
+		Wire_TriggerOutput(self, "BrakeCylinderPressure", self.BrakeCylinderPressure)
+	end
 	return true
 end
 

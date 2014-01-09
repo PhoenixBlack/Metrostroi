@@ -75,6 +75,17 @@ function ENT:Initialize()
 	self.TrainEntities = {}
 	-- All the sitting positions in train
 	self.Seats = {}
+	
+	-- Load basic sounds
+	self.SoundNames = {}
+	self.SoundNames["switch"]	= "subway_trains/81717_switch.wav"
+	self.SoundNames["kv1"]		= "subway_trains/81717_kv1.wav"
+	self.SoundNames["kv2"]   	= "subway_trains/81717_kv2.wav"
+	self.SoundNames["kv3"]    	= "subway_trains/81717_kv3.wav"
+	self.SoundNames["kv4"]   	= "subway_trains/81717_kv4.wav"
+	
+	self.SoundTimeout = {}
+	self.SoundTimeout["switch"]        = 0.0
 end
 
 function ENT:OnRemove()
@@ -149,7 +160,7 @@ end
 function ENT:CreateSeatEntity(seat_info)
 	-- Create seat entity
 	local seat = ents.Create("prop_vehicle_prisoner_pod")
-	seat:SetModel("models/nova/jalopy_seat.mdl")
+	seat:SetModel("models/nova/jeep_seat.mdl") --jalopy
 	seat:SetPos(self:LocalToWorld(seat_info.offset))
 	seat:SetAngles(self:GetAngles()+Angle(0,-90,0)+seat_info.angle)
 	seat:Spawn()
@@ -193,6 +204,36 @@ function ENT:CreateSeat(type,offset,angle)
 	if (type == "driver") or (type == "instructor") then
 		return self:CreateSeatEntity(seat_info)
 	end
+end
+
+
+
+
+--------------------------------------------------------------------------------
+-- Play sound once emitting frmo the train
+--------------------------------------------------------------------------------
+function ENT:CheckActionTimeout(action,timeout)
+  self.LastActionTime = self.LastActionTime or {}
+  self.LastActionTime[action] = self.LastActionTime[action] or (CurTime()-1000)
+  if CurTime() - self.LastActionTime[action] < timeout then return true end
+  self.LastActionTime[action] = CurTime()
+  
+  return false
+end
+
+function ENT:PlayOnce(soundid,inCockpit,range,pitch)
+  if self:CheckActionTimeout(soundid,self.SoundTimeout[soundid] or 0.0) then return end
+  
+  local default_range = 0.80
+  if soundid == "switch" then default_range = 0.50 end
+  
+  if not inCockpit then
+    self:EmitSound(self.SoundNames[soundid], 100*(range or default_range), pitch or math.random(95,105))
+  else
+    if self.DriverSeat and self.DriverSeat:IsValid() then
+      self.DriverSeat:EmitSound(self.SoundNames[soundid], 100*(range or default_range),pitch or math.random(95,105))
+    end
+  end
 end
 
 
@@ -416,7 +457,7 @@ local function HandleExitingPlayer(ply, vehicle)
 		
 		-- Move exiting player
 		local seattype = vehicle:GetNWString("SeatType")
-		if seattype == "driver" then
+		if (seattype == "driver") or (seattype == "instructor") then
 			ply:SetPos(vehicle:GetPos()+Vector(0,0,-20))
 		elseif seattype == "passenger" then
 			ply:SetPos(vehicle:GetPos()+vehicle:GetForward()*40+Vector(0,0,-10))
