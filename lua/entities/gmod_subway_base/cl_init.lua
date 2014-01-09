@@ -77,12 +77,14 @@ function ENT:ShouldRenderClientEnts()
 end
 
 function ENT:CreateCSEnts()
-	for k,v in ipairs(self.ClientProps) do
-		local cent = ClientsideModel(v.model ,RENDERGROUP_OPAQUE)
-		cent:SetPos(self:LocalToWorld(v.pos))
-		cent:SetAngles(self:LocalToWorldAngles(v.ang))
-		cent:SetParent(self)
-		table.insert(self.ClientEnts,cent)
+	for k,v in pairs(self.ClientProps) do
+		if k ~= "BaseClass" then
+			local cent = ClientsideModel(v.model ,RENDERGROUP_OPAQUE)
+			cent:SetPos(self:LocalToWorld(v.pos))
+			cent:SetAngles(self:LocalToWorldAngles(v.ang))
+			cent:SetParent(self)
+			self.ClientEnts[k] = cent
+		end
 	end
 end
 
@@ -177,13 +179,12 @@ function ENT:Think()
 	end
 	
 	--Example of pose parameter
-	--[[
-	for k,v in pairs(self.ClientEnts) do
+	--[[for k,v in pairs(self.ClientEnts) do
 		if v:GetPoseParameterRange(0) != nil then
-			v:SetPoseParameter("switch",math.sin(CurTime()*4)/2+0.5)
+			v:SetPoseParameter("position",math.sin(CurTime()*4)/2+0.5)
 		end
-	end
-	]]--
+	end]]--
+
 end
 
 
@@ -380,7 +381,6 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 		end
 		
 		-- Check if we should draw the crosshair
-		
 		for kp,panel in pairs(train.ButtonMap) do
 			if panel.aimedAt then 
 				drawCrosshair = true
@@ -434,10 +434,10 @@ end
 -- Args are player, IN_ enum and bool for press/release
 local function handleKeyEvent(ply,key,pressed)
 	-- if !IsFirstTimePredicted() then return end
-	if key != IN_ATTACK then return end
-	if !IsValid(ply) then return end
+	if key ~= IN_ATTACK then return end
+	if not IsValid(ply) then return end
 	local train = isValidTrainDriver(ply)
-	if !IsValid(train) then return end
+	if not IsValid(train) then return end
 	if train.ButtonMap == nil then return end
 
 	if pressed then

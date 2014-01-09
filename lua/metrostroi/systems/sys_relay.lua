@@ -32,6 +32,7 @@ function TRAIN_SYSTEM:Initialize(parameters,power_supply)
 	end
 	
 	-- Is relay normally open or closed
+	self.Contactor = parameters.contactor or false
 	self.NormallyOpen = parameters.normally_open or false
 	self.PowerSupply = parameters.power_supply or power_supply or "None"
 	self.WorkingVoltage = parameters.working_voltage or 750
@@ -101,13 +102,17 @@ function TRAIN_SYSTEM:Outputs()
 	return { "State" }
 end
 
-function TRAIN_SYSTEM:TriggerInput(name,value)	
+function TRAIN_SYSTEM:TriggerInput(name,value)
 	if (name == "Close") and (value > 0.5) then
+		if (not self.ChangeTime) and (self.TargetValue ~= 1.0) then
+			self.ChangeTime = CurTime() + FailSim.Value(self,"CloseTime")
+		end
 		self.TargetValue = 1.0
-		self.ChangeTime = CurTime() + FailSim.Value(self,"CloseTime")
 	elseif (name == "Open") and (value > 0.5) then
+		if (not self.ChangeTime) and (self.TargetValue ~= 0.0) then
+			self.ChangeTime = CurTime() + FailSim.Value(self,"OpenTime")
+		end
 		self.TargetValue = 0.0
-		self.ChangeTime = CurTime() + FailSim.Value(self,"OpenTime")
 	end
 end
 
@@ -153,6 +158,7 @@ function TRAIN_SYSTEM:Think()
 
 	-- Switch relay
 	if self.ChangeTime and (CurTime() > self.ChangeTime) then		
+		print("SET RELAY",self.Name,self.TargetValue)
 		self.Value = self.TargetValue
 		self.ChangeTime = nil
 		

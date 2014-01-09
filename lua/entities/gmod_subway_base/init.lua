@@ -62,15 +62,9 @@ function ENT:Initialize()
 	end
 
 	-- Setup drivers controls
-	self.ButtonBuffer = {}
-	self.KeyBuffer = {}
-	self.KeyMap = {
-		[KEY_1] = "D_1",
-		[KEY_2] = "D_2",
-		[KEY_3] = "D_3",
-		[KEY_W] = "ControllerUp",
-		[KEY_S] = "ControllerDown"
-	}
+	self.ButtonBuffer = { }
+	self.KeyBuffer = { }
+	self.KeyMap = { }
 	
 	-- Joystick module support
 	if joystick then
@@ -79,6 +73,8 @@ function ENT:Initialize()
 	
 	-- Entities that belong to train and must be cleaned up later
 	self.TrainEntities = {}
+	-- All the sitting positions in train
+	self.Seats = {}
 end
 
 function ENT:OnRemove()
@@ -110,7 +106,11 @@ function ENT:TriggerInput(name, value)
 
 	-- Propagate inputs to relevant systems
 	for k,v in pairs(self.Systems) do
-		v:TriggerInput(name,value)
+		if v.Name then
+			v:TriggerInput(string.sub(name,#v.Name+1),value)
+		else
+			v:TriggerInput(name,value)
+		end
 	end
 end
 
@@ -143,78 +143,59 @@ function ENT:CreateBogey(pos,ang,forward)
 end
 
 
-function ENT:CreateSeat(offset,type)
-  local seat = ents.Create("prop_vehicle_prisoner_pod")
-  seat:SetModel("models/props_phx/carseat3.mdl")
+--------------------------------------------------------------------------------
+-- Create an entity for the seat
+--------------------------------------------------------------------------------
+function ENT:CreateSeatEntity(seat_info)
+	-- Create seat entity
+	local seat = ents.Create("prop_vehicle_prisoner_pod")
+	seat:SetModel("models/nova/jalopy_seat.mdl")
+	seat:SetPos(self:LocalToWorld(seat_info.offset))
+	seat:SetAngles(self:GetAngles()+Angle(0,-90,0)+seat_info.angle)
+	seat:Spawn()
+	seat:GetPhysicsObject():SetMass(10)
+	seat:SetCollisionGroup(COLLISION_GROUP_WORLD)
+	
+	-- Hide the entity visually
+	--if seat_info.type ~= "instructor" then
+		--seat:SetColor(Color(0,0,0,0))
+		--seat:SetRenderMode(RENDERMODE_TRANSALPHA)
+	--end
 
-    seat:SetPos(self:LocalToWorld(offset))
-    seat:SetAngles(self:GetAngles()+Angle(0,-90,0))
+	-- Set some shared information about the seat
+	seat:SetNWString("SeatType", seat_info.type)
+	seat:SetNWEntity("TrainEntity", self)
+	seat_info.entity = seat
 
-  seat:Spawn()
-  seat:GetPhysicsObject():SetMass(10)
-  seat:SetCollisionGroup(COLLISION_GROUP_WORLD)
-  table.insert(self.TrainEntities,seat)
-  
-  --table.insert(self.Seats,seat) --No longer used?
-
-  seat:SetNWEntity("TrainEntity", self)
-  seat:SetNWString("SeatType", type)
-
-  -- Constrain seat to this object
---  constraint.NoCollide(self,seat,0,0)
-  seat:SetParent(self)
-  return seat
+	-- Constrain seat to this object
+	-- constraint.NoCollide(self,seat,0,0)
+	seat:SetParent(self)
+	
+	-- Add to cleanup list
+	table.insert(self.TrainEntities,seat)
+	return seat
 end
 
 
 --------------------------------------------------------------------------------
--- Process Cabin button and keyboard input
+-- Create a seat position
 --------------------------------------------------------------------------------
-function ENT:OnButtonPress(button)
-	print("Pressed", button)
-end
-
-function ENT:OnButtonRelease(button)
-	print("Released",button)
-end
-
--- Clears the serverside keybuffer and fires events
-function ENT:ClearKeyBuffer()
-	for k,v in pairs(self.KeyBuffer) do
-		local button = self.KeyMap[k]
-		if button ~= nil then
-			self:ButtonEvent(button,false)
-		end
-	end
-	self.KeyBuffer = {}
-end
-
--- Checks a button with the buffer and calls 
--- OnButtonPress/Release as well as TriggerInput
-function ENT:ButtonEvent(button,state)
-	if self.ButtonBuffer[button] != state then
-		self.ButtonBuffer[button]=state
-		
-		for k,v in pairs(self.Systems) do
-			if type(state) == "boolean" then
-				if state then
-					state = 1
-				else
-					state = 0
-				end
-			end
-			print(state)
-			v:TriggerInput(button,state)
-		end
-		
-		
-		if state then
-			self:OnButtonPress(button)
-		else
-			self:OnButtonRelease(button)
-		end
+function ENT:CreateSeat(type,offset,angle)
+	-- Add a new seat
+	local seat_info = {
+		type = type,
+		offset = offset,
+		angle = angle or Angle(0,0,0),
+	}
+	table.insert(self.Seats,seat_info)
+	
+	-- If needed, create an entity for this seat
+	if (type == "driver") or (type == "instructor") then
+		return self:CreateSeatEntity(seat_info)
 	end
 end
+
+
 
 
 --------------------------------------------------------------------------------
@@ -226,13 +207,13 @@ function ENT:Think()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
 	
-	--Handle player input
+	-- Handle player input
 	if IsValid(self.DriverSeat) then
 		local ply = self.DriverSeat:GetPassenger(0) 
 		if ply and IsValid(ply) then
 		
-			//Keypresses
-			//Check for newly pressed keys
+			-- Keypresses
+			-- Check for newly pressed keys
 			for k,v in pairs(ply.keystate) do
 				if self.KeyBuffer[k] == nil then
 					self.KeyBuffer[k] = true
@@ -243,7 +224,7 @@ function ENT:Think()
 				end
 			end
 			
-			//Check for newly released keys
+			-- Check for newly released keys
 			for k,v in pairs(self.KeyBuffer) do
 				if ply.keystate[k] == nil then
 					self.KeyBuffer[k] = nil
@@ -254,14 +235,14 @@ function ENT:Think()
 				end
 			end
 			
-			//Joystick
+			-- Joystick
 			if joystick then
 				for k,v in pairs(jcon.binds) do
 					if v:GetCategory() == "Metrostroi" then
 						local jvalue = Metrostroi.GetJoystickInput(ply,k)
 						if jvalue != nil then
-							if self.JoystickBuffer[k]~=jvalue then
-								self.JoystickBuffer[k]=jvalue
+							if self.JoystickBuffer[k] ~= jvalue then
+								self.JoystickBuffer[k] = jvalue
 								for _,system in pairs(self.Systems) do
 									local inputname = Metrostroi.JoystickSystemMap[k]
 									if inputname then
@@ -341,8 +322,48 @@ function ENT:SpawnFunction(ply, tr)
 	ent:Activate()
 	
 	if not inhabitrerail then Metrostroi.RerailTrain(ent) end
-	
 	return ent
+end
+
+
+
+
+--------------------------------------------------------------------------------
+-- Process Cabin button and keyboard input
+--------------------------------------------------------------------------------
+function ENT:OnButtonPress(button)
+	print("Pressed", button)
+end
+
+function ENT:OnButtonRelease(button)
+	print("Released",button)
+end
+
+-- Clears the serverside keybuffer and fires events
+function ENT:ClearKeyBuffer()
+	for k,v in pairs(self.KeyBuffer) do
+		local button = self.KeyMap[k]
+		if button ~= nil then
+			self:ButtonEvent(button,false)
+		end
+	end
+	self.KeyBuffer = {}
+end
+
+-- Checks a button with the buffer and calls 
+-- OnButtonPress/Release as well as TriggerInput
+function ENT:ButtonEvent(button,state)
+	if self.ButtonBuffer[button] != state then
+		self.ButtonBuffer[button]=state
+		
+		if state then
+			self:OnButtonPress(button)
+			self:TriggerInput(button,1.0)
+		else
+			self:OnButtonRelease(button)
+			self:TriggerInput(button,0.0)
+		end
+	end
 end
 
 
@@ -359,12 +380,12 @@ net.Receive("metrostroi-cabin-button", function(len, ply)
 	local train 
 	
 	if seat and IsValid(seat) then 
-		//Player currently driving
+		-- Player currently driving
 		train = seat:GetNWEntity("TrainEntity")
 		if (not train) or (not train:IsValid()) then return end
 		if seat != train.DriverSeat then return end
 	else
-		//Player not driving, check recent train
+		-- Player not driving, check recent train
 		train = ply.lastVehicleDriven:GetNWEntity("TrainEntity")
 		if !IsValid(train) then return end
 		if ply != train.DriverSeat.lastDriver then return end
@@ -414,15 +435,17 @@ end
 
 
 
---Register joystick buttons
---Won't get called if joystick isn't installed
---I've put it here for now, trains will likely share these inputs anyway
+
+--------------------------------------------------------------------------------
+-- Register joystick buttons
+-- Won't get called if joystick isn't installed
+-- I've put it here for now, trains will likely share these inputs anyway
 local function JoystickRegister()
 	Metrostroi.RegisterJoystickInput("met_controller",true,"Controller",-3,3)
 	Metrostroi.RegisterJoystickInput("met_reverser",true,"Reverser",-1,1)
 	
-	Metrostroi.JoystickSystemMap["met_controller"]="SetController"
-	Metrostroi.JoystickSystemMap["met_reverser"]="SetReverser"
+	Metrostroi.JoystickSystemMap["met_controller"] = "SetController"
+	Metrostroi.JoystickSystemMap["met_reverser"] = "SetReverser"
 end
 
 hook.Add("JoystickInitialize","metroistroi_cabin",JoystickRegister)

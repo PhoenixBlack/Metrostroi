@@ -34,7 +34,7 @@ function TRAIN_SYSTEM:Initialize()
 	for i=1,26 do self[i] = 1e9 end
 	
 	-- Rate of rotation
-	self.RotationRate = 5 --5 -- Positions per second
+	self.RotationRate = 5 -- Positions per second
 	self.Moving = false
 end
 
@@ -49,8 +49,10 @@ end
 function TRAIN_SYSTEM:TriggerInput(name,value)	
 	if (name == "Up") and (value > 0.5) then
 		self.TargetPosition = math.floor(self.Position+0.5) + 1
+		if self.TargetPosition > 18 then self.TargetPosition = 18 end
 	elseif (name == "Down") and (value > 0.5) then
 		self.TargetPosition = math.floor(self.Position+0.5) - 1
+		if self.TargetPosition < 1 then self.TargetPosition = 1 end
 	end
 end
 
@@ -75,12 +77,12 @@ function TRAIN_SYSTEM:Think(dT)
 		if self.TargetPosition > self.Position then
 			self.Position = self.Position + self.RotationRate * dT
 		end
-		if math.abs(self.TargetPosition - self.Position) < 0.1 then
+		if math.abs(self.TargetPosition - self.Position) < 0.2 then
 			self.TargetPosition = nil
 		end
-		self.Moving = true
+		--self.Moving = true
 	else
-		self.Moving = false
+		--self.Moving = false
 	end
 	if self.Position > 18.4 then self.Position = 18.4 end
 	if self.Position < 0.6  then self.Position = 0.6 end

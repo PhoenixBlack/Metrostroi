@@ -13,20 +13,21 @@ ENT.AdminSpawnable  = false
 
 
 function ENT:InitializeSystems()
-	--self:LoadSystem("Controller")
-	
 	-- Ящик с предохранителями
 	self:LoadSystem("YAP_57")
+	-- Главный выключатель
 	self:LoadSystem("GV","GV_10ZH")	
 	
 	-- Токоприёмник
 	self:LoadSystem("TR","TR_3B")	
 	-- Электросистема 81-705
-	self:LoadSystem("Electric","81_705_Electric")	
+	self:LoadSystem("Electric","81_705_Electric")
 	-- Электротяговой двигатель
 	self:LoadSystem("Engine","DK_117DM")
-	
+	-- Резисторы для реостата/пусковых сопротивлений
 	self:LoadSystem("RheostatResistors","KF_47A")
+	-- Реостатный контроллер для управления пусковыми сопротивления
 	self:LoadSystem("RheostatController","EKG_17B")
-	
+	-- Кулачковый контроллер
+	self:LoadSystem("KV","KV_66")
 end

@@ -94,7 +94,7 @@ function ENT:InitializeWheels()
 	if not wheels then
 		wheels = ents.Create("gmod_train_wheels")
 		wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-14)))
-		wheels:SetAngles(self:GetAngles() + Angle(0,90,0))
+		wheels:SetAngles(self:GetAngles() + Angle(0,0,0))
 		wheels:Spawn()
 
 		constraint.Weld(self,wheels,0,0,0,1,0)

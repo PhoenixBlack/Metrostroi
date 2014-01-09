@@ -21,13 +21,16 @@ function TRAIN_SYSTEM:Outputs()
 	return { }
 end
 
-function TRAIN_SYSTEM:Think()
+function TRAIN_SYSTEM:Think(dT)
 	local Train = self.Train
-	
+
 	-- Calculate engine rotation speed and magnetic flux
 	local magneticFlux13 = 1.0
 	local magneticFlux24 = 1.0
 	local rotationRate = 4000 * ((Train.FrontBogey.Speed + Train.RearBogey.Speed)/90) / 2
+	self.SmoothRotationRate = (self.SmoothRotationRate or 0)
+	self.SmoothRotationRate = self.SmoothRotationRate + 5.0 * (rotationRate - self.SmoothRotationRate) * dT
+	rotationRate = self.SmoothRotationRate
 	
 	if Train.RheostatController.Position > 2.5 then
 		magneticFlux13 = 1.00
@@ -42,35 +45,54 @@ function TRAIN_SYSTEM:Think()
 	local E24 = 0.30 * rotationRate * magneticFlux24
 
 	-- Series connection
-	if true then
+	if Train.T_Parallel.Value == 0.0 then
 		-- Total voltage over entire circuit
 		local totalV = Train.Electric.Power750V * Train.LK3.Value * Train.LK4.Value
 		-- Calculate total resistance of the circuit
-		local totalR = Train.Electric.Block1Resistance + Train.Electric.Block2Resistance + 2 * self.Rw
+		local totalR = Train.Electric.Block1Resistance + 
+					   Train.Electric.Block2Resistance + 
+					   Train.Electric.ExtraResistance + 2 * self.Rw
 		
 		-- Calculate current flowing through anchors
 		local Ianchor = (totalV - E13 - E24) / (totalR)
-		self.RUTCurrent = Ianchor
+		
+		-- Only let current flow in a completed circuit
+		Ianchor = Ianchor*Train.LK4.Value*Train.LK3.Value*Train.GV.Value*Train.RPL.Value*
+					Train.RP1_3.Value*Train.RP2_4.Value
+		self.RUTCurrent = math.abs(Ianchor)
 		
 		-- Calculate voltage drop over each motor
-		local MVoltage = Ianchor * (self.Rw / (Train.Electric.Block1Resistance + Train.Electric.Block2Resistance + self.Rw))
+		local MVoltage = Ianchor * (self.Rw / (Train.Electric.Block1Resistance + 
+											   Train.Electric.Block2Resistance + 
+											   Train.Electric.ExtraResistance + self.Rw))
 	
 		-- Calculate engine force (moment)
-		local Moment13 = (1.0/170000.0) * (Ianchor^2) --/ magneticFlux13
-		local Moment24 = (1.0/170000.0) * (Ianchor^2) --/ magneticFlux24
+		local Moment13 = (1.0/170000.0) * (Ianchor^2)
+		local Moment24 = (1.0/170000.0) * (Ianchor^2)
 		if Ianchor < 0.0 then Moment13 = - Moment13 end
 		if Ianchor < 0.0 then Moment24 = - Moment24 end
 		
 		-- Calculate total power radiation
-		local Presistance = Ianchor * ((Train.Electric.Block1Resistance + Train.Electric.Block2Resistance)^2)
+		local Presistance = Ianchor * ((Train.Electric.Block1Resistance + 
+										Train.Electric.Block2Resistance + 
+										Train.Electric.ExtraResistance)^2)
+										
+		-- Reverser switch
+		local reverse = (Train.PR_772.Value > 0.5)
 		
 		-- Apply moment
 		Train.FrontBogey.MotorForce = 33000
-		Train.FrontBogey.MotorPower = (Moment13 + Moment24) / 2
-		Train.FrontBogey.Reversed = false
-		Train.RearBogey.MotorForce  = 33000
-		Train.RearBogey.MotorPower  = (Moment13 + Moment24) / 2
-		Train.RearBogey.Reversed = true
+		Train.FrontBogey.Reversed = reverse
+		Train.RearBogey.MotorForce  = 33000		
+		Train.RearBogey.Reversed = not reverse
+		
+		if math.abs(Ianchor) > 0.1 then
+			Train.RearBogey.MotorPower  = (Moment13 + Moment24) / 2
+			Train.FrontBogey.MotorPower = (Moment13 + Moment24) / 2
+		else
+			Train.RearBogey.MotorPower  = 0.0
+			Train.FrontBogey.MotorPower = 0.0
+		end
 		
 		print(E13+E24,totalV,rotationRate,magneticFlux13,Train.FrontBogey.Speed,Train.FrontBogey.Acc)
 		print(Format("N %d  I = %.1f A  V = %.1f V  M = %.4f  P = %.1f w",Train.RheostatController.Position,Ianchor,MVoltage,Moment13,Presistance))
