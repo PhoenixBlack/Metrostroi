@@ -367,8 +367,29 @@ function ENT:SpawnFunction(ply, tr)
 end
 
 
+--------------------------------------------------------------------------------
+-- Coupling logic
+--------------------------------------------------------------------------------
+function ENT:OnCouple(train,isfront)
+	print("Coupled with ",train," at ",isfront)
+	
+	if isfront then
+		self.FrontTrain = train
+	else
+		self.RearTrain = train
+	end
+	
+end
 
-
+function ENT:OnDecouple(isfront)
+	print("Decoupled from front?:" ,isfront)
+	
+	if isfront then
+		self.FrontTrain = nil
+	else 
+		self.RearTrain = nil
+	end
+end
 --------------------------------------------------------------------------------
 -- Process Cabin button and keyboard input
 --------------------------------------------------------------------------------

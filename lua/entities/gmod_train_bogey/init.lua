@@ -12,6 +12,7 @@ function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
+	self:SetUseType(SIMPLE_USE)
 	
 	-- Set proper parameters for the bogey
 	self:GetPhysicsObject():SetMass(5000)
@@ -70,6 +71,9 @@ end
 
 function ENT:OnRemove()
 	SafeRemoveEntity(self.Wheels)
+	if self.CoupledBogey ~= nil then
+		self:Decouple()
+	end
 end
 
 function ENT:TriggerInput(iname, value)
@@ -126,6 +130,22 @@ local function Couple(ent1,ent2)
 		1 --nocollide
 	)) then
 		sound.Play("buttons/lever2.wav",(ent1:GetPos()+ent2:GetPos())/2)
+		
+		ent1.CoupledBogey = ent2
+		ent2.CoupledBogey = ent1
+		
+		local ent1parent = ent1:GetNWEntity("TrainEntity")
+		local ent2parent = ent2:GetNWEntity("TrainEntity")
+		
+		local ent1forward = ent1:GetNWBool("IsForwardBogey")
+		local ent2forward = ent2:GetNWBool("IsForwardBogey")
+		
+		if IsValid(ent1parent) and IsValid(ent2parent) then
+			ent1parent:OnCouple(ent2parent,ent1forward)
+			ent2parent:OnCouple(ent1parent,ent2forward)
+		end
+		
+		
 	else
 		ErrorNoHalt("Error contraining 2 bogeys, please report")
 	end
@@ -133,12 +153,15 @@ end
 
 -- Quick and simple check, maybe expand later?
 local function IsValidBogey(ent)
-	return IsValid(ent) and ent:GetClass() == "gmod_train_bogey"
+	return IsValid(ent) and 
+	ent:GetClass() == "gmod_train_bogey" 
 end
 
 -- Used the couple with other bogeys
 function ENT:StartTouch(ent) 
 	if IsValidBogey(ent) and
+	self.CoupledBogey == nil and
+	ent.CoupledBogey == nil and
 	not AreCoupled(ent,self) and 
 	constraint.CanConstrain(self,0) and
 	constraint.CanConstrain(ent,0) then
@@ -147,26 +170,41 @@ function ENT:StartTouch(ent)
 end
 
 
-
 -- Used to decouple
 function ENT:Use(ply)
-	local constrainttable = constraint.FindConstraints(self,"AdvBallsocket")
-	local didsomething = false
-	local ent1,ent2 = nil
-	
+	if self.CoupledBogey ~= nil then
+		self:Decouple()
+	end
+end
+
+local function removeAdvBallSocketBetweenEnts(ent1,ent2)
+	local constrainttable = constraint.FindConstraints(ent1,"AdvBallsocket")
 	for k,v in pairs(constrainttable) do
-		if IsValidBogey(v.Ent1) and IsValidBogey(v.Ent2) then
+		if (v.Ent1 == ent1 or v.Ent1 == ent2) and (v.Ent2 == ent1 or v.Ent2 == ent2) then
 			v.Constraint:Remove()
-			didsomething = true
-			ent1=v.Ent1
-			ent2=v.Ent2
-			break
 		end
 	end
-	
-	if didsomething then 
-		sound.Play("buttons/lever8.wav",(ent1:GetPos()+ent2:GetPos())/2)
+end
+
+function ENT:Decouple()
+	if self.CoupledBogey then
+		sound.Play("buttons/lever8.wav",(self:GetPos()+self.CoupledBogey:GetPos())/2)
+		removeAdvBallSocketBetweenEnts(self,self.CoupledBogey)
+		
+		self.CoupledBogey.CoupledBogey = nil
+		self.CoupledBogey:Decouple()
+		self.CoupledBogey = nil
 	end
+	
+	-- Above this runs on initiator, below runs on both
+	
+	local parent = self:GetNWEntity("TrainEntity")
+	local isforward = self:GetNWBool("IsForwardBogey")
+	
+	if IsValid(parent) then
+		self:GetNWEntity("TrainEntity"):OnDecouple(isforward)
+	end
+	
 end
 
 
@@ -305,7 +343,7 @@ function ENT:SpawnFunction(ply, tr)
 	ent:Spawn()
 	ent:Activate()
 	
-	if not inhabitrerail then Metrostroi.RerailBogey(ent) end
+	if not inhibitrerail then Metrostroi.RerailBogey(ent) end
 	
 	return ent
 end
