@@ -13,6 +13,9 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	
+	
+	self.TrainWires = {}
+	self.TrainWireWriters = {}
 	-- Systems defined in the train
 	self.Systems = {}
 	-- Initialize train systems
@@ -125,8 +128,50 @@ function ENT:TriggerInput(name, value)
 	end
 end
 
+--------------------------------------------------------------------------------
+-- Train wire I/O
+--------------------------------------------------------------------------------
+function ENT:TrainWireCanWrite(k)
+	local lastwrite = self.TrainWireWriters[k]
+	if lastwrite ~= nil then
+		if lastwrite.ent ~= self and CurTime() - lastwrite.time < 0.1 then
+			--Last write not us and recent, conflict!
+			return false
+		end
+	end
+	return true
+end
 
+function ENT:WriteTrainWire(k,v)
+	if self:TrainWireCanWrite(k) then
+		self.TrainWires[k]=v
+		self.TrainWireWriters[k] = {
+			ent = self,
+			time = CurTime()
+		}
+	else
+		self:OnTrainWireError(k)
+	end
+end
 
+function ENT:ReadTrainWire(k)
+	return self.TrainWires[k] or 0
+end
+
+function ENT:OnTrainWireError(k)
+
+end
+
+function ENT:ResetTrainWires()
+	
+	for k,v in pairs(self.TrainWires) do
+		if k ~= "BaseClass" then 
+			self.TrainWires[k] = 0
+		end
+	end
+	
+	self.TrainWireWriters = {}
+end
 
 --------------------------------------------------------------------------------
 -- Create a bogey for the train
@@ -316,10 +361,12 @@ end
 -- Default spawn function
 --------------------------------------------------------------------------------
 function ENT:SpawnFunction(ply, tr)
-	local verticaloffset = 0 -- Offset for the train model, gmod seems to add z by default, nvm its you adding 170 :V
+	local verticaloffset = 5 -- Offset for the train model
 	local distancecap = 2000 -- When to ignore hitpos and spawn at set distanace
 	local pos, ang = nil
-	local inhinitererail = false
+	local inhibitrerail = false
+	
+	--TODO: Make this work better for raw base ent
 	
 	if tr.Hit then
 		-- Setup trace to find out of this is a track
@@ -336,7 +383,6 @@ function ENT:SpawnFunction(ply, tr)
 			ang = tracedata.HitNormal
 			ang:Rotate(Angle(0,90,0))
 			ang = ang:Angle()
-			inhibitrerail = true
 			-- Bit ugly because Rotate() messes with the orthogonal vector | Orthogonal? I wrote "origional?!" :V
 		else
 			-- Regular spawn
@@ -362,13 +408,39 @@ function ENT:SpawnFunction(ply, tr)
 	ent:Spawn()
 	ent:Activate()
 	
-	if not inhabitrerail then Metrostroi.RerailTrain(ent) end
+	if not inhibitrerail then Metrostroi.RerailTrain(ent) end
 	return ent
 end
 
 
+--------------------------------------------------------------------------------
+-- Coupling logic
+--------------------------------------------------------------------------------
+function ENT:OnCouple(train,isfront)
+	print("Coupled with ",train," at ",isfront)
+	
+	if isfront then
+		self.FrontTrain = train
+	else
+		self.RearTrain = train
+	end
+	
+	self.TrainWires = train.TrainWires
+	self.TrainWireWriters = train.TrainWireWriters
+	
+end
 
-
+function ENT:OnDecouple(isfront)
+	print("Decoupled from front?:" ,isfront)
+	
+	if isfront then
+		self.FrontTrain = nil
+	else 
+		self.RearTrain = nil
+	end
+	
+	self:ResetTrainWires()
+end
 --------------------------------------------------------------------------------
 -- Process Cabin button and keyboard input
 --------------------------------------------------------------------------------
