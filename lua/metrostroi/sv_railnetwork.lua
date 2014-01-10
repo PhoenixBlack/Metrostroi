@@ -839,10 +839,12 @@ end
 --Go over the enttable, bogeys and train and reset them
 local function resetSolids(enttable,train)
 	for k,v in pairs(enttable) do
-		k:SetSolid(v)
-		k:GetPhysicsObject():EnableMotion(true)
+		if IsValid(k) then
+			k:SetSolid(v)
+			k:GetPhysicsObject():EnableMotion(true)
+		end
 	end
-	if train ~= nil then
+	if train ~= nil and IsValid(train) then
 		train.FrontBogey:GetPhysicsObject():EnableMotion(true)
 		train.RearBogey:GetPhysicsObject():EnableMotion(true)
 		

@@ -361,10 +361,12 @@ end
 -- Default spawn function
 --------------------------------------------------------------------------------
 function ENT:SpawnFunction(ply, tr)
-	local verticaloffset = 0 -- Offset for the train model, gmod seems to add z by default, nvm its you adding 170 :V
+	local verticaloffset = 5 -- Offset for the train model
 	local distancecap = 2000 -- When to ignore hitpos and spawn at set distanace
 	local pos, ang = nil
-	local inhinitererail = false
+	local inhibitrerail = false
+	
+	--TODO: Make this work better for raw base ent
 	
 	if tr.Hit then
 		-- Setup trace to find out of this is a track
@@ -381,7 +383,6 @@ function ENT:SpawnFunction(ply, tr)
 			ang = tracedata.HitNormal
 			ang:Rotate(Angle(0,90,0))
 			ang = ang:Angle()
-			inhibitrerail = true
 			-- Bit ugly because Rotate() messes with the orthogonal vector | Orthogonal? I wrote "origional?!" :V
 		else
 			-- Regular spawn
@@ -407,7 +408,7 @@ function ENT:SpawnFunction(ply, tr)
 	ent:Spawn()
 	ent:Activate()
 	
-	if not inhabitrerail then Metrostroi.RerailTrain(ent) end
+	if not inhibitrerail then Metrostroi.RerailTrain(ent) end
 	return ent
 end
 
