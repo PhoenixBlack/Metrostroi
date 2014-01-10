@@ -13,6 +13,9 @@ function ENT:Initialize()
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	
+	
+	self.TrainWires = {}
+	self.TrainWireWriters = {}
 	-- Systems defined in the train
 	self.Systems = {}
 	-- Initialize train systems
@@ -125,8 +128,50 @@ function ENT:TriggerInput(name, value)
 	end
 end
 
+--------------------------------------------------------------------------------
+-- Train wire I/O
+--------------------------------------------------------------------------------
+function ENT:TrainWireCanWrite(k)
+	local lastwrite = self.TrainWireWriters[k]
+	if lastwrite ~= nil then
+		if lastwrite.ent ~= self and CurTime() - lastwrite.time < 0.1 then
+			--Last write not us and recent, conflict!
+			return false
+		end
+	end
+	return true
+end
 
+function ENT:WriteTrainWire(k,v)
+	if self:TrainWireCanWrite(k) then
+		self.TrainWires[k]=v
+		self.TrainWireWriters[k] = {
+			ent = self,
+			time = CurTime()
+		}
+	else
+		self:OnTrainWireError(k)
+	end
+end
 
+function ENT:ReadTrainWire(k)
+	return self.TrainWires[k] or 0
+end
+
+function ENT:OnTrainWireError(k)
+
+end
+
+function ENT:ResetTrainWires()
+	
+	for k,v in pairs(self.TrainWires) do
+		if k ~= "BaseClass" then 
+			self.TrainWires[k] = 0
+		end
+	end
+	
+	self.TrainWireWriters = {}
+end
 
 --------------------------------------------------------------------------------
 -- Create a bogey for the train
@@ -379,6 +424,9 @@ function ENT:OnCouple(train,isfront)
 		self.RearTrain = train
 	end
 	
+	self.TrainWires = train.TrainWires
+	self.TrainWireWriters = train.TrainWireWriters
+	
 end
 
 function ENT:OnDecouple(isfront)
@@ -389,6 +437,8 @@ function ENT:OnDecouple(isfront)
 	else 
 		self.RearTrain = nil
 	end
+	
+	self:ResetTrainWires()
 end
 --------------------------------------------------------------------------------
 -- Process Cabin button and keyboard input
