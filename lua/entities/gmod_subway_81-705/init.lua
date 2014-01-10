@@ -35,6 +35,8 @@ function ENT:Initialize()
 		[KEY_6] = "KVSetT1A",
 		[KEY_7] = "KVSetT2",
 		
+		[KEY_G] = "ElectricResetRPL",
+		
 		[KEY_W] = "KVControllerUp",
 		[KEY_S] = "KVControllerDown",
 		[KEY_F] = "PneumaticBrakeUp",

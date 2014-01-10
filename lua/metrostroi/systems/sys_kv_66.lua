@@ -61,16 +61,19 @@ function TRAIN_SYSTEM:Step()
 		Train.KSH4:TriggerInput("Open",1.0)		
 	else
 		Train.LK1:TriggerInput("Close",1.0)
-		Train.LK2:TriggerInput("Close",1.0)
+		--Train.LK2:TriggerInput("Close",1.0)
 		Train.LK3:TriggerInput("Close",1.0)
 		Train.LK4:TriggerInput("Close",1.0)
 		Train.KSH1:TriggerInput("Close",1.0)
 		Train.KSH2:TriggerInput("Close",1.0)
 		Train.KSH3:TriggerInput("Close",1.0)
 		Train.KSH4:TriggerInput("Close",1.0)
-		--if self.ControllerPosition == 3 then
-			--Train.RheostatController.Position = 18
-		--end
+		if self.ControllerPosition == 3 then
+			print("OPEN LK2")
+			Train.LK2:TriggerInput("Open",1.0)
+		else
+			Train.LK2:TriggerInput("Close",1.0)
+		end
 	end
 end
 

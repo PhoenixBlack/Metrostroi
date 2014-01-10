@@ -6,7 +6,7 @@ local function resource_AddDir(dir)
 	for _, fdir in pairs(dirs) do
 		resource_AddDir(dir.."/"..fdir)
 	end
- 
+
 	for k,v in pairs(files) do
 		resource.AddFile(dir.."/"..v)
 	end
@@ -28,6 +28,9 @@ if SERVER then
 	
 	resource_AddDir("sound/subway_trains")
 	resource_AddDir("sound/subway_announcer")
+	
+	-- Add content for gm_metrostroi map beta
+	resource.AddWorkshop("198132871")
 end
 
 

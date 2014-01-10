@@ -95,7 +95,7 @@ function TRAIN_SYSTEM:Initialize(parameters,power_supply)
 end
 
 function TRAIN_SYSTEM:Inputs()
-	return { "Open", "Close" }
+	return { "Open", "Close","Set" }
 end
 
 function TRAIN_SYSTEM:Outputs()
@@ -103,16 +103,22 @@ function TRAIN_SYSTEM:Outputs()
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
-	if (name == "Close") and (value > 0.5) then
+	if (name == "Close") and (value > 0.5) and (self.Value ~= 1.0) then
 		if (not self.ChangeTime) and (self.TargetValue ~= 1.0) then
 			self.ChangeTime = CurTime() + FailSim.Value(self,"CloseTime")
 		end
 		self.TargetValue = 1.0
-	elseif (name == "Open") and (value > 0.5) then
+	elseif (name == "Open") and (value > 0.5) and (self.Value ~= 0.0) then
 		if (not self.ChangeTime) and (self.TargetValue ~= 0.0) then
 			self.ChangeTime = CurTime() + FailSim.Value(self,"OpenTime")
 		end
 		self.TargetValue = 0.0
+	elseif (name == "Set") and (self.Value ~= math.floor(value)) then
+		if math.floor(value) == 1.0 then
+			self:TriggerInput("Close",1.0)
+		else
+			self:TriggerInput("Open",1.0)
+		end		
 	end
 end
 
@@ -138,6 +144,7 @@ function TRAIN_SYSTEM:Think()
 		else
 			self.Value = 0.0
 		end
+		self:TriggerOutput("State",self.Value)
 		return
 	end
 		
@@ -145,12 +152,14 @@ function TRAIN_SYSTEM:Think()
 	-- Short-circuited relay
 	if FailSim.Value(self,"ShortCircuit") > 0.5 then
 		self.Value = 0.0
+		self:TriggerOutput("State",self.Value)
 		return
 	end
 	
 	-- Spurious trip
 	if FailSim.Value(self,"SpuriousTrip") > 0.5 then
 		self.Value = 1.0 - self.Value
+		self:TriggerOutput("State",self.Value)
 		FailSim.ResetParameter(self,"SpuriousTrip",0.0)
 		
 		FailSim.Age(self,1)
@@ -158,8 +167,9 @@ function TRAIN_SYSTEM:Think()
 
 	-- Switch relay
 	if self.ChangeTime and (CurTime() > self.ChangeTime) then		
-		print("SET RELAY",self.Name,self.TargetValue)
 		self.Value = self.TargetValue
+		self:TriggerOutput("State",self.Value)
+		print("SET RELAY",self.Name,self.Value)
 		self.ChangeTime = nil
 		
 		FailSim.Age(self,1)

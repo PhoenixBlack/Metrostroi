@@ -44,6 +44,19 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 
+function TRAIN_SYSTEM:Inputs()
+	return { "ResetRPL" }
+end
+
+function TRAIN_SYSTEM:TriggerInput(name,value)
+	if name == "ResetRPL" then
+		self.Train:PlayOnce("switch",true)
+		self.Train.RPL:TriggerInput("Close",1.0)
+		self.Train.RP1_3:TriggerInput("Close",1.0)
+		self.Train.RP2_4:TriggerInput("Close",1.0)
+	end
+end
+
 
 
 --------------------------------------------------------------------------------
@@ -85,21 +98,29 @@ function TRAIN_SYSTEM:Think()
 		if Train.Engine.RUTCurrent < 260 then
 			Train.RheostatController:TriggerInput("Up",1.0)
 		end	
-	elseif Train.KV.ControllerPosition == 3 then	
-		if Train.Engine.RUTCurrent < 260 then
+	elseif Train.KV.ControllerPosition == 3 then
+		if Train.Engine.RUTCurrent < 300 then
 			Train.RheostatController:TriggerInput("Down",1.0)
-		end	
+			Train.LK2:TriggerInput("Close",1.0)
+		end
 	end
 	
+	
 	-- Trigger close
-	if Train.Engine.RUTCurrent > 700 then
-		--Train.RPL:TriggerInput("Open",1.0)
-		--Train.RP1_3:TriggerInput("Open",1.0)
-		--Train.RP2_4:TriggerInput("Open",1.0)
+	--print("VALUE",Train.LK2.Value)
+	if Train.KV.ControllerPosition == 3 then
+		if Train.Engine.RUTCurrent > 1500 then
+			Train.RPL:TriggerInput("Open",1.0)
+			Train.RP1_3:TriggerInput("Open",1.0)
+			Train.RP2_4:TriggerInput("Open",1.0)
+		end
+	else
+		if Train.Engine.RUTCurrent > 750 then
+			Train.RPL:TriggerInput("Open",1.0)
+			Train.RP1_3:TriggerInput("Open",1.0)
+			Train.RP2_4:TriggerInput("Open",1.0)
+		end
 	end
-	--Train.RPL:TriggerInput("Close",1.0)
-	--Train.RP1_3:TriggerInput("Close",1.0)
-	--Train.RP2_4:TriggerInput("Close",1.0)
 end
 
 
