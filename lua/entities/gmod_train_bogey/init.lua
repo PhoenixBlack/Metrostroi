@@ -7,8 +7,11 @@ include("shared.lua")
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
-	-- Set bogey model
-	self:SetModel("models/myproject/81-717_bogey.mdl")
+	if self.BogeyType == "tatra" then
+		self:SetModel("models/metrostroi/tatra_t3/tatra_bogey.mdl")
+	else
+		self:SetModel("models/myproject/81-717_bogey.mdl")		
+	end
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
@@ -58,8 +61,13 @@ function ENT:InitializeWheels()
 	-- Create missing wheels
 	if not wheels then
 		wheels = ents.Create("gmod_train_wheels")
-		wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-14)))
+		if self.BogeyType == "tatra" then
+			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-3)))
+		else
+			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-14)))
+		end
 		wheels:SetAngles(self:GetAngles() + Angle(0,0,0))
+		wheels.WheelType = self.BogeyType
 		wheels:Spawn()
 
 		constraint.Weld(self,wheels,0,0,0,1,0)

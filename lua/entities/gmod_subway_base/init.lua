@@ -91,6 +91,7 @@ function ENT:Initialize()
 	self.SoundTimeout["switch"]        = 0.0
 end
 
+-- Remove entity
 function ENT:OnRemove()
 	constraint.RemoveAll(self)
 	if self.TrainEntities then
@@ -163,7 +164,6 @@ function ENT:OnTrainWireError(k)
 end
 
 function ENT:ResetTrainWires()
-	
 	for k,v in pairs(self.TrainWires) do
 		if k ~= "BaseClass" then 
 			self.TrainWires[k] = 0
@@ -176,11 +176,12 @@ end
 --------------------------------------------------------------------------------
 -- Create a bogey for the train
 --------------------------------------------------------------------------------
-function ENT:CreateBogey(pos,ang,forward)
+function ENT:CreateBogey(pos,ang,forward,type)
 	-- Create bogey entity
-	bogey = ents.Create("gmod_train_bogey")
+	local bogey = ents.Create("gmod_train_bogey")
 	bogey:SetPos(self:LocalToWorld(pos))
 	bogey:SetAngles(self:GetAngles() + ang)
+	bogey.BogeyType = type
 	bogey:Spawn()
 	bogey:SetOwner(self:GetOwner())
 	
@@ -326,15 +327,11 @@ function ENT:Think()
 				for k,v in pairs(jcon.binds) do
 					if v:GetCategory() == "Metrostroi" then
 						local jvalue = Metrostroi.GetJoystickInput(ply,k)
-						if jvalue != nil then
-							if self.JoystickBuffer[k] ~= jvalue then
-								self.JoystickBuffer[k] = jvalue
-								for _,system in pairs(self.Systems) do
-									local inputname = Metrostroi.JoystickSystemMap[k]
-									if inputname then
-										system:TriggerInput(inputname,jvalue)
-									end
-								end
+						if (jvalue != nil) and (self.JoystickBuffer[k] ~= jvalue) then
+							local inputname = Metrostroi.JoystickSystemMap[k]
+							self.JoystickBuffer[k] = jvalue
+							if inputname then
+								self:TriggerInput(inputname,jvalue)
 							end
 						end
 					end
@@ -441,15 +438,17 @@ function ENT:OnDecouple(isfront)
 	
 	self:ResetTrainWires()
 end
+
+
 --------------------------------------------------------------------------------
 -- Process Cabin button and keyboard input
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
-	print("Pressed", button)
+--	print("Pressed", button)
 end
 
 function ENT:OnButtonRelease(button)
-	print("Released",button)
+--	print("Released",button)
 end
 
 -- Clears the serverside keybuffer and fires events

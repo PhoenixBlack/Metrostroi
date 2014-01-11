@@ -29,12 +29,14 @@ function ENT:LoadSystem(a,b,...)
 	
 	if not Metrostroi.Systems[name] then error("No system defined: "..name) end
 	self[sys_name] = Metrostroi.Systems[name](self,...)
-	self[sys_name].Name = sys_name
+	if name ~= sys_name then self[sys_name].Name = sys_name end
 	self.Systems[sys_name] = self[sys_name]
 	
 	if SERVER then
 		self[sys_name].TriggerOutput = function(sys,name,value)
-			Wire_TriggerOutput(self, (sys.Name or "")..name, tonumber(value) or 0)
+			if Wire_TriggerOutput then
+				Wire_TriggerOutput(self, (sys.Name or "")..name, tonumber(value) or 0)
+			end
 		end
 	end
 end
