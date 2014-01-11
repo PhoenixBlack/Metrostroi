@@ -461,7 +461,7 @@ end
 -- Hook for clearing the buttons when player exits
 net.Receive("metrostroi-cabin-reset",function(len,_)
 	local ent = net.ReadEntity()
-	if IsValid(ent) then
+	if IsValid(ent) and ent.ClearButtons ~= nil then
 		ent:ClearButtons()
 	end
 end)
