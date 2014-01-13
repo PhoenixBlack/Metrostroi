@@ -143,7 +143,7 @@ function Metrostroi.DefineSystem(name)
 end
 
 -- Load systems
---LoadSystem("Announcer")
+LoadSystem("Announcer")
 --LoadSystem("Controller")
 LoadSystem("Fuse")
 LoadSystem("Relay")
@@ -156,6 +156,7 @@ LoadSystem("Relay")
 --LoadSystem("YAK_36")
 --LoadSystem("YAK_37E")
 
+-- 81-717, Ezh
 LoadSystem("81_717_Pneumatic")
 LoadSystem("81_705_Electric")
 LoadSystem("DK_117DM")
@@ -165,3 +166,6 @@ LoadSystem("EKG_17B")
 LoadSystem("KF_47A")
 LoadSystem("GV_10ZH")
 LoadSystem("KV_66")
+
+-- Tatra T3
+LoadSystem("Tatra_Systems")

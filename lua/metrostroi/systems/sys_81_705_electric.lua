@@ -34,13 +34,6 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("RP1_3","Relay", { normally_open = true })
 	-- Групповое реле перегрузки 2-4 (РП2-4)
 	self.Train:LoadSystem("RP2_4","Relay", { normally_open = true })
-	
-	-- Реверсор (ПР-772)
-	self.Train:LoadSystem("PR_772","Relay",{ contactor = true })
-	-- Набор реле переключения между последовательным и паралельным включением
-	self.Train:LoadSystem("T_Parallel","Relay",{ close_time = 0.3 })
-	-- Набор реле переключения между тормозной и ходовой схемой
-	self.Train:LoadSystem("T_Brake","Relay")
 end
 
 
@@ -99,8 +92,15 @@ function TRAIN_SYSTEM:Think()
 			Train.RheostatController:TriggerInput("Up",1.0)
 		end	
 	elseif Train.KV.ControllerPosition == 3 then
-		if Train.Engine.RUTCurrent < 300 then
-			Train.RheostatController:TriggerInput("Down",1.0)
+		if Train.RheostatController.Position > 17.5 then
+			Train.T_Parallel:TriggerInput("Close",1.0)
+		end
+		if Train.Engine.RUTCurrent < 260 then
+			if Train.T_Parallel.Value == 1.0 then
+				Train.RheostatController:TriggerInput("Down",1.0)
+			else
+				Train.RheostatController:TriggerInput("Up",1.0)
+			end
 			Train.LK2:TriggerInput("Close",1.0)
 		end
 	end

@@ -37,6 +37,8 @@ function ENT:Initialize()
 		
 		[KEY_G] = "ElectricResetRPL",
 		
+		[KEY_8] = "KVReverserUp",
+		[KEY_9] = "KVReverserDown",		
 		[KEY_W] = "KVControllerUp",
 		[KEY_S] = "KVControllerDown",
 		[KEY_F] = "PneumaticBrakeUp",
@@ -47,6 +49,7 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:Think()
+	self:SetNWFloat("Reverser",self.KV.ReverserPosition)
 	self:SetNWFloat("Controller",self.KV.ControllerPosition)
 	self:SetNWFloat("DriverValve",self.Pneumatic.DriverValvePosition)	
 	self:SetNWFloat("BrakeLine",self.Pneumatic.BrakeLinePressure)
