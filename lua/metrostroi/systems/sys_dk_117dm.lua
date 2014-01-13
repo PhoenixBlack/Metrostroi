@@ -11,6 +11,14 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Total current through anchor sensed by РУТ
 	self.RUTCurrent = 0.0
+	
+	
+	-- Реверсор (ПР-772)
+	self.Train:LoadSystem("PR_772","Relay",{ contactor = true })
+	-- Набор реле переключения между последовательным и паралельным включением
+	self.Train:LoadSystem("T_Parallel","Relay",{ close_time = 0.3 })
+	-- Набор реле переключения между тормозной и ходовой схемой
+	self.Train:LoadSystem("T_Brake","Relay")
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -60,7 +68,7 @@ function TRAIN_SYSTEM:Think(dT)
 		
 		-- Calculate current flowing through anchors
 		local Ianchor = (totalV - E13 - E24) / (totalR)
-		if Ianchor < 0.0 then Ianchor = 0.0 end
+		--if Ianchor < 0.0 then Ianchor = 0.0 end
 		
 		-- Only let current flow in a completed circuit
 		Ianchor = Ianchor*Train.LK4.Value*Train.LK3.Value*Train.GV.Value*Train.RPL.Value*
@@ -86,8 +94,8 @@ function TRAIN_SYSTEM:Think(dT)
 		-- Calculate current flowing through anchors
 		Ianchor13 = (totalV13 - E13) / (totalR13)
 		Ianchor24 = (totalV24 - E24) / (totalR24)
-		if Ianchor13 < 0.0 then Ianchor13 = 0.0 end
-		if Ianchor24 < 0.0 then Ianchor24 = 0.0 end
+		--if Ianchor13 < 0.0 then Ianchor13 = 0.0 end
+		--if Ianchor24 < 0.0 then Ianchor24 = 0.0 end
 		
 		-- Only let current flow in a completed circuit
 		Ianchor13 = Ianchor13*Train.LK3.Value*Train.GV.Value*Train.RPL.Value*Train.RP1_3.Value
@@ -122,9 +130,10 @@ function TRAIN_SYSTEM:Think(dT)
 		Train.FrontBogey.MotorPower = 0.0
 	end
 	
-	--print(Format("N %d  V %.0f km/h  A %.3f m/s2  I = %.1f %.1f A  M = %.4f %.1f  P = %.1f %.1f w  R1 = %.4f Ohm  R2 = %.4f Ohm",
-	--		Train.RheostatController.Position,Train.FrontBogey.Speed,Train.FrontBogey.Acc,
-	--		Ianchor13,Ianchor24,Moment13,Moment24,
-	--		Presistance13,Presistance24,
-	--		Train.Electric.Block1Resistance,Train.Electric.Block2Resistance))
+	local type = "SER" if Train.T_Parallel.Value == 1 then type = "PAR" end
+	print(Format("%s N %d  V %.0f km/h  A %.3f m/s2  I = %.1f %.1f A  M = %.4f %.1f  P = %.1f %.1f w  R1 = %.4f Ohm  R2 = %.4f Ohm",
+			type,Train.RheostatController.Position,Train.FrontBogey.Speed,Train.FrontBogey.Acc or 0,
+			Ianchor13,Ianchor24,Moment13,Moment24,
+			Presistance13,Presistance24,
+			Train.Electric.Block1Resistance,Train.Electric.Block2Resistance))
 end

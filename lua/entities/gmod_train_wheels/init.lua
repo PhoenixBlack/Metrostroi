@@ -9,9 +9,8 @@ function ENT:Initialize()
 	if self.WheelType == "tatra" then
 		self:SetModel("models/metrostroi/tatra_t3/tatra_wheels.mdl")
 	else
-		self:SetModel("models/metrostroi/81-717/81-714_wheels.mdl")	
+		self:SetModel("models/metrostroi/metro/metro_wheels.mdl")	
 	end
-	--models/metrostroi/props_models/train_wheel_test.mdl")
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)

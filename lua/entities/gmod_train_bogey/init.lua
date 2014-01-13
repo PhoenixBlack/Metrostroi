@@ -10,7 +10,7 @@ function ENT:Initialize()
 	if self.BogeyType == "tatra" then
 		self:SetModel("models/metrostroi/tatra_t3/tatra_bogey.mdl")
 	else
-		self:SetModel("models/myproject/81-717_bogey.mdl")		
+		self:SetModel("models/metrostroi/metro/metro_bogey.mdl")
 	end
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -64,7 +64,7 @@ function ENT:InitializeWheels()
 		if self.BogeyType == "tatra" then
 			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-3)))
 		else
-			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-14)))
+			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-10)))
 		end
 		wheels:SetAngles(self:GetAngles() + Angle(0,0,0))
 		wheels.WheelType = self.BogeyType
@@ -168,12 +168,12 @@ end
 -- Used the couple with other bogeys
 function ENT:StartTouch(ent) 
 	if IsValidBogey(ent) and
-	self.CoupledBogey == nil and
-	ent.CoupledBogey == nil and
-	not AreCoupled(ent,self) and 
-	constraint.CanConstrain(self,0) and
-	constraint.CanConstrain(ent,0) then
-		Couple(self,ent)
+		self.CoupledBogey == nil and
+		ent.CoupledBogey == nil and
+		not AreCoupled(ent,self) and 
+		constraint.CanConstrain(self,0) and
+		constraint.CanConstrain(ent,0) then
+			Couple(self,ent)
 	end
 end
 
@@ -204,15 +204,13 @@ function ENT:Decouple()
 		self.CoupledBogey = nil
 	end
 	
-	-- Above this runs on initiator, below runs on both
-	
+	-- Above this runs on initiator, below runs on both	
 	local parent = self:GetNWEntity("TrainEntity")
 	local isforward = self:GetNWBool("IsForwardBogey")
 	
 	if IsValid(parent) then
 		self:GetNWEntity("TrainEntity"):OnDecouple(isforward)
 	end
-	
 end
 
 
@@ -250,12 +248,11 @@ function ENT:Think()
 
 	-- Final brake cylinder pressure
 	--self.BrakeCylinderPressure = math.max(0.0,4.5 - self.BrakeLinePressure)
-	if (self.BrakeCylinderPressure > 1.5) and (absSpeed < 0.5) then
+	if (self.BrakeCylinderPressure > 1.5) and (absSpeed < 1) then
 		self.Wheels:GetPhysicsObject():SetMaterial("gmod_silent")
 	else
 		self.Wheels:GetPhysicsObject():SetMaterial("gmod_ice")
 	end
-	self.Wheels:GetPhysicsObject():SetMaterial("gmod_ice")
 
 	-- Calculate motor power
 	local motorPower = 0.0

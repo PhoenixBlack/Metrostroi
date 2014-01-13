@@ -36,6 +36,11 @@ ENT.ClientProps["controller"] = {
 	pos = Vector(433,-24,-12),
 	ang = Angle(0,-45,90)
 }
+ENT.ClientProps["reverser"] = {
+	model = "models/metrostroi/81-717/reverser.mdl",
+	pos = Vector(433,-24,-10),
+	ang = Angle(0,45,90)
+}
 ENT.ClientProps["train_line"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
 	pos = Vector(431,-58.7,1.8),
@@ -161,6 +166,10 @@ function ENT:Think()
 	if self.ClientEnts["controller"] then
 		local pos = animate("controller",(self:GetNWFloat("Controller")+3)/7,384,24)
 		self.ClientEnts["controller"]:SetPoseParameter("position",0.3 + 0.4*pos)
+	end
+	if self.ClientEnts["reverser"] then
+		local pos = animate("reverser",1-(self:GetNWFloat("Reverser")+1)/3,256,24)
+		self.ClientEnts["reverser"]:SetPoseParameter("position",0.0 + 0.5*pos)
 	end
 
 	

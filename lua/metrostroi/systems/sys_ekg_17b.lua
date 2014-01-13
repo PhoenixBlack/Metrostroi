@@ -34,7 +34,7 @@ function TRAIN_SYSTEM:Initialize()
 	for i=1,26 do self[i] = 1e9 end
 	
 	-- Rate of rotation
-	self.RotationRate = 4 -- Positions per second
+	self.RotationRate = 5 -- Positions per second
 	self.Moving = false
 end
 
