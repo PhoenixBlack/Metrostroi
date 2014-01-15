@@ -75,6 +75,8 @@ function ENT:Initialize()
 	if joystick then
 		self.JoystickBuffer = {}
 	end
+	
+	self.DebugVars = {}
 
 	-- Entities that belong to train and must be cleaned up later
 	self.TrainEntities = {}
@@ -131,6 +133,9 @@ function ENT:TriggerInput(name, value)
 	end
 end
 
+function ENT:GetDebugVars()
+	return self.DebugVars 
+end
 
 
 
@@ -416,12 +421,18 @@ function ENT:Think()
 			v:Think(self.DeltaTime / maxIterations)
 		end
 	end
+	
+	
+	
+	for i=1,10 do
+		self.DebugVars["FloatyDiceSystem"..tostring(i)]=math.random(0,6)
+	end
+	
+	
+	
 	self:NextThink(CurTime())
 	return true
 end
-
-
-
 
 --------------------------------------------------------------------------------
 -- Default spawn function
@@ -596,9 +607,9 @@ end
 local function JoystickRegister()
 	Metrostroi.RegisterJoystickInput("met_controller",true,"Controller",-3,3)
 	Metrostroi.RegisterJoystickInput("met_reverser",true,"Reverser",-1,1)
-	
-	Metrostroi.JoystickSystemMap["met_controller"] = "SetController"
-	Metrostroi.JoystickSystemMap["met_reverser"] = "SetReverser"
+	--"ControllerSet", "ReverserSet"
+	Metrostroi.JoystickSystemMap["met_controller"] = "ControllerSet"
+	Metrostroi.JoystickSystemMap["met_reverser"] = "ReverserSet"
 end
 
 hook.Add("JoystickInitialize","metroistroi_cabin",JoystickRegister)
