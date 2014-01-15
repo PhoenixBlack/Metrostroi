@@ -131,9 +131,10 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	
 	local type = "SER" if Train.T_Parallel.Value == 1 then type = "PAR" end
-	print(Format("%s N %d  V %.0f km/h  A %.3f m/s2  I = %.1f %.1f A  M = %.4f %.1f  P = %.1f %.1f w  R1 = %.4f Ohm  R2 = %.4f Ohm",
+	--[[print(Format("%s N %d  V %.0f km/h  A %.3f m/s2  I = %.1f %.1f A  M = %.4f %.1f  P = %.1f %.1f w  R1 = %.4f Ohm  R2 = %.4f Ohm",
 			type,Train.RheostatController.Position,Train.FrontBogey.Speed,Train.FrontBogey.Acc or 0,
 			Ianchor13,Ianchor24,Moment13,Moment24,
 			Presistance13,Presistance24,
 			Train.Electric.Block1Resistance,Train.Electric.Block2Resistance))
+			--]]
 end

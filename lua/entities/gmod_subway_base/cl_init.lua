@@ -469,15 +469,19 @@ end)
 hook.Add("KeyPress", "metrostroi-cabin-buttons", function(ply,key) handleKeyEvent(ply, key,true) end)
 hook.Add("KeyRelease", "metrostroi-cabin-buttons", function(ply,key) handleKeyEvent(ply, key,false) end)
 
-hook.Add( "HUDPaint", "metrostroi-draw-custom-crosshair", function()
+hook.Add( "HUDPaint", "metrostroi-draw-crosshair-tooltip", function()
 	if IsValid(LocalPlayer()) then
 		local scrX,scrY = surface.ScreenWidth(),surface.ScreenHeight()
+		
 		if drawCrosshair then
 			surface.DrawCircle(scrX/2,scrY/2,4.1,Color(255,255,150))
 		end
+		
 		if toolTipText != nil then
 			surface.SetTextPos(scrX/2,scrY/2+10)
 			surface.DrawText(toolTipText)
 		end
+		
+		
 	end
 end)

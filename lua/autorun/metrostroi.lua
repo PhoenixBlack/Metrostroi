@@ -54,6 +54,8 @@ if SERVER then
 	include("metrostroi/sv_saveload.lua")
 	include("metrostroi/sv_debug.lua")
 	include("metrostroi/sv_telemetry.lua")
+	include("metrostroi/sv_debugger.lua")
+	AddCSLuaFile("metrostroi/cl_debugger.lua")
 	
 	-- Alpha tester stuff
 	hook.Add("PlayerInitialSpawn", "Metrostroi_PlayerConnect", function(ply)
@@ -68,6 +70,8 @@ if SERVER then
 		table.insert(tbl,name)
 		file.Write("alpha_testers.txt",string.Implode("\r\n",tbl))
 	end)
+else
+	include("metrostroi/cl_debugger.lua")
 end
 
 

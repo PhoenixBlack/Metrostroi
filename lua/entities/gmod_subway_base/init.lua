@@ -420,9 +420,6 @@ function ENT:Think()
 	return true
 end
 
-
-
-
 --------------------------------------------------------------------------------
 -- Default spawn function
 --------------------------------------------------------------------------------
@@ -596,9 +593,9 @@ end
 local function JoystickRegister()
 	Metrostroi.RegisterJoystickInput("met_controller",true,"Controller",-3,3)
 	Metrostroi.RegisterJoystickInput("met_reverser",true,"Reverser",-1,1)
-	
-	Metrostroi.JoystickSystemMap["met_controller"] = "SetController"
-	Metrostroi.JoystickSystemMap["met_reverser"] = "SetReverser"
+	--"ControllerSet", "ReverserSet"
+	Metrostroi.JoystickSystemMap["met_controller"] = "ControllerSet"
+	Metrostroi.JoystickSystemMap["met_reverser"] = "ReverserSet"
 end
 
 hook.Add("JoystickInitialize","metroistroi_cabin",JoystickRegister)
