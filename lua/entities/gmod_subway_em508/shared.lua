@@ -1,7 +1,7 @@
 ENT.Type            = "anim"
 ENT.Base            = "gmod_subway_base"
 
-ENT.PrintName       = "81-705"
+ENT.PrintName       = "Em-508"
 ENT.Author          = ""
 ENT.Contact         = ""
 ENT.Purpose         = ""
@@ -20,14 +20,18 @@ function ENT:InitializeSystems()
 	
 	-- Токоприёмник
 	self:LoadSystem("TR","TR_3B")	
-	-- Электротяговой двигатель
-	self:LoadSystem("Engine","DK_117DM")
+	-- Электротяговые двигатели
+	self:LoadSystem("Engines","DK_117DM")	
 	-- Резисторы для реостата/пусковых сопротивлений
 	self:LoadSystem("RheostatResistors","KF_47A")
 	-- Реостатный контроллер для управления пусковыми сопротивления
 	self:LoadSystem("RheostatController","EKG_17B")
 	-- Кулачковый контроллер
 	self:LoadSystem("KV","KV_66")
+	
+	self:LoadSystem("LK_755A")
+	self:LoadSystem("YAK_31A")
+	self:LoadSystem("YAR_13A")
 	
 	-- Электросистема 81-705
 	self:LoadSystem("Electric","81_705_Electric")

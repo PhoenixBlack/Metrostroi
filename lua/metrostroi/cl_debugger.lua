@@ -2,17 +2,39 @@ local Debugger = {}
 Debugger.DisplayGroups = {}
 Debugger.EntData = {}
 
-Debugger.DisplayGroups.Dice = {
-	{"FloatyDiceSystem1","%.3f","Test"}, --Variable, formatting, unit
-	{"FloatyDiceSystem2","%.3f",""},
-	{"FloatyDiceSystem3","%.3f",""},
-	{"FloatyDiceSystem4","%.3f",""},
-	{"FloatyDiceSystem5","%.3f","A really looooooong unit"},
-	{"FloatyDiceSystem6","%.3f",""},
-	{"FloatyDiceSystem7","%.3f","Awesome Points"},
-	{"FloatyDiceSystem8","%.3f",""},
-	{"FloatyDiceSystem9","%.3f",""},
-	{"FloatyDiceSystem10","%.3f",""}
+Debugger.DisplayGroups["Power Relays"] = {
+	{"LK1State","%.0f","on/off"},
+	{"LK2State","%.0f","on/off"},
+	{"LK3State","%.0f","on/off"},
+	{"LK4State","%.0f","on/off"},
+	
+	{"RPLState","%.0f","on/off"},
+	{"RP1_3State","%.0f","on/off"},
+	{"RP2_4State","%.0f","on/off"},	
+}
+
+Debugger.DisplayGroups["KV"] = {
+	{"KVControllerPosition","%.0f","X/T"},
+	{"KVReverserPosition",  "%.0f","fwd/rev"},
+	{"TW1 X1", "%d", "level"},
+	{"TW2 X2", "%d", "level"},
+	{"TW3 X3", "%d", "level"},
+	
+	{"TW4 FWD", "%d", "level"},
+	{"TW5 BWD", "%d", "level"},
+	{"TW6 T", "%d", "level"},
+	
+}
+
+Debugger.DisplayGroups["Electric System"] = {
+	{"ElectricVs","%.3f","V"},
+	{"ElectricU13","%.3f","V"},
+	{"ElectricU24","%.3f","V"},
+	{"ElectricVR1","%.3f","V"},
+	{"ElectricVR2","%.3f","V"},
+	{"ElectricI13","%.2f","A"},
+	{"ElectricI24","%.2f","A"},
+	{"ElectricItotal","%.2f","A"},
 }
 
 --[[ --Unused, just reference for now
@@ -87,7 +109,7 @@ surface.CreateFont( "DebugBoxText", {
 local function getDisplayGroupWidth(displaygroup,entvars)
 	local width = 0
 	for k,v in pairs(displaygroup) do
-		local v2 = string.format(v[2],entvars[v[1]])
+		local v2 = string.format(v[2],tonumber(entvars[v[1]]) or 0)
 		width = width + 5 + math.max(
 			surface.GetTextSize(v[1]),
 			surface.GetTextSize(v2),
@@ -114,7 +136,7 @@ local function drawBox(x,y,displaygroup,entvars)
 		surface.SetTextPos(x+localx,y+5)
 		surface.DrawText(v[1])
 		
-		local v2 = string.format(v[2],entvars[v[1]])
+		local v2 = string.format(v[2],tonumber(entvars[v[1]]) or 0)
 		surface.SetTextPos(x+localx,y+20)
 		surface.DrawText(v2)
 		
@@ -135,7 +157,7 @@ hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 	
 	
 	if Debugger.EntData ~= nil then 
-		local localy = 15
+		local localy = 15 + 65
 		
 		--For every entity
 		for id,vars in pairs(Debugger.EntData) do

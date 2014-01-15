@@ -6,6 +6,7 @@ Metrostroi.DefineSystem("Relay")
 function TRAIN_SYSTEM:Initialize(parameters,power_supply)
 	if not parameters then parameters = {} end
 	if type(parameters) ~= "table" then
+		relay_type = parameters
 		if parameters == "KPP-113" then
 			parameters = {
 				working_voltage 	= 750, -- V
@@ -26,9 +27,18 @@ function TRAIN_SYSTEM:Initialize(parameters,power_supply)
 				power_supply 		= power_supply or "AB",
 				MTBF				= 20000,
 			}
+		
+		-- New stuff
+		elseif parameters == "PK-162" then
+			parameters = {
+				power_supply 		= "Train line",
+				contactor			= true,
+			}
 		else
 			print("Invalid relay type: "..parameters)
+			parameters = {}
 		end
+		parameters.relay_type = relay_type
 	end
 	
 	-- Is relay normally open or closed
@@ -48,36 +58,30 @@ function TRAIN_SYSTEM:Initialize(parameters,power_supply)
 	-- Was there a spurious trip?
 	FailSim.AddParameter(self,		"SpuriousTrip",   	{ value = 0.000, precision = 0.00 })
 
+	-- Calculate failure parameters
 	local MTBF = parameters.MTBF or 1000000 -- cycles, mean time between failures
 	local MFR = 1/MTBF   -- cycles^-1, total failure rate
+	local openWeight,closeWeight
 	if self.Contactor then
-		FailSim.AddFailurePoint(self,	"CloseTime", "Mechanical problem in contactor", 
-			{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*0.25, recurring = true } )
-		FailSim.AddFailurePoint(self,	"OpenTime", "Mechanical problem in contactor", 
-			{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*0.25, recurring = true } )
-		FailSim.AddFailurePoint(self,	"CloseTime", "Contactor stuck closed",
-			{ type = "value", 		value = 1e9,	mfr = MFR*0.65*0.25, dmtbf = 0.2 } )
-		FailSim.AddFailurePoint(self,	"OpenTime", "Contactor stuck open",
-			{ type = "value", 		value = 1e9,	mfr = MFR*0.65*0.25, dmtbf = 0.4 } )
+		openWeight = 0.25
+		closeWeight = 0.25
 	elseif self.NormallyOpen then
-		FailSim.AddFailurePoint(self,	"CloseTime", "Mechanical problem in relay", 
-			{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*0.4, recurring = true } )
-		FailSim.AddFailurePoint(self,	"OpenTime", "Mechanical problem in relay", 
-			{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*0.1, recurring = true } )
-		FailSim.AddFailurePoint(self,	"CloseTime", "Relay stuck closed",
-			{ type = "value", 		value = 1e9,	mfr = MFR*0.65*0.4, dmtbf = 0.2 } )
-		FailSim.AddFailurePoint(self,	"OpenTime", "Relay stuck open",
-			{ type = "value", 		value = 1e9,	mfr = MFR*0.65*0.1, dmtbf = 0.4 } )
+		openWeight = 0.4
+		closeWeight = 0.1
 	else
-		FailSim.AddFailurePoint(self,	"CloseTime", "Mechanical problem in relay", 
-			{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*0.1, recurring = true } )
-		FailSim.AddFailurePoint(self,	"OpenTime", "Mechanical problem in relay", 
-			{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*0.4, recurring = true } )
-		FailSim.AddFailurePoint(self,	"CloseTime", "Relay stuck closed",
-			{ type = "value", 		value = 1e9,	mfr = MFR*0.65*0.1, dmtbf = 0.2 } )
-		FailSim.AddFailurePoint(self,	"OpenTime", "Relay stuck open",
-			{ type = "value", 		value = 1e9,	mfr = MFR*0.65*0.4, dmtbf = 0.4 } )
+		openWeight = 0.1
+		closeWeight = 0.4
 	end
+
+	-- Add failure points
+	FailSim.AddFailurePoint(self,	"CloseTime", "Mechanical problem in relay", 
+		{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*openWeight, recurring = true } )
+	FailSim.AddFailurePoint(self,	"OpenTime", "Mechanical problem in relay", 
+		{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*closeWeight , recurring = true } )
+	FailSim.AddFailurePoint(self,	"CloseTime", "Relay stuck closed",
+		{ type = "value", 		value = 1e9,	mfr = MFR*0.65*openWeight, dmtbf = 0.2 } )
+	FailSim.AddFailurePoint(self,	"OpenTime", "Relay stuck open",
+		{ type = "value", 		value = 1e9,	mfr = MFR*0.65*closeWeight , dmtbf = 0.4 } )
 	FailSim.AddFailurePoint(self,	"SpuriousTrip", "Spurious trip",
 		{ type = "on",							mfr = MFR*0.20, dmtbf = 0.4 } )
 	FailSim.AddFailurePoint(self,	"ShortCircuit", "Short-circuit",
@@ -134,15 +138,20 @@ function TRAIN_SYSTEM:Think()
 	elseif self.PowerSupply == "KPP" then -- KVP receives power from KPP
 		voltage = self.Train.BPSN.Power80V * self.Train.KPP
 		target = 55.0
+	elseif self.PowerSupply == "Train Line" then
+		voltage = self.Train.Pneumatic.TrainLinePressure
+		target = 1.0
 	end
 	
 	-- If no power supply specified, the relay will act as a contactor	
 	if voltage < target then
 		self.ChangeTime = nil
-		if self.NormallyOpen then
-			self.Value = 1.0
-		else
-			self.Value = 0.0
+		if not self.Contactor then
+			if self.NormallyOpen then
+				self.Value = 1.0
+			else
+				self.Value = 0.0
+			end
 		end
 		self:TriggerOutput("State",self.Value)
 		return
@@ -173,5 +182,10 @@ function TRAIN_SYSTEM:Think()
 		self.ChangeTime = nil
 		
 		FailSim.Age(self,1)
+		
+		-- Electropneumatic relays make this sound
+		if (self.PowerSupply == "Train line") and (self.Value == 0.0) then
+			self.Train:PlayOnce("pneumo_switch",nil,0.6)
+		end
 	end
 end

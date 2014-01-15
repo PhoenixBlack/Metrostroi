@@ -9,14 +9,6 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Relay that enables KV-66 controller
 	self.Train:LoadSystem("KVEnabled","Relay")
-	-- X1
-	self.Train:LoadSystem("P_X1","Relay")
-	-- X2
-	self.Train:LoadSystem("P_X2","Relay")
-	-- X3
-	self.Train:LoadSystem("P_X3","Relay")
-	-- Electric brake enabled
-	self.Train:LoadSystem("P_T","Relay")
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -30,10 +22,10 @@ function TRAIN_SYSTEM:Outputs()
 end
 
 function TRAIN_SYSTEM:Step()
-	self.Train:PlayOnce("switch",true)
+	
 	
 	-- Update reverser position
-	local Train = self.Train
+	--[[local Train = self.Train
 	if self.ReverserPosition > 0 then
 		Train.PR_772:TriggerInput("Open",1.0)
 	elseif self.ReverserPosition < 0 then
@@ -95,23 +87,35 @@ function TRAIN_SYSTEM:Step()
 			Train.KSH3:TriggerInput("Close",1.0)
 			Train.KSH4:TriggerInput("Close",1.0)
 		end
-	end
+	end]]--
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
+	
+	local prevReverserPosition = self.ReverserPosition
+	
+	-- Change position
 	if name == "ControllerSet" then
 		if (self.ReverserPosition ~= 0) and (math.floor(value) ~= self.ControllerPosition) then
+			local prevControllerPosition = self.ControllerPosition
 			self.ControllerPosition = math.floor(value)
+			
+			-- Limit motion
 			if self.ControllerPosition >  3 then self.ControllerPosition =  3 end
 			if self.ControllerPosition < -3 then self.ControllerPosition = -3 end
-			self:Step()
-		end
+			
+			-- Play sounds
+			local dC = math.abs(prevControllerPosition - self.ControllerPosition)
+			if dC == 1 then self.Train:PlayOnce("kv1",true,0.6) end
+			if dC == 2 then self.Train:PlayOnce("kv2",true,0.6) end
+			if dC >= 3 then self.Train:PlayOnce("kv3",true,0.6) end
+		end		
+		
 	elseif name == "ReverserSet" then
 		if math.floor(value) ~= self.ReverserPosition then
 			self.ReverserPosition = math.floor(value)
 			if self.ReverserPosition >  1 then self.ReverserPosition =  1 end
 			if self.ReverserPosition < -1 then self.ReverserPosition = -1 end
-			self:Step()
 		end
 	elseif (name == "ControllerUp") and (value > 0.5) then
 		self:TriggerInput("ControllerSet",self.ControllerPosition+1)
@@ -146,7 +150,7 @@ function TRAIN_SYSTEM:Think()
 
 	if (self.ReverserPosition == 0) and (self.ControllerPosition ~= 0) then
 		self.ControllerPosition = 0
-		self:Step()
+		self.Train:PlayOnce("kv1",true,0.6)
 	end
 
 	-- Enable controller when moving into zero position
@@ -154,11 +158,20 @@ function TRAIN_SYSTEM:Think()
 		Train.KVEnabled:TriggerInput("Close",1.0)
 	end
 
-	-- Send corresponding values over the train wires
-	if self.ReverserPosition ~= 0 then
-		Train:WriteTrainWire(1,Train.P_X1.Value)
-		Train:WriteTrainWire(2,Train.P_X2.Value)
-		Train:WriteTrainWire(3,Train.P_X3.Value)
-		Train:WriteTrainWire(4,Train.P_T.Value)
+	-- Trigger train wires according to the controller value
+	if (self.ReverserPosition ~= 0) and (Train.KVEnabled.Value == 1.0) then
+		local W9 = Train:ReadTrainWire(9)
+		
+		-- X1 X2 X3
+		Train:WriteTrainWire(1,W9 * ((math.abs(self.ControllerPosition) == 1) and 1 or 0))
+		Train:WriteTrainWire(3,W9 * ((math.abs(self.ControllerPosition) == 2) and 1 or 0))
+		Train:WriteTrainWire(2,W9 * ((math.abs(self.ControllerPosition) == 3) and 1 or 0))
+		
+		-- T1 T2 T3
+		Train:WriteTrainWire(6,W9 * ((self.ControllerPosition < 0) and 1 or 0))
+		
+		-- R1 R2
+		Train:WriteTrainWire(4,W9 * ((self.ReverserPosition ==  1) and 1 or 0))
+		Train:WriteTrainWire(5,W9 * ((self.ReverserPosition == -1) and 1 or 0))
 	end
 end

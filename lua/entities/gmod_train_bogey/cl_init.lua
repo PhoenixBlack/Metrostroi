@@ -5,10 +5,10 @@ include("shared.lua")
 function ENT:ReinitializeSounds()
 	-- Bogey-related sounds
 	self.SoundNames = {}
-	self.SoundNames["engine"]	= "subway_trains/81717_engine.wav"
-	self.SoundNames["run1"]		= "subway_trains/81717_run1.wav"
-	self.SoundNames["run2"]		= "subway_trains/81717_run2.wav"
-	self.SoundNames["run3"]		= "subway_trains/81717_run3.wav"
+	self.SoundNames["engine"]	= "subway_trains/engine_1.wav"
+	self.SoundNames["run1"]		= "subway_trains/run_1.wav"
+	self.SoundNames["run2"]		= "subway_trains/run_2.wav"
+	self.SoundNames["run3"]		= "subway_trains/run_3.wav"
 	self.SoundNames["release"] 	= "subway_trains/release_1.wav"
 	
 	-- Remove old sounds

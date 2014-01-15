@@ -170,6 +170,9 @@ LoadSystem("EKG_17B")
 LoadSystem("KF_47A")
 LoadSystem("GV_10ZH")
 LoadSystem("KV_66")
+LoadSystem("LK_755A")
+LoadSystem("YAK_31A")
+LoadSystem("YAR_13A")
 
 -- Tatra T3
 LoadSystem("Tatra_Systems")

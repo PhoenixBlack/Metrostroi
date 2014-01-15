@@ -29,13 +29,13 @@ function ENT:PhysicsCollide(data,physobj)
 
 				local pitch_var = math.random(90,110)
 				local pitch = pitch_var*math.max(0.8,math.min(1.3,speed/40))
-				self:EmitSound("subway_trains/junct_"..math.random(1,4)..".wav",170,pitch )
+				self:EmitSound("subway_trains/junct_"..math.random(1,4)..".wav",80,pitch )
 			end
 		end
 	end
 
 	-- Generate flange sounds
 	if (data.Speed > 115) and (data.DeltaTime > 0.085) then
-		self:EmitSound("subway_trains/flange_"..math.random(1,8)..".wav",55,math.random(80,120))
+		self:EmitSound("subway_trains/flange_"..math.random(1,8)..".wav",65,math.random(80,120))
 	end
 end
