@@ -608,8 +608,8 @@ local function JoystickRegister()
 	Metrostroi.RegisterJoystickInput("met_controller",true,"Controller",-3,3)
 	Metrostroi.RegisterJoystickInput("met_reverser",true,"Reverser",-1,1)
 	--"ControllerSet", "ReverserSet"
-	Metrostroi.JoystickSystemMap["met_controller"] = "ControllerSet"
-	Metrostroi.JoystickSystemMap["met_reverser"] = "ReverserSet"
+	Metrostroi.JoystickSystemMap["met_controller"] = "KVControllerSet"
+	Metrostroi.JoystickSystemMap["met_reverser"] = "KVReverserSet"
 end
 
 hook.Add("JoystickInitialize","metroistroi_cabin",JoystickRegister)
