@@ -22,8 +22,10 @@ if SERVER then
 	
 	resource_AddDir("models/metrostroi/props_models")
 	resource_AddDir("models/metrostroi/props")
-	resource_AddDir("models/metrostroi/81-705")
 	resource_AddDir("models/metrostroi/81-717")
+	resource_AddDir("models/metrostroi/e")
+	resource_AddDir("models/metrostroi/metro")
+	resource_AddDir("models/metrostroi/tatra_t3")
 	resource_AddDir("models/myproject")
 	
 	resource_AddDir("sound/subway_trains")
@@ -151,6 +153,8 @@ LoadSystem("Announcer")
 --LoadSystem("Controller")
 LoadSystem("Fuse")
 LoadSystem("Relay")
+
+LoadSystem("DURA")
 
 --LoadSystem("81_717_Electric")
 --LoadSystem("AK_63B_Relays")

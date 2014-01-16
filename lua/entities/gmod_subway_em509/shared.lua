@@ -1,7 +1,7 @@
 ENT.Type            = "anim"
 ENT.Base            = "gmod_subway_base"
 
-ENT.PrintName       = "Em-508"
+ENT.PrintName       = "Em-509"
 ENT.Author          = ""
 ENT.Contact         = ""
 ENT.Purpose         = ""

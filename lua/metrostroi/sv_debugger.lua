@@ -22,10 +22,11 @@ end
 concommand.Add("metrostroi_debugtrainsystems", cmdinithandler, nil, "Add aimed at entity to debugger")
 
 -- Automatically engage debugger for train owner
-function Metrostroi.DebugTrain(train)
-	if (not IsValid(train)) or (not IsValid(train:GetOwner())) then return end
+function Metrostroi.DebugTrain(train,ply)
+	if not ply then ply = train:GetOwner() end
+	if (not IsValid(train)) or (not IsValid(ply)) then return end
 
-	AddClient(train:GetOwner(),train)
+	AddClient(ply,train)
 end
 
 local function think()

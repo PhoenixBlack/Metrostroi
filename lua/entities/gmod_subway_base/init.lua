@@ -124,7 +124,10 @@ function ENT:Initialize()
 	}
 	
 	self.SoundTimeout = {}
-	self.SoundTimeout["switch"]        = 0.0
+	self.SoundTimeout["switch"] = 0.0
+	
+	-- List of headlights, dynamic lights, sprite lights
+	self.Lights = { }
 end
 
 -- Remove entity
@@ -362,6 +365,130 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Turn light on or off
+--------------------------------------------------------------------------------
+function ENT:SetLightPower(index,power)
+	local lightData = self.Lights[index]
+	self.GlowingLights = self.GlowingLights or {}
+
+	-- Check if light already glowing
+	if power and (self.GlowingLights[index]) then return end
+	
+	-- Turn off light
+	SafeRemoveEntity(self.GlowingLights[index])
+	self.GlowingLights[index] = nil
+	
+	-- Create light
+	if (lightData[1] == "headlight") and (power) then
+		local light = ents.Create("env_projectedtexture")
+		light:SetParent(self)
+		light:SetLocalPos(lightData[2])
+		light:SetLocalAngles(lightData[3])
+
+		-- Set parameters
+		light:SetKeyValue("enableshadows", 1)
+		light:SetKeyValue("farz", 2048)
+		light:SetKeyValue("nearz", 16)
+		light:SetKeyValue("lightfov", lightData.fov or 120)
+
+		-- Set Brightness
+		local brightness = lightData.brightness or 1.25
+		light:SetKeyValue("lightcolor",
+			Format("%i %i %i 255",
+				lightData[4].r*brightness,
+				lightData[4].g*brightness,
+				lightData[4].b*brightness
+			)
+		)
+
+		-- Turn light on
+		light:Spawn() --"effects/flashlight/caustics"
+		light:Input("SpotlightTexture",nil,nil,lightData.texture or "effects/flashlight001")
+		self.GlowingLights[index] = light
+	end
+	if (lightData[1] == "glow") and (power) then
+		local light = ents.Create("env_sprite")
+		light:SetParent(self)
+		light:SetLocalPos(lightData[2])
+		light:SetLocalAngles(lightData[3])
+	
+		-- Set parameters
+		local brightness = lightData.brightness or 0.5
+		light:SetKeyValue("rendercolor",
+			Format("%i %i %i",
+				lightData[4].r*brightness,
+				lightData[4].g*brightness,
+				lightData[4].b*brightness
+			)
+		)
+		light:SetKeyValue("rendermode", lightData.type or 3) -- 9: WGlow, 3: Glow
+		light:SetKeyValue("model", lightData.texture or "sprites/glow1.vmt")
+--		light:SetKeyValue("model", "sprites/light_glow02.vmt")
+--		light:SetKeyValue("model", "sprites/yellowflare.vmt")
+		light:SetKeyValue("scale", lightData.scale or 1.0)
+		light:SetKeyValue("spawnflags", 1)
+	
+		-- Turn light on
+		light:Spawn()
+		self.GlowingLights[index] = light
+	end
+	if (lightData[1] == "light") and (power) then
+		local light = ents.Create("env_sprite")
+		light:SetParent(self)
+		light:SetLocalPos(lightData[2])
+		light:SetLocalAngles(lightData[3])
+	
+		-- Set parameters
+		local brightness = lightData.brightness or 0.5
+		light:SetKeyValue("rendercolor",
+			Format("%i %i %i",
+				lightData[4].r*brightness,
+				lightData[4].g*brightness,
+				lightData[4].b*brightness
+			)
+		)
+		light:SetKeyValue("rendermode", lightData.type or 9) -- 9: WGlow, 3: Glow
+--		light:SetKeyValue("model", "sprites/glow1.vmt")
+		light:SetKeyValue("model", lightData.texture or "sprites/light_glow02.vmt")
+--		light:SetKeyValue("model", "sprites/yellowflare.vmt")
+		light:SetKeyValue("scale", lightData.scale or 1.0)
+		light:SetKeyValue("spawnflags", 1)
+	
+		-- Turn light on
+		light:Spawn()
+		self.GlowingLights[index] = light
+	end
+	if (lightData[1] == "dynamiclight") and (power) then
+		local light = ents.Create("light_dynamic")
+		light:SetParent(self)
+
+		-- Set position
+		light:SetLocalPos(lightData[2])
+		light:SetLocalAngles(lightData[3])
+
+		-- Set parameters
+		light:SetKeyValue("_light",
+			Format("%i %i %i",
+				lightData[4].r,
+				lightData[4].g,
+				lightData[4].b
+			)
+		)
+		light:SetKeyValue("style", 0)
+		light:SetKeyValue("distance", lightData.distance or 300)
+		light:SetKeyValue("brightness", lightData.brightness or 2)
+
+		-- Turn light on
+		light:Spawn()
+		light:Fire("TurnOn","","0")
+		self.GlowingLights[index] = light
+	end
+end
+
+
+
+
+--------------------------------------------------------------------------------
 -- Play sound once emitting frmo the train
 --------------------------------------------------------------------------------
 function ENT:CheckActionTimeout(action,timeout)
@@ -467,10 +594,14 @@ function ENT:Think()
 	self.DebugVars["TW4 FWD"] = self:ReadTrainWire(4)
 	self.DebugVars["TW5 BWD"] = self:ReadTrainWire(5)
 	self.DebugVars["TW6 T"] = self:ReadTrainWire(6)
+	self.DebugVars["TW20 1S"] = self:ReadTrainWire(20)
 
 	self:NextThink(CurTime())
 	return true
 end
+
+
+
 
 --------------------------------------------------------------------------------
 -- Default spawn function
@@ -521,13 +652,12 @@ function ENT:SpawnFunction(ply, tr)
 	ent:SetPos(pos)
 	ent:SetAngles(ang)
 	ent:Spawn()
-	ent:SetOwner(ply)
 	ent:Activate()
 	
 	if not inhibitrerail then Metrostroi.RerailTrain(ent) end
 	
 	-- Debug mode
-	Metrostroi.DebugTrain(ent)
+	--Metrostroi.DebugTrain(ent,ply)
 	return ent
 end
 

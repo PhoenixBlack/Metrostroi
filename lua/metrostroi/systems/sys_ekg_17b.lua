@@ -73,19 +73,21 @@ function TRAIN_SYSTEM:Think(dT)
 	if self.TargetPosition then
 		if self.TargetPosition < self.Position then
 			self.Position = self.Position - self.RotationRate * dT
+			self.Moving = true
 		end
 		if self.TargetPosition > self.Position then
 			self.Position = self.Position + self.RotationRate * dT
+			self.Moving = true
 		end
 		if math.abs(self.TargetPosition - self.Position) < 0.2 then
 			self.TargetPosition = nil
+			self.Moving = false
 		end
-		--self.Moving = true
 	else
-		--self.Moving = false
+		self.Moving = false
 	end
-	if self.Position > 18.4 then self.Position = 18.4 end
-	if self.Position < 0.6  then self.Position = 0.6 end
+	if self.Position > 18.4 then self.Position = 18.4 	self.Moving = false end
+	if self.Position < 0.6  then self.Position = 0.6 	self.Moving = false end
 
 	self:TriggerOutput("Position",self.Position)
 end

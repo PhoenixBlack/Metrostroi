@@ -15,6 +15,22 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("Tpb","Relay",{ open_time = 0.10 })
 	self.Train:LoadSystem("Ts","Relay",{ close_time = 0.10 })
 	self.Train:LoadSystem("Tb","Relay",{ close_time = 0.10 })
+	
+	-- Resistances
+	self.Block1Resistance = 0.0
+	self.Block2Resistance = 0.0
+	self.Shunt1Resistance = 0.0
+	self.Shunt2Resistance = 0.0
+	
+	-- Electric network info
+	self.Vs 	= 0.0
+	self.U13 	= 0.0
+	self.U24 	= 0.0
+	self.VR1 	= 0.0
+	self.VR2 	= 0.0
+	self.I13 	= 0.0
+	self.I24 	= 0.0
+	self.Itotal	= 0.0
 end
 
 
@@ -74,7 +90,7 @@ function TRAIN_SYSTEM:Think()
 	-- Вычисление сопротивления в резисторах реостатного контроллера (calculate rheostat resistances)
 	self:InitializeResistances(Train)
 	self:Solve_Shunt(Train)
-	if Train.Ts.Value == 1.0 
+	if (Train.Ts.Value == 1.0) or (Train.Tb.Value == 1.0)
 	then self:Solve_PS(Train)
 	else self:Solve_PP(Train)
 	end
@@ -83,14 +99,27 @@ function TRAIN_SYSTEM:Think()
 	local V = self:Solve_PowerNetwork(Train)
 	
 	-- Output interesting variables
-	self:TriggerOutput("Vs", V[1] - V[2])
-	self:TriggerOutput("U13",V[2] - V[4])
-	self:TriggerOutput("U24",V[6] - V[8])
-	self:TriggerOutput("VR1",V[4] - V[5])
-	self:TriggerOutput("VR2",V[8] - V[0])
-	self:TriggerOutput("I13",(V[3] - V[4])/Train.Engines.Rw)
-	self:TriggerOutput("I24",(V[7] - V[6])/Train.Engines.Rw)
-	self:TriggerOutput("Itotal",((V[3] - V[4]) + (V[7] - V[6]))/Train.Engines.Rw)
+	self.Vs 	= V[1] - V[2]
+	self.U13 	= V[2] - V[4]
+	self.U24 	= V[6] - V[8]
+	self.VR1 	= V[4] - V[5]
+	self.VR2 	= V[8] - V[0]
+	self.I13 	= (V[3] - V[4])/Train.Engines.Rw
+	self.I24 	= (V[7] - V[8])/Train.Engines.Rw
+	self.Itotal	= (V[1] - V[2])/(1e-9 + self.ExtraResistance)--self.I13 + self.I24
+	self:TriggerOutput("Vs", 	self.Vs)
+	self:TriggerOutput("U13",	self.U13)
+	self:TriggerOutput("U24",	self.U24)
+	self:TriggerOutput("VR1",	self.VR1)
+	self:TriggerOutput("VR2",	self.VR2)
+	self:TriggerOutput("I13",	self.I13)
+	self:TriggerOutput("I24",	self.I24)
+	self:TriggerOutput("Itotal",self.Itotal)
+	
+	self:TriggerOutput("Rs1",self.Shunt1Resistance)
+	self:TriggerOutput("Rs2",self.Shunt2Resistance)
+	self:TriggerOutput("R1",self.Block1Resistance)
+	self:TriggerOutput("R2",self.Block2Resistance)
 	
 	
 	
@@ -102,14 +131,18 @@ function TRAIN_SYSTEM:Think()
 	local X3 = Train:ReadTrainWire(2)
 	local T = Train:ReadTrainWire(6)
 	local F = Train:ReadTrainWire(4)
-	local R = Train:ReadTrainWire(6)
+	local R = Train:ReadTrainWire(5)
+	local X = Train:ReadTrainWire(20)
 	
 	-- Reverser
 	if F > 0.5 then Train.RR:TriggerInput("Open",1.0) end
-	if R > 0.5 then Train.RR:TriggerInput("Close",1.0) end		
+	if R > 0.5 then Train.RR:TriggerInput("Close",1.0) end
 	
 	-- Разбор
-	if (X1 < 0.5) and (X2 < 0.5) and (X3 < 0.5) and (Train.LK1.Value == 1.0) then
+	if (X < 0.5) and ((Train.LK3.Value == 1.0) or (Train.LK4.Value == 1.0)) then
+		Train.PneumaticNo1:TriggerInput("Open",1.0)
+		Train.PneumaticNo2:TriggerInput("Open",1.0)
+		
 		Train.LK2:TriggerInput("Open",1.0)
 		Train.KSH1:TriggerInput("Open",1.0)
 		Train.KSH2:TriggerInput("Open",1.0)
@@ -127,7 +160,10 @@ function TRAIN_SYSTEM:Think()
 	end
 	
 	-- Сбор на ход
-	if (T < 0.5) and ((X1 > 0.5) or (X2 > 0.5) or (X3 > 0.5)) then
+	if (T < 0.5) and (X > 0.5) then
+		Train.PneumaticNo1:TriggerInput("Open",1.0)
+		Train.PneumaticNo2:TriggerInput("Open",1.0)
+		
 		Train.LK1:TriggerInput("Close",1.0)
 		Train.LK2:TriggerInput("Close",1.0)
 		Train.LK3:TriggerInput("Close",1.0)
@@ -136,29 +172,90 @@ function TRAIN_SYSTEM:Think()
 		Train.KSH2:TriggerInput("Close",1.0)
 		Train.KSH3:TriggerInput("Close",1.0)
 		Train.KSH4:TriggerInput("Close",1.0)
+
+		-- Сбор последовательной схемы
+		if (Train.Tp.Value == 0.0) or (X3 < 0.5) then
+			Train.Tp:TriggerInput("Open",1.0)
+			Train.Tpb:TriggerInput("Open",1.0)
+			Train.Tb:TriggerInput("Open",1.0)
+			Train.Ts:TriggerInput("Close",1.0)
+		end
 	end
-	if (T < 0.5) and ((X1 > 0.5) or (X2 > 0.5)) then
-		Train.Tp:TriggerInput("Open",1.0)
-		Train.Tpb:TriggerInput("Open",1.0)
-		Train.Tb:TriggerInput("Open",1.0)
-		Train.Ts:TriggerInput("Close",1.0)
-	end
-	if (T < 0.5) and (X3 > 0.5) then
+	
+	-- Сбор паралельной схемы
+	if (Train.RheostatController.Position > 17.5) and (X3 > 0.5) and (T < 0.5) then
 		Train.Tp:TriggerInput("Close",1.0)
 		Train.Tpb:TriggerInput("Close",1.0)
 		Train.Tb:TriggerInput("Open",1.0)
 		Train.Ts:TriggerInput("Open",1.0)
 	end
 	
+	-- Сбор на тормоз
+	if (T > 0.5) and (X > 0.5) then
+		Train.LK1:TriggerInput("Open",1.0)
+		Train.LK2:TriggerInput("Close",1.0)
+		Train.LK3:TriggerInput("Close",1.0)
+		Train.LK4:TriggerInput("Close",1.0)
+
+		Train.KSH1:TriggerInput("Open",1.0)
+		Train.KSH2:TriggerInput("Open",1.0)
+		Train.KSH3:TriggerInput("Open",1.0)
+		Train.KSH4:TriggerInput("Open",1.0)
+
+		-- Сбор последовательной схемы
+		Train.Tp:TriggerInput("Close",1.0)
+		Train.Tpb:TriggerInput("Close",1.0)
+		Train.Tb:TriggerInput("Close",1.0)
+		Train.Ts:TriggerInput("Open",1.0)
+	end
 	
 	
 	
 	
-	
-	
-	
-	
+	----------------------------------------------------------------------------
 	-- РУТ (реле управления тягой) operation
+	self.RUTCurrent = self.I13 + self.I24
+	self.RUTTarget = 260
+	if math.abs(self.RUTCurrent) < self.RUTTarget then
+		Train.RUT:TriggerInput("Close",1.0)
+	else
+		Train.RUT:TriggerInput("Open",1.0)
+	end
+	
+	-- Rheostat controller operation
+	if Train.RUT.Value == 1.0 then
+		if (X < 0.5) then
+			Train.RheostatController:TriggerInput("Down",1.0)
+		elseif (X > 0.5) and (X1 < 0.5) then
+			if (T < 0.5) then -- Drive
+				if Train.Ts.Value == 1.0 then
+					Train.RheostatController:TriggerInput("Up",1.0)
+				else
+					Train.RheostatController:TriggerInput("Down",1.0)
+				end
+			else -- Brake
+				if (X2 > 0.5) then
+					-- Вывод реостата
+					if (self.PreviousT1A ~= true) and (T > 0.5) and (X2 > 0.5) then
+						Train.RheostatController:TriggerInput("Up",1.0)
+					end
+				elseif (X3 > 0.5) then
+					Train.RheostatController:TriggerInput("Up",1.0)
+					if Train.RheostatController.Position > 12.5 then
+						Train.PneumaticNo1:TriggerInput("Close",1.0)
+					end
+				end
+			end
+		end
+	end
+	self.PreviousT1A = (T > 0.5) and (X2 > 0.5)
+	
+	
+	
+	
+	
+	
+	
 	--[[if Train.LK1.Value == 0 then
 		Train.RheostatController:TriggerInput("Down",1.0)
 	elseif Train.KV.ControllerPosition == 2 then	
@@ -472,15 +569,15 @@ end
 --------------------------------------------------------------------------------
 local V = {}
 function TRAIN_SYSTEM:Solve_PowerNetwork(Train)
-	local U13 = Train.Engines.E13
-	local U24 = Train.Engines.E24
+	local U13 = -Train.Engines.E13
+	local U24 = -Train.Engines.E24
 	local Vp  = self.Power750V
 	local Tp  = 1e-9 + 1e9*(1 - Train.Tp.Value)
 	local Tpb = 1e-9 + 1e9*(1 - Train.Tpb.Value)
 	local Tb  = 1e-9 + 1e9*(1 - Train.Tb.Value)
 	local Ts  = 1e-9 + 1e9*(1 - Train.Ts.Value)
-	local R1  = self.Block1Resistance + 1e9*(1 - Train.LK3.Value)
-	local R2  = self.Block2Resistance + 1e9*(1 - Train.LK4.Value)
+	local R1  = self.Block1Resistance + 1e9*(1-Train.LK3.Value) + 1e9*(1-Train.RP1_3.Value)
+	local R2  = self.Block2Resistance + 1e9*(1-Train.LK4.Value) + 1e9*(1-Train.RP2_4.Value)
 	local Rw  = Train.Engines.Rw
 	local Rs  = 1e-9 + self.ExtraResistance
 

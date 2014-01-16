@@ -99,7 +99,7 @@ function TRAIN_SYSTEM:Initialize(parameters,power_supply)
 end
 
 function TRAIN_SYSTEM:Inputs()
-	return { "Open", "Close","Set" }
+	return { "Open", "Close","Set","Toggle" }
 end
 
 function TRAIN_SYSTEM:Outputs()
@@ -122,7 +122,9 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 			self:TriggerInput("Close",1.0)
 		else
 			self:TriggerInput("Open",1.0)
-		end		
+		end	
+	elseif (name == "Toggle") and (value > 0.5) then
+		self:TriggerInput("Set",1.0 - self.Value)
 	end
 end
 
@@ -178,7 +180,7 @@ function TRAIN_SYSTEM:Think()
 	if self.ChangeTime and (CurTime() > self.ChangeTime) then		
 		self.Value = self.TargetValue
 		self:TriggerOutput("State",self.Value)
-		print("SET RELAY",self.Name,self.Value)
+		--print("SET RELAY",self.Name,self.Value)
 		self.ChangeTime = nil
 		
 		FailSim.Age(self,1)

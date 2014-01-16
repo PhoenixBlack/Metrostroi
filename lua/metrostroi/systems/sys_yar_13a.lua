@@ -4,8 +4,6 @@
 Metrostroi.DefineSystem("YAR_13A")
 
 function TRAIN_SYSTEM:Initialize()
-	print("INIT")
-	
 	-- Реле перегрузки (РПЛ)
 	self.Train:LoadSystem("RPL","Relay", { normally_open = true })
 	-- Групповое реле перегрузки 1-3 (РП1-3)
@@ -15,4 +13,7 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Реле времени РВ2 (задерживает отключение ЛК2)
 	self.Train:LoadSystem("RV2","Relay", { close_time = 0.7 })
+	
+	-- Реле ускорения, торможения (РУТ)
+	self.Train:LoadSystem("RUT","Relay")
 end

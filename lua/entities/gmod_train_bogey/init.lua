@@ -40,6 +40,7 @@ function ENT:Initialize()
 	self.MotorForce = 30000.0
 	self.MotorPower = 0.0
 	self.Speed = 0
+	self.Acceleration = 0
 	self.PneumaticBrakeForce = 60000.0
 	
 	-- Pressure in brake cylinder
@@ -63,10 +64,14 @@ function ENT:InitializeWheels()
 		wheels = ents.Create("gmod_train_wheels")
 		if self.BogeyType == "tatra" then
 			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-3)))
+			wheels:SetAngles(self:GetAngles() + Angle(0,0,0))
 		else
-			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-10)))
-		end
-		wheels:SetAngles(self:GetAngles() + Angle(0,0,0))
+			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-20)))
+			wheels:SetAngles(self:GetAngles() + Angle(0,0,0))
+		end		
+		--wheels = ents.Create("gmod_subway_wheels")
+		--wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-10)))
+		--wheels:SetAngles(self:GetAngles() + Angle(0,90,0))
 		wheels.WheelType = self.BogeyType
 		wheels:Spawn()
 
@@ -220,6 +225,10 @@ function ENT:Think()
 		(not self.Wheels:IsValid()) or
 		(self.Wheels:GetNWEntity("TrainBogey") ~= self) then
 		self:InitializeWheels()
+		
+		if IsValid(self:GetNWEntity("TrainEntity")) then
+			constraint.NoCollide(self.Wheels,self:GetNWEntity("TrainEntity"),0,0)
+		end
 	end
  
 	-- Update timing
@@ -242,7 +251,7 @@ function ENT:Think()
 	if localSpeed < 0 then sign = -1 end
 	self.Speed = absSpeed
 	
-	self.Acc = (self.Speed - (self.PrevSpeed or 0)) / self.DeltaTime
+	self.Acceleration = (self.Speed - (self.PrevSpeed or 0)) / self.DeltaTime
 	self.PrevSpeed = self.Speed
 
 
