@@ -320,6 +320,7 @@ function Metrostroi.UpdateEntityPosition(pos_table,ent)
 				
 				local dir_forward = true
 				if dir_delta > 0 then dir_forward = false end
+				if ent.SubwayTrain then dir_forward = not dir_forward end
 				
 				-- If ent has a nearest picket defined, check if this is it
 				local nearest_picket_override = false
@@ -410,15 +411,18 @@ function Metrostroi.UpdateEntityPositions()
 --	Metrostroi.TrafficLightsAtSection = {}
 
 	-- Query all train types
-	local trains = ents.FindByClass("gmod_subway_81-717")
-	for k,v in pairs(trains) do
-		Metrostroi.UpdateEntityPosition(
-			Metrostroi.TrainPositions,v)
-	end
-	local trains = ents.FindByClass("gmod_subway_81-714")
-	for k,v in pairs(trains) do
-		Metrostroi.UpdateEntityPosition(
-			Metrostroi.TrainPositions,v)
+	local classes = {
+		"gmod_subway_81-717",
+		"gmod_subway_81-714",
+		"gmod_subway_base",
+		"gmod_subway_em508"
+	}
+
+	for _,class in pairs(classes) do
+		local trains = ents.FindByClass(class)
+		for k,v in pairs(trains) do
+			Metrostroi.UpdateEntityPosition(Metrostroi.TrainPositions,v)
+		end
 	end
 
 	-- Update list of trains in sections

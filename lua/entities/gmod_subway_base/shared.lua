@@ -13,6 +13,7 @@ ENT.AdminSpawnable  = false
 
 function ENT:InitializeSystems()
 	-- Do nothing
+	self:LoadSystem("DURA","DURA")
 end
 
 -- Load system
@@ -29,14 +30,16 @@ function ENT:LoadSystem(a,b,...)
 	
 	if not Metrostroi.Systems[name] then error("No system defined: "..name) end
 	self[sys_name] = Metrostroi.Systems[name](self,...)
-	if name ~= sys_name then self[sys_name].Name = sys_name end
+	if (name ~= sys_name) or (b) then self[sys_name].Name = sys_name end
 	self.Systems[sys_name] = self[sys_name]
 	
 	if SERVER then
 		self[sys_name].TriggerOutput = function(sys,name,value)
+			local varname = (sys.Name or "")..name
 			if Wire_TriggerOutput then
-				Wire_TriggerOutput(self, (sys.Name or "")..name, tonumber(value) or 0)
+				Wire_TriggerOutput(self, varname, tonumber(value) or 0)
 			end
+			self.DebugVars[varname] = value
 		end
 	end
 end

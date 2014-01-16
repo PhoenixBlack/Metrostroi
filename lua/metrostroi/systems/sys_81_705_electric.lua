@@ -10,44 +10,46 @@ function TRAIN_SYSTEM:Initialize()
 	self.Power750V = 0.0
 	self.Aux80V = 0.0
 	
-	-- Линейный контактор (ЛК1)
-	self.Train:LoadSystem("LK1","Relay",{ contactor = true, open_time = 0.7 })
-	-- Линейный контактор (ЛК2)
-	self.Train:LoadSystem("LK2","Relay",{ contactor = true })
-	-- Линейный контактор (ЛК3)
-	self.Train:LoadSystem("LK3","Relay",{ contactor = true, open_time = 0.7 })
-	-- Линейный контактор (ЛК4)
-	self.Train:LoadSystem("LK4","Relay",{ contactor = true, open_time = 0.7 })
+	-- Контакторы переключения
+	self.Train:LoadSystem("Tp","Relay",{ open_time = 0.10 })
+	self.Train:LoadSystem("Tpb","Relay",{ open_time = 0.10 })
+	self.Train:LoadSystem("Ts","Relay",{ close_time = 0.10 })
+	self.Train:LoadSystem("Tb","Relay",{ close_time = 0.10 })
 	
-	-- Контактор шунта (КШ1)
-	self.Train:LoadSystem("KSH1","Relay",{ contactor = true })
-	-- Контактор шунта (КШ2)
-	self.Train:LoadSystem("KSH2","Relay",{ contactor = true })
-	-- Контактор шунта (КШ3)
-	self.Train:LoadSystem("KSH3","Relay",{ contactor = true })
-	-- Контактор шунта (КШ4)
-	self.Train:LoadSystem("KSH4","Relay",{ contactor = true })
+	-- Resistances
+	self.Block1Resistance = 0.0
+	self.Block2Resistance = 0.0
+	self.Shunt1Resistance = 0.0
+	self.Shunt2Resistance = 0.0
 	
-	-- Реле перегрузки (РПЛ)
-	self.Train:LoadSystem("RPL","Relay", { normally_open = true })
-	-- Групповое реле перегрузки 1-3 (РП1-3)
-	self.Train:LoadSystem("RP1_3","Relay", { normally_open = true })
-	-- Групповое реле перегрузки 2-4 (РП2-4)
-	self.Train:LoadSystem("RP2_4","Relay", { normally_open = true })
+	-- Electric network info
+	self.Vs 	= 0.0
+	self.U13 	= 0.0
+	self.U24 	= 0.0
+	self.VR1 	= 0.0
+	self.VR2 	= 0.0
+	self.I13 	= 0.0
+	self.I24 	= 0.0
+	self.Itotal	= 0.0
 end
 
 
 function TRAIN_SYSTEM:Inputs()
-	return { "ResetRPL" }
+	return { }
 end
 
+function TRAIN_SYSTEM:Outputs()
+	return { "Vs", "U13", "U24", "VR1", "VR2", "I13", "I24", "Itotal" }
+end
+
+
 function TRAIN_SYSTEM:TriggerInput(name,value)
-	if name == "ResetRPL" then
+	--[[if name == "ResetRPL" then
 		self.Train:PlayOnce("switch",true)
 		self.Train.RPL:TriggerInput("Close",1.0)
 		self.Train.RP1_3:TriggerInput("Close",1.0)
 		self.Train.RP2_4:TriggerInput("Close",1.0)
-	end
+	end]]--
 end
 
 
@@ -59,33 +61,202 @@ function TRAIN_SYSTEM:Think()
 	----------------------------------------------------------------------------
 	-- Вспомагательные цепи
 	self.Aux750V = 750--Train.TR.Main750V * self.Train.PNB_1250_1.Value * self.Train.PNB_1250_2.Value * Train.KVC.Value		
-	
 	-- Питание вспомагательных цепей 80V
 	self.Aux80V = 80 --math.max(Train.BPSN.Output80V * self.Train.VB.Value, Train.Battery.Voltage)
+	-- Вывод питания на вагоны
+	if self.Aux80V > 70.0 
+	then Train:WriteTrainWire(9,1)
+	else Train:WriteTrainWire(9,0)
+	end
+	
+	
 	
 	----------------------------------------------------------------------------
 	-- Главные электрические цепи
 	self.Main750V = Train.TR.Main750V * Train.PNB_1250_1.Value
 	
+	
+	
+	
 	----------------------------------------------------------------------------
-	-- Силовые цепи
+	-- Внешнее напряжение силовых цепей
 	self.Power750V = self.Main750V * Train.GV.Value * Train.LK1.Value	
-	-- Ослабление резистором Л1-Л2
-	self.ExtraResistance = (1-Train.LK2.Value) * Train.RheostatResistors["L4-L2"]
 	-- Реле РПЛ
 	self.Power750V = self.Power750V * Train.RPL.Value
 	
-	-- Сопротивления в резисторах реостатного контроллера
+	-- Ослабление резистором Л1-Л2
+	self.ExtraResistance = (1-Train.LK2.Value) * Train.RheostatResistors["L4-L2"]
+	
+	-- Вычисление сопротивления в резисторах реостатного контроллера (calculate rheostat resistances)
 	self:InitializeResistances(Train)
 	self:Solve_Shunt(Train)
-	if Train.T_Parallel.Value == 0.0 then
-		self:Solve_PS(Train)
-	else
-		self:Solve_PP(Train)
+	if (Train.Ts.Value == 1.0) or (Train.Tb.Value == 1.0)
+	then self:Solve_PS(Train)
+	else self:Solve_PP(Train)
 	end
 	
+	-- Вычисление электросети (calculate electric power network)
+	local V = self:Solve_PowerNetwork(Train)
+	
+	-- Output interesting variables
+	self.Vs 	= V[1] - V[2]
+	self.U13 	= V[2] - V[4]
+	self.U24 	= V[6] - V[8]
+	self.VR1 	= V[4] - V[5]
+	self.VR2 	= V[8] - V[0]
+	self.I13 	= (V[3] - V[4])/Train.Engines.Rw
+	self.I24 	= (V[7] - V[8])/Train.Engines.Rw
+	self.Itotal	= (V[1] - V[2])/(1e-9 + self.ExtraResistance)--self.I13 + self.I24
+	self:TriggerOutput("Vs", 	self.Vs)
+	self:TriggerOutput("U13",	self.U13)
+	self:TriggerOutput("U24",	self.U24)
+	self:TriggerOutput("VR1",	self.VR1)
+	self:TriggerOutput("VR2",	self.VR2)
+	self:TriggerOutput("I13",	self.I13)
+	self:TriggerOutput("I24",	self.I24)
+	self:TriggerOutput("Itotal",self.Itotal)
+	
+	self:TriggerOutput("Rs1",self.Shunt1Resistance)
+	self:TriggerOutput("Rs2",self.Shunt2Resistance)
+	self:TriggerOutput("R1",self.Block1Resistance)
+	self:TriggerOutput("R2",self.Block2Resistance)
+	
+	
+	
+	
+	----------------------------------------------------------------------------
+	-- Комутация напряжения между поездными проводами и реле
+	local X1 = Train:ReadTrainWire(1)
+	local X2 = Train:ReadTrainWire(3)
+	local X3 = Train:ReadTrainWire(2)
+	local T = Train:ReadTrainWire(6)
+	local F = Train:ReadTrainWire(4)
+	local R = Train:ReadTrainWire(5)
+	local X = Train:ReadTrainWire(20)
+	
+	-- Reverser
+	if F > 0.5 then Train.RR:TriggerInput("Open",1.0) end
+	if R > 0.5 then Train.RR:TriggerInput("Close",1.0) end
+	
+	-- Разбор
+	if (X < 0.5) and ((Train.LK3.Value == 1.0) or (Train.LK4.Value == 1.0)) then
+		Train.PneumaticNo1:TriggerInput("Open",1.0)
+		Train.PneumaticNo2:TriggerInput("Open",1.0)
+		
+		Train.LK2:TriggerInput("Open",1.0)
+		Train.KSH1:TriggerInput("Open",1.0)
+		Train.KSH2:TriggerInput("Open",1.0)
+		Train.KSH3:TriggerInput("Open",1.0)
+		Train.KSH4:TriggerInput("Open",1.0)		
+		
+		-- Timed closing of the LK2 relay
+		Train.RV2:TriggerInput("Close",1.0)	
+	end
+	if (Train.RV2.Value == 1.0) then
+		Train.LK1:TriggerInput("Open",1.0)
+		Train.LK3:TriggerInput("Open",1.0)
+		Train.LK4:TriggerInput("Open",1.0)
+		Train.RV2:TriggerInput("Open",1.0)	
+	end
+	
+	-- Сбор на ход
+	if (T < 0.5) and (X > 0.5) then
+		Train.PneumaticNo1:TriggerInput("Open",1.0)
+		Train.PneumaticNo2:TriggerInput("Open",1.0)
+		
+		Train.LK1:TriggerInput("Close",1.0)
+		Train.LK2:TriggerInput("Close",1.0)
+		Train.LK3:TriggerInput("Close",1.0)
+		Train.LK4:TriggerInput("Close",1.0)
+		Train.KSH1:TriggerInput("Close",1.0)
+		Train.KSH2:TriggerInput("Close",1.0)
+		Train.KSH3:TriggerInput("Close",1.0)
+		Train.KSH4:TriggerInput("Close",1.0)
+
+		-- Сбор последовательной схемы
+		if (Train.Tp.Value == 0.0) or (X3 < 0.5) then
+			Train.Tp:TriggerInput("Open",1.0)
+			Train.Tpb:TriggerInput("Open",1.0)
+			Train.Tb:TriggerInput("Open",1.0)
+			Train.Ts:TriggerInput("Close",1.0)
+		end
+	end
+	
+	-- Сбор паралельной схемы
+	if (Train.RheostatController.Position > 17.5) and (X3 > 0.5) and (T < 0.5) then
+		Train.Tp:TriggerInput("Close",1.0)
+		Train.Tpb:TriggerInput("Close",1.0)
+		Train.Tb:TriggerInput("Open",1.0)
+		Train.Ts:TriggerInput("Open",1.0)
+	end
+	
+	-- Сбор на тормоз
+	if (T > 0.5) and (X > 0.5) then
+		Train.LK1:TriggerInput("Open",1.0)
+		Train.LK2:TriggerInput("Close",1.0)
+		Train.LK3:TriggerInput("Close",1.0)
+		Train.LK4:TriggerInput("Close",1.0)
+
+		Train.KSH1:TriggerInput("Open",1.0)
+		Train.KSH2:TriggerInput("Open",1.0)
+		Train.KSH3:TriggerInput("Open",1.0)
+		Train.KSH4:TriggerInput("Open",1.0)
+
+		-- Сбор последовательной схемы
+		Train.Tp:TriggerInput("Close",1.0)
+		Train.Tpb:TriggerInput("Close",1.0)
+		Train.Tb:TriggerInput("Close",1.0)
+		Train.Ts:TriggerInput("Open",1.0)
+	end
+	
+	
+	
+	
+	----------------------------------------------------------------------------
 	-- РУТ (реле управления тягой) operation
-	if Train.LK1.Value == 0 then
+	self.RUTCurrent = self.I13 + self.I24
+	self.RUTTarget = 260
+	if math.abs(self.RUTCurrent) < self.RUTTarget then
+		Train.RUT:TriggerInput("Close",1.0)
+	else
+		Train.RUT:TriggerInput("Open",1.0)
+	end
+	
+	-- Rheostat controller operation
+	if Train.RUT.Value == 1.0 then
+		if (X < 0.5) then
+			Train.RheostatController:TriggerInput("Down",1.0)
+		elseif (X > 0.5) and (X1 < 0.5) then
+			if (T < 0.5) then -- Drive
+				if Train.Ts.Value == 1.0 then
+					Train.RheostatController:TriggerInput("Up",1.0)
+				else
+					Train.RheostatController:TriggerInput("Down",1.0)
+				end
+			else -- Brake
+				if (X2 > 0.5) then
+					-- Вывод реостата
+					if (self.PreviousT1A ~= true) and (T > 0.5) and (X2 > 0.5) then
+						Train.RheostatController:TriggerInput("Up",1.0)
+					end
+				elseif (X3 > 0.5) then
+					Train.RheostatController:TriggerInput("Up",1.0)
+					if Train.RheostatController.Position > 12.5 then
+						Train.PneumaticNo1:TriggerInput("Close",1.0)
+					end
+				end
+			end
+		end
+	end
+	self.PreviousT1A = (T > 0.5) and (X2 > 0.5)
+	
+	
+	
+	
+	
+	
+	
+	--[[if Train.LK1.Value == 0 then
 		Train.RheostatController:TriggerInput("Down",1.0)
 	elseif Train.KV.ControllerPosition == 2 then	
 		if Train.Engine.RUTCurrent < 260 then
@@ -120,14 +291,20 @@ function TRAIN_SYSTEM:Think()
 			Train.RP1_3:TriggerInput("Open",1.0)
 			Train.RP2_4:TriggerInput("Open",1.0)
 		end
-	end
+	end]]--
 end
 
 
 
 
+
+
+
+
+
 --------------------------------------------------------------------------------
--- Temporary variables
+-- Temporary variables for rheostat controller and shunting resistor calculations
+--------------------------------------------------------------------------------
 local R = {}
 local P14	
 local P13_12
@@ -165,6 +342,10 @@ local P35_36
 local P36_37
 local P37_L24
 
+
+--------------------------------------------------------------------------------
+-- Initialize all resistances
+--------------------------------------------------------------------------------
 function TRAIN_SYSTEM:InitializeResistances(Train)
 	P14		= Train.RheostatResistors["R14"]
 	P13_12 	= Train.RheostatResistors["R13-R14"]
@@ -206,7 +387,9 @@ function TRAIN_SYSTEM:InitializeResistances(Train)
 end
 
 
--- Engines connected in series
+--------------------------------------------------------------------------------
+-- [MODEL] Engines connected in series
+--------------------------------------------------------------------------------
 function TRAIN_SYSTEM:Solve_PS(Train)
 	-- Get rheostat controller positions
 	local RK = Train.RheostatController
@@ -245,7 +428,7 @@ function TRAIN_SYSTEM:Solve_PS(Train)
 	local R1 = R[30]
 	
 	-- Calculate rheostat 2 resistance
-	R[1] = ((RK[12])*(P23_22)+(RK[12])*(P22_21)+(P23_22)*(P22_21))/(RK[12])
+	--[[R[1] = ((RK[12])*(P23_22)+(RK[12])*(P22_21)+(P23_22)*(P22_21))/(RK[12])
 	R[2] = ((RK[12])*(P23_22)+(RK[12])*(P22_21)+(P23_22)*(P22_21))/(P23_22)
 	R[3] = ((RK[12])*(P23_22)+(RK[12])*(P22_21)+(P23_22)*(P22_21))/(P22_21)
 	R[4] = ((RK[14])^-1 + (R[3])^-1)^-1
@@ -279,7 +462,7 @@ function TRAIN_SYSTEM:Solve_PS(Train)
 	R[32] = ((R[24])*(R[20])+(R[24])*(P16_15)+(R[20])*(P16_15))/(P16_15)
 	R[33] = ((R[29])^-1 + (R[32])^-1)^-1
 	R[34] = ((R[33])^-1 + (R[31]+R[30])^-1)^-1
-	R[35] = ((R[28])^-1 + (R[25]+R[34])^-1)^-1
+	R[35] = ((R[28])^-1 + (R[25]+R[34])^-1)^-1]]--
 	local R2 = R1 --R[35]
 	
 	-- Store resistances of two blocks
@@ -288,8 +471,9 @@ function TRAIN_SYSTEM:Solve_PS(Train)
 end
 
 
-
--- Engines connected in parallel
+--------------------------------------------------------------------------------
+-- [MODEL] Engines connected in parallel
+--------------------------------------------------------------------------------
 function TRAIN_SYSTEM:Solve_PP(Train)
 	-- Get rheostat controller positions
 	local RK = Train.RheostatController
@@ -326,7 +510,7 @@ function TRAIN_SYSTEM:Solve_PP(Train)
 	local R1 = R[28]
 	
 	-- Calculate rheostat 2 resistance
-	R[1] = ((1e-9)^-1 + (RK[16])^-1)^-1
+	--[[R[1] = ((1e-9)^-1 + (RK[16])^-1)^-1
 	R[2] = ((1e-9)^-1 + (RK[18]+P26_25+P25_24)^-1)^-1
 	R[3] = ((RK[14])^-1 + (R[1]+P24_23+R[2])^-1)^-1
 	R[4] = ((RK[12])^-1 + (R[3]+P23_22)^-1)^-1
@@ -342,7 +526,7 @@ function TRAIN_SYSTEM:Solve_PP(Train)
 	R[14] = ((R[12]+P18_17+P17_16)*(RK[2])+(R[12]+P18_17+P17_16)*(P16_15)+(RK[2])*(P16_15))/(RK[2])
 	R[15] = ((R[12]+P18_17+P17_16)*(RK[2])+(R[12]+P18_17+P17_16)*(P16_15)+(RK[2])*(P16_15))/(P16_15)
 	R[16] = ((R[15])^-1 + (RK[4])^-1)^-1
-	R[17] = ((R[16])^-1 + (R[14]+R[13])^-1)^-1
+	R[17] = ((R[16])^-1 + (R[14]+R[13])^-1)^-1]]--
 	local R2 = R1--R[17]
 	
 	-- Store resistances of two blocks
@@ -351,8 +535,9 @@ function TRAIN_SYSTEM:Solve_PP(Train)
 end
 
 
-
+--------------------------------------------------------------------------------
 -- Shunt resistances
+--------------------------------------------------------------------------------
 function TRAIN_SYSTEM:Solve_Shunt(Train)
 	-- Get rheostat controller positions
 	local RK = Train.RheostatController
@@ -373,4 +558,316 @@ function TRAIN_SYSTEM:Solve_Shunt(Train)
 	-- Store resistances of two blocks
 	self.Shunt1Resistance = R1
 	self.Shunt2Resistance = R2
+end
+
+
+
+
+
+--------------------------------------------------------------------------------
+-- [MODEL] Model of the power circuits of E-type trains
+--------------------------------------------------------------------------------
+local V = {}
+function TRAIN_SYSTEM:Solve_PowerNetwork(Train)
+	local U13 = -Train.Engines.E13
+	local U24 = -Train.Engines.E24
+	local Vp  = self.Power750V
+	local Tp  = 1e-9 + 1e9*(1 - Train.Tp.Value)
+	local Tpb = 1e-9 + 1e9*(1 - Train.Tpb.Value)
+	local Tb  = 1e-9 + 1e9*(1 - Train.Tb.Value)
+	local Ts  = 1e-9 + 1e9*(1 - Train.Ts.Value)
+	local R1  = self.Block1Resistance + 1e9*(1-Train.LK3.Value) + 1e9*(1-Train.RP1_3.Value)
+	local R2  = self.Block2Resistance + 1e9*(1-Train.LK4.Value) + 1e9*(1-Train.RP2_4.Value)
+	local Rw  = Train.Engines.Rw
+	local Rs  = 1e-9 + self.ExtraResistance
+
+	-- Pre-calculate some things to speed it up
+	local Rw2 = Rw^2
+	local TpTpb = Tp * Tpb
+	local TbTpb = Tb * Tpb
+	local TpTs = Tp * Ts
+	local TbTs = Tb * Ts
+	local R1R2 = R1 * R2
+	local RsRw2 = Rs * Rw2
+	local RsRw = Rs * Rw
+
+	-- Calculate potentials in the power network
+	V[0] = 0
+	V[1] = Vp
+	V[2] = -((R1R2*Rs*Tp*U13 + R1*RsRw*Tp*U13 + R2*RsRw*Tp*U13 + R2*Rs*Tb*Tp*U13 + 
+				RsRw*Tb*Tp*U13 + R1*RsRw*Tpb*U13 + R1*Rs*TpTpb*U13 + 
+				RsRw*TpTpb*U13 + Rs*Tb*TpTpb*U13 + R1*RsRw*Ts*U13 + R2*RsRw*Ts*U13 + 
+				R2*Rs*TbTs*U13 + RsRw*TbTs*U13 + R1*Rs*TpTs*U13 + R2*Rs*TpTs*U13 + 
+				Rs*Tb*TpTs*U13 + RsRw*Tpb*Ts*U13 + Rs*TpTpb*Ts*U13 - R1R2*Rs*Tp*U24 + 
+				R1*RsRw*Tpb*U24 + R1*Rs*TbTpb*U24 + RsRw*TbTpb*U24 + 
+				Rs*Tb*TpTpb*U24 + R1*RsRw*Ts*U24 + R2*RsRw*Ts*U24 + R1*Rs*TbTs*U24 + 
+				RsRw*TbTs*U24 + RsRw*Tpb*Ts*U24 + Rs*TbTpb*Ts*U24 - 
+				2*R1R2*Rw*Tp*Vp - R1*Rw2*Tp*Vp - R2*Rw2*Tp*Vp - 
+				R1R2*Tb*Tp*Vp - R1*Rw*Tb*Tp*Vp - R2*Rw*Tb*Tp*Vp - Rw2*Tb*Tp*Vp - 
+				2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - R2*Rw2*Tpb*Vp - 
+				R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - R2*Rw*TbTpb*Vp - 
+				Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - R1*Rw*TpTpb*Vp - 
+				R2*Rw*TpTpb*Vp - Rw2*TpTpb*Vp - R1*Tb*TpTpb*Vp - 
+				R2*Tb*TpTpb*Vp - 2*Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - 
+				R1*Rw2*Ts*Vp - R2*Rw2*Ts*Vp - R1R2*TbTs*Vp - 
+				R1*Rw*TbTs*Vp - R2*Rw*TbTs*Vp - Rw2*TbTs*Vp - R1R2*TpTs*Vp - 
+				R1*Rw*TpTs*Vp - R2*Rw*TpTs*Vp - R1*Tb*TpTs*Vp - Rw*Tb*TpTs*Vp - 
+				2*R2*Rw*Tpb*Ts*Vp - Rw2*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
+				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp - Rw*TpTpb*Ts*Vp - Tb*TpTpb*Ts*Vp)/
+			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
+				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
+				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
+				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
+				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
+				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
+				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
+				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
+				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
+				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
+				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
+				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
+				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
+				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
+				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
+				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
+				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
+				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
+				
+	V[3] = -((-2*R1R2*RsRw*U13 - R1*RsRw2*U13 - R2*RsRw2*U13 - 
+				R1R2*Rs*Tb*U13 - R1*RsRw*Tb*U13 - R2*RsRw*Tb*U13 - 
+				RsRw2*Tb*U13 - 2*R1R2*Rw*Tp*U13 - R1*Rw2*Tp*U13 - 
+				R2*Rw2*Tp*U13 - R1R2*Tb*Tp*U13 - R1*Rw*Tb*Tp*U13 - 
+				R2*Rw*Tb*Tp*U13 - Rw2*Tb*Tp*U13 - 2*R1R2*Rw*Tpb*U13 - 
+				R1*RsRw*Tpb*U13 - R1*Rw2*Tpb*U13 - R2*Rw2*Tpb*U13 - 
+				RsRw2*Tpb*U13 - R1R2*TbTpb*U13 - R1*Rs*TbTpb*U13 - 
+				R1*Rw*TbTpb*U13 - R2*Rw*TbTpb*U13 - RsRw*TbTpb*U13 - 
+				Rw2*TbTpb*U13 - R1R2*TpTpb*U13 - R1*Rw*TpTpb*U13 - 
+				R2*Rw*TpTpb*U13 - Rw2*TpTpb*U13 - R1*Tb*TpTpb*U13 - 
+				R2*Tb*TpTpb*U13 - 2*Rw*Tb*TpTpb*U13 - 2*R1R2*Rw*Ts*U13 - 
+				R1*RsRw*Ts*U13 - R2*RsRw*Ts*U13 - R1*Rw2*Ts*U13 - 
+				R2*Rw2*Ts*U13 - R1R2*TbTs*U13 - R1*Rs*TbTs*U13 - 
+				R1*Rw*TbTs*U13 - R2*Rw*TbTs*U13 - RsRw*TbTs*U13 - 
+				Rw2*TbTs*U13 - R1R2*TpTs*U13 - R1*Rw*TpTs*U13 - 
+				R2*Rw*TpTs*U13 - R1*Tb*TpTs*U13 - Rw*Tb*TpTs*U13 - 
+				2*R2*Rw*Tpb*Ts*U13 - RsRw*Tpb*Ts*U13 - Rw2*Tpb*Ts*U13 - 
+				R2*TbTpb*Ts*U13 - Rs*TbTpb*Ts*U13 - Rw*TbTpb*Ts*U13 - 
+				R2*TpTpb*Ts*U13 - Rw*TpTpb*Ts*U13 - Tb*TpTpb*Ts*U13 - 
+				R1R2*Rs*Tp*U24 + R1*RsRw*Tpb*U24 + R1*Rs*TbTpb*U24 + 
+				RsRw*TbTpb*U24 + Rs*Tb*TpTpb*U24 + R1*RsRw*Ts*U24 + R2*RsRw*Ts*U24 + 
+				R1*Rs*TbTs*U24 + RsRw*TbTs*U24 + RsRw*Tpb*Ts*U24 + Rs*TbTpb*Ts*U24 - 
+				2*R1R2*Rw*Tp*Vp - R1*Rw2*Tp*Vp - R2*Rw2*Tp*Vp - 
+				R1R2*Tb*Tp*Vp - R1*Rw*Tb*Tp*Vp - R2*Rw*Tb*Tp*Vp - Rw2*Tb*Tp*Vp - 
+				2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - R2*Rw2*Tpb*Vp - 
+				R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - R2*Rw*TbTpb*Vp - 
+				Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - R1*Rw*TpTpb*Vp - 
+				R2*Rw*TpTpb*Vp - Rw2*TpTpb*Vp - R1*Tb*TpTpb*Vp - 
+				R2*Tb*TpTpb*Vp - 2*Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - 
+				R1*Rw2*Ts*Vp - R2*Rw2*Ts*Vp - R1R2*TbTs*Vp - 
+				R1*Rw*TbTs*Vp - R2*Rw*TbTs*Vp - Rw2*TbTs*Vp - R1R2*TpTs*Vp - 
+				R1*Rw*TpTs*Vp - R2*Rw*TpTs*Vp - R1*Tb*TpTs*Vp - Rw*Tb*TpTs*Vp - 
+				2*R2*Rw*Tpb*Ts*Vp - Rw2*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
+				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp - Rw*TpTpb*Ts*Vp - Tb*TpTpb*Ts*Vp)/
+			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
+				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
+				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
+				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
+				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
+				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
+				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
+				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
+				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
+				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
+				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
+				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
+				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
+				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
+				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
+				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
+				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
+				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
+				
+	V[4] = -((-(R1R2*RsRw*U13) - R1R2*Rs*Tb*U13 - R1*RsRw*Tb*U13 - 
+				R1R2*Rw*Tp*U13 - R1R2*Tb*Tp*U13 - R1*Rw*Tb*Tp*U13 - R1R2*Rw*Tpb*U13 - 
+				R1R2*TbTpb*U13 - R1*Rs*TbTpb*U13 - R1*Rw*TbTpb*U13 - 
+				R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - R1*Tb*TpTpb*U13 - 
+				R2*Tb*TpTpb*U13 - Rw*Tb*TpTpb*U13 - R1R2*Rw*Ts*U13 - R1R2*TbTs*U13 - 
+				R1*Rs*TbTs*U13 - R1*Rw*TbTs*U13 - R1R2*TpTs*U13 - R1*Tb*TpTs*U13 - 
+				R2*Rw*Tpb*Ts*U13 - R2*TbTpb*Ts*U13 - Rs*TbTpb*Ts*U13 - 
+				Rw*TbTpb*Ts*U13 - R2*TpTpb*Ts*U13 - Tb*TpTpb*Ts*U13 - 
+				R1R2*RsRw*U24 - R1R2*Rs*Tp*U24 - R1R2*Rw*Tp*U24 - R1R2*Rw*Tpb*U24 + 
+				R1*Rs*TbTpb*U24 + RsRw*TbTpb*U24 + Rs*Tb*TpTpb*U24 + 
+				Rw*Tb*TpTpb*U24 - R1R2*Rw*Ts*U24 + R1*Rs*TbTs*U24 - R2*Rw*Tpb*Ts*U24 + 
+				Rs*TbTpb*Ts*U24 - R1R2*Rw*Tp*Vp - R1R2*Tb*Tp*Vp - R1*Rw*Tb*Tp*Vp - 
+				2*R1R2*Rw*Tpb*Vp - R2*Rw2*Tpb*Vp - R1R2*TbTpb*Vp - 
+				R1*Rw*TbTpb*Vp - R2*Rw*TbTpb*Vp - Rw2*TbTpb*Vp - 
+				R1R2*TpTpb*Vp - R2*Rw*TpTpb*Vp - R1*Tb*TpTpb*Vp - R2*Tb*TpTpb*Vp - 
+				Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - R1R2*TbTs*Vp - R1*Rw*TbTs*Vp - 
+				R1R2*TpTs*Vp - R1*Tb*TpTs*Vp - 2*R2*Rw*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
+				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp - Tb*TpTpb*Ts*Vp)/
+			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
+				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
+				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
+				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
+				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
+				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
+				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
+				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
+				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
+				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
+				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
+				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
+				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
+				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
+				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
+				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
+				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
+				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
+				
+	V[5] = -((R1*RsRw*Tpb*U13 - R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - 
+				R2*Tb*TpTpb*U13 - Rw*Tb*TpTpb*U13 - R2*Rw*Tpb*Ts*U13 - 
+				R2*TbTpb*Ts*U13 - Rs*TbTpb*Ts*U13 - Rw*TbTpb*Ts*U13 - 
+				R2*TpTpb*Ts*U13 - Tb*TpTpb*Ts*U13 + R1*RsRw*Tpb*U24 + 
+				R1*Rs*TbTpb*U24 + RsRw*TbTpb*U24 + R1R2*TpTpb*U24 + 
+				R1*Rs*TpTpb*U24 + R1*Rw*TpTpb*U24 + R1*Tb*TpTpb*U24 + 
+				Rs*Tb*TpTpb*U24 + Rw*Tb*TpTpb*U24 - R2*Rw*Tpb*Ts*U24 + 
+				Rs*TbTpb*Ts*U24 - 2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - 
+				R2*Rw2*Tpb*Vp - R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - 
+				R2*Rw*TbTpb*Vp - Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - 
+				R2*Rw*TpTpb*Vp - R2*Tb*TpTpb*Vp - Rw*Tb*TpTpb*Vp - 2*R2*Rw*Tpb*Ts*Vp - 
+				R2*TbTpb*Ts*Vp - Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp - Tb*TpTpb*Ts*Vp)/
+			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
+				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
+				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
+				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
+				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
+				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
+				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
+				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
+				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
+				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
+				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
+				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
+				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
+				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
+				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
+				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
+				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
+				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
+				
+	V[6] = -((R1*RsRw*Tpb*U13 - R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - 
+				R2*Tb*TpTpb*U13 - Rw*Tb*TpTpb*U13 + R1*RsRw*Ts*U13 + R2*RsRw*Ts*U13 + 
+				R2*Rs*TbTs*U13 + RsRw*TbTs*U13 - R1R2*TpTs*U13 + RsRw*Tpb*Ts*U13 - 
+				R2*TpTpb*Ts*U13 + R1*RsRw*Tpb*U24 + R1*Rs*TbTpb*U24 + 
+				RsRw*TbTpb*U24 + R1R2*TpTpb*U24 + R1*Rs*TpTpb*U24 + 
+				R1*Rw*TpTpb*U24 + R1*Tb*TpTpb*U24 + Rs*Tb*TpTpb*U24 + 
+				Rw*Tb*TpTpb*U24 + R1*RsRw*Ts*U24 + R2*RsRw*Ts*U24 + R1*Rs*TbTs*U24 + 
+				RsRw*TbTs*U24 + R1R2*TpTs*U24 + R1*Rs*TpTs*U24 + R2*Rs*TpTs*U24 + 
+				R1*Rw*TpTs*U24 + R2*Rw*TpTs*U24 + R1*Tb*TpTs*U24 + Rs*Tb*TpTs*U24 + 
+				Rw*Tb*TpTs*U24 + RsRw*Tpb*Ts*U24 + Rs*TbTpb*Ts*U24 + 
+				R2*TpTpb*Ts*U24 + Rs*TpTpb*Ts*U24 + Rw*TpTpb*Ts*U24 + 
+				Tb*TpTpb*Ts*U24 - 2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - 
+				R2*Rw2*Tpb*Vp - R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - 
+				R2*Rw*TbTpb*Vp - Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - 
+				R2*Rw*TpTpb*Vp - R2*Tb*TpTpb*Vp - Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - 
+				R1*Rw2*Ts*Vp - R2*Rw2*Ts*Vp - R1R2*TbTs*Vp - 
+				R1*Rw*TbTs*Vp - R2*Rw*TbTs*Vp - Rw2*TbTs*Vp - R1R2*TpTs*Vp - 
+				2*R2*Rw*Tpb*Ts*Vp - Rw2*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
+				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp)/
+			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
+				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
+				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
+				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
+				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
+				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
+				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
+				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
+				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
+				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
+				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
+				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
+				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
+				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
+				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
+				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
+				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
+				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
+				
+	V[7] = -((R1*RsRw*Tpb*U13 - R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - 
+				R2*Tb*TpTpb*U13 - Rw*Tb*TpTpb*U13 + R1*RsRw*Ts*U13 + R2*RsRw*Ts*U13 + 
+				R2*Rs*TbTs*U13 + RsRw*TbTs*U13 - R1R2*TpTs*U13 + RsRw*Tpb*Ts*U13 - 
+				R2*TpTpb*Ts*U13 - 2*R1R2*RsRw*U24 - R1*RsRw2*U24 - 
+				R2*RsRw2*U24 - R1R2*Rs*Tb*U24 - R1*RsRw*Tb*U24 - 
+				R2*RsRw*Tb*U24 - RsRw2*Tb*U24 - R1R2*Rs*Tp*U24 - 
+				2*R1R2*Rw*Tp*U24 - R1*RsRw*Tp*U24 - R2*RsRw*Tp*U24 - 
+				R1*Rw2*Tp*U24 - R2*Rw2*Tp*U24 - R1R2*Tb*Tp*U24 - 
+				R2*Rs*Tb*Tp*U24 - R1*Rw*Tb*Tp*U24 - R2*Rw*Tb*Tp*U24 - RsRw*Tb*Tp*U24 - 
+				Rw2*Tb*Tp*U24 - 2*R1R2*Rw*Tpb*U24 - R1*RsRw*Tpb*U24 - 
+				R1*Rw2*Tpb*U24 - R2*Rw2*Tpb*U24 - 
+				RsRw2*Tpb*U24 - R1R2*TbTpb*U24 - R1*Rw*TbTpb*U24 - 
+				R2*Rw*TbTpb*U24 - Rw2*TbTpb*U24 - R2*Rw*TpTpb*U24 - 
+				RsRw*TpTpb*U24 - Rw2*TpTpb*U24 - R2*Tb*TpTpb*U24 - 
+				Rw*Tb*TpTpb*U24 - 2*R1R2*Rw*Ts*U24 - R1*RsRw*Ts*U24 - 
+				R2*RsRw*Ts*U24 - R1*Rw2*Ts*U24 - R2*Rw2*Ts*U24 - 
+				R1R2*TbTs*U24 - R2*Rs*TbTs*U24 - R1*Rw*TbTs*U24 - R2*Rw*TbTs*U24 - 
+				RsRw*TbTs*U24 - Rw2*TbTs*U24 - 2*R2*Rw*Tpb*Ts*U24 - 
+				RsRw*Tpb*Ts*U24 - Rw2*Tpb*Ts*U24 - R2*TbTpb*Ts*U24 - 
+				Rw*TbTpb*Ts*U24 - 2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - 
+				R2*Rw2*Tpb*Vp - R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - 
+				R2*Rw*TbTpb*Vp - Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - 
+				R2*Rw*TpTpb*Vp - R2*Tb*TpTpb*Vp - Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - 
+				R1*Rw2*Ts*Vp - R2*Rw2*Ts*Vp - R1R2*TbTs*Vp - 
+				R1*Rw*TbTs*Vp - R2*Rw*TbTs*Vp - Rw2*TbTs*Vp - R1R2*TpTs*Vp - 
+				2*R2*Rw*Tpb*Ts*Vp - Rw2*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
+				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp)/
+			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
+				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
+				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
+				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
+				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
+				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
+				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
+				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
+				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
+				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
+				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
+				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
+				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
+				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
+				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
+				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
+				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
+				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
+				
+	V[8] = -((-(R1R2*RsRw*U13) - R1R2*Rw*Tp*U13 - R1R2*Rw*Tpb*U13 - 
+				R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - R2*Tb*TpTpb*U13 - 
+				R1R2*Rw*Ts*U13 + R2*Rs*TbTs*U13 - R1R2*TpTs*U13 - R2*Rw*Tpb*Ts*U13 - 
+				R2*TpTpb*Ts*U13 - R1R2*RsRw*U24 - R1R2*Rs*Tb*U24 - R2*RsRw*Tb*U24 - 
+				R1R2*Rs*Tp*U24 - R1R2*Rw*Tp*U24 - R1R2*Tb*Tp*U24 - R2*Rs*Tb*Tp*U24 - 
+				R2*Rw*Tb*Tp*U24 - R1R2*Rw*Tpb*U24 - R1R2*TbTpb*U24 - 
+				R2*Rw*TbTpb*U24 - R2*Tb*TpTpb*U24 - R1R2*Rw*Ts*U24 - R1R2*TbTs*U24 - 
+				R2*Rs*TbTs*U24 - R2*Rw*TbTs*U24 - R2*Rw*Tpb*Ts*U24 - R2*TbTpb*Ts*U24 - 
+				R1R2*Rw*Tp*Vp - 2*R1R2*Rw*Tpb*Vp - R2*Rw2*Tpb*Vp - 
+				R1R2*TbTpb*Vp - R2*Rw*TbTpb*Vp - R1R2*TpTpb*Vp - R2*Rw*TpTpb*Vp - 
+				R2*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - R1R2*TbTs*Vp - R2*Rw*TbTs*Vp - 
+				R1R2*TpTs*Vp - 2*R2*Rw*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp)/
+			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
+				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
+				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
+				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
+				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
+				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
+				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
+				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
+				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
+				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
+				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
+				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
+				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
+				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
+				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
+				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
+				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
+				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
+				
+	return V
 end

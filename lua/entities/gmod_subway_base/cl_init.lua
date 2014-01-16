@@ -213,39 +213,115 @@ end
 function ENT:Draw()
 	self.dT = CurTime() - (self.PrevTime or CurTime())
 	self.PrevTime = CurTime()
-	
-	
 
 	-- Draw model
 	self:DrawModel()
 	
 	-- Debug draw for buttons
-	if GetConVarNumber("metrostroi_drawdebug") > 0 then
-		if self.ButtonMap ~= nil then
-			for kp,panel in pairs(self.ButtonMap) do
-				if kp ~= "BaseClass" then
-					cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
-						surface.SetDrawColor(0,0,255)
-						surface.DrawOutlinedRect(0,0,panel.width,panel.height)
-						
-						--surface.SetDrawColor(255,255,255)
-						--surface.DrawRect(0,0,panel.width,panel.height)
-						for kb,button in pairs(panel.buttons) do
-							if button.state then
-								surface.SetDrawColor(255,0,0)
-							else
-								surface.SetDrawColor(0,255,0)
-							end
-							self:DrawCircle(button.x,button.y,button.radius or 10)
-							surface.DrawRect(button.x-8,button.y-8,16,16)
-						end
+	if (GetConVarNumber("metrostroi_drawdebug") > 0) and (self.ButtonMap ~= nil) then
+		for kp,panel in pairs(self.ButtonMap) do
+			if kp ~= "BaseClass" then
+				self:DrawOnPanel(kp,function()
+					surface.SetDrawColor(0,0,255)
+					surface.DrawOutlinedRect(0,0,panel.width,panel.height)
 					
-					cam.End3D2D()
-				end
+					--surface.SetDrawColor(255,255,255)
+					--surface.DrawRect(0,0,panel.width,panel.height)
+					for kb,button in pairs(panel.buttons) do
+						if button.state then
+							surface.SetDrawColor(255,0,0)
+						else
+							surface.SetDrawColor(0,255,0)
+						end
+						self:DrawCircle(button.x,button.y,button.radius or 10)
+						surface.DrawRect(button.x-8,button.y-8,16,16)
+					end
+				end)
 			end
 		end
 	end
 end
+
+
+function ENT:DrawOnPanel(index,func)
+	local panel = self.ButtonMap[index]
+	cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
+		func(panel)
+	cam.End3D2D()
+end
+
+
+
+--------------------------------------------------------------------------------
+-- Animation function
+--------------------------------------------------------------------------------
+function ENT:Animate(clientProp, value, min, max, speed, damping)
+	if self.ClientEnts[clientProp] then
+		local id = clientProp
+		if not self["_anim_"..id] then
+			self["_anim_"..id] = value
+			self["_anim_"..id.."V"] = 0.0
+		end
+			
+		local dX2dT = (speed or 128)*(value - self["_anim_"..id]) - self["_anim_"..id.."V"] * (damping or 8.0)
+		self["_anim_"..id.."V"] = self["_anim_"..id.."V"] + dX2dT * self.DeltaTime
+		self["_anim_"..id] = math.max(0,math.min(1,self["_anim_"..id] + self["_anim_"..id.."V"] * self.DeltaTime))
+		
+		self.ClientEnts[clientProp]:SetPoseParameter("position",min + (max-min)*self["_anim_"..id])
+	end
+end
+
+
+
+
+local digit_bitmap = {
+  [1] = { 0,0,1,0,0,1,0 },
+  [2] = { 1,0,1,1,1,0,1 },
+  [3] = { 1,0,1,1,0,1,1 },
+  [4] = { 0,1,1,1,0,1,0 },
+  [5] = { 1,1,0,1,0,1,1 },
+  [6] = { 1,1,0,1,1,1,1 },
+  [7] = { 1,0,1,0,0,1,0 },
+  [8] = { 1,1,1,1,1,1,1 },
+  [9] = { 1,1,1,1,0,1,1 },
+  [0] = { 1,1,1,0,1,1,1 },
+}
+
+function ENT:DrawSegment(x,y,w,h)
+	--for z=1,6,1 do
+		--surface.SetDrawColor(Color(100,255,0,math.max(0,13-1*z*z)))
+		--surface.DrawRect(x-z, y-z, math.max(1,w+2*z), math.max(1,h+2*z))
+	--end
+
+	surface.SetDrawColor(Color(100,255,0,30))
+	surface.DrawRect(x-4, y-4, math.max(1,w)+8, math.max(1,h)+8)
+	
+	surface.SetDrawColor(Color(100,255,0,30))
+	surface.DrawRect(x-2, y-2, math.max(1,w)+4, math.max(1,h)+4)
+	
+	surface.SetDrawColor(Color(100,255,0,30))
+	surface.DrawRect(x-1, y-1, math.max(1,w)+2, math.max(1,h)+2)
+	
+	surface.SetDrawColor(Color(100,255,0,255))
+	surface.DrawRect(x, y, math.max(1,w), math.max(1,h))
+end
+
+function ENT:DrawDigit(cx,cy,digit,scale,thickness)
+	scale = scale or 1
+	thickness = thickness or 0
+	local bitmap = digit_bitmap[digit]
+	if not bitmap then return end
+
+	if bitmap[1] == 1 then self:DrawSegment(cx+3*scale, cy+5*scale, 14*scale,3*scale+thickness) end
+	if bitmap[2] == 1 then self:DrawSegment(cx+0*scale, cy+10*scale,3*scale+thickness,10*scale) end
+	if bitmap[3] == 1 then self:DrawSegment(cx+17*scale,cy+10*scale,3*scale+thickness,10*scale) end
+	if bitmap[4] == 1 then self:DrawSegment(cx+3*scale, cy+21*scale,12*scale,3*scale+thickness) end
+	if bitmap[5] == 1 then self:DrawSegment(cx+0*scale, cy+24*scale,3*scale+thickness,10*scale) end
+	if bitmap[6] == 1 then self:DrawSegment(cx+17*scale,cy+24*scale,3*scale+thickness,10*scale) end
+	if bitmap[7] == 1 then self:DrawSegment(cx+3*scale, cy+36*scale,12*scale,3*scale+thickness) end
+end
+
+
 
 
 

@@ -7,10 +7,10 @@ ENT.ButtonMap = {}
 
 
 -- Main panel
-table.insert(ENT.ButtonMap,{
-	pos = Vector(427.5,-33.3,-18.23),
-	ang = Angle(0,-90,11.3),
-	width = 281,
+table.insert(ENT.ButtonMap,{ -- 2.0, -0.8
+	pos = Vector(445.5,-35.3,-1.0),
+	ang = Angle(0,-97.5,20),
+	width = 410,
 	height = 145,
 	scale = 0.0625,
 	
@@ -28,104 +28,102 @@ table.insert(ENT.ButtonMap,{
 --------------------------------------------------------------------------------
 ENT.ClientProps["brake"] = {
 	model = "models/metrostroi/81-717/brake.mdl",
-	pos = Vector(431,-58,-8),
+	pos = Vector(431,-59.5,2.7),
 	ang = Angle(0,180,0)
 }
+--Vector(431,-58,-8),
 ENT.ClientProps["controller"] = {
 	model = "models/metrostroi/81-717/controller.mdl",
-	pos = Vector(433,-24,-12),
+	pos = Vector(446,-25,2.2),
 	ang = Angle(0,-45,90)
 }
 ENT.ClientProps["reverser"] = {
 	model = "models/metrostroi/81-717/reverser.mdl",
-	pos = Vector(433,-24,-10),
+	pos = Vector(446,-25,1.2),
 	ang = Angle(0,45,90)
 }
 ENT.ClientProps["train_line"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(431,-58.7,1.8),
-	ang = Angle(90,0,-50+180+90)
+	pos = Vector(449.2,-34.9,9.4),
+	ang = Angle(90,0,180-14)
 }
 ENT.ClientProps["brake_line"] = {
 	model = "models/metrostroi/81-717/red_arrow.mdl",
-	pos = Vector(430.8,-58.55,1.8),
-	ang = Angle(90,0,-50+180+90)
+	pos = Vector(449.15,-34.9,9.4),
+	ang = Angle(90,0,180-14)
 }
 ENT.ClientProps["brake_cylinder"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(429.5,-60.3,10.5),
-	ang = Angle(90,0,-50+180+90)
+	pos = Vector(450.5,-32.9,12.6),
+	ang = Angle(90,0,180-18)
 }
 
 
-ENT.ClientProps["voltmeter"] = {
-	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(428.5,-60.1,23.4),
-	ang = Angle(90,0,-45+180+90)
-}
 ENT.ClientProps["ampermeter"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(428.5,-60.1,29.4),
-	ang = Angle(90,0,-45+180+90)
+	pos = Vector(445.1,-59.0,23.8),
+	ang = Angle(90,0,-45+180+80)
 }
-ENT.ClientProps["speedometer"] = {
+ENT.ClientProps["voltmeter"] = {
+	model = "models/metrostroi/81-717/black_arrow.mdl",
+	pos = Vector(447.8,-55.2,23.8),
+	ang = Angle(90,0,-45+180+80)
+}
+--[[ENT.ClientProps["speedometer"] = {
 	model = "models/metrostroi/81-717/red_arrow.mdl",
 	pos = Vector(428.3,-43,-17),
 	ang = Angle(90-42,180,0)
+}]]--
+
+
+ENT.ClientProps["b_1"] = {
+	model = "models/metrostroi/81-717/switch02.mdl",
+	pos = Vector(444,-36.7,-1.1),
+	ang = Angle(-20,0,0)
 }
-
-
-table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/81-717/switch01.mdl",
-	pos = Vector(422,-35.8,-19.6),
-	ang = Angle(-11,0,0)
-})
-table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/81-717/switch01.mdl",
-	pos = Vector(422,-35.8-13,-19.6),
-	ang = Angle(-11,0,0)
-})
-table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/81-717/switch04.mdl",
-	pos = Vector(422,-35.8-10,-19.0),
-	ang = Angle(-11,0,0)
-})
-table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/81-717/switch04.mdl",
-	pos = Vector(422,-35.8-7,-19.0),
-	ang = Angle(-11,0,0)
-})
-for i=1,6 do
-	table.insert(ENT.ClientProps,{
-		model = "models/metrostroi/81-717/switch02.mdl",
-		pos = Vector(426,-35.8-2.5*(i-1),-18.2),
-		ang = Angle(-12,0,0)
-	})
-end
+ENT.ClientProps["b_2"] = {
+	model = "models/metrostroi/81-717/switch02.mdl",
+	pos = Vector(443.7,-39.6,-1.1),
+	ang = Angle(-20,0,0)
+}
+--Vector(426,-35.8-2.5*(i-1),-18.2),
 ENT.ClientPropsInitialized = false
 
 
 
 for i=0,3 do
-	for j=0,1 do
-		for k=0,1 do
-			table.insert(ENT.ClientProps,{
-				model = "models/metrostroi/81-705/81-705_door2.mdl",
-				pos = Vector(342 - 33*j - 226*i,66*(1-2*k),8.5),
-				ang = Angle(0,180*k,0)
-			})
-		end
+	for k=0,1 do
+		table.insert(ENT.ClientProps,{
+			model = "models/metrostroi/e/em508_door1.mdl",
+			pos = Vector(353.0 - 35*k - 231*i,-65*(1-2*k),-1.8),
+			ang = Angle(0,180*k,0)
+		})
+		table.insert(ENT.ClientProps,{
+			model = "models/metrostroi/e/em508_door2.mdl",
+			pos = Vector(353.0 - 35*(1-k) - 231*i,-65*(1-2*k),-1.8),
+			ang = Angle(0,180*k,0)
+		})
 	end
 end
 table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/81-705/81-705_door1.mdl",
-	pos = Vector(440.5,-1,-23.5),
+	model = "models/metrostroi/e/em508_door5.mdl",
+	pos = Vector(456.5,0.4,-3.8),
 	ang = Angle(0,0,0)
 })
 table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/81-705/81-705_door1.mdl",
-	pos = Vector(-466.5,-1,-23.5),
+	model = "models/metrostroi/e/em508_door5.mdl",
+	pos = Vector(-479.5,-0.5,-3.8),
 	ang = Angle(0,180,0)
+})
+table.insert(ENT.ClientProps,{
+	model = "models/metrostroi/e/em508_door4.mdl",
+	pos = Vector(386.5,0.4,5.2),
+	ang = Angle(0,0,0)
+})
+table.insert(ENT.ClientProps,{
+	model = "models/metrostroi/e/em508_door3.mdl",
+	pos = Vector(425.6,65.2,-2.2),
+	ang = Angle(0,0,0)
 })
 
 
@@ -180,16 +178,16 @@ function ENT:Think()
 		self.ClientEnts["train_line"]:SetPoseParameter("position",0.1+animate(2,self:GetNWFloat("TrainLine")/16.0))
 	end
 	if self.ClientEnts["brake_cylinder"] then
-		self.ClientEnts["brake_cylinder"]:SetPoseParameter("position",0.1+animate(3,self:GetNWFloat("BrakeCylinder")/10.0))
+		self.ClientEnts["brake_cylinder"]:SetPoseParameter("position",0.40+0.20*animate(3,self:GetNWFloat("BrakeCylinder")/10.0))
 	end
 	if self.ClientEnts["voltmeter"] then
-		self.ClientEnts["voltmeter"]:SetPoseParameter("position",0.36+0.3*animate(4,self:GetNWFloat("Volts") / 1000))
+		self.ClientEnts["voltmeter"]:SetPoseParameter("position",0.34+0.3*animate(4,self:GetNWFloat("Volts") / 1000))
 	end
 	if self.ClientEnts["ampermeter"] then
-		self.ClientEnts["ampermeter"]:SetPoseParameter("position",0.36+0.3*animate(5,self:GetNWFloat("Amperes") / 1000))
+		self.ClientEnts["ampermeter"]:SetPoseParameter("position",0.34+0.3*animate(5,self:GetNWFloat("Amperes") / 500))
 	end
-	if self.ClientEnts["speedometer"] then
-		self.ClientEnts["speedometer"]:SetPoseParameter("position",0.3+0.41*animate(6,self:GetNWFloat("Speed") / 100))
-	end
+	--if self.ClientEnts["speedometer"] then
+--		self.ClientEnts["speedometer"]:SetPoseParameter("position",0.3+0.41*animate(6,self:GetNWFloat("Speed") / 100))
+--	end
 
 end

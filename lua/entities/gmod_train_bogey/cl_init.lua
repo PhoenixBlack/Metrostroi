@@ -5,10 +5,10 @@ include("shared.lua")
 function ENT:ReinitializeSounds()
 	-- Bogey-related sounds
 	self.SoundNames = {}
-	self.SoundNames["engine"]	= "subway_trains/81717_engine.wav"
-	self.SoundNames["run1"]		= "subway_trains/81717_run1.wav"
-	self.SoundNames["run2"]		= "subway_trains/81717_run2.wav"
-	self.SoundNames["run3"]		= "subway_trains/81717_run3.wav"
+	self.SoundNames["engine"]	= "subway_trains/engine_1.wav"
+	self.SoundNames["run1"]		= "subway_trains/run_1.wav"
+	self.SoundNames["run2"]		= "subway_trains/run_2.wav"
+	self.SoundNames["run3"]		= "subway_trains/run_3.wav"
 	self.SoundNames["release"] 	= "subway_trains/release_1.wav"
 	
 	-- Remove old sounds
@@ -69,9 +69,9 @@ function ENT:Think()
 	local dPdT = self:GetdPdT()
 	
 	-- Engine sound
-	if (motorPower > 0) and (speed < 1.0) then
+	if (motorPower > 0) and (speed > 0.1) and (speed < 1.0) then
 		self:SetSoundState("engine",0.2,0.2)
-	elseif (speed > 1e-6) and (math.abs(motorPower) > 0.0) then
+	elseif (speed > 0.1) and (math.abs(motorPower) > 0.0) then
 		local startVolRamp = 0.2 + 0.8*math.max(0.0,math.min(1.0,(speed - 1.0)*0.5))
 		local powerVolRamp = math.max(0.3,math.min(1.0,math.abs(motorPower)))
 		
@@ -94,16 +94,16 @@ function ENT:Think()
 --	end
 	
 	-- Run sound
-	if speed > 1e-6 then
+	if speed > 0.01 then
 		local startVolRamp = math.max(0.0,math.min(1.0,speed/30))
 		local bleedVolRamp = math.max(0.0,math.min(1.0,speed/60))
 		
-		local speedPitch2 = 2.0 * (speed / 60)
+		local speedPitch2 = (speed / 60)
 		local speedPitch3 = math.min(1.2, 0.4 + 0.6 * (speed / 60))
 		
 		self:SetSoundState("run1",0.0,0.0)
 		self:SetSoundState("run2",startVolRamp*(1-bleedVolRamp),speedPitch2)
-		self:SetSoundState("run3",startVolRamp*(	bleedVolRamp),speedPitch3)
+		self:SetSoundState("run3",startVolRamp*(  bleedVolRamp),speedPitch3)
 	else
 		self:SetSoundState("run1",0,0)
 		self:SetSoundState("run2",0,0)
@@ -118,10 +118,10 @@ function ENT:Think()
 		self:SetSoundState("release",0.0,0.0)
 	end
 	
-	if dPdT < -1e-5 then
-		local volRamp = math.min(0.07,0.1*(-dPdT/0.7))
+	if dPdT < -0.05 then
+		local volRamp = math.min(0.03,0.1*(-dPdT/0.7))
 		self:SetSoundState("release",volRamp,1.6)
-	elseif dPdT > 1e-5 then
+	elseif dPdT > 0.05 then
 		local volRamp = dPdT/0.800
 		self:SetSoundState("release",volRamp,1.0)
 	else

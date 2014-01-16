@@ -25,7 +25,7 @@ function TRAIN_SYSTEM:Initialize()
 	self.DriverValvePosition = 1
 
 	-- Rate of brake line filling from train line
-	self.BrakeLineFillRate			= 0.700 -- atm/sec
+	self.BrakeLineFillRate			= 0.500 -- atm/sec
 	-- Rate of equalizing reservoir filling from train line
 	self.ReservoirFillRate			= 1.500 -- atm/sec
 	-- Replenish rate for brake line
@@ -44,6 +44,12 @@ function TRAIN_SYSTEM:Initialize()
 
 	-- Emergency release rate
 	self.BrakeLineEmergencyRate 	= 0.800 -- atm/sec
+	
+	
+	-- Valve #1
+	self.Train:LoadSystem("PneumaticNo1","Relay")
+	-- Valve #2
+	self.Train:LoadSystem("PneumaticNo2","Relay")
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -51,7 +57,8 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { }
+	return { "BrakeLinePressure", "BrakeCylinderPressure", "DriverValvePosition", 
+			 "ReservoirPressure", "TrainLinePressure" }
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
@@ -93,12 +100,12 @@ function TRAIN_SYSTEM:Think(dT)
 	self.BrakeCylinderPressure_dPdT = 0.0
 
 	-- Fill reservoir from train line, fill brake line from train line
-	if self.DriverValvePosition == 1 then
+	if (self.DriverValvePosition == 1) and (self.Train.PneumaticNo1.Value == 0.0) then
 		equalizePressure("BrakeLinePressure", self.TrainLinePressure*0.65, self.BrakeLineFillRate)
 		equalizePressure("ReservoirPressure", self.TrainLinePressure*0.65, self.ReservoirFillRate)
 	end
 	-- Brake line, reservoir replenished from train line
-	if self.DriverValvePosition == 2 then
+	if (self.DriverValvePosition == 2) and (self.Train.PneumaticNo1.Value == 0.0) then
 		equalizePressure("BrakeLinePressure", self.TrainLinePressure*0.65, self.BrakeLineReplenishRate)
 		equalizePressure("ReservoirPressure", self.TrainLinePressure*0.65, self.ReservoirReplenishRate)
 	end
@@ -118,15 +125,23 @@ function TRAIN_SYSTEM:Think(dT)
 		equalizePressure("BrakeLinePressure", 0.0, self.BrakeLineEmergencyRate)
 	end
 	
+	-- Valve 2 operation
+	if self.Train.PneumaticNo1.Value == 1.0 then
+		equalizePressure("ReservoirPressure", self.TrainLinePressure*0.3,  	self.ReservoirReleaseRate)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 		self.BrakeLineReleaseRate)
+	end
+	
 	-- Brake line leaks
 	equalizePressure("BrakeLinePressure", 0.0, self.BrakeLineLeakRate)
 	-- Reservoir leaks
 	equalizePressure("ReservoirPressure", 0.0, self.ReservoirLeakRate)
 	
 	-- Fill cylinders
-	if math.abs(self.TrainLinePressure*0.65 - self.BrakeLinePressure) > 0.1 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure*0.65 - self.BrakeLinePressure, 2*self.ReservoirFillRate)
-	end
+	--local refPressure = self.TrainLinePressure*0.65 - self.BrakeLinePressure
+	--if refPressure < 4.3 then
+	equalizePressure("BrakeCylinderPressure", self.TrainLinePressure*0.65 - self.BrakeLinePressure, 2*self.ReservoirFillRate)
+	--end
+--	print("ASD1",refPressure)
 	
 
 	--print(Format("%.3f  %.3f  %.3f  %.3f atm",
@@ -139,8 +154,15 @@ function TRAIN_SYSTEM:Think(dT)
 	self.PneumaticBrakeForce = 100000.0
 	self.Train.FrontBogey.PneumaticBrakeForce = self.PneumaticBrakeForce 
 	self.Train.FrontBogey.BrakeCylinderPressure = self.BrakeCylinderPressure
-	self.Train.FrontBogey.BrakeCylinderPressure_dPdT = self.BrakeLinePressure_dPdT ---self.BrakeCylinderPressure_dPdT
+	self.Train.FrontBogey.BrakeCylinderPressure_dPdT = -self.BrakeCylinderPressure_dPdT ---self.BrakeCylinderPressure_dPdT
 	self.Train.RearBogey.PneumaticBrakeForce = self.PneumaticBrakeForce
 	self.Train.RearBogey.BrakeCylinderPressure = self.BrakeCylinderPressure
-	self.Train.RearBogey.BrakeCylinderPressure_dPdT = self.BrakeLinePressure_dPdT ---self.BrakeCylinderPressure_dPdT
+	self.Train.RearBogey.BrakeCylinderPressure_dPdT = -self.BrakeCylinderPressure_dPdT ---self.BrakeCylinderPressure_dPdT
+	
+	-- Output
+	self:TriggerOutput("DriverValvePosition", 		self.DriverValvePosition)
+	self:TriggerOutput("BrakeLinePressure", 		self.BrakeLinePressure)
+	self:TriggerOutput("BrakeCylinderPressure",  	self.BrakeCylinderPressure)
+	self:TriggerOutput("ReservoirPressure", 		self.ReservoirPressure)
+	self:TriggerOutput("TrainLinePressure",			self.TrainLinePressure)
 end

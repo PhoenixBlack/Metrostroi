@@ -75,7 +75,6 @@ function ENT:Initialize()
 	if joystick then
 		self.JoystickBuffer = {}
 	end
-	
 	self.DebugVars = {}
 
 	-- Entities that belong to train and must be cleaned up later
@@ -85,14 +84,50 @@ function ENT:Initialize()
 
 	-- Load basic sounds
 	self.SoundNames = {}
-	self.SoundNames["switch"]	= "subway_trains/81717_switch.wav"
-	self.SoundNames["kv1"]		= "subway_trains/81717_kv1.wav"
-	self.SoundNames["kv2"]   	= "subway_trains/81717_kv2.wav"
-	self.SoundNames["kv3"]    	= "subway_trains/81717_kv3.wav"
-	self.SoundNames["kv4"]   	= "subway_trains/81717_kv4.wav"
+	self.SoundNames["switch"]	= "subway_trains/click_1.wav"
+	self.SoundNames["click1"]	= "subway_trains/click_1.wav"
+	self.SoundNames["click2"]	= "subway_trains/click_2.wav"
+	self.SoundNames["click3"]	= "subway_trains/click_3.wav"
+	self.SoundNames["click4"]	= "subway_trains/click_4.wav"
+	self.SoundNames["click5"]	= "subway_trains/click_5.wav"
+	
+	self.SoundNames["pneumo_switch"] = {
+		"subway_trains/pneumo_1.wav",
+		"subway_trains/pneumo_2.wav"
+	}
+	
+	self.SoundNames["kv1"] = {
+		"subway_trains/kv1_1.wav",
+		"subway_trains/kv1_2.wav",
+		"subway_trains/kv1_3.wav",
+		"subway_trains/kv1_4.wav",
+		"subway_trains/kv1_5.wav",
+		"subway_trains/kv1_6.wav",
+		"subway_trains/kv1_7.wav",
+		"subway_trains/kv1_8.wav",
+		"subway_trains/kv1_9.wav",
+		"subway_trains/kv1_10.wav",
+		"subway_trains/kv1_11.wav",
+		"subway_trains/kv1_12.wav",
+	}
+	
+	self.SoundNames["kv2"] = {
+		"subway_trains/kv2_1.wav",
+		"subway_trains/kv2_2.wav",
+		"subway_trains/kv2_3.wav",
+	}
+	
+	self.SoundNames["kv3"] = {
+		"subway_trains/kv3_1.wav",
+		"subway_trains/kv3_2.wav",
+		"subway_trains/kv3_3.wav",
+	}
 	
 	self.SoundTimeout = {}
-	self.SoundTimeout["switch"]        = 0.0
+	self.SoundTimeout["switch"] = 0.0
+	
+	-- List of headlights, dynamic lights, sprite lights
+	self.Lights = { }
 end
 
 -- Remove entity
@@ -145,7 +180,7 @@ end
 function ENT:TrainWireCanWrite(k)
 	local lastwrite = self.TrainWireWriters[k]
 	if lastwrite ~= nil then
-		if lastwrite.ent ~= self and CurTime() - lastwrite.time < 0.1 then
+		if (lastwrite.ent ~= self) and (CurTime() - lastwrite.time < 0.1) then
 			--Last write not us and recent, conflict!
 			return false
 		end
@@ -231,7 +266,6 @@ function ENT:OnCouple(train,isfront)
 	end
 	
 	self:SetTrainWires(train)
-	print("CONNECT",self,self.TrainWires)
 end
 
 function ENT:OnDecouple(isfront)
@@ -283,6 +317,7 @@ function ENT:CreateSeatEntity(seat_info)
 	seat:SetModel("models/nova/jeep_seat.mdl") --jalopy
 	seat:SetPos(self:LocalToWorld(seat_info.offset))
 	seat:SetAngles(self:GetAngles()+Angle(0,-90,0)+seat_info.angle)
+	seat:SetKeyValue("limitview",0)
 	seat:Spawn()
 	seat:GetPhysicsObject():SetMass(10)
 	seat:SetCollisionGroup(COLLISION_GROUP_WORLD)
@@ -330,6 +365,130 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Turn light on or off
+--------------------------------------------------------------------------------
+function ENT:SetLightPower(index,power)
+	local lightData = self.Lights[index]
+	self.GlowingLights = self.GlowingLights or {}
+
+	-- Check if light already glowing
+	if power and (self.GlowingLights[index]) then return end
+	
+	-- Turn off light
+	SafeRemoveEntity(self.GlowingLights[index])
+	self.GlowingLights[index] = nil
+	
+	-- Create light
+	if (lightData[1] == "headlight") and (power) then
+		local light = ents.Create("env_projectedtexture")
+		light:SetParent(self)
+		light:SetLocalPos(lightData[2])
+		light:SetLocalAngles(lightData[3])
+
+		-- Set parameters
+		light:SetKeyValue("enableshadows", 1)
+		light:SetKeyValue("farz", 2048)
+		light:SetKeyValue("nearz", 16)
+		light:SetKeyValue("lightfov", lightData.fov or 120)
+
+		-- Set Brightness
+		local brightness = lightData.brightness or 1.25
+		light:SetKeyValue("lightcolor",
+			Format("%i %i %i 255",
+				lightData[4].r*brightness,
+				lightData[4].g*brightness,
+				lightData[4].b*brightness
+			)
+		)
+
+		-- Turn light on
+		light:Spawn() --"effects/flashlight/caustics"
+		light:Input("SpotlightTexture",nil,nil,lightData.texture or "effects/flashlight001")
+		self.GlowingLights[index] = light
+	end
+	if (lightData[1] == "glow") and (power) then
+		local light = ents.Create("env_sprite")
+		light:SetParent(self)
+		light:SetLocalPos(lightData[2])
+		light:SetLocalAngles(lightData[3])
+	
+		-- Set parameters
+		local brightness = lightData.brightness or 0.5
+		light:SetKeyValue("rendercolor",
+			Format("%i %i %i",
+				lightData[4].r*brightness,
+				lightData[4].g*brightness,
+				lightData[4].b*brightness
+			)
+		)
+		light:SetKeyValue("rendermode", lightData.type or 3) -- 9: WGlow, 3: Glow
+		light:SetKeyValue("model", lightData.texture or "sprites/glow1.vmt")
+--		light:SetKeyValue("model", "sprites/light_glow02.vmt")
+--		light:SetKeyValue("model", "sprites/yellowflare.vmt")
+		light:SetKeyValue("scale", lightData.scale or 1.0)
+		light:SetKeyValue("spawnflags", 1)
+	
+		-- Turn light on
+		light:Spawn()
+		self.GlowingLights[index] = light
+	end
+	if (lightData[1] == "light") and (power) then
+		local light = ents.Create("env_sprite")
+		light:SetParent(self)
+		light:SetLocalPos(lightData[2])
+		light:SetLocalAngles(lightData[3])
+	
+		-- Set parameters
+		local brightness = lightData.brightness or 0.5
+		light:SetKeyValue("rendercolor",
+			Format("%i %i %i",
+				lightData[4].r*brightness,
+				lightData[4].g*brightness,
+				lightData[4].b*brightness
+			)
+		)
+		light:SetKeyValue("rendermode", lightData.type or 9) -- 9: WGlow, 3: Glow
+--		light:SetKeyValue("model", "sprites/glow1.vmt")
+		light:SetKeyValue("model", lightData.texture or "sprites/light_glow02.vmt")
+--		light:SetKeyValue("model", "sprites/yellowflare.vmt")
+		light:SetKeyValue("scale", lightData.scale or 1.0)
+		light:SetKeyValue("spawnflags", 1)
+	
+		-- Turn light on
+		light:Spawn()
+		self.GlowingLights[index] = light
+	end
+	if (lightData[1] == "dynamiclight") and (power) then
+		local light = ents.Create("light_dynamic")
+		light:SetParent(self)
+
+		-- Set position
+		light:SetLocalPos(lightData[2])
+		light:SetLocalAngles(lightData[3])
+
+		-- Set parameters
+		light:SetKeyValue("_light",
+			Format("%i %i %i",
+				lightData[4].r,
+				lightData[4].g,
+				lightData[4].b
+			)
+		)
+		light:SetKeyValue("style", 0)
+		light:SetKeyValue("distance", lightData.distance or 300)
+		light:SetKeyValue("brightness", lightData.brightness or 2)
+
+		-- Turn light on
+		light:Spawn()
+		light:Fire("TurnOn","","0")
+		self.GlowingLights[index] = light
+	end
+end
+
+
+
+
+--------------------------------------------------------------------------------
 -- Play sound once emitting frmo the train
 --------------------------------------------------------------------------------
 function ENT:CheckActionTimeout(action,timeout)
@@ -341,17 +500,23 @@ function ENT:CheckActionTimeout(action,timeout)
   return false
 end
 
-function ENT:PlayOnce(soundid,inCockpit,range,pitch)
+function ENT:PlayOnce(soundid,location,range,pitch)
   if self:CheckActionTimeout(soundid,self.SoundTimeout[soundid] or 0.0) then return end
   
+  -- Pick wav file
+  local sound = self.SoundNames[soundid]
+  if type(sound) == "table" then sound = table.Random(sound) end
+  
+  -- Setup range
   local default_range = 0.80
   if soundid == "switch" then default_range = 0.50 end
   
-  if not inCockpit then
-    self:EmitSound(self.SoundNames[soundid], 100*(range or default_range), pitch or math.random(95,105))
-  else
+  -- Emit sound from right location
+  if not location then
+    self:EmitSound(sound, 100*(range or default_range), pitch or math.random(95,105))
+  elseif (location == true) or (location == "cabin") then
     if self.DriverSeat and self.DriverSeat:IsValid() then
-      self.DriverSeat:EmitSound(self.SoundNames[soundid], 100*(range or default_range),pitch or math.random(95,105))
+      self.DriverSeat:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
     end
   end
 end
@@ -422,17 +587,21 @@ function ENT:Think()
 		end
 	end
 	
-	
-	
-	for i=1,10 do
-		self.DebugVars["FloatyDiceSystem"..tostring(i)]=math.random(0,6)
-	end
-	
-	
-	
+	-- Add interesting debug variables
+	self.DebugVars["TW1 X1"] = self:ReadTrainWire(1)
+	self.DebugVars["TW2 X2"] = self:ReadTrainWire(3)
+	self.DebugVars["TW3 X3"] = self:ReadTrainWire(2)
+	self.DebugVars["TW4 FWD"] = self:ReadTrainWire(4)
+	self.DebugVars["TW5 BWD"] = self:ReadTrainWire(5)
+	self.DebugVars["TW6 T"] = self:ReadTrainWire(6)
+	self.DebugVars["TW20 1S"] = self:ReadTrainWire(20)
+
 	self:NextThink(CurTime())
 	return true
 end
+
+
+
 
 --------------------------------------------------------------------------------
 -- Default spawn function
@@ -486,6 +655,9 @@ function ENT:SpawnFunction(ply, tr)
 	ent:Activate()
 	
 	if not inhibitrerail then Metrostroi.RerailTrain(ent) end
+	
+	-- Debug mode
+	--Metrostroi.DebugTrain(ent,ply)
 	return ent
 end
 

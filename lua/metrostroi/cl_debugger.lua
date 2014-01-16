@@ -2,17 +2,92 @@ local Debugger = {}
 Debugger.DisplayGroups = {}
 Debugger.EntData = {}
 
-Debugger.DisplayGroups.Dice = {
-	{"FloatyDiceSystem1","%.3f","Test"}, --Variable, formatting, unit
-	{"FloatyDiceSystem2","%.3f",""},
-	{"FloatyDiceSystem3","%.3f",""},
-	{"FloatyDiceSystem4","%.3f",""},
-	{"FloatyDiceSystem5","%.3f","A really looooooong unit"},
-	{"FloatyDiceSystem6","%.3f",""},
-	{"FloatyDiceSystem7","%.3f","Awesome Points"},
-	{"FloatyDiceSystem8","%.3f",""},
-	{"FloatyDiceSystem9","%.3f",""},
-	{"FloatyDiceSystem10","%.3f",""}
+Debugger.DisplayGroups["Train"] = {
+	{"Speed","%.1f","km/h"},
+	{"Acceleration","%6.3f","m/s2"},
+}
+
+Debugger.DisplayGroups["Power Relays"] = {
+	{"RRState","%.0f","on/off"},	
+
+	{"LK1State","%.0f","on/off"},
+	{"LK2State","%.0f","on/off"},
+	{"LK3State","%.0f","on/off"},
+	{"LK4State","%.0f","on/off"},
+	
+	{"RPLState","%.0f","on/off"},
+	{"RP1_3State","%.0f","on/off"},
+	{"RP2_4State","%.0f","on/off"},
+	
+	{"RUTState","%.0f","on/off"},	
+	
+	{"TpState","%.0f","on/off"},
+	{"TpbState","%.0f","on/off"},
+	{"TbState","%.0f","on/off"},
+	{"TsState","%.0f","on/off"},
+}
+
+Debugger.DisplayGroups["Controller"] = {
+	{"KVControllerPosition","%.0f","X/T"},
+	{"KVReverserPosition",  "%.0f","fwd/rev"},
+	{"TW1 X1", "%d", "level"},
+	{"TW2 X2", "%d", "level"},
+	{"TW3 X3", "%d", "level"},
+	
+	{"TW4 FWD", "%d", "level"},
+	{"TW5 BWD", "%d", "level"},
+	{"TW6 T", "%d", "level"},
+	
+	{"TW20 1S", "%d", "level"},	
+}
+
+Debugger.DisplayGroups["Pneumatic System"] = {
+	{"PneumaticDriverValvePosition",	"%d", "position"},
+	{"PneumaticBrakeLinePressure",		"%.3f", "atm"},
+	{"PneumaticBrakeCylinderPressure",	"%.3f", "atm"},
+	{"PneumaticReservoirPressure",		"%.3f", "atm"},
+	{"PneumaticTrainLinePressure",		"%.3f", "atm"},
+	{"PneumaticNo1State","%.0f","on/off"},
+	{"PneumaticNo2State","%.0f","on/off"},
+}
+
+Debugger.DisplayGroups["Electric System"] = {
+	{"ElectricVs","%.3f","V"},
+	{"ElectricU13","%.3f","V"},
+	{"ElectricU24","%.3f","V"},
+	{"ElectricVR1","%.3f","V"},
+	{"ElectricVR2","%.3f","V"},
+	{"ElectricI13","%.2f","A"},
+	{"ElectricI24","%.2f","A"},
+	{"ElectricItotal","%.2f","A"},
+	
+	{"ElectricRs1","%.3f","Ohm"},
+	{"ElectricRs2","%.3f","Ohm"},
+	{"ElectricR1","%.3f","Ohm"},
+	{"ElectricR2","%.3f","Ohm"},
+}
+
+Debugger.DisplayGroups["Engines"] = {
+	{"EnginesMagneticFlux13","%.3f",""},
+	{"EnginesMagneticFlux24","%.3f","V"},
+	{"EnginesE13","%.3f","V"},
+	{"EnginesE24","%.3f","V"},
+	{"EnginesRotationRate","%.1f","rpm"},
+	{"EnginesMoment13","%.2f",""},
+	{"EnginesMoment24","%.2f",""},
+	
+	{"RheostatControllerPosition","%.2f","position"},
+}
+
+Debugger.DisplayGroups["DURA"] = {
+	{"DURASwitchBlocked","%.0f","state"},
+	{"DURASelectedAlternate","%.0f","state"},
+	{"DURASelectingAlternate","%.0f","state"},
+	{"DURASelectingMain","%.0f","state"},
+	
+	{"DURANextLightRed","%.0f","state"},
+	{"DURANextLightYellow","%.0f","state"},
+	{"DURADistanceToLight","%.1f","m"},
 }
 
 --[[ --Unused, just reference for now
@@ -87,7 +162,7 @@ surface.CreateFont( "DebugBoxText", {
 local function getDisplayGroupWidth(displaygroup,entvars)
 	local width = 0
 	for k,v in pairs(displaygroup) do
-		local v2 = string.format(v[2],entvars[v[1]])
+		local v2 = string.format(v[2],tonumber(entvars[v[1]]) or 0)
 		width = width + 5 + math.max(
 			surface.GetTextSize(v[1]),
 			surface.GetTextSize(v2),
@@ -114,7 +189,7 @@ local function drawBox(x,y,displaygroup,entvars)
 		surface.SetTextPos(x+localx,y+5)
 		surface.DrawText(v[1])
 		
-		local v2 = string.format(v[2],entvars[v[1]])
+		local v2 = string.format(v[2],tonumber(entvars[v[1]]) or 0)
 		surface.SetTextPos(x+localx,y+20)
 		surface.DrawText(v2)
 		
@@ -135,7 +210,7 @@ hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 	
 	
 	if Debugger.EntData ~= nil then 
-		local localy = 15
+		local localy = 15 --+ 65
 		
 		--For every entity
 		for id,vars in pairs(Debugger.EntData) do

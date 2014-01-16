@@ -22,8 +22,10 @@ if SERVER then
 	
 	resource_AddDir("models/metrostroi/props_models")
 	resource_AddDir("models/metrostroi/props")
-	resource_AddDir("models/metrostroi/81-705")
 	resource_AddDir("models/metrostroi/81-717")
+	resource_AddDir("models/metrostroi/e")
+	resource_AddDir("models/metrostroi/metro")
+	resource_AddDir("models/metrostroi/tatra_t3")
 	resource_AddDir("models/myproject")
 	
 	resource_AddDir("sound/subway_trains")
@@ -152,6 +154,8 @@ LoadSystem("Announcer")
 LoadSystem("Fuse")
 LoadSystem("Relay")
 
+LoadSystem("DURA")
+
 --LoadSystem("81_717_Electric")
 --LoadSystem("AK_63B_Relays")
 --LoadSystem("BPSN_5U2M")
@@ -170,6 +174,9 @@ LoadSystem("EKG_17B")
 LoadSystem("KF_47A")
 LoadSystem("GV_10ZH")
 LoadSystem("KV_66")
+LoadSystem("LK_755A")
+LoadSystem("YAK_31A")
+LoadSystem("YAR_13A")
 
 -- Tatra T3
 LoadSystem("Tatra_Systems")

@@ -9,21 +9,21 @@ function ENT:Initialize()
 	-- Defined train information
 	self.SubwayTrain = {
 		Type = "E",
-		Name = "81-705",
+		Name = "Em509",
 	}
 
 	-- Set model and initialize
-	self:SetModel("models/metrostroi/81-705/81-705.mdl")
+	self:SetModel("models/metrostroi/e/em509.mdl")
 	self.BaseClass.Initialize(self)
 	self:SetPos(self:GetPos() + Vector(0,0,140))
 	
 	-- Create seat entities
-	self.DriverSeat = self:CreateSeat("driver",Vector(400,-40,-40))
-	self.InstructorsSeat = self:CreateSeat("instructor",Vector(395,35,-40))
+	self.DriverSeat = self:CreateSeat("driver",Vector(418,-45,-28))
+	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28))
 	
 	-- Create bogeys
-	self.FrontBogey = self:CreateBogey(Vector( 315-20,0,-90),Angle(0,180,0),true)
-	self.RearBogey  = self:CreateBogey(Vector(-315-10,0,-90),Angle(0,0,0),false)
+	self.FrontBogey = self:CreateBogey(Vector( 325,0,-75),Angle(0,180,0),true)
+	self.RearBogey  = self:CreateBogey(Vector(-325,0,-75),Angle(0,0,0),false)
 	
 	-- Initialize key mapping
 	self.KeyMap = {
@@ -37,12 +37,15 @@ function ENT:Initialize()
 		
 		[KEY_G] = "ElectricResetRPL",
 		
-		[KEY_8] = "KVReverserUp",
+		[KEY_0] = "KVReverserUp",
 		[KEY_9] = "KVReverserDown",		
 		[KEY_W] = "KVControllerUp",
 		[KEY_S] = "KVControllerDown",
 		[KEY_F] = "PneumaticBrakeUp",
 		[KEY_R] = "PneumaticBrakeDown",
+		
+		[KEY_A] = "DURASelectAlternate",
+		[KEY_D] = "DURASelectMain",
 	}
 end
 
@@ -57,7 +60,9 @@ function ENT:Think()
 	self:SetNWFloat("BrakeCylinder",self.Pneumatic.BrakeCylinderPressure)
 	
 	self:SetNWFloat("Volts",self.Electric.Power750V)
-	self:SetNWFloat("Amperes",self.Engine.RUTCurrent)
+	self:SetNWFloat("Amperes",self.DebugVars["ElectricItotal"])
 	self:SetNWFloat("Speed",(self.FrontBogey.Speed + self.RearBogey.Speed)/2)
+	self.DebugVars["Speed"] = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
+	self.DebugVars["Acceleration"] = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2
 	return self.BaseClass.Think(self)
 end
