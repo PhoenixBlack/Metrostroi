@@ -1,6 +1,20 @@
 local Debugger = {}
 Debugger.DisplayGroups = {}
 Debugger.EntData = {}
+Debugger.EntDataTime = {}
+
+CreateClientConVar("metrostroi_debugger_data_timeout",2,true,false)
+
+local Colors = {
+	{120,255,255},
+	{255,255,0},
+	{255,0,0},
+	{255,0,255}
+}
+local currentcolor = 1
+local function advancecolor()
+	currentcolor = currentcolor%(#Colors)+1
+end
 
 Debugger.DisplayGroups["Train"] = {
 	{"Speed","%.1f","km/h"},
@@ -138,6 +152,7 @@ net.Receive("metrostroi-debugger-dataupdate",function(len,ply)
 	for i=1,count do
 		local data = net.ReadTable()
 		Debugger.EntData[data[1]]=data[2]
+		Debugger.EntDataTime[data[1]]=CurTime()
 	end
 end)
 
@@ -178,7 +193,11 @@ local function drawBox(x,y,displaygroup,entvars)
 	local width = getDisplayGroupWidth(displaygroup,entvars)
 	
 	
-	surface.SetTextColor(Color(120,255,255))
+	
+	local rgb = Colors[currentcolor]
+
+	--surface.SetTextColor(Color(120,255,255))
+	surface.SetTextColor(rgb[1],rgb[2],rgb[3])
 	surface.SetAlphaMultiplier(0.8)
 	surface.SetDrawColor(Color(0,0,0))
 	surface.DrawRect(x,y,width+10,55)
@@ -205,8 +224,14 @@ local function drawBox(x,y,displaygroup,entvars)
 
 end
 
+local function isTimedOut(id)
+	local timeout = GetConVarNumber("metrostroi_debugger_data_timeout")
+	return timeout ~= nil and timeout > 0 and CurTime() - Debugger.EntDataTime[id] > timeout
+end
+
 hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 	surface.SetFont("DebugBoxText")
+	currentcolor = 1
 	
 	
 	if Debugger.EntData ~= nil then 
@@ -216,21 +241,27 @@ hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 		for id,vars in pairs(Debugger.EntData) do
 			
 			--For every displaygroup
-			for groupname,displayvars in pairs(Debugger.DisplayGroups) do
-				drawBox(25,localy,displayvars,vars)
-				localy=localy+60
+			if not isTimedOut(id) then
+				for groupname,displayvars in pairs(Debugger.DisplayGroups) do
+					drawBox(25,localy,displayvars,vars)
+					
+					localy=localy+60
+				end
+				advancecolor()
 			end
 		end
 	end
 end)
 
+
+
 local function RemoveEnt(id)
 	Debugger.EntData[id] = nil
 end
 
-hook.Add("EntityRemoved","metrostroi-debugger-cleanuponremove",function(ent) 
-	local id = ent:EntIndex()
+net.Receive("metrostroi-debugger-entremoved",function(len,ply) 
+	local id = net.ReadInt(16)
 	if Debugger.EntData[id] then
-		timer.Simple(0.5,function() RemoveEnt(id) end)
+		RemoveEnt(id)
 	end
 end)
