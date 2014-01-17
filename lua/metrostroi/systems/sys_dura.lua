@@ -99,10 +99,10 @@ function TRAIN_SYSTEM:Think()
 			-- Red light run logic
 			if (foundType == "light") and foundEnt and (self.DistanceToLight < 3) then
 				if foundEnt.LightStates[1] == true then
-					if (self.DriverMode > 2) and (self.Speed > 11) and (self.Reverse == false) then
-						self:SetDriverMode(1)
-						self:PlayOnce("warning",true)
-					end
+					--if (self.DriverMode > 2) and (self.Speed > 11) and (self.Reverse == false) then
+					---	self:SetDriverMode(1)
+					--	self:PlayOnce("warning",true)
+					--end
 				end
 			end
 		else

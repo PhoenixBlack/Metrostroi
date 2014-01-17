@@ -263,9 +263,22 @@ function ENT:Animate(clientProp, value, min, max, speed, damping)
 			self["_anim_"..id.."V"] = 0.0
 		end
 			
-		local dX2dT = (speed or 128)*(value - self["_anim_"..id]) - self["_anim_"..id.."V"] * (damping or 8.0)
-		self["_anim_"..id.."V"] = self["_anim_"..id.."V"] + dX2dT * self.DeltaTime
-		self["_anim_"..id] = math.max(0,math.min(1,self["_anim_"..id] + self["_anim_"..id.."V"] * self.DeltaTime))
+		if damping == false then
+			local dX = speed * self.DeltaTime
+			if value > self["_anim_"..id] then
+				self["_anim_"..id] = self["_anim_"..id] + dX
+			end
+			if value < self["_anim_"..id] then
+				self["_anim_"..id] = self["_anim_"..id] - dX
+			end
+			if math.abs(value - self["_anim_"..id]) < dX then
+				self["_anim_"..id] = value
+			end
+		else
+			local dX2dT = (speed or 128)*(value - self["_anim_"..id]) - self["_anim_"..id.."V"] * (damping or 8.0)
+			self["_anim_"..id.."V"] = self["_anim_"..id.."V"] + dX2dT * self.DeltaTime
+			self["_anim_"..id] = math.max(0,math.min(1,self["_anim_"..id] + self["_anim_"..id.."V"] * self.DeltaTime))
+		end
 		
 		self.ClientEnts[clientProp]:SetPoseParameter("position",min + (max-min)*self["_anim_"..id])
 	end
@@ -287,38 +300,74 @@ local digit_bitmap = {
   [0] = { 1,1,1,0,1,1,1 },
 }
 
-function ENT:DrawSegment(x,y,w,h)
-	--for z=1,6,1 do
-		--surface.SetDrawColor(Color(100,255,0,math.max(0,13-1*z*z)))
-		--surface.DrawRect(x-z, y-z, math.max(1,w+2*z), math.max(1,h+2*z))
-	--end
+local segment_poly = {
+	[1] = { 	
+		{ x = 0,    y = 0 },
+		{ x = 100,  y = 0 },
+		{ x =  80,  y = 20 },
+		{ x =  20,  y = 20 },
+	},
+	[2] = { 	
+		{ x =  20,  y = 0 },
+		{ x =  80,  y = 0 },
+		{ x = 100,  y = 20 },
+		{ x =   0,  y = 20 },
+	},
+	[3] = { 	
+		{ x =  0,  y = 0 },
+		{ x = 20,  y = 20 },
+		{ x = 20,  y = 80 },
+		{ x =  0,  y = 100 },
+	},
+	[4] = { 	
+		{ x =  0,  y = 20 },
+		{ x = 20,  y = 0 },
+		{ x = 20,  y = 100 },
+		{ x =  0,  y = 80 },
+	},
+	[5] = { 	
+		{ x = 0,  y = 12 },
+		{ x = 20,  y = 0 },
+		{ x = 80,  y = 0 },
+		{ x = 100,  y = 12 },
+		{ x = 80,  y = 24 },
+		{ x = 20,  y = 24 },
+	},
+}
 
-	surface.SetDrawColor(Color(100,255,0,30))
-	surface.DrawRect(x-4, y-4, math.max(1,w)+8, math.max(1,h)+8)
-	
-	surface.SetDrawColor(Color(100,255,0,30))
-	surface.DrawRect(x-2, y-2, math.max(1,w)+4, math.max(1,h)+4)
-	
-	surface.SetDrawColor(Color(100,255,0,30))
-	surface.DrawRect(x-1, y-1, math.max(1,w)+2, math.max(1,h)+2)
+function ENT:DrawSegment(i,x,y,scale_x,scale_y)
+	local poly = {}
+	for k,v in pairs(segment_poly[i]) do
+		poly[k] = {
+			x = (v.x*scale_x) + x,
+			y = (v.y*scale_y) + y,		
+		}
+	end
 	
 	surface.SetDrawColor(Color(100,255,0,255))
-	surface.DrawRect(x, y, math.max(1,w), math.max(1,h))
+	draw.NoTexture()
+	surface.DrawPoly(poly)
 end
 
-function ENT:DrawDigit(cx,cy,digit,scale,thickness)
-	scale = scale or 1
-	thickness = thickness or 0
+function ENT:DrawDigit(cx,cy,digit,scalex,scaley,thickness)
+	scalex = scalex or 1
+	scaley = scaley or scalex
+	thickness = thickness or 1
 	local bitmap = digit_bitmap[digit]
 	if not bitmap then return end
 
-	if bitmap[1] == 1 then self:DrawSegment(cx+3*scale, cy+5*scale, 14*scale,3*scale+thickness) end
-	if bitmap[2] == 1 then self:DrawSegment(cx+0*scale, cy+10*scale,3*scale+thickness,10*scale) end
-	if bitmap[3] == 1 then self:DrawSegment(cx+17*scale,cy+10*scale,3*scale+thickness,10*scale) end
-	if bitmap[4] == 1 then self:DrawSegment(cx+3*scale, cy+21*scale,12*scale,3*scale+thickness) end
-	if bitmap[5] == 1 then self:DrawSegment(cx+0*scale, cy+24*scale,3*scale+thickness,10*scale) end
-	if bitmap[6] == 1 then self:DrawSegment(cx+17*scale,cy+24*scale,3*scale+thickness,10*scale) end
-	if bitmap[7] == 1 then self:DrawSegment(cx+3*scale, cy+36*scale,12*scale,3*scale+thickness) end
+	local sx = 0.9*scalex*thickness
+	local sy = 0.9*scaley*thickness
+	local dx = scalex
+	local dy = scaley
+	
+	if bitmap[1] == 1 then self:DrawSegment(1,cx+5*dx,cy,			sx,sy)	end
+	if bitmap[2] == 1 then self:DrawSegment(3,cx,cy+10*dy,			sx,sy)	end
+	if bitmap[3] == 1 then self:DrawSegment(4,cx+80*dx,cy+10*dy,	sx,sy)	end
+	if bitmap[4] == 1 then self:DrawSegment(5,cx+5*dx,cy+95*dy,		sx,sy)	end
+	if bitmap[5] == 1 then self:DrawSegment(3,cx,cy+110*dy,			sx,sy)	end
+	if bitmap[6] == 1 then self:DrawSegment(4,cx+80*dx,cy+110*dy,	sx,sy)	end
+	if bitmap[7] == 1 then self:DrawSegment(2,cx+5*dx,cy+190*dy,	sx,sy)	end
 end
 
 

@@ -140,9 +140,6 @@ function TRAIN_SYSTEM:Think()
 	
 	-- Разбор
 	if (X < 0.5) and ((Train.LK3.Value == 1.0) or (Train.LK4.Value == 1.0)) then
-		Train.PneumaticNo1:TriggerInput("Open",1.0)
-		Train.PneumaticNo2:TriggerInput("Open",1.0)
-		
 		Train.LK2:TriggerInput("Open",1.0)
 		Train.KSH1:TriggerInput("Open",1.0)
 		Train.KSH2:TriggerInput("Open",1.0)
@@ -507,7 +504,7 @@ function TRAIN_SYSTEM:Solve_PP(Train)
 	R[26] = ((R[17])^-1 + (R[22])^-1)^-1
 	R[27] = ((R[24])^-1 + (P4_3)^-1)^-1
 	R[28] = ((R[26])^-1 + (R[25]+R[27])^-1)^-1
-	local R1 = R[28]
+	local R1 = 1.2*R[28] -- FIXME temp hack
 	
 	-- Calculate rheostat 2 resistance
 	--[[R[1] = ((1e-9)^-1 + (RK[16])^-1)^-1

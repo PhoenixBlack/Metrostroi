@@ -67,9 +67,9 @@ function ENT:Initialize()
 
 
 	-- Setup drivers controls
-	self.ButtonBuffer = { }
-	self.KeyBuffer = { }
-	self.KeyMap = { }
+	self.ButtonBuffer = {}
+	self.KeyBuffer = {}
+	self.KeyMap = {}
 
 	-- Joystick module support
 	if joystick then
@@ -81,53 +81,14 @@ function ENT:Initialize()
 	self.TrainEntities = {}
 	-- All the sitting positions in train
 	self.Seats = {}
-
-	-- Load basic sounds
-	self.SoundNames = {}
-	self.SoundNames["switch"]	= "subway_trains/click_1.wav"
-	self.SoundNames["click1"]	= "subway_trains/click_1.wav"
-	self.SoundNames["click2"]	= "subway_trains/click_2.wav"
-	self.SoundNames["click3"]	= "subway_trains/click_3.wav"
-	self.SoundNames["click4"]	= "subway_trains/click_4.wav"
-	self.SoundNames["click5"]	= "subway_trains/click_5.wav"
-	
-	self.SoundNames["pneumo_switch"] = {
-		"subway_trains/pneumo_1.wav",
-		"subway_trains/pneumo_2.wav"
-	}
-	
-	self.SoundNames["kv1"] = {
-		"subway_trains/kv1_1.wav",
-		"subway_trains/kv1_2.wav",
-		"subway_trains/kv1_3.wav",
-		"subway_trains/kv1_4.wav",
-		"subway_trains/kv1_5.wav",
-		"subway_trains/kv1_6.wav",
-		"subway_trains/kv1_7.wav",
-		"subway_trains/kv1_8.wav",
-		"subway_trains/kv1_9.wav",
-		"subway_trains/kv1_10.wav",
-		"subway_trains/kv1_11.wav",
-		"subway_trains/kv1_12.wav",
-	}
-	
-	self.SoundNames["kv2"] = {
-		"subway_trains/kv2_1.wav",
-		"subway_trains/kv2_2.wav",
-		"subway_trains/kv2_3.wav",
-	}
-	
-	self.SoundNames["kv3"] = {
-		"subway_trains/kv3_1.wav",
-		"subway_trains/kv3_2.wav",
-		"subway_trains/kv3_3.wav",
-	}
-	
-	self.SoundTimeout = {}
-	self.SoundTimeout["switch"] = 0.0
-	
 	-- List of headlights, dynamic lights, sprite lights
-	self.Lights = { }
+	self.Lights = {}
+
+	-- Load sounds
+	self:InitializeSounds()
+	
+	-- Is this train 'odd' or 'even' in coupled set
+	self.TrainCoupledIndex = 0
 end
 
 -- Remove entity
@@ -201,6 +162,12 @@ function ENT:WriteTrainWire(k,v)
 end
 
 function ENT:ReadTrainWire(k)
+	-- Cross-commutate some wires
+	if self.TrainWireWriters[k] and IsValid(self.TrainWireWriters[k].ent) and 
+		(self.TrainWireWriters[k].ent.TrainCoupledIndex ~= self.TrainCoupledIndex) then
+		if k == 4 then return self.TrainWires[5] or 0 end
+		if k == 5 then return self.TrainWires[4] or 0 end
+	end
 	return self.TrainWires[k] or 0
 end
 
@@ -260,11 +227,32 @@ end
 --------------------------------------------------------------------------------
 function ENT:OnCouple(train,isfront)
 	--print(self,"Coupled with ",train," at ",isfront)
-	if isfront
+	if isfront 
 	then self.FrontTrain = train
 	else self.RearTrain = train
 	end
 	
+	local function updateIndexes(train,checked,newIndex)
+		if not train then return end
+		if checked[train] then return end
+		checked[train] = true
+		
+		train.TrainCoupledIndex = newIndex
+		
+		if train.FrontTrain and (train.FrontTrain.RearTrain == train) then
+			updateIndexes(train.FrontTrain,checked,newIndex)
+		else
+			updateIndexes(train.FrontTrain,checked,1-newIndex)
+		end
+		if train.RearTrain and (train.RearTrain.FrontTrain == train) then
+			updateIndexes(train.RearTrain,checked,newIndex)
+		else
+			updateIndexes(train.RearTrain,checked,1-newIndex)
+		end
+	end
+	updateIndexes(self,{},self.TrainCoupledIndex)
+	
+	-- Update train wires
 	self:SetTrainWires(train)
 end
 
@@ -492,33 +480,33 @@ end
 -- Play sound once emitting frmo the train
 --------------------------------------------------------------------------------
 function ENT:CheckActionTimeout(action,timeout)
-  self.LastActionTime = self.LastActionTime or {}
-  self.LastActionTime[action] = self.LastActionTime[action] or (CurTime()-1000)
-  if CurTime() - self.LastActionTime[action] < timeout then return true end
-  self.LastActionTime[action] = CurTime()
-  
-  return false
+	self.LastActionTime = self.LastActionTime or {}
+	self.LastActionTime[action] = self.LastActionTime[action] or (CurTime()-1000)
+	if CurTime() - self.LastActionTime[action] < timeout then return true end
+	self.LastActionTime[action] = CurTime()
+
+	return false
 end
 
 function ENT:PlayOnce(soundid,location,range,pitch)
-  if self:CheckActionTimeout(soundid,self.SoundTimeout[soundid] or 0.0) then return end
-  
-  -- Pick wav file
-  local sound = self.SoundNames[soundid]
-  if type(sound) == "table" then sound = table.Random(sound) end
-  
-  -- Setup range
-  local default_range = 0.80
-  if soundid == "switch" then default_range = 0.50 end
-  
-  -- Emit sound from right location
-  if not location then
-    self:EmitSound(sound, 100*(range or default_range), pitch or math.random(95,105))
-  elseif (location == true) or (location == "cabin") then
-    if self.DriverSeat and self.DriverSeat:IsValid() then
-      self.DriverSeat:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
-    end
-  end
+	if self:CheckActionTimeout(soundid,self.SoundTimeout[soundid] or 0.0) then return end
+
+	-- Pick wav file
+	local sound = self.SoundNames[soundid]
+	if type(sound) == "table" then sound = table.Random(sound) end
+
+	-- Setup range
+	local default_range = 0.80
+	if soundid == "switch" then default_range = 0.50 end
+
+	-- Emit sound from right location
+	if not location then
+		self:EmitSound(sound, 100*(range or default_range), pitch or math.random(95,105))
+	elseif (location == true) or (location == "cabin") then
+		if self.DriverSeat and self.DriverSeat:IsValid() then
+			self.DriverSeat:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
+		end
+	end
 end
 
 

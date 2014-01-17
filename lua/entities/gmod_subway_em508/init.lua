@@ -22,8 +22,8 @@ function ENT:Initialize()
 	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28))
 	
 	-- Create bogeys
-	self.FrontBogey = self:CreateBogey(Vector( 325,0,-75),Angle(0,180,0),true)
-	self.RearBogey  = self:CreateBogey(Vector(-325,0,-75),Angle(0,0,0),false)
+	self.FrontBogey = self:CreateBogey(Vector( 325-10,0,-75),Angle(0,180,0),true)
+	self.RearBogey  = self:CreateBogey(Vector(-325-10,0,-75),Angle(0,0,0),false)
 	
 	-- Initialize key mapping
 	self.KeyMap = {
@@ -102,8 +102,8 @@ function ENT:Think()
 	-- Enable console
 	self:SetNWBool("Power",true)
 	self:SetNWBool("LxRK",self.RheostatController.Moving)
-	self:SetNWBool("LST",self:ReadTrainWire(6) > 0.5)
-	self:SetNWBool("LVD",self:ReadTrainWire(20) > 0.5)
+	--self:SetNWBool("LST",self:ReadTrainWire(6) > 0.5)
+	self:SetNWBool("KVD",self:ReadTrainWire(20) > 0.5)
 	self:SetNWBool("HeadLights",self.HeadLights.Value == 1.0)
 	self:SetNWBool("CabinLights",self.CabinLights.Value == 1.0)
 	self:SetNWBool("InteriorLights",self.InteriorLights.Value == 1.0)
@@ -117,7 +117,7 @@ function ENT:Think()
 	self:SetNWFloat("BrakeCylinder",self.Pneumatic.BrakeCylinderPressure)
 	
 	self:SetNWFloat("Volts",self.Electric.Power750V)
-	self:SetNWFloat("Amperes",self.DebugVars["ElectricItotal"])
+	self:SetNWFloat("Amperes",math.abs(self.Electric.Itotal))
 	self:SetNWFloat("Speed",(self.FrontBogey.Speed + self.RearBogey.Speed)/2)
 	self.DebugVars["Speed"] = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
 	self.DebugVars["Acceleration"] = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2

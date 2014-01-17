@@ -117,12 +117,13 @@ function ENT:Think()
 		self.PrevDpSign = sign
 		self:SetSoundState("release",0.0,0.0)
 	end
-	
-	if dPdT < -0.05 then
-		local volRamp = math.min(0.03,0.1*(-dPdT/0.7))
+
+	local threshold = 0.2
+	if dPdT < -threshold then
+		local volRamp = math.min(0.02,0.1*(-(dPdT+threshold)/0.7))
 		self:SetSoundState("release",volRamp,1.6)
-	elseif dPdT > 0.05 then
-		local volRamp = dPdT/0.800
+	elseif dPdT > threshold then
+		local volRamp = (dPdT-threshold)/0.800
 		self:SetSoundState("release",volRamp,1.0)
 	else
 		self:SetSoundState("release",0.0,0.0)
