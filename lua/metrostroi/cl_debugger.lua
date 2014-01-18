@@ -75,21 +75,27 @@ Debugger.DisplayGroups["Electric System"] = {
 	{"ElectricI24","%.2f","A"},
 	{"ElectricItotal","%.2f","A"},
 	
-	{"ElectricRs1","%.3f","Ohm"},
-	{"ElectricRs2","%.3f","Ohm"},
+	{"ElectricRw13","%.3f","Ohm"},
+	{"ElectricRw24","%.3f","Ohm"},	
+	{"ElectricRs1","%.3g","Ohm"},
+	{"ElectricRs2","%.3g","Ohm"},
 	{"ElectricR1","%.3f","Ohm"},
 	{"ElectricR2","%.3f","Ohm"},
 }
 
 Debugger.DisplayGroups["Engines"] = {
 	{"EnginesMagneticFlux13","%.3f",""},
-	{"EnginesMagneticFlux24","%.3f","V"},
+	{"EnginesMagneticFlux24","%.3f",""},
 	{"EnginesE13","%.3f","V"},
 	{"EnginesE24","%.3f","V"},
 	{"EnginesRotationRate","%.1f","rpm"},
 	{"EnginesMoment13","%.2f",""},
 	{"EnginesMoment24","%.2f",""},
 	
+	{"EnginesIstator13","%.2f","A"},
+	{"EnginesIstator24","%.2f","A"},
+	{"EnginesIshunt13","%.2f","A"},
+	{"EnginesIshunt24","%.2f","A"},
 	{"RheostatControllerPosition","%.2f","position"},
 }
 

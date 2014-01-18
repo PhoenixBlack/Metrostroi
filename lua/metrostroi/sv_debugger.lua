@@ -57,7 +57,9 @@ local function think()
 			local count = table.Count(entlist)
 			net.WriteInt(count,8)
 			for k,ent in pairs(entlist) do
-				net.WriteTable({ent:EntIndex(),ent:GetDebugVars()})
+				if IsValid(ent) then
+					net.WriteTable({ent:EntIndex(),ent:GetDebugVars()})
+				end
 			end
 		net.Send(ply)
 	end
