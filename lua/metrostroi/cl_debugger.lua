@@ -2,6 +2,7 @@ local Debugger = {}
 Debugger.DisplayGroups = {}
 Debugger.EntData = {}
 Debugger.EntDataTime = {}
+Debugger.EntNameMap = {}
 
 CreateClientConVar("metrostroi_debugger_data_timeout",2,true,false)
 
@@ -63,6 +64,7 @@ Debugger.DisplayGroups["Pneumatic System"] = {
 	{"PneumaticTrainLinePressure",		"%.3f", "atm"},
 	{"PneumaticNo1State","%.0f","on/off"},
 	{"PneumaticNo2State","%.0f","on/off"},
+	ignore_prefix = {"Pneumatic"}
 }
 
 Debugger.DisplayGroups["Electric System"] = {
@@ -79,6 +81,7 @@ Debugger.DisplayGroups["Electric System"] = {
 	{"ElectricRs2","%.3f","Ohm"},
 	{"ElectricR1","%.3f","Ohm"},
 	{"ElectricR2","%.3f","Ohm"},
+	ignore_prefix = "Electric"
 }
 
 Debugger.DisplayGroups["Engines"] = {
@@ -91,6 +94,7 @@ Debugger.DisplayGroups["Engines"] = {
 	{"EnginesMoment24","%.2f",""},
 	
 	{"RheostatControllerPosition","%.2f","position"},
+	ignore_prefix = "Engines"
 }
 
 Debugger.DisplayGroups["DURA"] = {
@@ -102,7 +106,28 @@ Debugger.DisplayGroups["DURA"] = {
 	{"DURANextLightRed","%.0f","state"},
 	{"DURANextLightYellow","%.0f","state"},
 	{"DURADistanceToLight","%.1f","m"},
+	ignore_prefix = "DURA"
 }
+
+local function ProccessGroup(group)
+	local prefix = group.ignore_prefix
+	for k,v in pairs(group) do
+		if k ~= "ignore_prefix" and not v[4] then
+			if prefix then
+			
+			end
+		end
+	end
+end
+
+local function GetEntVar(entid,varname)
+	if not Debugger.EntNameMap[entid] then return end
+	if not Debugger.EntNameMap[entid][varname] then return end
+	if not Debugger.EntData[entid] then return end
+
+	return Debugger.EntData[entid][Debugger.EntNameMap[entid][varname]] 
+end
+
 
 --[[ --Unused, just reference for now
 local function PresentSelectionScreen(options)
@@ -154,6 +179,7 @@ net.Receive("metrostroi-debugger-dataupdate",function(len,ply)
 		Debugger.EntData[data[1]]=data[2]
 		Debugger.EntDataTime[data[1]]=CurTime()
 	end
+	--PrintTable(Debugger)
 end)
 
 
@@ -174,23 +200,25 @@ surface.CreateFont( "DebugBoxText", {
  outline = false
 } )
 
-local function getDisplayGroupWidth(displaygroup,entvars)
+local function getDisplayGroupWidth(displaygroup,entid)
 	local width = 0
 	for k,v in pairs(displaygroup) do
-		local v2 = string.format(v[2],tonumber(entvars[v[1]]) or 0)
-		width = width + 5 + math.max(
-			surface.GetTextSize(v[1]),
-			surface.GetTextSize(v2),
-			surface.GetTextSize(v[3])
-		)
+		if k ~= "ignore_prefix" then
+			local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
+			width = width + 5 + math.max(
+				surface.GetTextSize(v[1]),
+				surface.GetTextSize(v2),
+				surface.GetTextSize(v[3])
+			)
+		end
 	end
 	return width
 end
 
-local function drawBox(x,y,displaygroup,entvars)
+local function drawBox(x,y,displaygroup,entid)
 	local localx = 10
 	
-	local width = getDisplayGroupWidth(displaygroup,entvars)
+	local width = getDisplayGroupWidth(displaygroup,entid)
 	
 	
 	
@@ -205,24 +233,27 @@ local function drawBox(x,y,displaygroup,entvars)
 	
 	
 	for k,v in pairs(displaygroup) do
-		surface.SetTextPos(x+localx,y+5)
-		surface.DrawText(v[1])
-		
-		local v2 = string.format(v[2],tonumber(entvars[v[1]]) or 0)
-		surface.SetTextPos(x+localx,y+20)
-		surface.DrawText(v2)
-		
-		surface.SetTextPos(x+localx,y+35)
-		surface.DrawText(v[3])
-		
-		localx = localx + 5 + math.max(
-			surface.GetTextSize(v[1]),
-			surface.GetTextSize(v2),
-			surface.GetTextSize(v[3])
-		)
+		if k ~= "ignore_prefix" then
+			surface.SetTextPos(x+localx,y+5)
+			surface.DrawText(v[1])
+			
+			local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
+			surface.SetTextPos(x+localx,y+20)
+			surface.DrawText(v2)
+			
+			surface.SetTextPos(x+localx,y+35)
+			surface.DrawText(v[3])
+			
+			localx = localx + 5 + math.max(
+				surface.GetTextSize(v[1]),
+				surface.GetTextSize(v2),
+				surface.GetTextSize(v[3])
+			)
+		end
 	end
 
 end
+
 
 local function isTimedOut(id)
 	local timeout = GetConVarNumber("metrostroi_debugger_data_timeout")
@@ -243,7 +274,7 @@ hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 			--For every displaygroup
 			if not isTimedOut(id) then
 				for groupname,displayvars in pairs(Debugger.DisplayGroups) do
-					drawBox(25,localy,displayvars,vars)
+					drawBox(25,localy,displayvars,id)
 					
 					localy=localy+60
 				end
@@ -263,5 +294,17 @@ net.Receive("metrostroi-debugger-entremoved",function(len,ply)
 	local id = net.ReadInt(16)
 	if Debugger.EntData[id] then
 		RemoveEnt(id)
+	end
+end)
+
+net.Receive("metrostroi-debugger-entnamemap",function(len,ply)
+	local entid = net.ReadInt(16)
+	local entvars = net.ReadTable()
+	local index = 1
+	
+	Debugger.EntNameMap[entid] = {}
+	for k,v in pairs(entvars) do
+		Debugger.EntNameMap[entid][k] = index
+		index = index + 1
 	end
 end)
