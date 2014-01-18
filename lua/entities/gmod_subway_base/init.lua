@@ -191,6 +191,7 @@ function ENT:ResetTrainWires()
 		
 		if train.TrainWires == trainWires then
 			train.TrainWires = self.TrainWires
+			train.TrainWireWriters = self.TrainWireWriters
 		end
 		updateWires(train.FrontTrain,checked)
 		updateWires(train.RearTrain,checked)
@@ -210,8 +211,8 @@ function ENT:SetTrainWires(coupledTrain)
 		checked[train] = true
 		
 		if train.TrainWires ~= coupledTrain.TrainWires then
-			self.TrainWires = coupledTrain.TrainWires
-			self.TrainWireWriters = coupledTrain.TrainWireWriters
+			train.TrainWires = coupledTrain.TrainWires
+			train.TrainWireWriters = coupledTrain.TrainWireWriters
 		end
 		updateWires(train.FrontTrain,checked)
 		updateWires(train.RearTrain,checked)
@@ -225,13 +226,7 @@ end
 --------------------------------------------------------------------------------
 -- Coupling logic
 --------------------------------------------------------------------------------
-function ENT:OnCouple(train,isfront)
-	--print(self,"Coupled with ",train," at ",isfront)
-	if isfront 
-	then self.FrontTrain = train
-	else self.RearTrain = train
-	end
-	
+function ENT:UpdateIndexes()
 	local function updateIndexes(train,checked,newIndex)
 		if not train then return end
 		if checked[train] then return end
@@ -239,18 +234,30 @@ function ENT:OnCouple(train,isfront)
 		
 		train.TrainCoupledIndex = newIndex
 		
-		if train.FrontTrain and (train.FrontTrain.RearTrain == train) then
-			updateIndexes(train.FrontTrain,checked,newIndex)
-		else
+		if train.FrontTrain and (train.FrontTrain.FrontTrain == train) then
 			updateIndexes(train.FrontTrain,checked,1-newIndex)
-		end
-		if train.RearTrain and (train.RearTrain.FrontTrain == train) then
-			updateIndexes(train.RearTrain,checked,newIndex)
 		else
+			updateIndexes(train.FrontTrain,checked,newIndex)
+		end
+		if train.RearTrain and (train.RearTrain.RearTrain == train) then
 			updateIndexes(train.RearTrain,checked,1-newIndex)
+		else
+			updateIndexes(train.RearTrain,checked,newIndex)
 		end
 	end
-	updateIndexes(self,{},self.TrainCoupledIndex)
+	updateIndexes(self,{},0)
+end
+
+function ENT:OnCouple(train,isfront)
+	--print(self,"Coupled with ",train," at ",isfront)
+	if isfront 
+	then self.FrontTrain = train
+	else self.RearTrain = train
+	end
+
+	if ((train.FrontTrain == self) or (train.RearTrain == self)) then
+		self:UpdateIndexes()
+	end
 	
 	-- Update train wires
 	self:SetTrainWires(train)
@@ -263,6 +270,7 @@ function ENT:OnDecouple(isfront)
 	else self.RearTrain = nil
 	end
 	
+	self:UpdateIndexes()	
 	self:ResetTrainWires()
 end
 

@@ -32,7 +32,7 @@ if SERVER then
 	resource_AddDir("sound/subway_announcer")
 	
 	-- Add content for gm_metrostroi map beta
-	resource.AddWorkshop("198132871")
+	--resource.AddWorkshop("198132871")
 end
 
 

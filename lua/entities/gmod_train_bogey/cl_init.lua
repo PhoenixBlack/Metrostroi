@@ -69,15 +69,16 @@ function ENT:Think()
 	local dPdT = self:GetdPdT()
 	
 	-- Engine sound
-	if (motorPower > 0) and (speed > 0.1) and (speed < 1.0) then
-		self:SetSoundState("engine",0.2,0.2)
-	elseif (speed > 0.1) and (math.abs(motorPower) > 0.0) then
+	--if (motorPower > 0) and (speed > 1.0) and (speed < 1.0) then
+		--self:SetSoundState("engine",0.2,0.2)
+	--else
+	if (speed > 1.0) and (math.abs(motorPower) > 0.0) then
 		local startVolRamp = 0.2 + 0.8*math.max(0.0,math.min(1.0,(speed - 1.0)*0.5))
 		local powerVolRamp = math.max(0.3,math.min(1.0,math.abs(motorPower)))
 		
-		local k,x = 1.0,math.max(0,math.min(1,speed/80))
+		local k,x = 1.0,math.max(0,math.min(1,(speed-1.0)/80))
 		local motorPchRamp = (k*x^3 - k*x^2 + x)
-		local motorPitch = 0.2+1.7*motorPchRamp
+		local motorPitch = 0.01+1.7*motorPchRamp
 
 		--print(startVolRamp*powerVolRamp,motorPitch,speed)
 		self:SetSoundState("engine",startVolRamp*powerVolRamp,motorPitch)
