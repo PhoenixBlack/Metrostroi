@@ -64,7 +64,7 @@ Debugger.DisplayGroups["Pneumatic System"] = {
 	{"PneumaticTrainLinePressure",		"%.3f", "atm"},
 	{"PneumaticNo1State","%.0f","on/off"},
 	{"PneumaticNo2State","%.0f","on/off"},
-	ignore_prefix = {"Pneumatic"}
+	ignore_prefix = "Pneumatic"
 }
 
 Debugger.DisplayGroups["Electric System"] = {
@@ -118,13 +118,16 @@ Debugger.DisplayGroups["DURA"] = {
 local function ProccessGroup(group)
 	local prefix = group.ignore_prefix
 	for k,v in pairs(group) do
-		if k ~= "ignore_prefix" and not v[4] then
-			if prefix then
-			
-			end
+		if k ~= "ignore_prefix" and not v[4] and prefix then
+			v[4] = string.Right(v[1],string.len(v[1])-string.len(prefix))
 		end
 	end
 end
+
+for k,v in pairs(Debugger.DisplayGroups) do
+	ProccessGroup(v)
+end
+
 
 local function GetEntVar(entid,varname)
 	if not Debugger.EntNameMap[entid] then return end
@@ -212,7 +215,7 @@ local function getDisplayGroupWidth(displaygroup,entid)
 		if k ~= "ignore_prefix" then
 			local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
 			width = width + 5 + math.max(
-				surface.GetTextSize(v[1]),
+				surface.GetTextSize(v[4] or v[1]),
 				surface.GetTextSize(v2),
 				surface.GetTextSize(v[3])
 			)
@@ -241,7 +244,7 @@ local function drawBox(x,y,displaygroup,entid)
 	for k,v in pairs(displaygroup) do
 		if k ~= "ignore_prefix" then
 			surface.SetTextPos(x+localx,y+5)
-			surface.DrawText(v[1])
+			surface.DrawText(v[4] or v[1])
 			
 			local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
 			surface.SetTextPos(x+localx,y+20)
@@ -251,7 +254,7 @@ local function drawBox(x,y,displaygroup,entid)
 			surface.DrawText(v[3])
 			
 			localx = localx + 5 + math.max(
-				surface.GetTextSize(v[1]),
+				surface.GetTextSize(v[4] or v[1]),
 				surface.GetTextSize(v2),
 				surface.GetTextSize(v[3])
 			)
