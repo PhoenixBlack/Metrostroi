@@ -2,7 +2,8 @@ local Debugger = {}
 Debugger.Clients = {}
 
 util.AddNetworkString("metrostroi-debugger-dataupdate")
-
+util.AddNetworkString("metrostroi-debugger-entremoved")
+CreateConVar("metroistroi-debugger-updaterate",1,0,"Seconds between debugger data messages")
 
 --Add a new client to send an entities debugvars to
 local function AddClient(ply,ent)
@@ -10,6 +11,20 @@ local function AddClient(ply,ent)
 		Debugger.Clients[ply]={}
 	end
 	table.insert(Debugger.Clients[ply],ent)
+end
+
+local function RemoveEnt(ply,ent)
+	if ply and Debugger.Clients[ply] then
+		if ent then
+			table.RemoveByValue(Debugger.Clients[ply],ent)
+		else
+			Debugger.Clients[ply]=nil
+		end
+	else
+		for k,v in pairs(Debugger.Clients) do
+			table.RemoveByValue(v,ent)
+		end
+	end
 end
 
 --Handler for adding new ents to listen to
@@ -29,21 +44,14 @@ function Metrostroi.DebugTrain(train,ply)
 	AddClient(ply,train)
 end
 
+local nextthink = 0
 local function think()
-
-	
-
+	if CurTime() < nextthink then return end
+	nextthink = CurTime() + GetConVarNumber("metroistroi-debugger-updaterate")
 	--Loop over clients and their ents and send the collected data
 	
 	--For every player
 	for ply,entlist in pairs(Debugger.Clients) do
-	
-		--For every entity: Remove reference if invalid
-		for k,ent in pairs(entlist) do
-			if not IsValid(ent) then
-				table.RemoveByValue(entlist,ent)
-			end
-		end
 	
 		net.Start("metrostroi-debugger-dataupdate")
 			local count = table.Count(entlist)
@@ -56,3 +64,15 @@ local function think()
 	
 end
 hook.Add("Think","metrostroi-debugger-think",think)
+
+local function OnEntRemove(ent)
+	RemoveEnt(nil,ent)
+	
+	--Client doesn't get all removed ents, broadcast it manually to all
+	net.Start("metrostroi-debugger-entremoved")
+	net.WriteInt(ent:EntIndex(),16)
+	net.Broadcast()
+end
+
+hook.Add("EntityRemoved","metrostroi-debugger-cleanup",OnEntRemove)
+hook.Add("PlayerDisconnected","metrstroi-debugger-plycleanup",RemoveEnt)

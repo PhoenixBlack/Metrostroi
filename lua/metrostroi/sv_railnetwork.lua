@@ -962,7 +962,7 @@ concommand.Add("metrostroi_rerail",RerailConCMDHandler)
 
 Metrostroi.RerailBogey = function(bogey)
 	if timer.Exists("metrostroi_rerailer_solid_reset_"..bogey:EntIndex()) then return false end
-	local bogeyOffset = 36 
+	local bogeyOffset = 42
 	local trackData = getTrackDataBelowEnt(bogey)
 	if not trackData then return false end
 	
@@ -988,7 +988,7 @@ end
 
 --Rerails given train entity
 Metrostroi.RerailTrain = function(train)
-	local bogeyOffset = 36 --Z distance between bogey origin and top of track
+	local bogeyOffset = 42 --Z distance between bogey origin and top of track
 
 	--Safety checks
 	if not IsValid(train) or train.SubwayTrain == nil then return false end
@@ -1011,8 +1011,8 @@ Metrostroi.RerailTrain = function(train)
 	local ang = trackdata.forward:Angle()
 	
 	--Get the positions of the bogeys if we'd rerail the train now
-	local frontpos = LocalToWorld(train:WorldToLocal(train.FrontBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,95),ang)
-	local rearpos = LocalToWorld(train:WorldToLocal(train.RearBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,95),ang)
+	local frontpos = LocalToWorld(train:WorldToLocal(train.FrontBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,bogeyOffset),ang)
+	local rearpos = LocalToWorld(train:WorldToLocal(train.RearBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,bogeyOffset),ang)
 	
 	--Get thet track data at these locations
 	local tr = traceWorldOnly(frontpos,-trackdata.up*500)
