@@ -46,6 +46,12 @@ function ENT:Initialize()
 		
 		[KEY_A] = "DURASelectAlternate",
 		[KEY_D] = "DURASelectMain",
+		[KEY_LSHIFT] = {
+			[KEY_W] = "Shift W",
+			[KEY_A] = "Shift A",
+			[KEY_S] = "Shift S",
+			[KEY_D] = "Shift D"
+		}
 	}
 	
 	-- Lights
