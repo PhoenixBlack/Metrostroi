@@ -439,6 +439,10 @@ local function LinePlaneIntersect(PlanePos,PlaneNormal,LinePos,LineDir)
 	return LineDir * dis + LinePos
 end
 
+local function IsFacingPanel(ply,ang)
+	print(ply:GetEyeTrace().Normal:Dot(ang:Up()))
+	return ply:GetEyeTrace().Normal:Dot(ang:Up()) < 0
+end
 
 -- Checks if the player is driving a train, also returns said train
 local function isValidTrainDriver(ply)
@@ -494,15 +498,19 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 		
 		-- Loop trough every panel
 		for k2,panel in pairs(train.ButtonMap) do
-			local wpos = train:LocalToWorld(panel.pos)
 			local wang = train:LocalToWorldAngles(panel.ang)
-			
-			local isectPos = LinePlaneIntersect(wpos,wang:Up(),tr.StartPos,tr.Normal)
-			local localx,localy = WorldToScreen(isectPos,wpos,panel.scale,wang)
-			
-			panel.aimX = localx
-			panel.aimY = localy
-			panel.aimedAt = (localx > 0 and localx < panel.width and localy > 0 and localy < panel.height)
+			if IsFacingPanel(ply,wang) then
+				local wpos = train:LocalToWorld(panel.pos)
+				
+				local isectPos = LinePlaneIntersect(wpos,wang:Up(),tr.StartPos,tr.Normal)
+				local localx,localy = WorldToScreen(isectPos,wpos,panel.scale,wang)
+				
+				panel.aimX = localx
+				panel.aimY = localy
+				panel.aimedAt = (localx > 0 and localx < panel.width and localy > 0 and localy < panel.height)
+			else
+				panel.aimedAt = false
+			end
 		end
 		
 		-- Check if we should draw the crosshair
@@ -603,7 +611,10 @@ hook.Add( "HUDPaint", "metrostroi-draw-crosshair-tooltip", function()
 		end
 		
 		if toolTipText != nil then
-			surface.SetTextPos(scrX/2,scrY/2+10)
+			surface.SetFont("BudgetLabel")
+			local w = surface.GetTextSize(toolTipText)
+			surface.SetTextPos((scrX-w)/2,scrY/2+10)
+			surface.SetTextColor(255,255,255)
 			surface.DrawText(toolTipText)
 		end
 		
