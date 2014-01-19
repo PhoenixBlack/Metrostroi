@@ -6,6 +6,7 @@ Debugger.EntNameMap = {}
 
 CreateClientConVar("metrostroi_debugger_data_timeout",2,true,false)
 
+
 local Colors = {
 	{120,255,255},
 	{255,255,0},
@@ -18,107 +19,138 @@ local function advancecolor()
 end
 
 Debugger.DisplayGroups["Train"] = {
-	{"Speed","%.1f","km/h"},
-	{"Acceleration","%6.3f","m/s2"},
+	Data = {
+		{"Speed","%.1f","km/h"},
+		{"Acceleration","%6.3f","m/s2"},
+	}
 }
 
 Debugger.DisplayGroups["Power Relays"] = {
-	{"RRState","%.0f","on/off"},	
+	Data = {
+		{"RRState","%.0f","on/off"},	
 
-	{"LK1State","%.0f","on/off"},
-	{"LK2State","%.0f","on/off"},
-	{"LK3State","%.0f","on/off"},
-	{"LK4State","%.0f","on/off"},
-	
-	{"RPLState","%.0f","on/off"},
-	{"RP1_3State","%.0f","on/off"},
-	{"RP2_4State","%.0f","on/off"},
-	
-	{"RUTState","%.0f","on/off"},	
-	
-	{"TpState","%.0f","on/off"},
-	{"TpbState","%.0f","on/off"},
-	{"TbState","%.0f","on/off"},
-	{"TsState","%.0f","on/off"},
+		{"LK1State","%.0f","on/off"},
+		{"LK2State","%.0f","on/off"},
+		{"LK3State","%.0f","on/off"},
+		{"LK4State","%.0f","on/off"},
+		
+		{"RPLState","%.0f","on/off"},
+		{"RP1_3State","%.0f","on/off"},
+		{"RP2_4State","%.0f","on/off"},
+		
+		{"RUTState","%.0f","on/off"},	
+		
+		{"TpState","%.0f","on/off"},
+		{"TpbState","%.0f","on/off"},
+		{"TbState","%.0f","on/off"},
+		{"TsState","%.0f","on/off"},
+	}
 }
 
 Debugger.DisplayGroups["Controller"] = {
-	{"KVControllerPosition","%.0f","X/T"},
-	{"KVReverserPosition",  "%.0f","fwd/rev"},
-	{"TW1 X1", "%d", "level"},
-	{"TW2 X2", "%d", "level"},
-	{"TW3 X3", "%d", "level"},
-	
-	{"TW4 FWD", "%d", "level"},
-	{"TW5 BWD", "%d", "level"},
-	{"TW6 T", "%d", "level"},
-	
-	{"TW20 1S", "%d", "level"},	
+	Data = {
+		{"KVControllerPosition","%.0f","X/T"},
+		{"KVReverserPosition",  "%.0f","fwd/rev"},
+		{"TW1 X1", "%d", "level"},
+		{"TW2 X2", "%d", "level"},
+		{"TW3 X3", "%d", "level"},
+		
+		{"TW4 FWD", "%d", "level"},
+		{"TW5 BWD", "%d", "level"},
+		{"TW6 T", "%d", "level"},
+		
+		{"TW20 1S", "%d", "level"},
+	}
 }
 
 Debugger.DisplayGroups["Pneumatic System"] = {
-	{"PneumaticDriverValvePosition",	"%d", "position"},
-	{"PneumaticBrakeLinePressure",		"%.3f", "atm"},
-	{"PneumaticBrakeCylinderPressure",	"%.3f", "atm"},
-	{"PneumaticReservoirPressure",		"%.3f", "atm"},
-	{"PneumaticTrainLinePressure",		"%.3f", "atm"},
-	{"PneumaticNo1State","%.0f","on/off"},
-	{"PneumaticNo2State","%.0f","on/off"},
-	ignore_prefix = "Pneumatic"
+	Data = {
+		{"PneumaticDriverValvePosition",	"%d", "position"},
+		{"PneumaticBrakeLinePressure",		"%.3f", "atm"},
+		{"PneumaticBrakeCylinderPressure",	"%.3f", "atm"},
+		{"PneumaticReservoirPressure",		"%.3f", "atm"},
+		{"PneumaticTrainLinePressure",		"%.3f", "atm"},
+		{"PneumaticNo1State","%.0f","on/off"},
+		{"PneumaticNo2State","%.0f","on/off"},
+	},
+	
+	Settings = {
+		ignore_prefix = "Pneumatic"
+	}
 }
 
 Debugger.DisplayGroups["Electric System"] = {
-	{"ElectricVs","%.3f","V"},
-	{"ElectricU13","%.3f","V"},
-	{"ElectricU24","%.3f","V"},
-	{"ElectricVR1","%.3f","V"},
-	{"ElectricVR2","%.3f","V"},
-	{"ElectricI13","%.2f","A"},
-	{"ElectricI24","%.2f","A"},
-	{"ElectricItotal","%.2f","A"},
+	Data = {
+		{"ElectricVs","%.3f","V"},
+		{"ElectricU13","%.3f","V"},
+		{"ElectricU24","%.3f","V"},
+		{"ElectricVR1","%.3f","V"},
+		{"ElectricVR2","%.3f","V"},
+		{"ElectricI13","%.2f","A"},
+		{"ElectricI24","%.2f","A"},
+		{"ElectricItotal","%.2f","A"},
+		
+		{"ElectricRw13","%.3f","Ohm"},
+		{"ElectricRw24","%.3f","Ohm"},	
+		{"ElectricRs1","%.3g","Ohm"},
+		{"ElectricRs2","%.3g","Ohm"},
+		{"ElectricR1","%.3f","Ohm"},
+		{"ElectricR2","%.3f","Ohm"},
+	},
 	
-	{"ElectricRw13","%.3f","Ohm"},
-	{"ElectricRw24","%.3f","Ohm"},	
-	{"ElectricRs1","%.3g","Ohm"},
-	{"ElectricRs2","%.3g","Ohm"},
-	{"ElectricR1","%.3f","Ohm"},
-	{"ElectricR2","%.3f","Ohm"},
-	ignore_prefix = "Electric"
+	Settings = {
+		ignore_prefix = "Electric"
+	}
 }
 
 Debugger.DisplayGroups["Engines"] = {
-	{"EnginesMagneticFlux13","%.3f",""},
-	{"EnginesMagneticFlux24","%.3f",""},
-	{"EnginesE13","%.3f","V"},
-	{"EnginesE24","%.3f","V"},
-	{"EnginesRotationRate","%.1f","rpm"},
-	{"EnginesMoment13","%.2f",""},
-	{"EnginesMoment24","%.2f",""},
+	Data = {
+		{"EnginesMagneticFlux13","%.3f",""},
+		{"EnginesMagneticFlux24","%.3f",""},
+		{"EnginesE13","%.3f","V"},
+		{"EnginesE24","%.3f","V"},
+		{"EnginesRotationRate","%.1f","rpm"},
+		{"EnginesMoment13","%.2f",""},
+		{"EnginesMoment24","%.2f",""},
+		
+		{"EnginesIstator13","%.2f","A"},
+		{"EnginesIstator24","%.2f","A"},
+		{"EnginesIshunt13","%.2f","A"},
+		{"EnginesIshunt24","%.2f","A"},
+		{"RheostatControllerPosition","%.2f","position"},
+	},
 	
-	{"EnginesIstator13","%.2f","A"},
-	{"EnginesIstator24","%.2f","A"},
-	{"EnginesIshunt13","%.2f","A"},
-	{"EnginesIshunt24","%.2f","A"},
-	{"RheostatControllerPosition","%.2f","position"},
-	ignore_prefix = "Engines"
+	Settings = {
+		ignore_prefix = "Engines"
+	}
 }
 
 Debugger.DisplayGroups["DURA"] = {
-	{"DURASwitchBlocked","%.0f","state"},
-	{"DURASelectedAlternate","%.0f","state"},
-	{"DURASelectingAlternate","%.0f","state"},
-	{"DURASelectingMain","%.0f","state"},
+	Data = {
+		{"DURASwitchBlocked","%.0f","state"},
+		{"DURASelectedAlternate","%.0f","state"},
+		{"DURASelectingAlternate","%.0f","state"},
+		{"DURASelectingMain","%.0f","state"},
+		
+		{"DURANextLightRed","%.0f","state"},
+		{"DURANextLightYellow","%.0f","state"},
+		{"DURADistanceToLight","%.1f","m"},
+	},
 	
-	{"DURANextLightRed","%.0f","state"},
-	{"DURANextLightYellow","%.0f","state"},
-	{"DURADistanceToLight","%.1f","m"},
-	ignore_prefix = "DURA"
+	Settings = {
+		ignore_prefix = "DURA"
+	}
 }
 
 local function ProccessGroup(group)
-	local prefix = group.ignore_prefix
-	for k,v in pairs(group) do
-		if k ~= "ignore_prefix" and not v[4] and prefix then
+	if not group.Settings then
+		group.Settings = {}
+	end
+	group.Settings.Enabled = true
+	
+	local prefix = group.Settings.ignore_prefix
+	for k,v in pairs(group.Data) do
+		if not v[4] and prefix then
 			v[4] = string.Right(v[1],string.len(v[1])-string.len(prefix))
 		end
 	end
@@ -137,7 +169,45 @@ local function GetEntVar(entid,varname)
 	return Debugger.EntData[entid][Debugger.EntNameMap[entid][varname]] 
 end
 
+local function EnableGroup(group,bool)
+	group.Settings.Enabled = bool
+end
 
+
+
+local function OpenConfigWindow()
+	local Panel = vgui.Create("DFrame")
+	Panel:SetPos(surface.ScreenWidth()/5,surface.ScreenHeight()/3)
+	Panel:SetSize(250,250)
+	Panel:SetTitle("Metrostroi Debugger Config")
+	Panel:SetVisible(true)
+	Panel:SetDraggable(true)
+	Panel:ShowCloseButton(true)
+	
+	Panel:MakePopup()
+	
+	List = vgui.Create("DPanelList",Panel)
+	
+	List:SetPos(10,30)
+	List:SetSize(200,200)
+	List:SetSpacing(5)
+	List:EnableHorizontal(false)
+	List:EnableVerticalScrollbar(true)
+	
+	for k,v in pairs(Debugger.DisplayGroups) do
+		local Box = vgui.Create("DCheckBoxLabel")
+		Box:SetText(k)
+		if v.Settings.Enabled then
+			Box:SetValue(1)
+		else
+			Box:SetValue(0)
+		end -- TODO: Do this nicer somehow
+		Box:SizeToContents()
+		List:AddItem(Box)
+		Box.OnChange = function() EnableGroup(v,Box:GetChecked()) end
+	end
+end
+concommand.Add("metrostroi_debugger_config",OpenConfigWindow,nil,"Show debugger system selection window")
 --[[ --Unused, just reference for now
 local function PresentSelectionScreen(options)
 	local screen = vgui.Create("DFrame")
@@ -188,7 +258,6 @@ net.Receive("metrostroi-debugger-dataupdate",function(len,ply)
 		Debugger.EntData[data[1]]=data[2]
 		Debugger.EntDataTime[data[1]]=CurTime()
 	end
-	--PrintTable(Debugger)
 end)
 
 
@@ -211,15 +280,13 @@ surface.CreateFont( "DebugBoxText", {
 
 local function getDisplayGroupWidth(displaygroup,entid)
 	local width = 0
-	for k,v in pairs(displaygroup) do
-		if k ~= "ignore_prefix" then
-			local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
-			width = width + 5 + math.max(
-				surface.GetTextSize(v[4] or v[1]),
-				surface.GetTextSize(v2),
-				surface.GetTextSize(v[3])
-			)
-		end
+	for k,v in pairs(displaygroup.Data) do
+		local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
+		width = width + 5 + math.max(
+			surface.GetTextSize(v[4] or v[1]),
+			surface.GetTextSize(v2),
+			surface.GetTextSize(v[3])
+		)
 	end
 	return width
 end
@@ -241,24 +308,22 @@ local function drawBox(x,y,displaygroup,entid)
 	surface.SetAlphaMultiplier(1)
 	
 	
-	for k,v in pairs(displaygroup) do
-		if k ~= "ignore_prefix" then
-			surface.SetTextPos(x+localx,y+5)
-			surface.DrawText(v[4] or v[1])
-			
-			local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
-			surface.SetTextPos(x+localx,y+20)
-			surface.DrawText(v2)
-			
-			surface.SetTextPos(x+localx,y+35)
-			surface.DrawText(v[3])
-			
-			localx = localx + 5 + math.max(
-				surface.GetTextSize(v[4] or v[1]),
-				surface.GetTextSize(v2),
-				surface.GetTextSize(v[3])
-			)
-		end
+	for k,v in pairs(displaygroup.Data) do
+		surface.SetTextPos(x+localx,y+5)
+		surface.DrawText(v[4] or v[1])
+		
+		local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
+		surface.SetTextPos(x+localx,y+20)
+		surface.DrawText(v2)
+		
+		surface.SetTextPos(x+localx,y+35)
+		surface.DrawText(v[3])
+		
+		localx = localx + 5 + math.max(
+			surface.GetTextSize(v[4] or v[1]),
+			surface.GetTextSize(v2),
+			surface.GetTextSize(v[3])
+		)
 	end
 
 end
@@ -282,15 +347,18 @@ hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 			
 			--For every displaygroup
 			if not isTimedOut(id) then
-				for groupname,displayvars in pairs(Debugger.DisplayGroups) do
-					drawBox(25,localy,displayvars,id)
-					
-					localy=localy+60
+				for groupname,group in pairs(Debugger.DisplayGroups) do
+					if group.Settings.Enabled then
+						drawBox(25,localy,group,id)
+						
+						localy=localy+60
+					end
 				end
 				advancecolor()
 			end
 		end
 	end
+
 end)
 
 
@@ -312,7 +380,7 @@ net.Receive("metrostroi-debugger-entnamemap",function(len,ply)
 	local index = 1
 	
 	Debugger.EntNameMap[entid] = {}
-	for k,v in pairs(entvars) do
+	for k,v in SortedPairs(entvars) do
 		Debugger.EntNameMap[entid][k] = index
 		index = index + 1
 	end

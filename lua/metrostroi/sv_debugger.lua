@@ -10,9 +10,9 @@ CreateConVar("metrostroi_debugger_update_interval",1,FCVAR_ARCHIVE,"Seconds betw
 
 if game.SinglePlayer() then
 	RunConsoleCommand("metrostroi_debugger_update_interval",0)
-else
+end --[[else --Lets not reset it every time on dedicated servers
 	RunConsoleCommand("metrostroi_debugger_update_interval",0.5)
-end
+end--]]
 
 local function SendNameMap(ply,ent)
 	net.Start("metrostroi-debugger-entnamemap")
@@ -79,7 +79,7 @@ local function think()
 				local entvars = ent:GetDebugVars()
 				local newtable = {}
 				
-				for k,v in pairs(entvars) do 
+				for k,v in SortedPairs(entvars) do 
 					table.insert(newtable,v)
 				end
 				
