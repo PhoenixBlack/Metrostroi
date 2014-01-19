@@ -440,7 +440,6 @@ local function LinePlaneIntersect(PlanePos,PlaneNormal,LinePos,LineDir)
 end
 
 local function IsFacingPanel(ply,ang)
-	print(ply:GetEyeTrace().Normal:Dot(ang:Up()))
 	return ply:GetEyeTrace().Normal:Dot(ang:Up()) < 0
 end
 
