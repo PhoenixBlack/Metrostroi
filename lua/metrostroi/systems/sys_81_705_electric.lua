@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+﻿--------------------------------------------------------------------------------
 -- Электрические цепи 81-704/705 (Е, Еж, Ем)
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("81_705_Electric")
@@ -238,6 +238,9 @@ function TRAIN_SYSTEM:Think()
 	-- РУТ (реле управления тягой) operation
 	self.RUTCurrent = self.I13 + self.I24
 	self.RUTTarget = 260
+	if Train.Tb.Value == 1.0 then
+		self.RUTCurrent = self.RUTCurrent*0.70
+	end
 	if math.abs(self.RUTCurrent) < self.RUTTarget then
 		Train.RUT:TriggerInput("Close",1.0)
 	else
@@ -667,6 +670,11 @@ function TRAIN_SYSTEM:Solve_PowerNetwork(Train)
 	local R2  = self.Block2Resistance + 1e9*(1-Train.LK4.Value) + 1e9*(1-Train.RP2_4.Value)
 	local Rw  = (self.Rw13 + self.Rw24)/2 -- FIXME
 	local Rs  = 1e-9 + self.ExtraResistance
+	
+	--if Train.Tb.Value == 1.0 then
+		--R1 = 1.5*R1
+		--R2 = 1.5*R2
+	--end
 
 	-- Pre-calculate some things to speed it up
 	local Rw2 = Rw^2

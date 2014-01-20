@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+﻿--------------------------------------------------------------------------------
 -- Тяговый электродвигатель постоянного тока (ДК-117ДМ)
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("DK_117DM")
@@ -37,7 +37,7 @@ end
 
 function TRAIN_SYSTEM:Think(dT)
 	local Train = self.Train
-	local minimumFlux = 0.3 -- Подмагничивание при низких токах
+	local minimumFlux = 0.7 -- Подмагничивание при низких токах
 	
 	-- Calculate voltage on the stator coils and shunt
 	local U13 = Train.Electric.I13 * Train.Electric.Rs13
