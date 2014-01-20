@@ -856,6 +856,8 @@ local function resetSolids(enttable,train)
 	end
 end
 
+
+--TODO Make this way better
 local function findTrackHeight(pos,right,up)
 	local step = 1
 	local previousTrackValid = false
@@ -881,6 +883,7 @@ end
 --Only needs a rough forward vector, ent:GetAngles():Forward() suffices
 local function getTrackData(pos,forward)	
 	--Trace down
+	debugoverlay.Cross(pos,5,10,Color(255,0,255),true)
 	local tr = traceWorldOnly(pos,Vector(0,0,-100))
 	if !tr or !tr.Hit then return false end
 	
@@ -907,7 +910,7 @@ local function getTrackData(pos,forward)
 	local centerpos = findTrackHeight(floor,tr.HitNormal,updir)
 	
 	if !centerpos then return false end
-		
+
 	debugoverlay.Cross(centerpos,5,10,Color(255,0,0),true)
 	
 	local data = {
@@ -1005,15 +1008,21 @@ Metrostroi.RerailTrain = function(train)
 	local trackdata = getTrackData(tr.HitPos+tr.HitNormal*3,train:GetAngles():Forward()) 
 	if !trackdata then return false end
 	--]]
+	
 	local trackdata = getTrackDataBelowEnt(train)
 	if not trackdata then return false end
-	
 	local ang = trackdata.forward:Angle()
+
 	
 	--Get the positions of the bogeys if we'd rerail the train now
-	local frontpos = LocalToWorld(train:WorldToLocal(train.FrontBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,bogeyOffset),ang)
-	local rearpos = LocalToWorld(train:WorldToLocal(train.RearBogey:GetPos()),Angle(),trackdata.centerpos+Vector(0,0,bogeyOffset),ang)
+	local frontoffset=train:WorldToLocal(train.FrontBogey:GetPos())
+	frontoffset:Rotate(ang)
+	local frontpos = frontoffset+train:GetPos()
 	
+	local rearoffset = train:WorldToLocal(train.RearBogey:GetPos())
+	rearoffset:Rotate(ang)
+	local rearpos=rearoffset+train:GetPos()
+
 	--Get thet track data at these locations
 	local tr = traceWorldOnly(frontpos,-trackdata.up*500)
 	if !tr or !tr.Hit then return false end
