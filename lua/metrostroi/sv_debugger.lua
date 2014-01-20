@@ -1,16 +1,35 @@
 local Debugger = {}
 Debugger.Clients = {}
+Debugger.NameMap = {}
 
 util.AddNetworkString("metrostroi-debugger-dataupdate")
 util.AddNetworkString("metrostroi-debugger-entremoved")
-CreateConVar("metroistroi-debugger-updaterate",1,0,"Seconds between debugger data messages")
+util.AddNetworkString("metrostroi-debugger-entnamemap")
+
+CreateConVar("metrostroi_debugger_update_interval",1,FCVAR_ARCHIVE,"Seconds between debugger data messages")
+
+if game.SinglePlayer() then
+	RunConsoleCommand("metrostroi_debugger_update_interval",0)
+end --[[else --Lets not reset it every time on dedicated servers
+	RunConsoleCommand("metrostroi_debugger_update_interval",0.5)
+end--]]
+
+local function SendNameMap(ply,ent)
+	net.Start("metrostroi-debugger-entnamemap")
+	net.WriteInt(ent:EntIndex(),16)
+	net.WriteTable(ent:GetDebugVars())
+	net.Send(ply)
+end
 
 --Add a new client to send an entities debugvars to
 local function AddClient(ply,ent)
 	if not Debugger.Clients[ply] then
 		Debugger.Clients[ply]={}
 	end
+	if table.HasValue(Debugger.Clients[ply],ent) then return end
 	table.insert(Debugger.Clients[ply],ent)
+	
+	SendNameMap(ply,ent)
 end
 
 local function RemoveEnt(ply,ent)
@@ -47,7 +66,7 @@ end
 local nextthink = 0
 local function think()
 	if CurTime() < nextthink then return end
-	nextthink = CurTime() + GetConVarNumber("metroistroi-debugger-updaterate")
+	nextthink = CurTime() + GetConVarNumber("metrostroi_debugger_update_interval")
 	--Loop over clients and their ents and send the collected data
 	
 	--For every player
@@ -57,9 +76,14 @@ local function think()
 			local count = table.Count(entlist)
 			net.WriteInt(count,8)
 			for k,ent in pairs(entlist) do
-				if IsValid(ent) then
-					net.WriteTable({ent:EntIndex(),ent:GetDebugVars()})
+				local entvars = ent:GetDebugVars()
+				local newtable = {}
+				
+				for k,v in SortedPairs(entvars) do 
+					table.insert(newtable,v)
 				end
+				
+				net.WriteTable({ent:EntIndex(),newtable})
 			end
 		net.Send(ply)
 	end

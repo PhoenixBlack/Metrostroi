@@ -517,9 +517,132 @@ function ENT:PlayOnce(soundid,location,range,pitch)
 	end
 end
 
+--------------------------------------------------------------------------------
+-- Joystick input
+--------------------------------------------------------------------------------
+function ENT:HandleJoystickInput(ply)
+	for k,v in pairs(jcon.binds) do
+		if v:GetCategory() == "Metrostroi" then
+			local jvalue = Metrostroi.GetJoystickInput(ply,k)
+			if (jvalue != nil) and (self.JoystickBuffer[k] ~= jvalue) then
+				local inputname = Metrostroi.JoystickSystemMap[k]
+				self.JoystickBuffer[k] = jvalue
+				if inputname then
+					if type(jvalue) == "boolean" then
+						if jvalue then
+							jvalue = 1.0
+						else
+							jvalue = 0.0
+						end
+					end
+					self:TriggerInput(inputname,jvalue)
+				end
+			end
+		end
+	end
+end
+--------------------------------------------------------------------------------
+-- Keyboard input
+--------------------------------------------------------------------------------
 
+function ENT:IsModifier(key)
+	return type(self.KeyMap[key]) == "table"
+end
 
+function ENT:HasModifier(key)
+	return self.KeyMods[key] ~= nil
+end
 
+function ENT:GetActiveModifiers(key)
+	local tbl = {}
+	local mods = self.KeyMods[key]
+	for k,v in pairs(mods) do
+		if self.KeyBuffer[k] ~= nil then
+			table.insert(tbl,k)
+		end
+	end
+	return tbl
+end
+
+function ENT:OnKeyEvent(key,state)
+	if state then
+		self:OnKeyPress(key)
+	else
+		self:OnKeyRelease(key)
+	end
+	
+	
+	if self:HasModifier(key) then
+		--If we have a modifier
+		local actmods = self:GetActiveModifiers(key)
+		if #actmods > 0 then
+			--Modifier is being preseed
+			for k,v in pairs(actmods) do
+				if self.KeyMap[v][key] ~= nil then
+					self:ButtonEvent(self.KeyMap[v][key],state)
+				end
+			end
+		elseif self.KeyMap[key] ~= nil then
+			self:ButtonEvent(self.KeyMap[key],state)
+		end
+		
+	elseif self:IsModifier(key) and not state then
+		--Release modified keys
+		for k,v in pairs(self.KeyMap[key]) do
+			self:ButtonEvent(v,false)
+		end
+		
+	elseif self.KeyMap[key] ~= nil and type(self.KeyMap[key]) == "string" then
+		--If we're a regular binded key
+		self:ButtonEvent(self.KeyMap[key],state)
+	end
+end
+
+function ENT:OnKeyPress(key)
+
+end
+
+function ENT:OnKeyRelease(key)
+
+end
+
+function ENT:ProcessKeyMap()
+	self.KeyMods = {}
+
+	for mod,v in pairs(self.KeyMap) do
+		if type(v) == "table" then
+			for k,_ in pairs(v) do
+				if not self.KeyMods[k] then
+					self.KeyMods[k]={}
+				end
+				self.KeyMods[k][mod]=true
+			end
+		end
+	end
+end
+
+function ENT:HandleKeyboardInput(ply)
+	if not self.KeyMods and self.KeyMap then
+		self:ProcessKeyMap()
+	end
+	
+	-- Check for newly pressed keys
+	for k,v in pairs(ply.keystate) do
+		if self.KeyBuffer[k] == nil then
+			self.KeyBuffer[k] = true
+			self:OnKeyEvent(k,true)
+		end
+	end
+	
+	-- Check for newly released keys
+	for k,v in pairs(self.KeyBuffer) do
+		if ply.keystate[k] == nil then
+			self.KeyBuffer[k] = nil
+			self:OnKeyEvent(k,false)
+		end
+	end
+	
+end
 --------------------------------------------------------------------------------
 -- Process train logic
 --------------------------------------------------------------------------------
@@ -531,46 +654,19 @@ function ENT:Think()
 	
 	-- Handle player input
 	if IsValid(self.DriverSeat) then
-		local ply = self.DriverSeat:GetPassenger(0) 
-		if ply and IsValid(ply) then
 		
-			-- Keypresses
-			-- Check for newly pressed keys
-			for k,v in pairs(ply.keystate) do
-				if self.KeyBuffer[k] == nil then
-					self.KeyBuffer[k] = true
-					local button = self.KeyMap[k]
-					if button != nil then
-						self:ButtonEvent(button,true)
-					end
-				end
-			end
+		local ply = self.DriverSeat:GetPassenger(0) 
+		
+		if ply and IsValid(ply) then
 			
-			-- Check for newly released keys
-			for k,v in pairs(self.KeyBuffer) do
-				if ply.keystate[k] == nil then
-					self.KeyBuffer[k] = nil
-					local button = self.KeyMap[k]
-					if button != nil then
-						self:ButtonEvent(button,false)
-					end
-				end
+			if self.KeyMap then
+				self:HandleKeyboardInput(ply)
 			end
 			
 			-- Joystick
 			if joystick then
-				for k,v in pairs(jcon.binds) do
-					if v:GetCategory() == "Metrostroi" then
-						local jvalue = Metrostroi.GetJoystickInput(ply,k)
-						if (jvalue != nil) and (self.JoystickBuffer[k] ~= jvalue) then
-							local inputname = Metrostroi.JoystickSystemMap[k]
-							self.JoystickBuffer[k] = jvalue
-							if inputname then
-								self:TriggerInput(inputname,jvalue)
-							end
-						end
-					end
-				end
+				self:HandleJoystickInput(ply)
+				
 			end
 		end
 	end
@@ -676,7 +772,14 @@ function ENT:ClearKeyBuffer()
 	for k,v in pairs(self.KeyBuffer) do
 		local button = self.KeyMap[k]
 		if button ~= nil then
-			self:ButtonEvent(button,false)
+			if type(button) == "string" then
+				self:ButtonEvent(button,false)
+			else
+				--Check modifiers as well
+				for k2,v2 in pairs(button) do
+					self:ButtonEvent(v2,false)
+				end
+			end
 		end
 	end
 	self.KeyBuffer = {}
@@ -685,8 +788,8 @@ end
 -- Checks a button with the buffer and calls 
 -- OnButtonPress/Release as well as TriggerInput
 function ENT:ButtonEvent(button,state)
-	if self.ButtonBuffer[button] != state then
-		self.ButtonBuffer[button]=state
+	if self.ButtonBuffer[button] ~= state then
+		self.ButtonBuffer[button] = state
 		
 		if state then
 			self:OnButtonPress(button)
@@ -775,9 +878,20 @@ end
 local function JoystickRegister()
 	Metrostroi.RegisterJoystickInput("met_controller",true,"Controller",-3,3)
 	Metrostroi.RegisterJoystickInput("met_reverser",true,"Reverser",-1,1)
-	--"ControllerSet", "ReverserSet"
+	Metrostroi.RegisterJoystickInput("met_pneubrake",true,"Pneumatic Brake",1,5)
+	Metrostroi.RegisterJoystickInput("met_headlight",false,"Headlight Toggle")
+	
+--	Metrostroi.RegisterJoystickInput("met_reverserup",false,"Reverser Up")
+--	Metrostroi.RegisterJoystickInput("met_reverserdown",false,"Reverser Down")
+--	Will make this somewhat better later
+--	Uncommenting these somehow makes the joystick addon crap itself
+
 	Metrostroi.JoystickSystemMap["met_controller"] = "KVControllerSet"
 	Metrostroi.JoystickSystemMap["met_reverser"] = "KVReverserSet"
+	Metrostroi.JoystickSystemMap["met_pneubrake"] = "PneumaticBrakeSet"
+	Metrostroi.JoystickSystemMap["met_headlight"] = "HeadLightsToggle"
+--	Metrostroi.JoystickSystemMap["met_reverserup"] = "KVReverserUp"
+--	Metrostroi.JoystickSystemMap["met_reverserdown"] = "KVReverserDown"
 end
 
 hook.Add("JoystickInitialize","metroistroi_cabin",JoystickRegister)

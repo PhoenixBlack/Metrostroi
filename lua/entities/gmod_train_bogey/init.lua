@@ -170,12 +170,18 @@ local function IsValidBogey(ent)
 	ent:GetClass() == "gmod_train_bogey" 
 end
 
+local function AreInCoupleDistance(ent,self)
+	print(self:LocalToWorld(self.CouplingPointOffset):Distance(ent:LocalToWorld(ent.CouplingPointOffset)))
+	return self:LocalToWorld(self.CouplingPointOffset):Distance(ent:LocalToWorld(ent.CouplingPointOffset)) < 20
+end
+
 -- Used the couple with other bogeys
 function ENT:StartTouch(ent) 
 	if IsValidBogey(ent) and
 		self.CoupledBogey == nil and
 		ent.CoupledBogey == nil and
 		not AreCoupled(ent,self) and 
+		AreInCoupleDistance(ent,self) and
 		constraint.CanConstrain(self,0) and
 		constraint.CanConstrain(ent,0) then
 			Couple(self,ent)
