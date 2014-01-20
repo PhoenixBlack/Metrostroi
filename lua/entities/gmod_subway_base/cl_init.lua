@@ -225,10 +225,19 @@ function ENT:Draw()
 					surface.SetDrawColor(0,0,255)
 					surface.DrawOutlinedRect(0,0,panel.width,panel.height)
 					
+					if panel.aimX and panel.aimY then
+						surface.SetTextColor(255,255,255)
+						surface.SetFont("BudgetLabel")
+						surface.SetTextPos(panel.width/2,5)
+						surface.DrawText(string.format("%d %d",panel.aimX,panel.aimY))
+					end
+					
 					--surface.SetDrawColor(255,255,255)
 					--surface.DrawRect(0,0,panel.width,panel.height)
 					for kb,button in pairs(panel.buttons) do
-						if button.state then
+						if not button.ID then
+							surface.SetDrawColor(25,40,180)
+						elseif button.state then
 							surface.SetDrawColor(255,0,0)
 						else
 							surface.SetDrawColor(0,255,0)
@@ -543,6 +552,7 @@ end)
 
 -- Takes button table, sends current status
 local function sendButtonMessage(button)
+	if not button.ID then return end
 	net.Start("metrostroi-cabin-button")
 	net.WriteString(button.ID) 
 	net.WriteBit(button.state)
