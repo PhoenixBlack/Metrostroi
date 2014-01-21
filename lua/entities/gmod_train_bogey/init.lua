@@ -77,7 +77,7 @@ function ENT:InitializeWheels()
 
 		constraint.Weld(self,wheels,0,0,0,1,0)
 	end
-	wheels:SetOwner(self:GetOwner())
+	if CPPI then wheels:CPPISetOwner(self:CPPIGetOwner()) end
 	wheels:SetNWEntity("TrainBogey",self)
 	self.Wheels = wheels
 end

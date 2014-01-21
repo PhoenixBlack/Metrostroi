@@ -21,6 +21,9 @@ function ENT:Initialize()
 	-- Initialize train systems
 	self:InitializeSystems()
 	
+	if CPPI then
+		self:CPPISetOwner(self.Owner)
+	end
 
 	-- Initialize wire interface
 	if Wire_CreateInputs then
@@ -287,7 +290,9 @@ function ENT:CreateBogey(pos,ang,forward,type)
 	bogey:SetAngles(self:GetAngles() + ang)
 	bogey.BogeyType = type
 	bogey:Spawn()
-	bogey:SetOwner(self:GetOwner())
+
+	-- Assign ownership
+	if CPPI then bogey:CPPISetOwner(self:CPPIGetOwner()) end
 	
 	-- Some shared general information about the bogey
 	bogey:SetNWBool("IsForwardBogey", forward)
@@ -317,6 +322,9 @@ function ENT:CreateSeatEntity(seat_info)
 	seat:Spawn()
 	seat:GetPhysicsObject():SetMass(10)
 	seat:SetCollisionGroup(COLLISION_GROUP_WORLD)
+	
+	--Assign ownership
+	if CPPI then seat:CPPISetOwner(self:CPPIGetOwner()) end
 	
 	-- Hide the entity visually
 	--if seat_info.type ~= "instructor" then
@@ -741,10 +749,13 @@ function ENT:SpawnFunction(ply, tr)
 	end
 
 	local ent = ents.Create(self.ClassName)
+
 	ent:SetPos(pos)
 	ent:SetAngles(ang)
+	ent.Owner = ply
 	ent:Spawn()
 	ent:Activate()
+	
 	
 	if not inhibitrerail then Metrostroi.RerailTrain(ent) end
 	
