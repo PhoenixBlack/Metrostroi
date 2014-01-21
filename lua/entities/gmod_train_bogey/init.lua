@@ -106,6 +106,7 @@ end
 
 -- Checks if there's an advballsocket between two entities
 local function AreCoupled(ent1,ent2)
+	if ent1.CoupledBogey or ent2.CoupledBogey then return false end
 	local constrainttable = constraint.FindConstraints(ent1,"AdvBallsocket")
 	local coupled = false
 	for k,v in pairs(constrainttable) do
@@ -158,9 +159,6 @@ local function Couple(ent1,ent2)
 			ent2parent:OnCouple(ent1parent,ent2forward)
 		end
 		
-		
-	else
-		ErrorNoHalt("Error contraining 2 bogeys, please report")
 	end
 end
 
@@ -175,16 +173,26 @@ local function AreInCoupleDistance(ent,self)
 	return self:LocalToWorld(self.CouplingPointOffset):Distance(ent:LocalToWorld(ent.CouplingPointOffset)) < 20
 end
 
+
+local function AreFacingEachother(ent1,ent2)
+	return ent1:GetForward():Dot(ent2:GetForward()) < -0.95
+end
+
+local function CanCouple(ent1,ent2)
+	if not IsValidBogey(ent1) then return false end
+	if not IsValidBogey(ent2) then return false end
+	if AreCoupled(ent1,ent2) then return false end
+	if not AreInCoupleDistance(ent1,ent2) then return false end
+	if not AreFacingEachother(ent1,ent2) then return false end
+	if not constraint.CanConstrain(ent1,0) then return false end
+	if not constraint.CanConstrain(ent2,0) then return false end
+	return true 
+end
+
 -- Used the couple with other bogeys
 function ENT:StartTouch(ent) 
-	if IsValidBogey(ent) and
-		self.CoupledBogey == nil and
-		ent.CoupledBogey == nil and
-		not AreCoupled(ent,self) and 
-		AreInCoupleDistance(ent,self) and
-		constraint.CanConstrain(self,0) and
-		constraint.CanConstrain(ent,0) then
-			Couple(self,ent)
+	if CanCouple(self,ent) then
+		Couple(self,ent)
 	end
 end
 
@@ -320,7 +328,7 @@ function ENT:SpawnFunction(ply, tr)
 	local verticaloffset = 40 -- Offset for the train model, gmod seems to add z by default, nvm its you adding 170 :V
 	local distancecap = 2000 -- When to ignore hitpos and spawn at set distanace
 	local pos, ang = nil
-	local inhinitererail = false
+	local inhibitrerail = false
 	
 	if tr.Hit then
 		-- Setup trace to find out of this is a track
@@ -337,7 +345,6 @@ function ENT:SpawnFunction(ply, tr)
 			ang = tracedata.HitNormal
 			ang:Rotate(Angle(0,90,0))
 			ang = ang:Angle()
-			inhibitrerail = true
 			-- Bit ugly because Rotate() messes with the orthogonal vector | Orthogonal? I wrote "origional?!" :V
 		else
 			-- Regular spawn
@@ -363,7 +370,7 @@ function ENT:SpawnFunction(ply, tr)
 	ent:Spawn()
 	ent:Activate()
 	
-	if not inhibitrerail then Metrostroi.RerailBogey(ent) end
+	if not inhibitrerail then Metrostroi.RerailBogey(ent) print("rerailing") end
 	
 	return ent
 end
