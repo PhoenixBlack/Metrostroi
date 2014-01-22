@@ -159,7 +159,8 @@ function TRAIN_SYSTEM:Think()
 	if R > 0.5 then Train.RR:TriggerInput("Close",1.0) end
 	
 	-- Разбор
-	if (X < 0.5) and ((Train.LK3.Value == 1.0) or (Train.LK4.Value == 1.0)) then
+	if ((X < 0.5) and ((Train.LK3.Value == 1.0) or (Train.LK4.Value == 1.0))) or
+	   ((X > 0.5) and (T < 0.5) and (Train.Tb.Value == 1.0)) then
 		Train.LK2:TriggerInput("Open",1.0)
 		Train.KSH1:TriggerInput("Open",1.0)
 		Train.KSH2:TriggerInput("Open",1.0)
@@ -173,6 +174,7 @@ function TRAIN_SYSTEM:Think()
 		Train.Tb:TriggerInput("Open",1.0)
 		Train.Ts:TriggerInput("Open",1.0)
 	end
+	-- Time relay disables the extra relays
 	if (Train.RV2.Value == 1.0) then
 		Train.LK1:TriggerInput("Open",1.0)
 		Train.LK3:TriggerInput("Open",1.0)
@@ -184,7 +186,9 @@ function TRAIN_SYSTEM:Think()
 	if (T < 0.5) and (X > 0.5) then
 		Train.PneumaticNo1:TriggerInput("Open",1.0)
 		Train.PneumaticNo2:TriggerInput("Open",1.0)
-		
+	end
+	--if Train.Pneumatic.BrakeCylinderPressure > 0.5 then X1 = 0 X2 = 0 X3 = 0 X = 0 end
+	if (T < 0.5) and (X1 > 0.5) and (Train.RheostatController.Position < 1.5) then
 		Train.LK1:TriggerInput("Close",1.0)
 		Train.LK2:TriggerInput("Close",1.0)
 		Train.LK3:TriggerInput("Close",1.0)
@@ -193,16 +197,34 @@ function TRAIN_SYSTEM:Think()
 		Train.KSH2:TriggerInput("Close",1.0)
 
 		-- Сбор последовательной схемы
-		if ((Train.Tp.Value == 0.0) and (Train.Tpb.Value == 0.0)) or (X3 < 0.5) then
-			Train.Tp:TriggerInput("Open",1.0)
-			Train.Tpb:TriggerInput("Open",1.0)
-			Train.Tb:TriggerInput("Open",1.0)
-			Train.Ts:TriggerInput("Close",1.0)
-		end
+		Train.Tp:TriggerInput("Open",1.0)
+		Train.Tpb:TriggerInput("Open",1.0)
+		Train.Tb:TriggerInput("Open",1.0)
+		Train.Ts:TriggerInput("Close",1.0)
 	end
-	
-	-- Сбор паралельной схемы
-	if (Train.RheostatController.Position > 17.5) and (X3 > 0.5) and (T < 0.5) then
+	if (T < 0.5) and ((X2 > 0.5) or ((Train.Tp.Value == 0.0) and (X3 > 0.5))) and (Train.RheostatController.Position < 1.5) then
+		Train.LK1:TriggerInput("Close",1.0)
+		Train.LK2:TriggerInput("Close",1.0)
+		Train.LK3:TriggerInput("Close",1.0)
+		Train.LK4:TriggerInput("Close",1.0)
+		Train.KSH1:TriggerInput("Close",1.0)
+		Train.KSH2:TriggerInput("Close",1.0)
+
+		-- Сбор последовательной схемы
+		Train.Tp:TriggerInput("Open",1.0)
+		Train.Tpb:TriggerInput("Open",1.0)
+		Train.Tb:TriggerInput("Open",1.0)
+		Train.Ts:TriggerInput("Close",1.0)
+	end
+	if (T < 0.5) and (X3 > 0.5) and (Train.RheostatController.Position > 17.5) then
+		Train.LK1:TriggerInput("Close",1.0)
+		Train.LK2:TriggerInput("Close",1.0)
+		Train.LK3:TriggerInput("Close",1.0)
+		Train.LK4:TriggerInput("Close",1.0)
+		Train.KSH1:TriggerInput("Close",1.0)
+		Train.KSH2:TriggerInput("Close",1.0)
+
+		-- Сбор паралельной схемы
 		Train.Tp:TriggerInput("Close",1.0)
 		Train.Tpb:TriggerInput("Close",1.0)
 		Train.Tb:TriggerInput("Open",1.0)
@@ -239,7 +261,7 @@ function TRAIN_SYSTEM:Think()
 	self.RUTCurrent = self.I13 + self.I24
 	self.RUTTarget = 260
 	if Train.Tb.Value == 1.0 then
-		self.RUTCurrent = self.RUTCurrent*0.70
+		self.RUTCurrent = self.RUTCurrent*0.50
 	end
 	if math.abs(self.RUTCurrent) < self.RUTTarget then
 		Train.RUT:TriggerInput("Close",1.0)
@@ -248,15 +270,14 @@ function TRAIN_SYSTEM:Think()
 	end
 	
 	-- Rheostat controller operation
-	if Train.RUT.Value == 1.0 then
-		if (X < 0.5) then
-			Train.RheostatController:TriggerInput("Down",1.0)
-		elseif (X > 0.5) and (X1 < 0.5) then
+	if (Train.LK3.Value == 0.0) and (Train.LK4.Value == 0.0) then
+		Train.RheostatController:TriggerInput("Down",1.0)
+	elseif Train.RUT.Value == 1.0 then
+		if (X1 < 0.5) then
 			if (T < 0.5) then -- Drive
-				if Train.Tp.Value == 0.0 then
-					Train.RheostatController:TriggerInput("Up",1.0)
-				else
-					Train.RheostatController:TriggerInput("Down",1.0)
+				if Train.Tp.Value == 0.0 
+				then Train.RheostatController:TriggerInput("Up",1.0)
+				else Train.RheostatController:TriggerInput("Down",1.0)
 				end
 			else -- Brake
 				if (X3 > 0.5) then
@@ -271,11 +292,10 @@ function TRAIN_SYSTEM:Think()
 	if (X2 > 0.5) then
 		-- Вывод реостата
 		if (self.PreviousT1A ~= true) and (T > 0.5) and (X2 > 0.5) then
-			print("MOVE RHEOSTAT")
 			Train.RheostatController:TriggerInput("Up",1.0)
 		end
 	end
-	self.PreviousT1A = (T > 0.5) and (X2 > 0.5)
+	self.PreviousT1A = (T > 0.5) and ((X2 > 0.5) or (X3 > 0.5))
 	
 	--[[
 	-- Trigger close

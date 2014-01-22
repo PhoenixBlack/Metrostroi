@@ -62,8 +62,8 @@ function TRAIN_SYSTEM:Think(dT)
 	currentMagneticFlux13 = math.min(2.2,math.max(minimumFlux,currentMagneticFlux13))
 	currentMagneticFlux24 = math.min(2.2,math.max(minimumFlux,currentMagneticFlux24))
 	
-	self.MagneticFlux13 = self.MagneticFlux13 + 1.0 * (currentMagneticFlux13 - self.MagneticFlux13) * dT
-	self.MagneticFlux24 = self.MagneticFlux24 + 1.0 * (currentMagneticFlux24 - self.MagneticFlux24) * dT
+	self.MagneticFlux13 = self.MagneticFlux13 + 10.0 * (currentMagneticFlux13 - self.MagneticFlux13) * dT
+	self.MagneticFlux24 = self.MagneticFlux24 + 10.0 * (currentMagneticFlux24 - self.MagneticFlux24) * dT
 
 	-- Get rate of engine rotation
 	local currentRotationRate = 2200 * ((Train.FrontBogey.Speed + Train.RearBogey.Speed)/90) / 2
