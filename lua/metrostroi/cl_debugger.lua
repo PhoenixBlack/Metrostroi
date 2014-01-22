@@ -286,10 +286,11 @@ local function PresentSelectionScreen(options)
 end
 --]]
 
- --Uncomment me if you need to keep track of changes in ent:GetDebugVars returns
+ --[[ --Uncomment me if you need to keep track of changes in ent:GetDebugVars returns
 local lastcount 
 local lastcopy
 local tabledebug = true
+--]]
 
 --Receives the bulk nameless data
 net.Receive("metrostroi-debugger-dataupdate",function(len,ply)
