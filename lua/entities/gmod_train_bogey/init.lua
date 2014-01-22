@@ -43,6 +43,8 @@ function ENT:Initialize()
 	self.Acceleration = 0
 	self.PneumaticBrakeForce = 60000.0
 	
+	self.Variables = {}
+	
 	-- Pressure in brake cylinder
 	self.BrakeCylinderPressure = 0.0 -- atm
 	-- Speed at which pressure in cylinder changes
@@ -87,6 +89,10 @@ function ENT:OnRemove()
 	if self.CoupledBogey ~= nil then
 		self:Decouple()
 	end
+end
+
+function ENT:GetDebugVars()
+	return self.Variables
 end
 
 function ENT:TriggerInput(iname, value)
@@ -264,9 +270,12 @@ function ENT:Think()
 	if localSpeed < 0 then sign = -1 end
 	self.Speed = absSpeed
 	
+	self.Variables["Speed"]=self.Speed
+	
 	self.Acceleration = (self.Speed - (self.PrevSpeed or 0)) / self.DeltaTime
 	self.PrevSpeed = self.Speed
 
+	self.Variables["Acceleration"]=self.Acceleration
 
 	-- Final brake cylinder pressure
 	--self.BrakeCylinderPressure = math.max(0.0,4.5 - self.BrakeLinePressure)

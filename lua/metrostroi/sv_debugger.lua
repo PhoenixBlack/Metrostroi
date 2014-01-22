@@ -1,6 +1,7 @@
 local Debugger = {}
 Debugger.Clients = {}
 Debugger.NameMap = {}
+Debugger.EntVarCounts = {}
 
 util.AddNetworkString("metrostroi-debugger-dataupdate")
 util.AddNetworkString("metrostroi-debugger-entremoved")
@@ -18,7 +19,11 @@ local function SendNameMap(ply,ent)
 	net.Start("metrostroi-debugger-entnamemap")
 	net.WriteInt(ent:EntIndex(),16)
 	net.WriteTable(ent:GetDebugVars())
-	net.Send(ply)
+	if ply then
+		net.Send(ply)
+	else
+		net.Broadcast()
+	end
 end
 
 --Add a new client to send an entities debugvars to
@@ -29,7 +34,6 @@ local function AddClient(ply,ent)
 	if table.HasValue(Debugger.Clients[ply],ent) then return end
 	table.insert(Debugger.Clients[ply],ent)
 	
-	SendNameMap(ply,ent)
 end
 
 local function RemoveEnt(ply,ent)
@@ -69,9 +73,20 @@ local function think()
 	nextthink = CurTime() + GetConVarNumber("metrostroi_debugger_update_interval")
 	--Loop over clients and their ents and send the collected data
 	
-	--For every player
+	--Check for new entity variables
 	for ply,entlist in pairs(Debugger.Clients) do
+		for k,ent in pairs(entlist) do
+			local count = table.Count(ent:GetDebugVars())
+			if Debugger.EntVarCounts[ent] ~= count then
+				SendNameMap(nil,ent)
+				Debugger.EntVarCounts[ent] = count
+			end
+		end
+	end
 	
+	--Send the bulk, nameless data
+	for ply,entlist in pairs(Debugger.Clients) do
+		
 		net.Start("metrostroi-debugger-dataupdate")
 			local count = table.Count(entlist)
 			net.WriteInt(count,8)
