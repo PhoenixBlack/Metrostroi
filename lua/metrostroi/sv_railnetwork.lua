@@ -942,6 +942,14 @@ local function getTrackDataBelowEnt(ent)
 	return false 
 end
 
+local function PlayerCanRerail(ply,ent)
+	if CPPI then
+		return ent:CPPICanTool(ply,"metrostroi_rerailer")
+	else
+		return ply:IsAdmin() or (ent.Owner and ent.Owner == ply)
+	end
+end
+
 --ConCMD for rerailer
 local function RerailConCMDHandler(ply,cmd,args,fullstring)
 	local train = ply:GetEyeTrace().Entity
@@ -954,7 +962,8 @@ local function RerailConCMDHandler(ply,cmd,args,fullstring)
 		train = nwent
 	end
 	
-	if !(ply:IsAdmin() or (CPPI and train:CPPIGetOwner() == ply))then return end
+	if not PlayerCanRerail(ply,train) then return end
+	
 	if train:GetClass() == "gmod_train_bogey" then
 		Metrostroi.RerailBogey(train)
 	else

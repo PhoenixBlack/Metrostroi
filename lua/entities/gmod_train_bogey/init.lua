@@ -169,7 +169,6 @@ local function IsValidBogey(ent)
 end
 
 local function AreInCoupleDistance(ent,self)
-	print(self:LocalToWorld(self.CouplingPointOffset):Distance(ent:LocalToWorld(ent.CouplingPointOffset)))
 	return self:LocalToWorld(self.CouplingPointOffset):Distance(ent:LocalToWorld(ent.CouplingPointOffset)) < 20
 end
 
@@ -370,7 +369,7 @@ function ENT:SpawnFunction(ply, tr)
 	ent:Spawn()
 	ent:Activate()
 	
-	if not inhibitrerail then Metrostroi.RerailBogey(ent) print("rerailing") end
+	if not inhibitrerail then Metrostroi.RerailBogey(ent) end
 	
 	return ent
 end
