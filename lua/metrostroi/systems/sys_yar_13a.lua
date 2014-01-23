@@ -16,4 +16,5 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Реле ускорения, торможения (РУТ)
 	self.Train:LoadSystem("RUT","Relay")
+	self.Train:LoadSystem("Rper","Relay")
 end

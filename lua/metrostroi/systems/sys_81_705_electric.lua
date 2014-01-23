@@ -159,12 +159,16 @@ function TRAIN_SYSTEM:Think()
 	local P = Train.PositionSwitch.SelectedPosition
 	local RK = Train.RheostatController.SelectedPosition
 	local X1 = Train:ReadTrainWire(1)
-	local X2 = Train:ReadTrainWire(3)
-	local X3 = Train:ReadTrainWire(2)
+	local X2 = Train:ReadTrainWire(2)
+	local X3 = Train:ReadTrainWire(3)
 	local T = Train:ReadTrainWire(6)
 	local F = Train:ReadTrainWire(4)
 	local R = Train:ReadTrainWire(5)
 	local X = Train:ReadTrainWire(20)
+	local B2 = Train:ReadTrainWire(9) + Train:ReadTrainWire(10)
+	
+	-- FIXME make these relays
+	local SR1 = 0
 	
 	-- Train wire 4, 5
 	if (F > 0.5) and (Train.Reverser.Value == 1.0) then -- 4B
@@ -178,26 +182,86 @@ function TRAIN_SYSTEM:Think()
 	then _5B = F
 	else _5B = R
 	end
-	Train.LK4:TriggerInput("Set",_5B * Train.LK3.Value * Train.RPL.Value) -- 5D
-		
+	local _5D = _5B * Train.LK3.Value * Train.RPL.Value
+	Train.LK4:TriggerInput("Close",_5D)
+	
+	
 	-- Train wire 20
 	Train.LK2:TriggerInput("Set",X * Train.RPL.Value)
+	Train.RV2:TriggerInput("Close",(1.0 - X * Train.RPL.Value) * Train.LK2.Value)
+	
+	
+	-- Train wire 9, 10
+	local _10AV =  B2  * (1.0-Train.LK3.Value) * 
+						 (1.0-Train.LK4.Value) * b((RK >= 2) and (RK <= 18))
+	local _10E  =  B2  * (1.0-Train.LK3.Value) + Train.Rper.Value
+	local _10Yu = _10E * Train.LK3.Value * b(RK == 18) * b(P ~= 1)
+	local _10Ap = _10E * (1.0 - Train.LK1.Value)
+	local _10Ad = _10Ap * (Train.LK2.Value + b(P >= 3))
+	local _10Ag = _10Yu + 0.0*b(P ~= 3) + 1*b(P ~= 1)
+	--print(_10Ag)
 	
 	-- Train wire 1
-	--[[local _1T  =  X1  * b((P == 1) or (P == 2)) -- PS, PP
+	local _1T  =  X1  * b((P == 1) or (P == 2)) -- PS, PP
 	local _1P  = _1T  * b(true or true) -- RPU or NR
 	local _1G  = _1P  * Train.RPL.Value -- AVT, RP
 	
 	local _1E  = _1G  * b(RK == 1)
-	local _1Yu = _1E  * (b(true) + Train.KSH2.Value) -- KSB1 and KSB2
+	local _1Yu = _1E  * (b(false) + Train.KSH2.Value) -- KSB1 and KSB2
 	local _1L  = _1Yu * b((P == 1) or (P == 3)) -- PS, PT	
 	
 	local _1Zh = _1G * Train.LK3.Value + _1L * Train.LK2.Value
+	local _1K = _1Zh * b((P == 1) or (P == 2)) -- PP, PS
 	
-	Train.LK3:TriggerInput("Set", _1Zh)
-	Train.RR:TriggerInput("Set", _1Zh * b((P == 1) or (P == 3))) -- PS, PT1
-	Train.LK1:TriggerInput("Set",_1Zh * b((P == 1) or (P == 2))) -- PS, PP]]--
+	Train.LK3:TriggerInput("Close",_1Zh)
+	Train.LK1:TriggerInput("Close",_1K)
+	Train.RR:TriggerInput("Set", _1Zh * b((P == 1) or (P == 3)))
 	
+	local _1V =  X1 * b((P == 1) or (P == 2)) -- PP, PS
+	local _1M =  X1 * b(RK > 5) * b(P == 2)
+	local _1R = _1V + _1M
+	Train.KSH1:TriggerInput("Set",_1R)
+	Train.KSH2:TriggerInput("Set",_1R)
+	
+	
+	-- Train wire 2
+	local _2A  =  X2  * (b(true) + b(P ~= 3)) -- KSB1
+	local _2B  = _2A  * b((P == 1) or (P == 3)) -- PS, PT1
+	local _2V  = _2A  * b((P == 2) or (P == 4)) -- PP, PT2
+	local _2R  = _2V  * b((RK >= 2) and (RK <= 4)) * Train.KSH1.Value
+	local _2G  = _2B  * b((RK >= 1) and (RK <= 17)) + 
+	             _2V  * b((RK >= 5) and (RK <= 18))
+				 
+	local _2E  = _2G  * Train.LK4.Value + _10AV
+	SR1 = _2E
+	
+	
+	-- Train wire 3
+	Train.Rper:TriggerInput("Set",X3)
+
+	
+	----------------------------------------------------------------------------
+	-- РУТ (реле управления тягой) operation
+	self.RUTCurrent = self.I13 + self.I24
+	self.RUTTarget = 260
+	Train.RUT:TriggerInput("Set",(math.abs(self.RUTCurrent) > self.RUTTarget) and 1 or 0)
+	
+	----------------------------------------------------------------------------
+	-- Anchor of the rheostat controller
+	local SDRK = SR1 * (1.0 - Train.RUT.Value)
+	Train.RheostatController:TriggerInput("MotorState",SDRK * (-1.0 + 2.0*Train.RR.Value))
+	
+	
+	----------------------------------------------------------------------------
+	-- Time relay for LK1, LK3, LK4
+	if Train.RV2.Value == 1.0 then
+		Train.LK1:TriggerInput("Open",1.0)
+		Train.LK3:TriggerInput("Open",1.0)
+		Train.LK4:TriggerInput("Open",1.0)
+		Train.RV2:TriggerInput("Open",1.0)	
+	end
+	--Train.RV2:TriggerInput("Close",(1.0 - X1 - X2 - X3) * Train.LK2.Value)	
+		
 	-- Разбор
 	--[[if ((X < 0.5) and ((Train.LK3.Value == 1.0) or (Train.LK4.Value == 1.0))) or
 	   ((X > 0.5) and (T < 0.5) and (Train.Tb.Value == 1.0)) then
@@ -214,13 +278,7 @@ function TRAIN_SYSTEM:Think()
 		Train.Tb:TriggerInput("Open",1.0)
 		Train.Ts:TriggerInput("Open",1.0)
 	end
-	-- Time relay disables the extra relays
-	if (Train.RV2.Value == 1.0) then
-		Train.LK1:TriggerInput("Open",1.0)
-		Train.LK3:TriggerInput("Open",1.0)
-		Train.LK4:TriggerInput("Open",1.0)
-		Train.RV2:TriggerInput("Open",1.0)	
-	end
+
 	
 	-- Сбор на ход
 	if (T < 0.5) and (X > 0.5) then
@@ -358,13 +416,15 @@ end
 
 
 --------------------------------------------------------------------------------
-function TRAIN_SYSTEM:SolvePS()
+function TRAIN_SYSTEM:SolvePS(Train)
 	-- Calculate total resistance of the entire series circuit
 	local Rtotal = self.Ranchor13 + self.Ranchor24 + self.Rstator13 + self.Rstator24 +
 		self.R1 + self.R2 + self.R3
 		
+	--print(Rtotal)
+		
 	-- Calculate total current
-	self.Itotal = self.Power750V / Rtotal
+	self.Itotal = (self.Power750V - Train.Engines.E13 - Train.Engines.E24) / Rtotal
 	
 	-- Calculate current through engines 13, 24
 	self.I13 = self.Itotal
@@ -375,9 +435,9 @@ function TRAIN_SYSTEM:SolvePS()
 	self.Ustator24 = self.I24 * self.Rstator24	
 	
 	self.Ishunt13  = self.Ustator13 / self.Rs1
-	self.Istator13 = self.Ustator13 / self.Rstator13
+	self.Istator13 = self.Ustator13 / self.Ranchor13 -- FIXME: use stators own resistance
 	self.Ishunt24  = self.Ustator24 / self.Rs2
-	self.Istator24 = self.Ustator24 / self.Rstator24
+	self.Istator24 = self.Ustator24 / self.Ranchor24
 	
 	-- Calculate current through rheostats 1, 2
 	self.IR1 = self.Itotal

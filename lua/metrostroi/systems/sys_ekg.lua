@@ -52,7 +52,7 @@ end
 
 function TRAIN_SYSTEM:Think(dT)
 	local Train = self.Train
-	
+
 	-- Get currently selected position
 	local position = math.floor(self.Position+0.5)
 	if position < 1 then position = 1 end
@@ -74,7 +74,7 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	
 	-- Threshold for motor stopping
-	local threshold = 0.2 
+	local threshold = 0.3 
 	
 	-- Stop motor rotation
 	local delta = self.Position - math.floor(self.Position)
@@ -86,11 +86,11 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	-- Move motor
 	local rate = self.OverrideRate[position] or self.RotationRate
-	self.Position = self.Position + self.Moving * math.max(threshold*0.5,rate * dT)
+	self.Position = self.Position + self.Moving * math.min(threshold*0.5,rate * dT)
 	
 	-- Limit motor from moving too far
-	if self.Position > 18.4 then self.Position = 18.4 	self.MotorState = 0.0 end
-	if self.Position < 0.6  then self.Position = 0.6 	self.MotorState = 0.0 end
+	if self.Position > 18.4 then self.Position = 18.4 	self.MotorState = 0.0 self.Moving = 0.0 end
+	if self.Position < 0.6  then self.Position = 0.6 	self.MotorState = 0.0 self.Moving = 0.0 end
 
 	self:TriggerOutput("Position",self.Position)
 	self:TriggerOutput("MotorState",self.MotorState)

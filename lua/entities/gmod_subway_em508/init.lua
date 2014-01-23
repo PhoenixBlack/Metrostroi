@@ -107,7 +107,7 @@ function ENT:Think()
 	
 	-- Enable console
 	self:SetNWBool("Power",true)
-	self:SetNWBool("LxRK",self.RheostatController.Moving)
+	self:SetNWBool("LxRK",self.RheostatController.Moving ~= 0.0)
 	--self:SetNWBool("LST",self:ReadTrainWire(6) > 0.5)
 	self:SetNWBool("KVD",self:ReadTrainWire(20) > 0.5)
 	self:SetNWBool("HeadLights",self.HeadLights.Value == 1.0)

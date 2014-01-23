@@ -29,7 +29,15 @@ function TRAIN_SYSTEM:Initialize()
 	Metrostroi.BaseSystems["EKG"].Initialize(self)
 end
 
-TRAIN_SYSTEM.Inputs = Metrostroi.BaseSystems["EKG"].Inputs
-TRAIN_SYSTEM.Outputs = Metrostroi.BaseSystems["EKG"].Outputs
-TRAIN_SYSTEM.TriggerInput = Metrostroi.BaseSystems["EKG"].TriggerInput
-TRAIN_SYSTEM.Think = Metrostroi.BaseSystems["EKG"].Think
+function TRAIN_SYSTEM:Inputs(...)
+	return Metrostroi.BaseSystems["EKG"].Inputs(self,...)
+end
+function TRAIN_SYSTEM:Outputs(...)
+	return Metrostroi.BaseSystems["EKG"].Outputs(self,...)
+end
+function TRAIN_SYSTEM:TriggerInput(...)
+	return Metrostroi.BaseSystems["EKG"].TriggerInput(self,...)
+end
+function TRAIN_SYSTEM:Think(...)
+	return Metrostroi.BaseSystems["EKG"].Think(self,...)
+end

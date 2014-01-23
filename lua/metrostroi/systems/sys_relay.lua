@@ -107,7 +107,6 @@ function TRAIN_SYSTEM:Outputs()
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
-	print(self.Name,name,value)
 	if (name == "Close") and (value > 0.5) and (self.Value ~= 1.0) then
 		if (not self.ChangeTime) and (self.TargetValue ~= 1.0) then
 			self.ChangeTime = CurTime() + FailSim.Value(self,"CloseTime")
@@ -119,7 +118,7 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 		end
 		self.TargetValue = 0.0
 	elseif (name == "Set") and (self.Value ~= math.floor(value)) then
-		if math.floor(value) == 1.0 then
+		if value > 0.5 then
 			self:TriggerInput("Close",1.0)
 		else
 			self:TriggerInput("Open",1.0)

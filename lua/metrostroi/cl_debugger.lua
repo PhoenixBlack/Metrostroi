@@ -47,6 +47,8 @@ Debugger.DisplayGroups["Power Relays"] = {
 		{"LK2State","%.0f","on/off"},
 		{"LK3State","%.0f","on/off"},
 		{"LK4State","%.0f","on/off"},
+		{"KSH1State","%.0f","on/off"},
+		{"KSH2State","%.0f","on/off"},
 		
 		{"RPLState","%.0f","on/off"},
 		{"RP1_3State","%.0f","on/off"},
@@ -139,11 +141,7 @@ Debugger.DisplayGroups["Engines"] = {
 		{"EnginesRotationRate","%.1f","rpm"},
 		{"EnginesMoment13","%.2f",""},
 		{"EnginesMoment24","%.2f",""},
-		
-		{"EnginesIstator13","%.2f","A"},
-		{"EnginesIstator24","%.2f","A"},
-		{"EnginesIshunt13","%.2f","A"},
-		{"EnginesIshunt24","%.2f","A"},
+
 		{"RheostatControllerPosition","%.2f","position"},
 	},
 	
