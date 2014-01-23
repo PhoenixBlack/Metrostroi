@@ -10,31 +10,36 @@ function TRAIN_SYSTEM:Initialize()
 	self.Power750V = 0.0
 	self.Aux80V = 0.0
 	
-	-- Контакторы переключения
-	self.Train:LoadSystem("Tp","Relay",{ open_time = 0.10 })
-	self.Train:LoadSystem("Tpb","Relay",{ open_time = 0.10 })
-	self.Train:LoadSystem("Ts","Relay",{ close_time = 0.10 })
-	self.Train:LoadSystem("Tb","Relay",{ close_time = 0.10 })
-	
 	-- Resistances
-	self.Block1Resistance = 0.0
-	self.Block2Resistance = 0.0
-	self.Shunt1Resistance = 0.0
-	self.Shunt2Resistance = 0.0
+	self.R1 = 0.0
+	self.R2 = 0.0
+	self.R3 = 0.0
+	self.Rs1 = 0.0
+	self.Rs2 = 0.0
+	
+	-- Load resistor blocks
+	RESISTOR_BLOCKS = {}
+	include("metrostroi/systems/gen_resblocks.lua")
+	self.ResistorBlocks = RESISTOR_BLOCKS
+	RESISTOR_BLOCKS = nil
 	
 	-- Electric network info
-	self.Vs 	= 0.0
-	self.U13 	= 0.0
-	self.U24 	= 0.0
-	self.VR1 	= 0.0
-	self.VR2 	= 0.0
-	self.I13 	= 0.0
-	self.I24 	= 0.0
-	self.Itotal	= 0.0
-	self.Rs13	= 0.0
-	self.Rs24	= 0.0
-	self.Rw13	= 0.0
-	self.Rw24	= 0.0
+	self.Itotal = 0.0
+	self.I13 = 0.0
+	self.I24 = 0.0
+	self.Ustator13 = 0.0
+	self.Ustator24 = 0.0
+	self.Ishunt13  = 0.0
+	self.Istator13 = 0.0
+	self.Ishunt24  = 0.0
+	self.Istator24 = 0.0
+	
+	-- Calculate current through rheostats 1, 2
+	self.IR1 = self.Itotal
+	self.IR2 = self.Itotal
+	
+	-- Reverser
+	self.Train:LoadSystem("Reverser","Relay",{ contactor = true })
 end
 
 
@@ -43,7 +48,8 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { "Vs", "Rw13", "Rw24", "U13", "U24", "VR1", "VR2", "I13", "I24", "Itotal" }
+	return { "R1","R2","R3","Rs1","Rs2","Itotal","I13","I24",
+			 "Ustator13","Ustator24","Ishunt13","Istator13","Ishunt24","Istator24" }
 end
 
 
@@ -59,6 +65,7 @@ end
 
 
 --------------------------------------------------------------------------------
+local function b(x) return x and 1 or 0 end
 function TRAIN_SYSTEM:Think()
 	local Train = self.Train
 	
@@ -89,42 +96,53 @@ function TRAIN_SYSTEM:Think()
 	self.Power750V = self.Power750V * Train.RPL.Value
 	
 	-- Ослабление резистором Л1-Л2
-	self.ExtraResistance = (1-Train.LK2.Value) * Train.RheostatResistors["L4-L2"]
+	self.ExtraResistance = (1-Train.LK2.Value) * Train.KF_47A["L2-L4"]
 	
-	-- Вычисление сопротивления в резисторах реостатного контроллера (calculate rheostat resistances)
-	self:InitializeResistances(Train)
-	if (Train.Ts.Value == 1.0) or (Train.Tb.Value == 1.0)
-	then self:Solve_PS(Train)
-	else self:Solve_PP(Train)
+	-- Вычисление сопротивления в резисторах реостатного контроллера
+	self.ResistorBlocks.InitializeResistances_81_705(Train)
+	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
+		self.R1 = self.ResistorBlocks.R1C1(Train)
+		self.R2 = self.ResistorBlocks.R2C1(Train)
+		self.R3 = 0.0
+	elseif Train.PositionSwitch.SelectedPosition == 2 then -- PP
+		self.R1 = self.ResistorBlocks.R1C2(Train)
+		self.R2 = self.ResistorBlocks.R2C2(Train)
+		self.R3 = 0.0
+	elseif Train.PositionSwitch.SelectedPosition >= 3 then -- PT
+		self.R1 = self.ResistorBlocks.R1C1(Train)
+		self.R2 = self.ResistorBlocks.R2C1(Train)
+		self.R3 = self.ResistorBlocks.R3(Train)
 	end
-	
+	-- Apply LK3, LK4 contactors
+	self.R1 = self.R1 + 1e9*(1 - Train.LK3.Value)
+	self.R2 = self.R2 + 1e9*(1 - Train.LK4.Value)
+
 	-- Shunt resistance
-	self:Solve_Shunt(Train)
-	if Train.KSH1.Value == 0.0 then self.Shunt1Resistance = 1e9 end
-	if Train.KSH2.Value == 0.0 then self.Shunt2Resistance = 1e9 end
+	self.Rs1 = self.ResistorBlocks.S1(Train) + 1e9*(1 - Train.KSH1.Value)
+	self.Rs2 = self.ResistorBlocks.S2(Train) + 1e9*(1 - Train.KSH2.Value)
 	
 	-- Calculate total resistance of engines winding
-	local Rw2 = Train.Engines.Rw/2
-	self.Rs13	= (Rw2^-1 + self.Shunt1Resistance^-1)^-1
-	self.Rs24	= (Rw2^-1 + self.Shunt2Resistance^-1)^-1
-	self.Rw13	= Rw2 + self.Rs13
-	self.Rw24	= Rw2 + self.Rs24
-	self:TriggerOutput("Rw13",	self.Rw13)
-	self:TriggerOutput("Rw24",	self.Rw24)
+	local RwAnchor = Train.Engines.Rw/2
+	local RwStator = Train.Engines.Rw/2
+	-- Total resistance of the stator + shunt
+	self.Rstator13	= (RwStator^-1 + self.Rs1^-1)^-1
+	self.Rstator24	= (RwStator^-1 + self.Rs2^-1)^-1
+	-- Total resistance of entire motor
+	self.Ranchor13	= RwAnchor
+	self.Ranchor24	= RwAnchor
 	
 	-- Вычисление электросети (calculate electric power network)
-	local V = self:Solve_PowerNetwork(Train)
+	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
+		self:SolvePS(Train)
+	else
+	
+	end
 	
 	-- Output interesting variables
-	self.Vs 	= V[1] - V[2]
-	self.U13 	= V[2] - V[4]
-	self.U24 	= V[6] - V[8]
-	self.VR1 	= V[4] - V[5]
-	self.VR2 	= V[8] - V[0]
-	self.I13 	= (V[3] - V[4])/self.Rw13
-	self.I24 	= (V[7] - V[8])/self.Rw24
-	self.Itotal	= (V[1] - V[2])/(1e-9 + self.ExtraResistance)
-	self:TriggerOutput("Vs", 	self.Vs)
+	local outputs = self:Outputs()
+	for k,v in pairs(outputs) do
+		self:TriggerOutput(v,self[v])
+	end
 	self:TriggerOutput("U13",	self.U13)
 	self:TriggerOutput("U24",	self.U24)
 	self:TriggerOutput("VR1",	self.VR1)
@@ -133,19 +151,13 @@ function TRAIN_SYSTEM:Think()
 	self:TriggerOutput("I24",	self.I24)
 	self:TriggerOutput("Itotal",self.Itotal)
 	
-	self.Ut13 	= V[2] - V[5]
-	self.Ut24 	= V[6] - V[0]
-	
-	self:TriggerOutput("Rs1",self.Shunt1Resistance)
-	self:TriggerOutput("Rs2",self.Shunt2Resistance)
-	self:TriggerOutput("R1",self.Block1Resistance)
-	self:TriggerOutput("R2",self.Block2Resistance)
-	
 	
 	
 	
 	----------------------------------------------------------------------------
 	-- Комутация напряжения между поездными проводами и реле
+	local P = Train.PositionSwitch.SelectedPosition
+	local RK = Train.RheostatController.SelectedPosition
 	local X1 = Train:ReadTrainWire(1)
 	local X2 = Train:ReadTrainWire(3)
 	local X3 = Train:ReadTrainWire(2)
@@ -154,12 +166,40 @@ function TRAIN_SYSTEM:Think()
 	local R = Train:ReadTrainWire(5)
 	local X = Train:ReadTrainWire(20)
 	
-	-- Reverser
-	if F > 0.5 then Train.RR:TriggerInput("Open",1.0) end
-	if R > 0.5 then Train.RR:TriggerInput("Close",1.0) end
+	-- Train wire 4, 5
+	if (F > 0.5) and (Train.Reverser.Value == 1.0) then -- 4B
+		Train.Reverser:TriggerInput("Open",1.0)
+	end
+	if (R > 0.5) and (Train.Reverser.Value == 0.0) then -- 5B
+		Train.Reverser:TriggerInput("Close",1.0)
+	end
+	local _5B  = 0.0 -- 5B
+	if Train.Reverser.Value == 0.0 
+	then _5B = F
+	else _5B = R
+	end
+	Train.LK4:TriggerInput("Set",_5B * Train.LK3.Value * Train.RPL.Value) -- 5D
+		
+	-- Train wire 20
+	Train.LK2:TriggerInput("Set",X * Train.RPL.Value)
+	
+	-- Train wire 1
+	--[[local _1T  =  X1  * b((P == 1) or (P == 2)) -- PS, PP
+	local _1P  = _1T  * b(true or true) -- RPU or NR
+	local _1G  = _1P  * Train.RPL.Value -- AVT, RP
+	
+	local _1E  = _1G  * b(RK == 1)
+	local _1Yu = _1E  * (b(true) + Train.KSH2.Value) -- KSB1 and KSB2
+	local _1L  = _1Yu * b((P == 1) or (P == 3)) -- PS, PT	
+	
+	local _1Zh = _1G * Train.LK3.Value + _1L * Train.LK2.Value
+	
+	Train.LK3:TriggerInput("Set", _1Zh)
+	Train.RR:TriggerInput("Set", _1Zh * b((P == 1) or (P == 3))) -- PS, PT1
+	Train.LK1:TriggerInput("Set",_1Zh * b((P == 1) or (P == 2))) -- PS, PP]]--
 	
 	-- Разбор
-	if ((X < 0.5) and ((Train.LK3.Value == 1.0) or (Train.LK4.Value == 1.0))) or
+	--[[if ((X < 0.5) and ((Train.LK3.Value == 1.0) or (Train.LK4.Value == 1.0))) or
 	   ((X > 0.5) and (T < 0.5) and (Train.Tb.Value == 1.0)) then
 		Train.LK2:TriggerInput("Open",1.0)
 		Train.KSH1:TriggerInput("Open",1.0)
@@ -295,7 +335,7 @@ function TRAIN_SYSTEM:Think()
 			Train.RheostatController:TriggerInput("Up",1.0)
 		end
 	end
-	self.PreviousT1A = (T > 0.5) and ((X2 > 0.5) or (X3 > 0.5))
+	self.PreviousT1A = (T > 0.5) and ((X2 > 0.5) or (X3 > 0.5))]]--
 	
 	--[[
 	-- Trigger close
@@ -317,672 +357,40 @@ end
 
 
 
-
-
-
-
-
-
 --------------------------------------------------------------------------------
--- Temporary variables for rheostat controller and shunting resistor calculations
---------------------------------------------------------------------------------
-local R = {}
-local P14	
-local P13_12
-local P12_11
-local P11_10
-local P10_9 
-local P9_8 	
-local P8_7 	
-local P7_6 	
-local P6_5 	
-local P5_4 	
-local P4_3 	
-local P3_2 	
-local P2_1 	
-
-local P27	
-local P26_25
-local P25_24
-local P24_23
-local P23_22
-local P22_21
-local P21_20
-local P20_19
-local P19_18
-local P18_17
-local P17_16
-local P16_15
-
-local P28_29
-local P29_30
-local P30_31
-local P31_L26
-local P34_35
-local P35_36
-local P36_37
-local P37_L24
-
-
---------------------------------------------------------------------------------
--- Initialize all resistances
---------------------------------------------------------------------------------
-function TRAIN_SYSTEM:InitializeResistances(Train)
-	P14		= Train.RheostatResistors["R14"]
-	P13_12 	= Train.RheostatResistors["R13-R14"]
-	P12_11 	= Train.RheostatResistors["R12-R11"]
-	P11_10 	= Train.RheostatResistors["R10-R11"]
-	P10_9 	= Train.RheostatResistors["R10-R9"]
-	P9_8 	= Train.RheostatResistors["R9-R8"]
-	P8_7 	= Train.RheostatResistors["R8-R7"]
-	P7_6 	= Train.RheostatResistors["R6-R7"]
-	P6_5 	= Train.RheostatResistors["R4-R6"]/2
-	P5_4 	= Train.RheostatResistors["R4-R6"]/2
-	P4_3 	= Train.RheostatResistors["R3-R4"]
-	P3_2 	= Train.RheostatResistors["L8-R1"]
-	P2_1 	= Train.RheostatResistors["L8-R1"]
+function TRAIN_SYSTEM:SolvePS()
+	-- Calculate total resistance of the entire series circuit
+	local Rtotal = self.Ranchor13 + self.Ranchor24 + self.Rstator13 + self.Rstator24 +
+		self.R1 + self.R2 + self.R3
+		
+	-- Calculate total current
+	self.Itotal = self.Power750V / Rtotal
 	
-	P27		= Train.RheostatResistors["R27"]
-	P26_25 	= Train.RheostatResistors["R25-R26"]
-	P25_24 	= Train.RheostatResistors["R24-R25"]
-	P24_23 	= Train.RheostatResistors["R23-R24"]
-	P23_22	= Train.RheostatResistors["R22-R23"]
-	P22_21	= Train.RheostatResistors["R21-R22"]
-	P21_20	= Train.RheostatResistors["R20-R21"]
-	P20_19	= Train.RheostatResistors["R18-R20"]/3
-	P19_18	= Train.RheostatResistors["R18-R20"]/3
-	P18_17	= Train.RheostatResistors["R18-R20"]/3
-	P17_16	= Train.RheostatResistors["L12-R26"]
-	P16_15	= Train.RheostatResistors["L12-R26"]
+	-- Calculate current through engines 13, 24
+	self.I13 = self.Itotal
+	self.I24 = self.Itotal
 	
-	-- FIXME
-	P28_29  = 0.10
-	P29_30  = 0.50
-	P30_31  = 0.50
-	P31_L26 = 0.50
+	-- Calculate current through stator and shunt
+	self.Ustator13 = self.I13 * self.Rstator13
+	self.Ustator24 = self.I24 * self.Rstator24	
 	
-	P34_35	= 0.10
-	P35_36	= 0.50
-	P36_37	= 0.50
-	P37_L24 = 0.50
-end
-
-
---------------------------------------------------------------------------------
--- [MODEL] Engines connected in series
---------------------------------------------------------------------------------
-function TRAIN_SYSTEM:Solve_PS(Train)
-	-- Get rheostat controller positions
-	local RK = Train.RheostatController
+	self.Ishunt13  = self.Ustator13 / self.Rs1
+	self.Istator13 = self.Ustator13 / self.Rstator13
+	self.Ishunt24  = self.Ustator24 / self.Rs2
+	self.Istator24 = self.Ustator24 / self.Rstator24
 	
-	-- Calculate rheostat 1 resistance
-	R[1] = ((RK[3])*(1e-9)+(RK[3])*(RK[1])+(1e-9)*(RK[1]))/(RK[3])
-	R[2] = ((RK[3])*(1e-9)+(RK[3])*(RK[1])+(1e-9)*(RK[1]))/(1e-9)
-	R[3] = ((RK[3])*(1e-9)+(RK[3])*(RK[1])+(1e-9)*(RK[1]))/(RK[1])
-	R[4] = ((P3_2)^-1 + (R[1])^-1)^-1
-	R[5] = ((1e-9)*(P11_10)+(1e-9)*(P10_9)+(P11_10)*(P10_9))/(1e-9)
-	R[6] = ((1e-9)*(P11_10)+(1e-9)*(P10_9)+(P11_10)*(P10_9))/(P11_10)
-	R[7] = ((1e-9)*(P11_10)+(1e-9)*(P10_9)+(P11_10)*(P10_9))/(P10_9)
-	R[8] = ((1e-9)^-1 + (R[7])^-1)^-1
-	R[9] = ((R[4])*(P2_1)+(R[4])*(R[2])+(P2_1)*(R[2]))/(R[4])
-	R[10] = ((R[4])*(P2_1)+(R[4])*(R[2])+(P2_1)*(R[2]))/(P2_1)
-	R[11] = ((R[4])*(P2_1)+(R[4])*(R[2])+(P2_1)*(R[2]))/(R[2])
-	R[12] = ((R[10])^-1 + (R[3])^-1)^-1
-	R[13] = ((R[12])^-1 + (R[11]+R[9])^-1)^-1
-	R[14] = ((RK[5])^-1 + (R[13]+P5_4+P4_3)^-1)^-1
-	R[15] = ((RK[7])^-1 + (P6_5+R[14])^-1)^-1
-	R[16] = ((RK[9])^-1 + (P7_6+R[15])^-1)^-1
-	R[17] = ((RK[11])^-1 + (P8_7+R[16])^-1)^-1
-	R[18] = ((RK[13])^-1 + (P9_8+R[17])^-1)^-1
-	R[19] = ((R[6])*(R[5])+(R[6])*(R[18])+(R[5])*(R[18]))/(R[6])
-	R[20] = ((R[6])*(R[5])+(R[6])*(R[18])+(R[5])*(R[18]))/(R[5])
-	R[21] = ((R[6])*(R[5])+(R[6])*(R[18])+(R[5])*(R[18]))/(R[18])
-	R[22] = ((RK[15])^-1 + (R[20])^-1)^-1
-	R[23] = ((R[21])^-1 + (R[8])^-1)^-1
-	R[24] = ((RK[17])*(P13_12)+(RK[17])*(P12_11)+(P13_12)*(P12_11))/(RK[17])
-	R[25] = ((RK[17])*(P13_12)+(RK[17])*(P12_11)+(P13_12)*(P12_11))/(P13_12)
-	R[26] = ((RK[17])*(P13_12)+(RK[17])*(P12_11)+(P13_12)*(P12_11))/(P12_11)
-	R[27] = ((RK[19])^-1 + (R[26])^-1)^-1
-	R[28] = ((R[23])^-1 + (R[25])^-1)^-1
-	R[29] = ((R[22])*(R[27])+(R[22])*(R[28])+(R[27])*(R[28]))/(R[22])
-	R[30] = ((R[22])*(R[27])+(R[22])*(R[28])+(R[27])*(R[28]))/(R[27])
-	R[31] = ((R[22])*(R[27])+(R[22])*(R[28])+(R[27])*(R[28]))/(R[28])
-	R[32] = ((R[30])^-1 + (R[19])^-1)^-1
-	R[33] = ((R[29])^-1 + (R[24])^-1)^-1
-	R[34] = ((R[31])^-1 + (R[32]+R[33])^-1)^-1
-	local R1 = R[34]
+	-- Calculate current through rheostats 1, 2
+	self.IR1 = self.Itotal
+	self.IR2 = self.Itotal
 	
-	-- Calculate rheostat 2 resistance
-	R[1] = ((1e-9)^-1 + (P17_16+RK[2]+P16_15)^-1)^-1
-	R[2] = ((RK[5])^-1 + (P19_18+P18_17+RK[4]+R[1])^-1)^-1
-	R[3] = ((RK[8])^-1 + (P20_19+R[2])^-1)^-1
-	R[4] = ((RK[10])^-1 + (P21_20+R[3])^-1)^-1
-	R[5] = ((RK[12])^-1 + (P22_21+R[4])^-1)^-1
-	R[6] = ((RK[14])^-1 + (P23_22+R[5])^-1)^-1
-	R[7] = ((1e-9)*(R[6]+P24_23)+(1e-9)*(P25_24)+(R[6]+P24_23)*(P25_24))/(1e-9)
-	R[8] = ((1e-9)*(R[6]+P24_23)+(1e-9)*(P25_24)+(R[6]+P24_23)*(P25_24))/(R[6]+P24_23)
-	R[9] = ((1e-9)*(R[6]+P24_23)+(1e-9)*(P25_24)+(R[6]+P24_23)*(P25_24))/(P25_24)
-	R[10] = ((RK[16])^-1 + (R[9])^-1)^-1
-	R[11] = ((1e-9)^-1 + (R[8])^-1)^-1
-	R[12] = ((R[11])*(R[7])+(R[11])*(P26_25)+(R[7])*(P26_25))/(R[11])
-	R[13] = ((R[11])*(R[7])+(R[11])*(P26_25)+(R[7])*(P26_25))/(R[7])
-	R[14] = ((R[11])*(R[7])+(R[11])*(P26_25)+(R[7])*(P26_25))/(P26_25)
-	R[15] = ((RK[18])^-1 + (R[13])^-1)^-1
-	R[16] = ((R[10])^-1 + (R[14])^-1)^-1
-	R[17] = ((R[12])^-1 + (R[15]+R[16])^-1)^-1
-	local R2 = R[17]
 	
-	-- Store resistances of two blocks
-	self.Block1Resistance = R1
-	self.Block2Resistance = R2
-end
-
-
---------------------------------------------------------------------------------
--- [MODEL] Engines connected in parallel
---------------------------------------------------------------------------------
-function TRAIN_SYSTEM:Solve_PP(Train)
-	-- Get rheostat controller positions
-	local RK = Train.RheostatController
 	
-	-- Calculate rheostat 1 resistance
-	R[1] = ((RK[17])^-1 + (RK[19]+P13_12)^-1)^-1
-	R[2] = ((1e-9)^-1 + (P12_11+R[1])^-1)^-1
-	R[3] = ((RK[13])^-1 + (RK[15]+R[2]+P11_10+P10_9)^-1)^-1
-	R[4] = ((RK[11])^-1 + (R[3]+P9_8)^-1)^-1
-	R[5] = ((RK[9])^-1 + (R[4]+P8_7)^-1)^-1
-	R[6] = ((RK[7])^-1 + (R[5]+P7_6)^-1)^-1
-	R[7] = ((1e-9)*(P5_4)+(1e-9)*(P4_3)+(P5_4)*(P4_3))/(1e-9)
-	R[8] = ((1e-9)*(P5_4)+(1e-9)*(P4_3)+(P5_4)*(P4_3))/(P5_4)
-	R[9] = ((1e-9)*(P5_4)+(1e-9)*(P4_3)+(P5_4)*(P4_3))/(P4_3)
-	R[10] = ((R[9])^-1 + (1e-9)^-1)^-1
-	R[11] = ((RK[3])*(1e-9)+(RK[3])*(RK[1])+(1e-9)*(RK[1]))/(RK[3])
-	R[12] = ((RK[3])*(1e-9)+(RK[3])*(RK[1])+(1e-9)*(RK[1]))/(1e-9)
-	R[13] = ((RK[3])*(1e-9)+(RK[3])*(RK[1])+(1e-9)*(RK[1]))/(RK[1])
-	R[14] = ((R[11])^-1 + (P3_2)^-1)^-1
-	R[15] = ((R[6]+P6_5)*(R[7])+(R[6]+P6_5)*(R[10])+(R[7])*(R[10]))/(R[6]+P6_5)
-	R[16] = ((R[6]+P6_5)*(R[7])+(R[6]+P6_5)*(R[10])+(R[7])*(R[10]))/(R[7])
-	R[17] = ((R[6]+P6_5)*(R[7])+(R[6]+P6_5)*(R[10])+(R[7])*(R[10]))/(R[10])
-	R[18] = ((R[8])^-1 + (R[15])^-1)^-1
-	R[19] = ((R[13])^-1 + (R[17])^-1)^-1
-	R[20] = ((RK[5])^-1 + (R[16])^-1)^-1
-	R[21] = ((R[20]+R[18])^-1 + (R[19])^-1)^-1
-	R[22] = ((R[12])*(R[14])+(R[12])*(P2_1)+(R[14])*(P2_1))/(R[12])
-	R[23] = ((R[12])*(R[14])+(R[12])*(P2_1)+(R[14])*(P2_1))/(R[14])
-	R[24] = ((R[12])*(R[14])+(R[12])*(P2_1)+(R[14])*(P2_1))/(P2_1)
-	R[25] = ((R[24])^-1 + (R[21])^-1)^-1
-	R[26] = ((R[25])^-1 + (R[23]+R[22])^-1)^-1
-	local R1 = R[26]
-	
-	-- Calculate rheostat 2 resistance
-	R[1] = ((1e-9)^-1 + (P17_16+RK[2]+P16_15)^-1)^-1
-	R[2] = ((1e-9)^-1 + (RK[18]+P26_25)^-1)^-1
-	R[3] = ((RK[14])^-1 + (RK[16]+R[2]+P25_24+P24_23)^-1)^-1
-	R[4] = ((RK[12])^-1 + (R[3]+P23_22)^-1)^-1
-	R[5] = ((RK[10])^-1 + (R[4]+P22_21)^-1)^-1
-	R[6] = ((RK[8])^-1 + (R[5]+P21_20)^-1)^-1
-	R[7] = ((1e-9)*(P19_18)+(1e-9)*(P18_17)+(P19_18)*(P18_17))/(1e-9)
-	R[8] = ((1e-9)*(P19_18)+(1e-9)*(P18_17)+(P19_18)*(P18_17))/(P19_18)
-	R[9] = ((1e-9)*(P19_18)+(1e-9)*(P18_17)+(P19_18)*(P18_17))/(P18_17)
-	R[10] = ((1e-9)^-1 + (R[9])^-1)^-1
-	R[11] = ((RK[6])*(R[8])+(RK[6])*(R[10])+(R[8])*(R[10]))/(RK[6])
-	R[12] = ((RK[6])*(R[8])+(RK[6])*(R[10])+(R[8])*(R[10]))/(R[8])
-	R[13] = ((RK[6])*(R[8])+(RK[6])*(R[10])+(R[8])*(R[10]))/(R[10])
-	R[14] = ((R[6]+P20_19)^-1 + (R[12])^-1)^-1
-	R[15] = ((RK[4]+R[1])^-1 + (R[13])^-1)^-1
-	R[16] = ((R[7])^-1 + (R[11])^-1)^-1
-	R[17] = ((R[16]+R[14])^-1 + (R[15])^-1)^-1
-	local R2 = R[17]
-	
-	-- Store resistances of two blocks
-	self.Block1Resistance = R1
-	self.Block2Resistance = R2
-end
-
-
---------------------------------------------------------------------------------
--- [MODEL] Engines connected for braking
---------------------------------------------------------------------------------
-function TRAIN_SYSTEM:Solve_Brake(Train)
-	-- Get rheostat controller positions
-	local RK = Train.RheostatController
-	
-	-- Calculate rheostat 1 resistance
-	R[1] = ((RK[15])^-1 + (1e-9)^-1)^-1
-	R[2] = ((RK[17])^-1 + (RK[19]+P13_12)^-1)^-1
-	R[3] = ((1e-9)^-1 + (R[2]+P12_11)^-1)^-1
-	R[4] = ((RK[3])*(1e-9)+(RK[3])*(RK[1])+(1e-9)*(RK[1]))/(RK[3])
-	R[5] = ((RK[3])*(1e-9)+(RK[3])*(RK[1])+(1e-9)*(RK[1]))/(1e-9)
-	R[6] = ((RK[3])*(1e-9)+(RK[3])*(RK[1])+(1e-9)*(RK[1]))/(RK[1])
-	R[7] = ((P3_2)^-1 + (R[4])^-1)^-1
-	R[8] = ((R[5])*(1e-9+P2_1)+(R[5])*(R[7])+(1e-9+P2_1)*(R[7]))/(R[5])
-	R[9] = ((R[5])*(1e-9+P2_1)+(R[5])*(R[7])+(1e-9+P2_1)*(R[7]))/(1e-9+P2_1)
-	R[10] = ((R[5])*(1e-9+P2_1)+(R[5])*(R[7])+(1e-9+P2_1)*(R[7]))/(R[7])
-	R[11] = ((R[6])^-1 + (R[9])^-1)^-1
-	R[12] = ((R[11])*(P5_4+P4_3)+(R[11])*(R[8])+(P5_4+P4_3)*(R[8]))/(R[11])
-	R[13] = ((R[11])*(P5_4+P4_3)+(R[11])*(R[8])+(P5_4+P4_3)*(R[8]))/(P5_4+P4_3)
-	R[14] = ((R[11])*(P5_4+P4_3)+(R[11])*(R[8])+(P5_4+P4_3)*(R[8]))/(R[8])
-	R[15] = ((RK[5])^-1 + (R[14])^-1)^-1
-	R[16] = ((R[10])^-1 + (R[13])^-1)^-1
-	R[17] = ((RK[7])*(P7_6)+(RK[7])*(P6_5)+(P7_6)*(P6_5))/(RK[7])
-	R[18] = ((RK[7])*(P7_6)+(RK[7])*(P6_5)+(P7_6)*(P6_5))/(P7_6)
-	R[19] = ((RK[7])*(P7_6)+(RK[7])*(P6_5)+(P7_6)*(P6_5))/(P6_5)
-	R[20] = ((RK[9])^-1 + (R[19])^-1)^-1
-	R[21] = ((R[15])^-1 + (R[18])^-1)^-1
-	R[22] = ((P8_7)*(R[17])+(P8_7)*(R[20])+(R[17])*(R[20]))/(P8_7)
-	R[23] = ((P8_7)*(R[17])+(P8_7)*(R[20])+(R[17])*(R[20]))/(R[17])
-	R[24] = ((P8_7)*(R[17])+(P8_7)*(R[20])+(R[17])*(R[20]))/(R[20])
-	R[25] = ((RK[11])^-1 + (R[23])^-1)^-1
-	R[26] = ((R[21])^-1 + (R[22])^-1)^-1
-	R[27] = ((R[24])*(R[26])+(R[24])*(R[12])+(R[26])*(R[12]))/(R[24])
-	R[28] = ((R[24])*(R[26])+(R[24])*(R[12])+(R[26])*(R[12]))/(R[26])
-	R[29] = ((R[24])*(R[26])+(R[24])*(R[12])+(R[26])*(R[12]))/(R[12])
-	R[30] = ((R[25])^-1 + (R[29])^-1)^-1
-	R[31] = ((R[16])^-1 + (R[27])^-1)^-1
-	R[32] = ((P9_8)*(R[30])+(P9_8)*(R[28])+(R[30])*(R[28]))/(P9_8)
-	R[33] = ((P9_8)*(R[30])+(P9_8)*(R[28])+(R[30])*(R[28]))/(R[30])
-	R[34] = ((P9_8)*(R[30])+(P9_8)*(R[28])+(R[30])*(R[28]))/(R[28])
-	R[35] = ((RK[13])^-1 + (R[34])^-1)^-1
-	R[36] = ((R[32])^-1 + (R[31])^-1)^-1
-	R[37] = ((P11_10+P10_9)*(R[33])+(P11_10+P10_9)*(R[35])+(R[33])*(R[35]))/(P11_10+P10_9)
-	R[38] = ((P11_10+P10_9)*(R[33])+(P11_10+P10_9)*(R[35])+(R[33])*(R[35]))/(R[33])
-	R[39] = ((P11_10+P10_9)*(R[33])+(P11_10+P10_9)*(R[35])+(R[33])*(R[35]))/(R[35])
-	R[40] = ((R[39])^-1 + (P14)^-1)^-1
-	R[41] = ((R[38])^-1 + (R[1]+R[3])^-1)^-1
-	R[42] = ((R[37])^-1 + (R[36])^-1)^-1
-	R[43] = ((R[42])^-1 + (R[40]+R[41])^-1)^-1
-	local R1 = R[43]
-	
-	-- Calculate rheostat 2 resistance
-	R[1] = ((RK[16])^-1 + (1e-9)^-1)^-1
-	R[2] = ((1e-9)^-1 + (RK[18]+P26_25)^-1)^-1
-	R[3] = ((RK[14])*(P23_22)+(RK[14])*(P25_24+P24_23)+(P23_22)*(P25_24+P24_23))/(RK[14])
-	R[4] = ((RK[14])*(P23_22)+(RK[14])*(P25_24+P24_23)+(P23_22)*(P25_24+P24_23))/(P23_22)
-	R[5] = ((RK[14])*(P23_22)+(RK[14])*(P25_24+P24_23)+(P23_22)*(P25_24+P24_23))/(P25_24+P24_23)
-	R[6] = ((RK[12])^-1 + (R[5])^-1)^-1
-	R[7] = ((R[4])^-1 + (R[1]+R[2])^-1)^-1
-	R[8] = ((RK[4])*(1e-9)+(RK[4])*(RK[2]+P16_15)+(1e-9)*(RK[2]+P16_15))/(RK[4])
-	R[9] = ((RK[4])*(1e-9)+(RK[4])*(RK[2]+P16_15)+(1e-9)*(RK[2]+P16_15))/(1e-9)
-	R[10] = ((RK[4])*(1e-9)+(RK[4])*(RK[2]+P16_15)+(1e-9)*(RK[2]+P16_15))/(RK[2]+P16_15)
-	R[11] = ((R[8])^-1 + (P17_16)^-1)^-1
-	R[12] = ((P27)*(R[3])+(P27)*(R[7])+(R[3])*(R[7]))/(P27)
-	R[13] = ((P27)*(R[3])+(P27)*(R[7])+(R[3])*(R[7]))/(R[3])
-	R[14] = ((P27)*(R[3])+(P27)*(R[7])+(R[3])*(R[7]))/(R[7])
-	R[15] = ((R[12])^-1 + (R[6])^-1)^-1
-	R[16] = ((R[14])*(R[15])+(R[14])*(P22_21)+(R[15])*(P22_21))/(R[14])
-	R[17] = ((R[14])*(R[15])+(R[14])*(P22_21)+(R[15])*(P22_21))/(R[15])
-	R[18] = ((R[14])*(R[15])+(R[14])*(P22_21)+(R[15])*(P22_21))/(P22_21)
-	R[19] = ((RK[10])^-1 + (R[16])^-1)^-1
-	R[20] = ((R[18])^-1 + (R[13])^-1)^-1
-	R[21] = ((R[17])*(P21_20)+(R[17])*(R[19])+(P21_20)*(R[19]))/(R[17])
-	R[22] = ((R[17])*(P21_20)+(R[17])*(R[19])+(P21_20)*(R[19]))/(P21_20)
-	R[23] = ((R[17])*(P21_20)+(R[17])*(R[19])+(P21_20)*(R[19]))/(R[19])
-	R[24] = ((RK[8])^-1 + (R[21])^-1)^-1
-	R[25] = ((R[22])^-1 + (R[20])^-1)^-1
-	R[26] = ((R[9])*(R[11])+(R[9])*(RK[20])+(R[11])*(RK[20]))/(R[9])
-	R[27] = ((R[9])*(R[11])+(R[9])*(RK[20])+(R[11])*(RK[20]))/(R[11])
-	R[28] = ((R[9])*(R[11])+(R[9])*(RK[20])+(R[11])*(RK[20]))/(RK[20])
-	R[29] = ((R[25])^-1 + (R[27])^-1)^-1
-	R[30] = ((R[28])^-1 + (R[10])^-1)^-1
-	R[31] = ((R[30])*(R[26])+(R[30])*(P19_18+P18_17)+(R[26])*(P19_18+P18_17))/(R[30])
-	R[32] = ((R[30])*(R[26])+(R[30])*(P19_18+P18_17)+(R[26])*(P19_18+P18_17))/(R[26])
-	R[33] = ((R[30])*(R[26])+(R[30])*(P19_18+P18_17)+(R[26])*(P19_18+P18_17))/(P19_18+P18_17)
-	R[34] = ((R[29])^-1 + (R[33])^-1)^-1
-	R[35] = ((R[32])^-1 + (RK[5])^-1)^-1
-	R[36] = ((R[35])*(R[31])+(R[35])*(P20_19)+(R[31])*(P20_19))/(R[35])
-	R[37] = ((R[35])*(R[31])+(R[35])*(P20_19)+(R[31])*(P20_19))/(R[31])
-	R[38] = ((R[35])*(R[31])+(R[35])*(P20_19)+(R[31])*(P20_19))/(P20_19)
-	R[39] = ((R[24])^-1 + (R[37])^-1)^-1
-	R[40] = ((R[38])^-1 + (R[34])^-1)^-1
-	R[41] = ((R[36])^-1 + (R[23])^-1)^-1
-	R[42] = ((R[41]+R[39])^-1 + (R[40])^-1)^-1
-	local R2 = R[42]
-	
-	-- Store resistances of two blocks
-	self.Block1Resistance = R1
-	self.Block2Resistance = R2
-end
-
-
-
---------------------------------------------------------------------------------
--- Shunt resistances
---------------------------------------------------------------------------------
-function TRAIN_SYSTEM:Solve_Shunt(Train)
-	-- Get rheostat controller positions
-	local RK = Train.RheostatController
-	
-	-- Calculate rheostat 1 resistance
-	R[1] = ((P31_L26)^-1 + (RK[21])^-1)^-1
-	R[2] = ((RK[23])^-1 + (P30_31+R[1])^-1)^-1
-	R[3] = ((P29_30+R[2])^-1 + (RK[25])^-1)^-1
-	local R1 = P28_29+R[3]
-	
-	-- Calculate rheostat 2 resistance
-	local R = {}
-	R[1] = ((P31_L26)^-1 + (RK[22])^-1)^-1
-	R[2] = ((RK[24])^-1 + (P30_31+R[1])^-1)^-1
-	R[3] = ((P29_30+R[2])^-1 + (RK[26])^-1)^-1
-	local R2 = P28_29+R[3]
-	
-	-- Store resistances of two blocks
-	self.Shunt1Resistance = R1
-	self.Shunt2Resistance = R2
-end
-
-
-
-
-
---------------------------------------------------------------------------------
--- [MODEL] Model of the power circuits of E-type trains
---------------------------------------------------------------------------------
-local V = {}
-function TRAIN_SYSTEM:Solve_PowerNetwork(Train)
-	local U13 = -Train.Engines.E13
-	local U24 = -Train.Engines.E24
-	local Vp  = self.Power750V
-	local Tp  = 1e-9 + 1e9*(1 - Train.Tp.Value)
-	local Tpb = 1e-9 + 1e9*(1 - Train.Tpb.Value)
-	local Tb  = 1e-9 + 1e9 --*(1 - Train.Tb.Value)
-	local Ts  = 1e-9 + 1e9*(1 - Train.Ts.Value)
-	local R1  = self.Block1Resistance + 1e9*(1-Train.LK3.Value) + 1e9*(1-Train.RP1_3.Value)
-	local R2  = self.Block2Resistance + 1e9*(1-Train.LK4.Value) + 1e9*(1-Train.RP2_4.Value)
-	local Rw  = (self.Rw13 + self.Rw24)/2 -- FIXME
-	local Rs  = 1e-9 + self.ExtraResistance
-	
-	--if Train.Tb.Value == 1.0 then
-		--R1 = 1.5*R1
-		--R2 = 1.5*R2
-	--end
-
-	-- Pre-calculate some things to speed it up
-	local Rw2 = Rw^2
-	local TpTpb = Tp * Tpb
-	local TbTpb = Tb * Tpb
-	local TpTs = Tp * Ts
-	local TbTs = Tb * Ts
-	local R1R2 = R1 * R2
-	local RsRw2 = Rs * Rw2
-	local RsRw = Rs * Rw
-
-	-- Calculate potentials in the power network
-	V[0] = 0
-	V[1] = Vp
-	V[2] = -((R1R2*Rs*Tp*U13 + R1*RsRw*Tp*U13 + R2*RsRw*Tp*U13 + R2*Rs*Tb*Tp*U13 + 
-				RsRw*Tb*Tp*U13 + R1*RsRw*Tpb*U13 + R1*Rs*TpTpb*U13 + 
-				RsRw*TpTpb*U13 + Rs*Tb*TpTpb*U13 + R1*RsRw*Ts*U13 + R2*RsRw*Ts*U13 + 
-				R2*Rs*TbTs*U13 + RsRw*TbTs*U13 + R1*Rs*TpTs*U13 + R2*Rs*TpTs*U13 + 
-				Rs*Tb*TpTs*U13 + RsRw*Tpb*Ts*U13 + Rs*TpTpb*Ts*U13 - R1R2*Rs*Tp*U24 + 
-				R1*RsRw*Tpb*U24 + R1*Rs*TbTpb*U24 + RsRw*TbTpb*U24 + 
-				Rs*Tb*TpTpb*U24 + R1*RsRw*Ts*U24 + R2*RsRw*Ts*U24 + R1*Rs*TbTs*U24 + 
-				RsRw*TbTs*U24 + RsRw*Tpb*Ts*U24 + Rs*TbTpb*Ts*U24 - 
-				2*R1R2*Rw*Tp*Vp - R1*Rw2*Tp*Vp - R2*Rw2*Tp*Vp - 
-				R1R2*Tb*Tp*Vp - R1*Rw*Tb*Tp*Vp - R2*Rw*Tb*Tp*Vp - Rw2*Tb*Tp*Vp - 
-				2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - R2*Rw2*Tpb*Vp - 
-				R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - R2*Rw*TbTpb*Vp - 
-				Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - R1*Rw*TpTpb*Vp - 
-				R2*Rw*TpTpb*Vp - Rw2*TpTpb*Vp - R1*Tb*TpTpb*Vp - 
-				R2*Tb*TpTpb*Vp - 2*Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - 
-				R1*Rw2*Ts*Vp - R2*Rw2*Ts*Vp - R1R2*TbTs*Vp - 
-				R1*Rw*TbTs*Vp - R2*Rw*TbTs*Vp - Rw2*TbTs*Vp - R1R2*TpTs*Vp - 
-				R1*Rw*TpTs*Vp - R2*Rw*TpTs*Vp - R1*Tb*TpTs*Vp - Rw*Tb*TpTs*Vp - 
-				2*R2*Rw*Tpb*Ts*Vp - Rw2*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
-				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp - Rw*TpTpb*Ts*Vp - Tb*TpTpb*Ts*Vp)/
-			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
-				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
-				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
-				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
-				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
-				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
-				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
-				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
-				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
-				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
-				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
-				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
-				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
-				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
-				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
-				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
-				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
-				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
-				
-	V[3] = -((-2*R1R2*RsRw*U13 - R1*RsRw2*U13 - R2*RsRw2*U13 - 
-				R1R2*Rs*Tb*U13 - R1*RsRw*Tb*U13 - R2*RsRw*Tb*U13 - 
-				RsRw2*Tb*U13 - 2*R1R2*Rw*Tp*U13 - R1*Rw2*Tp*U13 - 
-				R2*Rw2*Tp*U13 - R1R2*Tb*Tp*U13 - R1*Rw*Tb*Tp*U13 - 
-				R2*Rw*Tb*Tp*U13 - Rw2*Tb*Tp*U13 - 2*R1R2*Rw*Tpb*U13 - 
-				R1*RsRw*Tpb*U13 - R1*Rw2*Tpb*U13 - R2*Rw2*Tpb*U13 - 
-				RsRw2*Tpb*U13 - R1R2*TbTpb*U13 - R1*Rs*TbTpb*U13 - 
-				R1*Rw*TbTpb*U13 - R2*Rw*TbTpb*U13 - RsRw*TbTpb*U13 - 
-				Rw2*TbTpb*U13 - R1R2*TpTpb*U13 - R1*Rw*TpTpb*U13 - 
-				R2*Rw*TpTpb*U13 - Rw2*TpTpb*U13 - R1*Tb*TpTpb*U13 - 
-				R2*Tb*TpTpb*U13 - 2*Rw*Tb*TpTpb*U13 - 2*R1R2*Rw*Ts*U13 - 
-				R1*RsRw*Ts*U13 - R2*RsRw*Ts*U13 - R1*Rw2*Ts*U13 - 
-				R2*Rw2*Ts*U13 - R1R2*TbTs*U13 - R1*Rs*TbTs*U13 - 
-				R1*Rw*TbTs*U13 - R2*Rw*TbTs*U13 - RsRw*TbTs*U13 - 
-				Rw2*TbTs*U13 - R1R2*TpTs*U13 - R1*Rw*TpTs*U13 - 
-				R2*Rw*TpTs*U13 - R1*Tb*TpTs*U13 - Rw*Tb*TpTs*U13 - 
-				2*R2*Rw*Tpb*Ts*U13 - RsRw*Tpb*Ts*U13 - Rw2*Tpb*Ts*U13 - 
-				R2*TbTpb*Ts*U13 - Rs*TbTpb*Ts*U13 - Rw*TbTpb*Ts*U13 - 
-				R2*TpTpb*Ts*U13 - Rw*TpTpb*Ts*U13 - Tb*TpTpb*Ts*U13 - 
-				R1R2*Rs*Tp*U24 + R1*RsRw*Tpb*U24 + R1*Rs*TbTpb*U24 + 
-				RsRw*TbTpb*U24 + Rs*Tb*TpTpb*U24 + R1*RsRw*Ts*U24 + R2*RsRw*Ts*U24 + 
-				R1*Rs*TbTs*U24 + RsRw*TbTs*U24 + RsRw*Tpb*Ts*U24 + Rs*TbTpb*Ts*U24 - 
-				2*R1R2*Rw*Tp*Vp - R1*Rw2*Tp*Vp - R2*Rw2*Tp*Vp - 
-				R1R2*Tb*Tp*Vp - R1*Rw*Tb*Tp*Vp - R2*Rw*Tb*Tp*Vp - Rw2*Tb*Tp*Vp - 
-				2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - R2*Rw2*Tpb*Vp - 
-				R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - R2*Rw*TbTpb*Vp - 
-				Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - R1*Rw*TpTpb*Vp - 
-				R2*Rw*TpTpb*Vp - Rw2*TpTpb*Vp - R1*Tb*TpTpb*Vp - 
-				R2*Tb*TpTpb*Vp - 2*Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - 
-				R1*Rw2*Ts*Vp - R2*Rw2*Ts*Vp - R1R2*TbTs*Vp - 
-				R1*Rw*TbTs*Vp - R2*Rw*TbTs*Vp - Rw2*TbTs*Vp - R1R2*TpTs*Vp - 
-				R1*Rw*TpTs*Vp - R2*Rw*TpTs*Vp - R1*Tb*TpTs*Vp - Rw*Tb*TpTs*Vp - 
-				2*R2*Rw*Tpb*Ts*Vp - Rw2*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
-				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp - Rw*TpTpb*Ts*Vp - Tb*TpTpb*Ts*Vp)/
-			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
-				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
-				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
-				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
-				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
-				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
-				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
-				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
-				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
-				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
-				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
-				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
-				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
-				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
-				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
-				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
-				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
-				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
-				
-	V[4] = -((-(R1R2*RsRw*U13) - R1R2*Rs*Tb*U13 - R1*RsRw*Tb*U13 - 
-				R1R2*Rw*Tp*U13 - R1R2*Tb*Tp*U13 - R1*Rw*Tb*Tp*U13 - R1R2*Rw*Tpb*U13 - 
-				R1R2*TbTpb*U13 - R1*Rs*TbTpb*U13 - R1*Rw*TbTpb*U13 - 
-				R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - R1*Tb*TpTpb*U13 - 
-				R2*Tb*TpTpb*U13 - Rw*Tb*TpTpb*U13 - R1R2*Rw*Ts*U13 - R1R2*TbTs*U13 - 
-				R1*Rs*TbTs*U13 - R1*Rw*TbTs*U13 - R1R2*TpTs*U13 - R1*Tb*TpTs*U13 - 
-				R2*Rw*Tpb*Ts*U13 - R2*TbTpb*Ts*U13 - Rs*TbTpb*Ts*U13 - 
-				Rw*TbTpb*Ts*U13 - R2*TpTpb*Ts*U13 - Tb*TpTpb*Ts*U13 - 
-				R1R2*RsRw*U24 - R1R2*Rs*Tp*U24 - R1R2*Rw*Tp*U24 - R1R2*Rw*Tpb*U24 + 
-				R1*Rs*TbTpb*U24 + RsRw*TbTpb*U24 + Rs*Tb*TpTpb*U24 + 
-				Rw*Tb*TpTpb*U24 - R1R2*Rw*Ts*U24 + R1*Rs*TbTs*U24 - R2*Rw*Tpb*Ts*U24 + 
-				Rs*TbTpb*Ts*U24 - R1R2*Rw*Tp*Vp - R1R2*Tb*Tp*Vp - R1*Rw*Tb*Tp*Vp - 
-				2*R1R2*Rw*Tpb*Vp - R2*Rw2*Tpb*Vp - R1R2*TbTpb*Vp - 
-				R1*Rw*TbTpb*Vp - R2*Rw*TbTpb*Vp - Rw2*TbTpb*Vp - 
-				R1R2*TpTpb*Vp - R2*Rw*TpTpb*Vp - R1*Tb*TpTpb*Vp - R2*Tb*TpTpb*Vp - 
-				Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - R1R2*TbTs*Vp - R1*Rw*TbTs*Vp - 
-				R1R2*TpTs*Vp - R1*Tb*TpTs*Vp - 2*R2*Rw*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
-				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp - Tb*TpTpb*Ts*Vp)/
-			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
-				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
-				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
-				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
-				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
-				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
-				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
-				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
-				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
-				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
-				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
-				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
-				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
-				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
-				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
-				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
-				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
-				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
-				
-	V[5] = -((R1*RsRw*Tpb*U13 - R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - 
-				R2*Tb*TpTpb*U13 - Rw*Tb*TpTpb*U13 - R2*Rw*Tpb*Ts*U13 - 
-				R2*TbTpb*Ts*U13 - Rs*TbTpb*Ts*U13 - Rw*TbTpb*Ts*U13 - 
-				R2*TpTpb*Ts*U13 - Tb*TpTpb*Ts*U13 + R1*RsRw*Tpb*U24 + 
-				R1*Rs*TbTpb*U24 + RsRw*TbTpb*U24 + R1R2*TpTpb*U24 + 
-				R1*Rs*TpTpb*U24 + R1*Rw*TpTpb*U24 + R1*Tb*TpTpb*U24 + 
-				Rs*Tb*TpTpb*U24 + Rw*Tb*TpTpb*U24 - R2*Rw*Tpb*Ts*U24 + 
-				Rs*TbTpb*Ts*U24 - 2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - 
-				R2*Rw2*Tpb*Vp - R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - 
-				R2*Rw*TbTpb*Vp - Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - 
-				R2*Rw*TpTpb*Vp - R2*Tb*TpTpb*Vp - Rw*Tb*TpTpb*Vp - 2*R2*Rw*Tpb*Ts*Vp - 
-				R2*TbTpb*Ts*Vp - Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp - Tb*TpTpb*Ts*Vp)/
-			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
-				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
-				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
-				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
-				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
-				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
-				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
-				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
-				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
-				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
-				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
-				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
-				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
-				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
-				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
-				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
-				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
-				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
-				
-	V[6] = -((R1*RsRw*Tpb*U13 - R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - 
-				R2*Tb*TpTpb*U13 - Rw*Tb*TpTpb*U13 + R1*RsRw*Ts*U13 + R2*RsRw*Ts*U13 + 
-				R2*Rs*TbTs*U13 + RsRw*TbTs*U13 - R1R2*TpTs*U13 + RsRw*Tpb*Ts*U13 - 
-				R2*TpTpb*Ts*U13 + R1*RsRw*Tpb*U24 + R1*Rs*TbTpb*U24 + 
-				RsRw*TbTpb*U24 + R1R2*TpTpb*U24 + R1*Rs*TpTpb*U24 + 
-				R1*Rw*TpTpb*U24 + R1*Tb*TpTpb*U24 + Rs*Tb*TpTpb*U24 + 
-				Rw*Tb*TpTpb*U24 + R1*RsRw*Ts*U24 + R2*RsRw*Ts*U24 + R1*Rs*TbTs*U24 + 
-				RsRw*TbTs*U24 + R1R2*TpTs*U24 + R1*Rs*TpTs*U24 + R2*Rs*TpTs*U24 + 
-				R1*Rw*TpTs*U24 + R2*Rw*TpTs*U24 + R1*Tb*TpTs*U24 + Rs*Tb*TpTs*U24 + 
-				Rw*Tb*TpTs*U24 + RsRw*Tpb*Ts*U24 + Rs*TbTpb*Ts*U24 + 
-				R2*TpTpb*Ts*U24 + Rs*TpTpb*Ts*U24 + Rw*TpTpb*Ts*U24 + 
-				Tb*TpTpb*Ts*U24 - 2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - 
-				R2*Rw2*Tpb*Vp - R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - 
-				R2*Rw*TbTpb*Vp - Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - 
-				R2*Rw*TpTpb*Vp - R2*Tb*TpTpb*Vp - Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - 
-				R1*Rw2*Ts*Vp - R2*Rw2*Ts*Vp - R1R2*TbTs*Vp - 
-				R1*Rw*TbTs*Vp - R2*Rw*TbTs*Vp - Rw2*TbTs*Vp - R1R2*TpTs*Vp - 
-				2*R2*Rw*Tpb*Ts*Vp - Rw2*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
-				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp)/
-			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
-				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
-				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
-				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
-				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
-				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
-				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
-				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
-				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
-				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
-				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
-				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
-				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
-				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
-				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
-				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
-				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
-				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
-				
-	V[7] = -((R1*RsRw*Tpb*U13 - R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - 
-				R2*Tb*TpTpb*U13 - Rw*Tb*TpTpb*U13 + R1*RsRw*Ts*U13 + R2*RsRw*Ts*U13 + 
-				R2*Rs*TbTs*U13 + RsRw*TbTs*U13 - R1R2*TpTs*U13 + RsRw*Tpb*Ts*U13 - 
-				R2*TpTpb*Ts*U13 - 2*R1R2*RsRw*U24 - R1*RsRw2*U24 - 
-				R2*RsRw2*U24 - R1R2*Rs*Tb*U24 - R1*RsRw*Tb*U24 - 
-				R2*RsRw*Tb*U24 - RsRw2*Tb*U24 - R1R2*Rs*Tp*U24 - 
-				2*R1R2*Rw*Tp*U24 - R1*RsRw*Tp*U24 - R2*RsRw*Tp*U24 - 
-				R1*Rw2*Tp*U24 - R2*Rw2*Tp*U24 - R1R2*Tb*Tp*U24 - 
-				R2*Rs*Tb*Tp*U24 - R1*Rw*Tb*Tp*U24 - R2*Rw*Tb*Tp*U24 - RsRw*Tb*Tp*U24 - 
-				Rw2*Tb*Tp*U24 - 2*R1R2*Rw*Tpb*U24 - R1*RsRw*Tpb*U24 - 
-				R1*Rw2*Tpb*U24 - R2*Rw2*Tpb*U24 - 
-				RsRw2*Tpb*U24 - R1R2*TbTpb*U24 - R1*Rw*TbTpb*U24 - 
-				R2*Rw*TbTpb*U24 - Rw2*TbTpb*U24 - R2*Rw*TpTpb*U24 - 
-				RsRw*TpTpb*U24 - Rw2*TpTpb*U24 - R2*Tb*TpTpb*U24 - 
-				Rw*Tb*TpTpb*U24 - 2*R1R2*Rw*Ts*U24 - R1*RsRw*Ts*U24 - 
-				R2*RsRw*Ts*U24 - R1*Rw2*Ts*U24 - R2*Rw2*Ts*U24 - 
-				R1R2*TbTs*U24 - R2*Rs*TbTs*U24 - R1*Rw*TbTs*U24 - R2*Rw*TbTs*U24 - 
-				RsRw*TbTs*U24 - Rw2*TbTs*U24 - 2*R2*Rw*Tpb*Ts*U24 - 
-				RsRw*Tpb*Ts*U24 - Rw2*Tpb*Ts*U24 - R2*TbTpb*Ts*U24 - 
-				Rw*TbTpb*Ts*U24 - 2*R1R2*Rw*Tpb*Vp - R1*Rw2*Tpb*Vp - 
-				R2*Rw2*Tpb*Vp - R1R2*TbTpb*Vp - R1*Rw*TbTpb*Vp - 
-				R2*Rw*TbTpb*Vp - Rw2*TbTpb*Vp - R1R2*TpTpb*Vp - 
-				R2*Rw*TpTpb*Vp - R2*Tb*TpTpb*Vp - Rw*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - 
-				R1*Rw2*Ts*Vp - R2*Rw2*Ts*Vp - R1R2*TbTs*Vp - 
-				R1*Rw*TbTs*Vp - R2*Rw*TbTs*Vp - Rw2*TbTs*Vp - R1R2*TpTs*Vp - 
-				2*R2*Rw*Tpb*Ts*Vp - Rw2*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - 
-				Rw*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp)/
-			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
-				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
-				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
-				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
-				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
-				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
-				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
-				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
-				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
-				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
-				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
-				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
-				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
-				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
-				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
-				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
-				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
-				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
-				
-	V[8] = -((-(R1R2*RsRw*U13) - R1R2*Rw*Tp*U13 - R1R2*Rw*Tpb*U13 - 
-				R1R2*TpTpb*U13 - R2*Rw*TpTpb*U13 - R2*Tb*TpTpb*U13 - 
-				R1R2*Rw*Ts*U13 + R2*Rs*TbTs*U13 - R1R2*TpTs*U13 - R2*Rw*Tpb*Ts*U13 - 
-				R2*TpTpb*Ts*U13 - R1R2*RsRw*U24 - R1R2*Rs*Tb*U24 - R2*RsRw*Tb*U24 - 
-				R1R2*Rs*Tp*U24 - R1R2*Rw*Tp*U24 - R1R2*Tb*Tp*U24 - R2*Rs*Tb*Tp*U24 - 
-				R2*Rw*Tb*Tp*U24 - R1R2*Rw*Tpb*U24 - R1R2*TbTpb*U24 - 
-				R2*Rw*TbTpb*U24 - R2*Tb*TpTpb*U24 - R1R2*Rw*Ts*U24 - R1R2*TbTs*U24 - 
-				R2*Rs*TbTs*U24 - R2*Rw*TbTs*U24 - R2*Rw*Tpb*Ts*U24 - R2*TbTpb*Ts*U24 - 
-				R1R2*Rw*Tp*Vp - 2*R1R2*Rw*Tpb*Vp - R2*Rw2*Tpb*Vp - 
-				R1R2*TbTpb*Vp - R2*Rw*TbTpb*Vp - R1R2*TpTpb*Vp - R2*Rw*TpTpb*Vp - 
-				R2*Tb*TpTpb*Vp - 2*R1R2*Rw*Ts*Vp - R1R2*TbTs*Vp - R2*Rw*TbTs*Vp - 
-				R1R2*TpTs*Vp - 2*R2*Rw*Tpb*Ts*Vp - R2*TbTpb*Ts*Vp - R2*TpTpb*Ts*Vp)/
-			(2*R1R2*RsRw + R1*RsRw2 + R2*RsRw2 + R1R2*Rs*Tb + 
-				R1*RsRw*Tb + R2*RsRw*Tb + RsRw2*Tb + R1R2*Rs*Tp + 
-				2*R1R2*Rw*Tp + R1*RsRw*Tp + R2*RsRw*Tp + R1*Rw2*Tp + 
-				R2*Rw2*Tp + R1R2*Tb*Tp + R2*Rs*Tb*Tp + R1*Rw*Tb*Tp + 
-				R2*Rw*Tb*Tp + RsRw*Tb*Tp + Rw2*Tb*Tp + 2*R1R2*Rw*Tpb + 
-				2*R1*RsRw*Tpb + R1*Rw2*Tpb + R2*Rw2*Tpb + 
-				RsRw2*Tpb + R1R2*TbTpb + R1*Rs*TbTpb + R1*Rw*TbTpb + 
-				R2*Rw*TbTpb + RsRw*TbTpb + Rw2*TbTpb + R1R2*TpTpb + 
-				R1*Rs*TpTpb + R1*Rw*TpTpb + R2*Rw*TpTpb + RsRw*TpTpb + 
-				Rw2*TpTpb + R1*Tb*TpTpb + R2*Tb*TpTpb + Rs*Tb*TpTpb + 
-				2*Rw*Tb*TpTpb + 2*R1R2*Rw*Ts + 2*R1*RsRw*Ts + 2*R2*RsRw*Ts + 
-				R1*Rw2*Ts + R2*Rw2*Ts + R1R2*TbTs + R1*Rs*TbTs + 
-				R2*Rs*TbTs + R1*Rw*TbTs + R2*Rw*TbTs + 2*RsRw*TbTs + 
-				Rw2*TbTs + R1R2*TpTs + R1*Rs*TpTs + R2*Rs*TpTs + 
-				R1*Rw*TpTs + R2*Rw*TpTs + R1*Tb*TpTs + Rs*Tb*TpTs + Rw*Tb*TpTs + 
-				2*R2*Rw*Tpb*Ts + 2*RsRw*Tpb*Ts + Rw2*Tpb*Ts + R2*TbTpb*Ts + 
-				Rs*TbTpb*Ts + Rw*TbTpb*Ts + R2*TpTpb*Ts + Rs*TpTpb*Ts + 
-				Rw*TpTpb*Ts + Tb*TpTpb*Ts))
-				
-	return V
+	--self.Vs 	= V[1] - V[2]
+	--self.U13 	= V[2] - V[4]
+	--self.U24 	= V[6] - V[8]
+	--self.VR1 	= V[4] - V[5]
+	--self.VR2 	= V[8] - V[0]
+	--self.I13 	= (V[3] - V[4])/self.Rw13
+	--self.I24 	= (V[7] - V[8])/self.Rw24
+	--self.Itotal	= (V[1] - V[2])/(1e-9 + self.ExtraResistance)
 end

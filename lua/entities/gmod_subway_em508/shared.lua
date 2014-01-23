@@ -23,9 +23,15 @@ function ENT:InitializeSystems()
 	-- Электротяговые двигатели
 	self:LoadSystem("Engines","DK_117DM")	
 	-- Резисторы для реостата/пусковых сопротивлений
-	self:LoadSystem("RheostatResistors","KF_47A")
+	self:LoadSystem("KF_47A")
+	-- Резисторы для ослабления возбуждения
+	self:LoadSystem("KF_50A")
+	-- Резисторы для цепей управления
+	self:LoadSystem("YAS_44V")
 	-- Реостатный контроллер для управления пусковыми сопротивления
 	self:LoadSystem("RheostatController","EKG_17B")
+	-- Групповой переключатель положений
+	self:LoadSystem("PositionSwitch","EKG_18B")
 	-- Кулачковый контроллер
 	self:LoadSystem("KV","KV_66")
 	

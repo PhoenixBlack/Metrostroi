@@ -36,7 +36,7 @@ function TRAIN_SYSTEM:Outputs()
 end
 
 function TRAIN_SYSTEM:Think(dT)
-	local Train = self.Train
+	--[[local Train = self.Train
 	local minimumFlux = 0.7 -- Подмагничивание при низких токах
 	
 	-- Calculate voltage on the stator coils and shunt
@@ -112,5 +112,5 @@ function TRAIN_SYSTEM:Think(dT)
 	self:TriggerOutput("Istator13",self.Istator13)
 	self:TriggerOutput("Istator24",self.Istator24)
 	self:TriggerOutput("Ishunt13",self.Ishunt13)
-	self:TriggerOutput("Ishunt24",self.Ishunt24)
+	self:TriggerOutput("Ishunt24",self.Ishunt24)]]--
 end

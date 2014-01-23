@@ -45,6 +45,7 @@ if not Metrostroi then
 	
 	-- List of all systems
 	Metrostroi.Systems = {}
+	Metrostroi.BaseSystems = {}
 end
 
 
@@ -104,17 +105,18 @@ local function LoadSystem(name)
 	
 	-- Load train systems
 	Metrostroi.Systems["_"..name] = TRAIN_SYSTEM
+	Metrostroi.BaseSystems[name] = TRAIN_SYSTEM
 	Metrostroi.Systems[name] = function(train,...)
-		local tbl = { _base = "_"..name }
-		local TRAIN_SYSTEM = Metrostroi.Systems[tbl._base]
+		local tbl = { _base = name }
+		local TRAIN_SYSTEM = Metrostroi.BaseSystems[tbl._base]
 		--if not TRAIN_SYSTEM then error("No system: "..tbl._base) end
 		for k,v in pairs(TRAIN_SYSTEM) do
 			if type(v) == "function" then
 				tbl[k] = function(...) 
-					if not Metrostroi.Systems[tbl._base][k] then
+					if not Metrostroi.BaseSystems[tbl._base][k] then
 						print("ERROR",k,tbl._base)
 					end
-					return Metrostroi.Systems[tbl._base][k](...) 
+					return Metrostroi.BaseSystems[tbl._base][k](...) 
 				end
 			else
 				tbl[k] = v
@@ -142,10 +144,10 @@ local function LoadSystem(name)
 end
 
 function Metrostroi.DefineSystem(name)
-	if not Metrostroi.Systems["_"..name] then
-		Metrostroi.Systems["_"..name] = {}
+	if not Metrostroi.BaseSystems[name] then
+		Metrostroi.BaseSystems[name] = {}
 	end
-	TRAIN_SYSTEM = Metrostroi.Systems["_"..name]
+	TRAIN_SYSTEM = Metrostroi.BaseSystems[name]
 end
 
 -- Load systems
@@ -164,6 +166,8 @@ LoadSystem("DURA")
 --LoadSystem("YAK_36")
 --LoadSystem("YAK_37E")
 
+LoadSystem("EKG")
+
 -- 81-717, Ezh
 LoadSystem("81_717_Pneumatic")
 LoadSystem("81_705_Electric")
@@ -171,12 +175,15 @@ LoadSystem("DK_117DM")
 LoadSystem("TR_3B")
 LoadSystem("YAP_57")
 LoadSystem("EKG_17B")
+LoadSystem("EKG_18B")
 LoadSystem("KF_47A")
+LoadSystem("KF_50A")
 LoadSystem("GV_10ZH")
 LoadSystem("KV_66")
 LoadSystem("LK_755A")
 LoadSystem("YAK_31A")
 LoadSystem("YAR_13A")
+LoadSystem("YAS_44V")
 
 -- Tatra T3
 LoadSystem("Tatra_Systems")

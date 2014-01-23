@@ -81,21 +81,26 @@ Debugger.DisplayGroups["Pneumatic System"] = {
 
 Debugger.DisplayGroups["Electric System"] = {
 	Data = {
-		{"ElectricVs","%.3f","V"},
-		{"ElectricU13","%.3f","V"},
-		{"ElectricU24","%.3f","V"},
-		{"ElectricVR1","%.3f","V"},
-		{"ElectricVR2","%.3f","V"},
+		--{"ElectricV13","%.3f","V"},
+		--{"ElectricV24","%.3f","V"},
 		{"ElectricI13","%.2f","A"},
 		{"ElectricI24","%.2f","A"},
 		{"ElectricItotal","%.2f","A"},
 		
-		{"ElectricRw13","%.3f","Ohm"},
-		{"ElectricRw24","%.3f","Ohm"},	
+		{"ElectricUstator13","%.3f","V"},
+		{"ElectricUstator24","%.3f","V"},
+		{"ElectricIshunt13","%.2f","A"},
+		{"ElectricIshunt24","%.2f","A"},
+		{"ElectricIstator13","%.2f","A"},
+		{"ElectricIstator24","%.2f","A"},
+		
+		--{"ElectricRw13","%.3f","Ohm"},
+		--{"ElectricRw24","%.3f","Ohm"},	
 		{"ElectricRs1","%.3g","Ohm"},
 		{"ElectricRs2","%.3g","Ohm"},
-		{"ElectricR1","%.3f","Ohm"},
-		{"ElectricR2","%.3f","Ohm"},
+		{"ElectricR1","%.3g","Ohm"},
+		{"ElectricR2","%.3g","Ohm"},
+		{"ElectricR3","%.3g","Ohm"},
 	},
 	
 	Settings = {
