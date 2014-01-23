@@ -1,3 +1,12 @@
+--[[
+Server keeps track of entities and sends their ent:GetDebugVars() return table to all clients
+Clients receive and store this data based on entID
+Clients loop over displaygroups and read relevant vars from the stored data
+
+To lower net usage, an array to map variable names to indexes is send to the client when 
+the length of the table changes. Regular data packages only contain a nameless list of data.
+-]]
+
 local Debugger = {}
 Debugger.DisplayGroups = {}
 Debugger.EntData = {}
@@ -6,22 +15,27 @@ Debugger.EntNameMap = {}
 
 CreateClientConVar("metrostroi_debugger_data_timeout",2,true,false)
 
-
 local Colors = {
 	{120,255,255},
 	{255,255,0},
 	{255,0,0},
 	{255,0,255}
 }
+
 local currentcolor = 1
 local function advancecolor()
 	currentcolor = currentcolor%(#Colors)+1
 end
 
+
+--group.Settings.Ents is a list of entities to show the group for, # is baseclass prefix
 Debugger.DisplayGroups["Train"] = {
 	Data = {
 		{"Speed","%.1f","km/h"},
-		{"Acceleration","%6.3f","m/s2"},
+		{"Acceleration","%6.3f","m/s2"}
+	},
+	Settings = {
+		Ents = {"#gmod_subway_base"}
 	}
 }
 
@@ -44,6 +58,9 @@ Debugger.DisplayGroups["Power Relays"] = {
 		{"TpbState","%.0f","on/off"},
 		{"TbState","%.0f","on/off"},
 		{"TsState","%.0f","on/off"},
+	},
+	Settings = {
+		Ents = {"#gmod_subway_base"}
 	}
 }
 
@@ -60,6 +77,9 @@ Debugger.DisplayGroups["Controller"] = {
 		{"TW6 T", "%d", "level"},
 		
 		{"TW20 1S", "%d", "level"},
+	},
+	Settings = {
+		Ents = {"#gmod_subway_base"}
 	}
 }
 
@@ -75,7 +95,8 @@ Debugger.DisplayGroups["Pneumatic System"] = {
 	},
 	
 	Settings = {
-		ignore_prefix = "Pneumatic"
+		ignore_prefix = "Pneumatic",
+		Ents = {"#gmod_subway_base"}
 	}
 }
 
@@ -104,7 +125,8 @@ Debugger.DisplayGroups["Electric System"] = {
 	},
 	
 	Settings = {
-		ignore_prefix = "Electric"
+		ignore_prefix = "Electric",
+		Ents = {"#gmod_subway_base"}
 	}
 }
 
@@ -126,7 +148,8 @@ Debugger.DisplayGroups["Engines"] = {
 	},
 	
 	Settings = {
-		ignore_prefix = "Engines"
+		ignore_prefix = "Engines",
+		Ents = {"#gmod_subway_base"}
 	}
 }
 
@@ -143,7 +166,19 @@ Debugger.DisplayGroups["DURA"] = {
 	},
 	
 	Settings = {
-		ignore_prefix = "DURA"
+		ignore_prefix = "DURA",
+		Ents = {"#gmod_subway_base"}
+	}
+}
+
+Debugger.DisplayGroups["Bogey"] = {
+	Data = {
+		{"Speed","%.2f","km/h"},
+		{"Acceleration","%.2f","","Accel"},
+	},
+	
+	Settings = {
+		Ents = {"gmod_train_bogey"}
 	}
 }
 
@@ -256,12 +291,42 @@ local function PresentSelectionScreen(options)
 end
 --]]
 
+ --[[ --Uncomment me if you need to keep track of changes in ent:GetDebugVars returns
+local lastcount 
+local lastcopy
+local tabledebug = true
+--]]
+
+--Receives the bulk nameless data
 net.Receive("metrostroi-debugger-dataupdate",function(len,ply)
 	local count = net.ReadInt(8)
 	for i=1,count do
 		local data = net.ReadTable()
 		Debugger.EntData[data[1]]=data[2]
 		Debugger.EntDataTime[data[1]]=CurTime()
+		
+		--Hackly code for debugging purposes, see above
+		if tabledebug then
+			newcopy = Debugger.EntData[data[1]]
+			newcount = table.Count(newcopy)
+			if newcount ~= lastcount and lastcount ~= nil then
+				
+				for k,v in pairs(newcopy) do
+					if not lastcopy[k] then
+						print("System debugger: New key ",k,v)
+					end
+				end
+				
+				for k,v in pairs(lastcopy) do
+					if not newcopy[k] then
+						print("System debugger: Key missing ",k,v)
+					end
+				end
+			end
+
+			lastcount = newcount
+			lastcopy = newcopy
+		end
 	end
 end)
 
@@ -283,6 +348,7 @@ surface.CreateFont( "DebugBoxText", {
  outline = false
 } )
 
+--Takes an entire displaygroup and ent, returns width of complete box
 local function getDisplayGroupWidth(displaygroup,entid)
 	local width = 0
 	for k,v in pairs(displaygroup.Data) do
@@ -296,6 +362,7 @@ local function getDisplayGroupWidth(displaygroup,entid)
 	return width
 end
 
+--Takes x,y, complete group and entid, draws debugger box
 local function drawBox(x,y,displaygroup,entid)
 	local localx = 10
 	
@@ -333,11 +400,27 @@ local function drawBox(x,y,displaygroup,entid)
 
 end
 
-
+--Checks if we haven't gotten data from entid in a while
 local function isTimedOut(id)
 	local timeout = GetConVarNumber("metrostroi_debugger_data_timeout")
 	return timeout ~= nil and timeout > 0 and CurTime() - Debugger.EntDataTime[id] > timeout
 end
+
+--Checks if we should draw a group according to group settings and entity state
+local function ShouldDrawGroup(group,id)
+	if not group.Settings.Enabled then return false end
+	local ent = ents.GetByIndex(id)
+	if not IsValid(ent) then return false end
+	for k,v in pairs(group.Settings.Ents) do
+		if v[1]=="#" then
+			if string.Right(v,string.len(v)-1) == ent.Base then return true end
+		else
+			if ent:GetClass() == v then return true end
+		end
+	end
+	return false 
+end
+
 
 hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 	surface.SetFont("DebugBoxText")
@@ -353,7 +436,7 @@ hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 			--For every displaygroup
 			if not isTimedOut(id) then
 				for groupname,group in pairs(Debugger.DisplayGroups) do
-					if group.Settings.Enabled then
+					if ShouldDrawGroup(group,id) then
 						drawBox(25,localy,group,id)
 						
 						localy=localy+60
@@ -366,12 +449,14 @@ hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 
 end)
 
-
-
+--Clears all relevant entity data
 local function RemoveEnt(id)
 	Debugger.EntData[id] = nil
+	Debugger.EntDataTime[id] = nil
+	Debugger.EntNameMap[id] = nil
 end
 
+--Receiving this from the server since the client hook is unreliable
 net.Receive("metrostroi-debugger-entremoved",function(len,ply) 
 	local id = net.ReadInt(16)
 	if Debugger.EntData[id] then
@@ -379,6 +464,7 @@ net.Receive("metrostroi-debugger-entremoved",function(len,ply)
 	end
 end)
 
+--Receives the namemap
 net.Receive("metrostroi-debugger-entnamemap",function(len,ply)
 	local entid = net.ReadInt(16)
 	local entvars = net.ReadTable()

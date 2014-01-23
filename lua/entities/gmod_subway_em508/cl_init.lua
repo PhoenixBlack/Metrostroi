@@ -31,6 +31,7 @@ ENT.ButtonMap["Front"] = {
 	buttons = {
 		{ID = "HeadLightsToggle",		x=400, y=75, radius=15, tooltip="Head lights TOGGLE"},
 		{ID = "CabinLightsToggle",		x=387, y=28, radius=15, tooltip="Cabin lights TOGGLE"},	
+		{x=234,y=33,tooltip="Speed"}
 	}
 }
 
