@@ -38,8 +38,11 @@ function TRAIN_SYSTEM:Initialize()
 	self.IR1 = self.Itotal
 	self.IR2 = self.Itotal
 	
-	-- Reverser
-	self.Train:LoadSystem("Reverser","Relay",{ contactor = true })
+	-- Реверсор (ПР-772)
+	self.Train:LoadSystem("Reverser","Relay","PR-772")
+	
+	-- Other relays
+	self.Train:LoadSystem("NR","Relay",{ normally_open = true })
 end
 
 
@@ -93,7 +96,7 @@ function TRAIN_SYSTEM:Think()
 	-- Внешнее напряжение силовых цепей
 	self.Power750V = self.Main750V * Train.GV.Value * Train.LK1.Value	
 	-- Реле РПЛ
-	self.Power750V = self.Power750V * Train.RPL.Value
+	self.Power750V = self.Power750V
 	
 	-- Ослабление резистором Л1-Л2
 	self.ExtraResistance = (1-Train.LK2.Value) * Train.KF_47A["L2-L4"]
@@ -158,86 +161,104 @@ function TRAIN_SYSTEM:Think()
 	-- Комутация напряжения между поездными проводами и реле
 	local P = Train.PositionSwitch.SelectedPosition
 	local RK = Train.RheostatController.SelectedPosition
-	local X1 = Train:ReadTrainWire(1)
-	local X2 = Train:ReadTrainWire(2)
-	local X3 = Train:ReadTrainWire(3)
-	local T = Train:ReadTrainWire(6)
-	local F = Train:ReadTrainWire(4)
-	local R = Train:ReadTrainWire(5)
-	local X = Train:ReadTrainWire(20)
-	local B2 = Train:ReadTrainWire(9) + Train:ReadTrainWire(10)
+	local TW1  = Train:ReadTrainWire(1)  -- X1
+	local TW2  = Train:ReadTrainWire(2)  -- X2
+	local TW3  = Train:ReadTrainWire(3)  -- X3
+	local TW6  = Train:ReadTrainWire(6)  -- T
+	local TW4  = Train:ReadTrainWire(4)  -- R
+	local TW5  = Train:ReadTrainWire(5)  -- F
+	local TW20 = Train:ReadTrainWire(20) -- X
+	local B2   = Train:ReadTrainWire(9) + Train:ReadTrainWire(10)
+	local A = {}
+	for i=1,100 do A[i] = 1 end
 	
-	-- FIXME make these relays
-	local SR1 = 0
+	-- Value of the overload relay
+	local RP = (1.0 - Train.RPL.Value) * (1.0 - Train.RP1_3.Value) * (1.0 - Train.RP2_4.Value)
 	
+	----------------------------------------------------------------------------
 	-- Train wire 4, 5
-	if (F > 0.5) and (Train.Reverser.Value == 1.0) then -- 4B
-		Train.Reverser:TriggerInput("Open",1.0)
-	end
-	if (R > 0.5) and (Train.Reverser.Value == 0.0) then -- 5B
+	if (TW4 > 0.5) and (Train.Reverser.Value == 0.0) then -- 4B
 		Train.Reverser:TriggerInput("Close",1.0)
 	end
-	local _5B  = 0.0 -- 5B
-	if Train.Reverser.Value == 0.0 
-	then _5B = F
-	else _5B = R
+	if (TW5 > 0.5) and (Train.Reverser.Value == 1.0) then -- 5B
+		Train.Reverser:TriggerInput("Open",1.0)
 	end
-	local _5D = _5B * Train.LK3.Value * Train.RPL.Value
+	local _5V = TW4 * Train.Reverser.Value + TW5 * (1.0 - Train.Reverser.Value)
+	local _5D = _5V * RP * Train.LK3.Value
 	Train.LK4:TriggerInput("Close",_5D)
 	
 	
+	----------------------------------------------------------------------------
 	-- Train wire 20
-	Train.LK2:TriggerInput("Set",X * Train.RPL.Value)
-	Train.RV2:TriggerInput("Close",(1.0 - X * Train.RPL.Value) * Train.LK2.Value)
+	local _20B = X * A[20] * RP
+	Train.LK2:TriggerInput("Set",_20B)
+	Train.RV2:TriggerInput("Close",(1.0 - _20B) * Train.LK2.Value)
 	
 	
+	----------------------------------------------------------------------------
 	-- Train wire 9, 10
-	local _10AV =  B2  * (1.0-Train.LK3.Value) * 
-						 (1.0-Train.LK4.Value) * b((RK >= 2) and (RK <= 18))
-	local _10E  =  B2  * (1.0-Train.LK3.Value) + Train.Rper.Value
-	local _10Yu = _10E * Train.LK3.Value * b(RK == 18) * b(P ~= 1)
-	local _10Ap = _10E * (1.0 - Train.LK1.Value)
-	local _10Ad = _10Ap * (Train.LK2.Value + b(P >= 3))
-	local _10Ag = _10Yu + 0.0*b(P ~= 3) + 1*b(P ~= 1)
-	--print(_10Ag)
+	local _10AYa = B2 * A[80]
+	local _10AB  = _10Aya * (1.0-Train.LK3.Value)
+	local _10AV  = _10AYa * b((RK >= 2) and (RK <= 18))
+	local _10E   = _10Aya * ((1.0-Train.LK3.Value) + Train.Rper.Value + 0) -- PM? PS3?
+	local _10Ya  = _10E * Train.LK3.Value * b(RK == 18) * b(P ~= 1)
+	local _10Ap  = _10E * (1.0 - Train.LK1.Value)
+	local _10Ad  = _10Ap * (Train.LK2.Value + b((P == 3) or (P == 4)))
+	local _10At  = _10Ad * (Train.TP2.Value * Train.TP1.Value * b(P ~= 3))
+	local _10Ar  = _10Ad * (1.0-Train.TP2.Value) * (1.0-Train.TP1.Value) * b(P == 1)
+	local _10Ag  = _10Ya + _10At + _10Ar
+	local _10AYe = math.max(1.0,_10Ag) -- Power to SDDP
 	
+	local _10AE = B2 * A[30]
+	local _10B = _10AE * (Train.RV1.Value + Train.TR1.Value)
+	
+	
+	----------------------------------------------------------------------------
 	-- Train wire 1
-	local _1T  =  X1  * b((P == 1) or (P == 2)) -- PS, PP
-	local _1P  = _1T  * b(true or true) -- RPU or NR
-	local _1G  = _1P  * Train.RPL.Value -- AVT, RP
+	local _1A  = TW1 * A[1]
+	local _1T  = _1A * b((P ~= 1) and (P ~= 2)) -- PS, PP
+	local _1P  = _1T * (Train.RPU.Value + Train.NR.Value) -- RPU or NR
+	local _1G  = _1P * RP -- FIXME: AVT
 	
-	local _1E  = _1G  * b(RK == 1)
-	local _1Yu = _1E  * (b(false) + Train.KSH2.Value) -- KSB1 and KSB2
+	local _1E  = _1G * b(RK == 1)
+	local _1Yu = _1E * (Train.KSB1.Value*Train.KSB2.Value + Train.KSH2.Value)
 	local _1L  = _1Yu * b((P == 1) or (P == 3)) -- PS, PT	
 	
 	local _1Zh = _1G * Train.LK3.Value + _1L * Train.LK2.Value
 	local _1K = _1Zh * b((P == 1) or (P == 2)) -- PP, PS
+	local _1N = _1Zh * b((P == 1) or (P == 3)) -- PP, PT
 	
 	Train.LK3:TriggerInput("Close",_1Zh)
 	Train.LK1:TriggerInput("Close",_1K)
-	Train.RR:TriggerInput("Set", _1Zh * b((P == 1) or (P == 3)))
+	Train.RR:TriggerInput("Set", _1N)
 	
-	local _1V =  X1 * b((P == 1) or (P == 2)) -- PP, PS
-	local _1M =  X1 * b(RK > 5) * b(P == 2)
+	local _1V = _1A * Train.RV1.Value * b(P ~= 1)
+	local _1M = _1A * b(RK > 5) * b(P == 2)
 	local _1R = _1V + _1M
 	Train.KSH1:TriggerInput("Set",_1R)
 	Train.KSH2:TriggerInput("Set",_1R)
 	
 	
+	----------------------------------------------------------------------------
 	-- Train wire 2
-	local _2A  =  X2  * (b(true) + b(P ~= 3)) -- KSB1
-	local _2B  = _2A  * b((P == 1) or (P == 3)) -- PS, PT1
-	local _2V  = _2A  * b((P == 2) or (P == 4)) -- PP, PT2
-	local _2R  = _2V  * b((RK >= 2) and (RK <= 4)) * Train.KSH1.Value
-	local _2G  = _2B  * b((RK >= 1) and (RK <= 17)) + 
-	             _2V  * b((RK >= 5) and (RK <= 18))
+	local _2Zh = TW2 * A[2]
+	local _2A  = _2Zh * ((1.0-Train.KSB1.Value) + b(P ~= 3))
+	local _2B  = _2A * b((P ~= 1) and (P ~= 3)) -- PS, PT1
+	local _2V  = _2A * b((P == 2) or (P == 4)) -- PP, PT2
+	local _2R  = _2V * b((RK >= 2) and (RK <= 4)) * Train.KSH1.Value
+	local _2G  = _2B * b((RK < 1) or (RK > 17)) + 
+	             _2V * (b((RK >= 5) and (RK <= 18)) + _2R)
 				 
-	local _2E  = _2G  * Train.LK4.Value + _10AV
-	SR1 = _2E
+	local _2E  = _2G * Train.LK4.Value + _10AV * (1.0 - Train.LK4.Value)
+	
+	Train.SR1:TriggerInput("Set",_2E)
+	Train.RV1:TriggerInput("Set",_2E)
 	
 	
+	----------------------------------------------------------------------------
 	-- Train wire 3
-	Train.Rper:TriggerInput("Set",X3)
+	local _3A = TW3 * A[3]
+	Train.Rper:TriggerInput("Set",_3A)
 
 	
 	----------------------------------------------------------------------------
@@ -245,6 +266,15 @@ function TRAIN_SYSTEM:Think()
 	self.RUTCurrent = self.I13 + self.I24
 	self.RUTTarget = 260
 	Train.RUT:TriggerInput("Set",(math.abs(self.RUTCurrent) > self.RUTTarget) and 1 or 0)
+	
+	-- Overload relays
+	Train.RP1_3:TriggerInput("Close",b(self.I13 > 300))
+	Train.RP2_4:TriggerInput("Close",b(self.I13 > 300))
+	Train.RPL:TriggerInput("Close",b(self.Itotal > 600))
+	
+	-- Grounding relays
+	Train.RZ_3:TriggerInput("Set",0) -- FIXME
+	
 	
 	----------------------------------------------------------------------------
 	-- Anchor of the rheostat controller

@@ -6,9 +6,6 @@ Metrostroi.DefineSystem("KV_66")
 function TRAIN_SYSTEM:Initialize()
 	self.ControllerPosition = 0
 	self.ReverserPosition = 0
-	
-	-- Relay that enables KV-66 controller
-	self.Train:LoadSystem("KVEnabled","Relay")
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -94,7 +91,7 @@ function TRAIN_SYSTEM:Think()
 	end
 
 	-- Trigger train wires according to the controller value
-	if (self.ReverserPosition ~= 0) and (Train.KVEnabled.Value == 1.0) then
+	if self.ReverserPosition ~= 0 then
 		local W9 = Train:ReadTrainWire(9)
 		local X1 = (math.abs(self.ControllerPosition) == 1) and 1 or 0
 		local X2 = (math.abs(self.ControllerPosition) == 2) and 1 or 0
@@ -110,7 +107,7 @@ function TRAIN_SYSTEM:Think()
 		Train:WriteTrainWire(6,W9 * ((self.ControllerPosition < 0) and 1 or 0))
 		
 		-- R1 R2
-		Train:WriteTrainWire(4,W9 * ((self.ReverserPosition ==  1) and 1 or 0))
-		Train:WriteTrainWire(5,W9 * ((self.ReverserPosition == -1) and 1 or 0))
+		Train:WriteTrainWire(4,W9 * ((self.ReverserPosition == -1) and 1 or 0))
+		Train:WriteTrainWire(5,W9 * ((self.ReverserPosition ==  1) and 1 or 0))
 	end
 end
