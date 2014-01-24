@@ -163,8 +163,6 @@ LoadSystem("DURA")
 --LoadSystem("BPSN_5U2M")
 
 --LoadSystem("NK_80")
---LoadSystem("YAK_36")
---LoadSystem("YAK_37E")
 
 LoadSystem("EKG")
 
@@ -181,9 +179,13 @@ LoadSystem("KF_50A")
 LoadSystem("GV_10ZH")
 LoadSystem("KV_66")
 LoadSystem("LK_755A")
-LoadSystem("YAK_31A")
 LoadSystem("YAR_13A")
+LoadSystem("YAK_31A")
+LoadSystem("YAK_27")
+LoadSystem("YAK_37E")
 LoadSystem("YAS_44V")
+LoadSystem("YARD_2")
+LoadSystem("PR_14X_Panels")
 
 -- Tatra T3
 LoadSystem("Tatra_Systems")

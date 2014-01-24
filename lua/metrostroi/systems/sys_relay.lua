@@ -34,6 +34,11 @@ function TRAIN_SYSTEM:Initialize(parameters,power_supply)
 				power_supply 		= "Train line",
 				contactor			= true,
 			}
+		elseif parameters == "Contactor" then
+			parameters = {
+				power_supply = "None",
+				contactor = true,			
+			}
 		else
 			print("Invalid relay type: "..parameters)
 			parameters = {}

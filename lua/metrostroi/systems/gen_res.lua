@@ -275,6 +275,8 @@ function Test()
 		Train.KF_50A[k] = v
 		Train.YAS_44V[k] = v
 	end
+	Train.TR1 = { Value = 0 }
+	Train.TR2 = { Value = 0 }
 	
 	-- Run tests
 	ANS = {}
@@ -289,6 +291,8 @@ function Test()
 		for k,v in pairs(PositionConfiguration[1]) do
 			Train.PositionSwitch[k] = 1e-9 + 1e9 * (1-v)
 		end
+		Train.TR1 = { Value = 0 }
+		Train.TR2 = { Value = 0 }
 		ANS[i][1] = RESISTOR_BLOCKS.R1C1(Train)
 		ANS[i][2] = RESISTOR_BLOCKS.R2C1(Train)
 		
@@ -301,6 +305,8 @@ function Test()
 		for k,v in pairs(PositionConfiguration[3]) do
 			Train.PositionSwitch[k] = 1e-9 + 1e9 * (1-v)
 		end
+		Train.TR1 = { Value = 1 }
+		Train.TR2 = { Value = 1 }
 		ANS[i][5] = RESISTOR_BLOCKS.R1C1(Train)
 		ANS[i][6] = RESISTOR_BLOCKS.R2C1(Train)
 		ANS[i][7] = RESISTOR_BLOCKS.R3(Train)
@@ -444,7 +450,7 @@ BaseNetwork = {
 	{ "L8",   "P4",  "RK[5]+T[1]"},
 
 	{ "L8",   "P3",  "RK[3]"},
-	{ "L8",   "P3",  "T[10]"},
+	{ "L8",   "P3",  "1e-9+1e9*Train.TR1.Value"},
 	
 	{ "P1",   "P14", "RK[1]"},
 	{ "P3",   "P14", "P3_P14"},
@@ -487,7 +493,7 @@ BaseNetwork = {
 	{ "L12",  "P18", "RK[6]+T[15]"},
 
 	{ "L12",  "P17", "RK[4]"},
-	{ "L12",  "P17", "T[11]"},
+	{ "L12",  "P17", "1e-9+1e9*Train.TR2.Value"},
 	
 	{ "P17",  "P76", "P17_P76"},
 	{ "P76",  "P27", "P76_P27"},
