@@ -199,14 +199,15 @@ function ENT:Think()
 		self:RemoveCSEnts()
 		self:CreateCSEnts()
 	end
-
+	
+	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			1-self:GetNWFloat("DriverValve")/5, 			0.00, 0.65,  256,24)
 	self:Animate("controller",		(self:GetNWFloat("Controller")+3)/7, 			0.30, 0.70,  384,24)
 	self:Animate("reverser",		1-(self:GetNWFloat("Reverser")+1)/2, 			0.20, 0.55,  4,false)
 	
-	self:Animate("brake_line",		self:GetNWFloat("BrakeLine")/16.0, 				0.16, 0.84)
-	self:Animate("train_line",		self:GetNWFloat("TrainLine")/16.0, 				0.16, 0.84)
-	self:Animate("brake_cylinder",	self:GetNWFloat("BrakeCylinder")/6.0, 	 		0.17, 0.86)
+	self:Animate("brake_line",		self:GetNWFloat("BrakeLine")/16.0, 				0.16, 0.84,  256,2,0.01)
+	self:Animate("train_line",		self:GetNWFloat("TrainLine")/16.0, 				0.16, 0.84,  256,2,0.01)
+	self:Animate("brake_cylinder",	self:GetNWFloat("BrakeCylinder")/6.0, 	 		0.17, 0.86,  256,2,0.03)
 	self:Animate("voltmeter",		self:GetNWFloat("Volts")/1000.0, 				0.38, 0.63)
 	self:Animate("ampermeter",		self:GetNWFloat("Amperes")/1000.0, 				0.38, 0.63)
 	

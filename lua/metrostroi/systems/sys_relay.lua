@@ -7,6 +7,11 @@ local relay_types = {
 	["PK-162"] = {
 		power_supply 		= "Train line",
 		contactor			= true,
+	},
+	
+	["Switch"] = {
+		power_supply		= "Mechanical",
+		contactor			= true,
 	}
 }
 
@@ -123,7 +128,7 @@ function TRAIN_SYSTEM:Outputs()
 	return { "State" }
 end
 
-function TRAIN_SYSTEM:TriggerInput(name,value)
+function TRAIN_SYSTEM:TriggerInput(name,value)	
 	-- Boolean values accepted
 	if type(value) == "boolean" then value = value and 1 or 0 end
 	
