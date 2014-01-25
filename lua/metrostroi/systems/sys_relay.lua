@@ -22,7 +22,6 @@ function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
 	if type(parameters) ~= "table" then
 		relay_type = parameters
 		if relay_types[relay_type] then
-			print("TYPE",relay_type)
 			parameters = relay_types[relay_type]
 		else
 			print("[sys_relay.lua] Unknown relay type: "..parameters)
@@ -109,7 +108,7 @@ function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
 
 	----------------------------------------------------------------------------
 	-- Initial relay state
-	if self.start_closed then
+	if self.normally_closed then
 		self.TargetValue = 1.0
 		self.Value = 1.0
 	else
