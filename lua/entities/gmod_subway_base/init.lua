@@ -117,7 +117,7 @@ function ENT:Use(ply)
 	
 	for k,v in pairs(self.InteractionZones) do
 		if hitpos:Distance(v.Pos) < v.Radius then
-			self:ButtonEvent(v.ID,true)
+			self:ButtonEvent(v.ID)
 		end
 	end
 end
@@ -839,7 +839,10 @@ end
 -- Checks a button with the buffer and calls 
 -- OnButtonPress/Release as well as TriggerInput
 function ENT:ButtonEvent(button,state)
-	if self.ButtonBuffer[button] ~= state then
+	if state == nil then
+		self:OnButtonPress(button)
+		self:TriggerInput(button,1.0)
+	elseif (self.ButtonBuffer[button] ~= state) then
 		self.ButtonBuffer[button] = state
 
 		if state then
