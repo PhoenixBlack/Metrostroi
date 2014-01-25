@@ -4,6 +4,10 @@
 Metrostroi.DefineSystem("81_717_Pneumatic")
 
 function TRAIN_SYSTEM:Initialize()
+	-- Limit number of iterations to just one
+	self.NoIterations = true
+	
+
 	-- Maximum pneumatic brake force at P = 4.5 atm
 	self.PneumaticBrakeForce = 60000.0
 	-- Pressure in reservoir
@@ -54,6 +58,10 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Brake cylinder atmospheric valve open
 	self.BrakeCylinderValve = 0
+	-- Front bogey isolation valve
+	self.FrontIsolationValve = 0
+	-- Rear bogey isolation valve
+	self.RearIsolationValve = 0
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -79,7 +87,34 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 	end
 end
 
+function TRAIN_SYSTEM:GetPressures(Train)
+	if Train.FrontTrain and Train.RearTrain then
+		self.BrakeLinePressure = 
+			(Train.FrontTrain.Pneumatic.BrakeLinePressure +
+			 Train.RearTrain.Pneumatic.BrakeLinePressure) / 2
+	elseif Train.FrontTrain then
+		self.BrakeLinePressure = Train.FrontTrain.Pneumatic.BrakeLinePressure
+	elseif Train.RearTrain then
+		self.BrakeLinePressure = Train.RearTrain.Pneumatic.BrakeLinePressure
+	end
+end
+
+
+function TRAIN_SYSTEM:SetPressures(Train)
+	if Train.FrontTrain and Train.RearTrain then
+		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
+		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
+	elseif Train.FrontTrain then
+		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
+	elseif Train.RearTrain then
+		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
+	end
+end
+
+
 function TRAIN_SYSTEM:Think(dT)
+	local Train = self.Train
+	
 	-- Apply specific rate to equalize pressure
 	local function equalizePressure(pressure,target,rate,fill_rate)
 		if fill_rate and (target > self[pressure]) then rate = fill_rate end
@@ -96,9 +131,9 @@ function TRAIN_SYSTEM:Think(dT)
 		self[pressure.."_dPdT"] = (self[pressure.."_dPdT"] or 0) + dPdT
 		return dPdT
 	end
-
-	-- If valve in any of the bogeys is open, update according to value on train wire
-	self.BrakeLinePressure = self.Train:ReadTrainWire("BrakeLine")
+	
+	-- Get pressures (if isolation valves are open, this connects it to next wagon)
+	self:GetPressures(Train)
 
 	-- Pressure at train line
 	self.TrainToBrakeValvePressure = self.TrainLinePressure*0.70
@@ -158,7 +193,7 @@ function TRAIN_SYSTEM:Think(dT)
 	if self.BrakeCylinderValve == 1 then
 		equalizePressure("BrakeCylinderPressure", targetPressure, self.BrakeLineFillRate)
 	end
-	
+
 	-- Apply brakes
 	self.PneumaticBrakeForce = 80000.0
 	self.Train.FrontBogey.PneumaticBrakeForce = self.PneumaticBrakeForce 
@@ -175,6 +210,6 @@ function TRAIN_SYSTEM:Think(dT)
 	self:TriggerOutput("ReservoirPressure", 		self.ReservoirPressure)
 	self:TriggerOutput("TrainLinePressure",			self.TrainLinePressure)
 	
-	-- Write pressure back onto train line
-	self.Train:WriteTrainWire("BrakeLine",self.BrakeLinePressure)
+	-- Set pressures (if isolation valves are open, propagate pressure to next wagon)
+	self:SetPressures(Train)
 end

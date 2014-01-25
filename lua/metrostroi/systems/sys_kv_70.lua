@@ -163,7 +163,7 @@ function TRAIN_SYSTEM:Think()
 	-- FIXME: temporary commutation
 	Train:WriteTrainWire(1, self["10AO-33"])
 	Train:WriteTrainWire(33,self["10AO-33"])
-	
+
 	Train:WriteTrainWire(2, self["10AK-2"])
 	Train:WriteTrainWire(3, self["U2-3"])	
 	Train:WriteTrainWire(20,self["U2-20a"]+self["U2-20b"])	

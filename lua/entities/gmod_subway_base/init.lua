@@ -6,13 +6,13 @@ include("shared.lua")
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
+	-- Initialize physics for the selected model
 	if self:GetModel() == "models/error.mdl" then
 		self:SetModel("models/props_lab/reciever01a.mdl")
 	end
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
-	
 	
 	-- Train wires
 	self:ResetTrainWires()
@@ -21,6 +21,7 @@ function ENT:Initialize()
 	-- Initialize train systems
 	self:InitializeSystems()
 	
+	-- Prop-protection related
 	if CPPI then
 		self:CPPISetOwner(self.Owner)
 	end
@@ -152,28 +153,31 @@ function ENT:TrainWireCanWrite(k)
 	return true
 end
 
+local TRAIN_WIRE_TICKS = 0
+hook.Add("Think","metrostroi-trainwire_tick-think",function()
+	TRAIN_WIRE_TICKS = TRAIN_WIRE_TICKS + 1
+end)
+
 function ENT:WriteTrainWire(k,v)
 	-- Check if line is write-able
 	local can_write = self:TrainWireCanWrite(k)
-	if not can_write then
-		self:OnTrainWireError(k)
+	local wrote = false
+	
+	-- If value is write-able, write it right away and do nothing interesting
+	if can_write then
+		self.TrainWires[k] = v
+		wrote = true
+	elseif v > 0 then -- If trying to write positive value, overwrite value of the previous writer
+		self.TrainWires[k] = v
+		wrote = true
 	end
 	
-	if not tonumber(k) then
-		print(self,k,self.TrainWires[k],v)
+	-- Record us as last writer
+	if wrote then
+		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
+		self.TrainWireWriters[k].ent = self
+		self.TrainWireWriters[k].time = CurTime()
 	end
-	
-	-- Set correct value on the train line
-	if can_write 
-	then self.TrainWires[k] = v
-	else self.TrainWires[k] = math.max(self.TrainWires[k] or 0,v)
-	end
-	
-	-- Set last writer
-	self.TrainWireWriters[k] = {
-		ent = self,
-		time = CurTime()
-	}
 end
 
 function ENT:ReadTrainWire(k)
@@ -561,10 +565,13 @@ function ENT:HandleJoystickInput(ply)
 		end
 	end
 end
+
+
+
+
 --------------------------------------------------------------------------------
 -- Keyboard input
 --------------------------------------------------------------------------------
-
 function ENT:IsModifier(key)
 	return type(self.KeyMap[key]) == "table"
 end
@@ -663,6 +670,10 @@ function ENT:HandleKeyboardInput(ply)
 	end
 	
 end
+
+
+
+
 --------------------------------------------------------------------------------
 -- Process train logic
 --------------------------------------------------------------------------------
@@ -691,10 +702,17 @@ function ENT:Think()
 	end
 	
 	-- Run iterations on systems simulation
-	local maxIterations = 8
+	local maxIterations = 4
+	for k,v in pairs(self.Systems) do
+		if v.NoIterations then
+			v:Think(self.DeltaTime)
+		end
+	end
 	for iteration=1,maxIterations do
 		for k,v in pairs(self.Systems) do
-			v:Think(self.DeltaTime / maxIterations)
+			if not v.NoIterations then
+				v:Think(self.DeltaTime / maxIterations)
+			end
 		end
 	end
 	
@@ -761,7 +779,6 @@ function ENT:SpawnFunction(ply, tr)
 	ent.Owner = ply
 	ent:Spawn()
 	ent:Activate()
-	
 	
 	if not inhibitrerail then Metrostroi.RerailTrain(ent) end
 	
