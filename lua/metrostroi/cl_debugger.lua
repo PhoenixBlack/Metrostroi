@@ -431,6 +431,17 @@ hook.Add( "HUDPaint", "metrostroi-draw-system-debugger", function()
 	if Debugger.EntData ~= nil then 
 		local localy = 15 --+ 65
 		
+		if GetConVarNumber("developer") then
+			localy = 77
+		end
+		
+		if IsValid(LocalPlayer()) then
+			local wep = LocalPlayer():GetActiveWeapon()
+			if IsValid(wep) and wep:GetClass() == "gmod_tool" then
+				localy = 178
+			end
+		end
+		
 		--For every entity
 		for id,vars in pairs(Debugger.EntData) do
 			

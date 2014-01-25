@@ -836,7 +836,10 @@ local function traceWorldOnly(pos,dir)
 		endpos = pos+dir,
 		mask = MASK_NPCWORLDSTATIC
 	})
-	--debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
+	if false then
+		debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
+		debugoverlay.Sphere(tr.StartPos,2,10,Color(0,255,255),true)
+	end
 	return tr
 end
 
@@ -856,34 +859,21 @@ local function resetSolids(enttable,train)
 	end
 end
 
-
---TODO Make this way better
-local function findTrackHeight(pos,right,up)
-	local step = 1
-	local previousTrackValid = false
-	local gotValidTrack = false
-	local trackHeight = -1
-	local possiblePos = Vector(0,0,0)
-	while true do
-		trackHeight = trackHeight + 1
-		local tr1 = traceWorldOnly(pos+up*trackHeight,right*100)
-		local tr2 = traceWorldOnly(pos+up*trackHeight,right*100*-1)
-		gotValidTrack = (math.abs(tr1.HitPos:Distance(tr2.HitPos)-80) < 0.5)
-		if not gotValidTrack and previousTrackValid then return possiblePos end
-		possiblePos = (tr1.HitPos+tr2.HitPos)/2
-		previousTrackValid=gotValidTrack
-		if trackHeight > 200 then return false end
-	end
+--Elevates a position to track level
+--Requires a position in the center of the track
+local function ElevateToTrackLevel(pos,right,up)
+	local tr1 = traceWorldOnly(pos+up*200+right*41,-up*500)
+	local tr2 = traceWorldOnly(pos+up*200-right*41,-up*500)
+	if not tr1.Hit or not tr2.Hit then return false end
+	return (tr1.HitPos + tr2.HitPos)/2
 end
-
-
 
 --Takes position and initial rough forward vector, return table of track data
 --Position needs to be between/below the tracks already, don't use a props origin
 --Only needs a rough forward vector, ent:GetAngles():Forward() suffices
 local function getTrackData(pos,forward)	
 	--Trace down
-	debugoverlay.Cross(pos,5,10,Color(255,0,255),true)
+	--debugoverlay.Cross(pos,5,10,Color(255,0,255),true)
 	local tr = traceWorldOnly(pos,Vector(0,0,-100))
 	if !tr or !tr.Hit then return false end
 	
@@ -894,22 +884,29 @@ local function getTrackData(pos,forward)
 	
 	--Trace right
 	local tr = traceWorldOnly(pos,right*500)
-	if !tr or !tr.Hit then return false end
+	if not tr or not tr.Hit then return false end
 	
 	--debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
 	
 	local trackforward = tr.HitNormal:Cross(updir)
 	local trackright = trackforward:Cross(updir)
 	
+	debugoverlay.Axis(floor,trackforward:Angle(),10,5,true)
+	
 	--debugoverlay.Line(pos,pos+trackforward*30,10,Color(255,0,0),true)
 	
 	--Trace right with proper right
-	local tr = traceWorldOnly(pos,trackright*80)
-	if !tr.Hit then return false end
+	local tr1 = traceWorldOnly(floor,trackright*80)
+	local tr2 = traceWorldOnly(floor,-trackright*80)
+	if not tr1 or not tr2 then return false end
 	
-	local centerpos = findTrackHeight(floor,tr.HitNormal,updir)
+	local floor = (tr1.HitPos+tr2.HitPos)/2
 	
-	if !centerpos then return false end
+	debugoverlay.Cross(floor,5,10,Color(0,255,0),true)
+
+	local centerpos = ElevateToTrackLevel(floor,trackright,updir)
+
+	if not centerpos then return false end
 
 	debugoverlay.Cross(centerpos,5,10,Color(255,0,0),true)
 	
@@ -919,6 +916,7 @@ local function getTrackData(pos,forward)
 		up = updir,
 		centerpos = centerpos
 	}
+
 	return data
 
 end
