@@ -54,6 +54,14 @@ function ENT:Initialize()
 		}
 	}
 	
+	self.InteractionZones = {
+		{
+			Pos = Vector(-482,-16,1),
+			Radius = 10,
+			ID = "RearDoorHandle",
+		}
+	}
+	
 	-- Lights
 	self.Lights = {
 		-- Head
