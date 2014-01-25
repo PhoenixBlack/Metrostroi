@@ -63,8 +63,8 @@ function TRAIN_SYSTEM:Think(dT)
 	--print(self.E13 / Train.Electric.I13)
 	
 	-- Calculate engine force (moment)
-	self.Moment13 = (1.0/600.0) * Train.Electric.I13 * self.MagneticFlux13
-	self.Moment24 = (1.0/600.0) * Train.Electric.I24 * self.MagneticFlux24
+	self.Moment13 = (1.0/700.0) * Train.Electric.I13 * self.MagneticFlux13
+	self.Moment24 = (1.0/700.0) * Train.Electric.I24 * self.MagneticFlux24
 	
 	-- Apply moment
 	Train.FrontBogey.MotorForce = 40000
