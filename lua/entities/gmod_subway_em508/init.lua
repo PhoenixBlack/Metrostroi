@@ -55,12 +55,20 @@ function ENT:Initialize()
 	}
 	
 	self.InteractionZones = {
-		{
-			Pos = Vector(-482,-16,1),
-			Radius = 10,
-			ID = "RearDoorHandle",
-		}
+		{	Pos = Vector(458,-30,-55),
+			Radius = 32,
+			ID = "PneumaticFrontBrakeLineIsolationToggle" },
+		{	Pos = Vector(458, 30,-55),
+			Radius = 32,
+			ID = "PneumaticFrontTrainLineIsolationToggle" },
+		{	Pos = Vector(-482,30,-55),
+			Radius = 32,
+			ID = "PneumaticRearBrakeLineIsolationToggle" },
+		{	Pos = Vector(-482, -30,-55),
+			Radius = 32,
+			ID = "PneumaticRearTrainLineIsolationToggle" },
 	}
+
 	
 	-- Lights
 	self.Lights = {

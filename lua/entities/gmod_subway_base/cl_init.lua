@@ -264,12 +264,24 @@ end
 --------------------------------------------------------------------------------
 -- Animation function
 --------------------------------------------------------------------------------
-function ENT:Animate(clientProp, value, min, max, speed, damping)
+function ENT:Animate(clientProp, value, min, max, speed, damping, stickyness)
 	if self.ClientEnts[clientProp] then
 		local id = clientProp
 		if not self["_anim_"..id] then
 			self["_anim_"..id] = value
 			self["_anim_"..id.."V"] = 0.0
+		end
+		
+		-- Generate sticky value
+		if stickyness and damping then
+			self["_anim_"..id.."_stuck"] = self["_anim_"..id.."_stuck"] or false
+			self["_anim_"..id.."P"] = self["_anim_"..id.."P"] or value
+			if (math.abs(self["_anim_"..id.."P"] - value) < stickyness) and (self["_anim_"..id.."_stuck"]) then
+				value = self["_anim_"..id.."P"]
+				self["_anim_"..id.."_stuck"] = false
+			else
+				self["_anim_"..id.."P"] = value
+			end
 		end
 			
 		if damping == false then
@@ -287,6 +299,11 @@ function ENT:Animate(clientProp, value, min, max, speed, damping)
 			local dX2dT = (speed or 128)*(value - self["_anim_"..id]) - self["_anim_"..id.."V"] * (damping or 8.0)
 			self["_anim_"..id.."V"] = self["_anim_"..id.."V"] + dX2dT * self.DeltaTime
 			self["_anim_"..id] = math.max(0,math.min(1,self["_anim_"..id] + self["_anim_"..id.."V"] * self.DeltaTime))
+			
+			-- Check if value got stuck
+			if (math.abs(dX2dT) < 0.001) and stickyness and (self.DeltaTime > 0) then
+				self["_anim_"..id.."_stuck"] = true
+			end
 		end
 		
 		self.ClientEnts[clientProp]:SetPoseParameter("position",min + (max-min)*self["_anim_"..id])

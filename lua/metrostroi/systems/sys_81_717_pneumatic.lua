@@ -56,12 +56,12 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("PneumaticNo2","Relay")
 	
 	
+	-- Isolation valves
+	self.Train:LoadSystem("FrontBrakeLineIsolation","Relay","Switch")
+	self.Train:LoadSystem("RearBrakeLineIsolation","Relay","Switch")
+
 	-- Brake cylinder atmospheric valve open
 	self.BrakeCylinderValve = 0
-	-- Front bogey isolation valve
-	self.FrontIsolationValve = 0
-	-- Rear bogey isolation valve
-	self.RearIsolationValve = 0
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -88,14 +88,34 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 end
 
 function TRAIN_SYSTEM:GetPressures(Train)
-	if Train.FrontTrain and Train.RearTrain then
+	local frontBrakeIsolation = Train.FrontBrakeLineIsolation.Value > 0
+	local rearBrakeIsolation = Train.RearBrakeLineIsolation.Value > 0
+	print("ISOLATION",frontBrakeIsolation,rearBrakeIsolation)
+	
+	if frontBrakeIsolation and (not Train.FrontTrain) then
+		self.BrakeLinePressure = 0
+		return
+	end
+	if (self.RearIsolationValve == 0) and (not Train.RearTrain) then
+		self.BrakeLinePressure = 0
+		return
+	end
+	
+	
+	if Train.FrontTrain and Train.RearTrain and	frontBrakeIsolation and rearBrakeIsolation then
 		self.BrakeLinePressure = 
 			(Train.FrontTrain.Pneumatic.BrakeLinePressure +
 			 Train.RearTrain.Pneumatic.BrakeLinePressure) / 2
-	elseif Train.FrontTrain then
+		-- Not realistic to share this, but helps pneumatic system to react faster
+		self.ReservoirPressure = 
+			(Train.FrontTrain.Pneumatic.ReservoirPressure +
+			 Train.RearTrain.Pneumatic.ReservoirPressure) / 2
+	elseif Train.FrontTrain and	frontBrakeIsolation then
 		self.BrakeLinePressure = Train.FrontTrain.Pneumatic.BrakeLinePressure
-	elseif Train.RearTrain then
+		self.ReservoirPressure = Train.FrontTrain.Pneumatic.ReservoirPressure
+	elseif Train.RearTrain and rearBrakeIsolation then
 		self.BrakeLinePressure = Train.RearTrain.Pneumatic.BrakeLinePressure
+		self.ReservoirPressure = Train.RearTrain.Pneumatic.ReservoirPressure
 	end
 end
 
@@ -104,10 +124,14 @@ function TRAIN_SYSTEM:SetPressures(Train)
 	if Train.FrontTrain and Train.RearTrain then
 		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
 		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
+		Train.FrontTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
+		Train.RearTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
 	elseif Train.FrontTrain then
 		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
+		Train.FrontTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
 	elseif Train.RearTrain then
 		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
+		Train.RearTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
 	end
 end
 

@@ -76,8 +76,7 @@ function ENT:Initialize()
 	self.KeyBuffer = {}
 	self.KeyMap = {}
 	
-	--External interaction areas
-	
+	-- External interaction areas
 	self.InteractionAreas = {}
 
 	-- Joystick module support
@@ -842,7 +841,7 @@ end
 function ENT:ButtonEvent(button,state)
 	if self.ButtonBuffer[button] ~= state then
 		self.ButtonBuffer[button] = state
-		
+
 		if state then
 			self:OnButtonPress(button)
 			self:TriggerInput(button,1.0)
