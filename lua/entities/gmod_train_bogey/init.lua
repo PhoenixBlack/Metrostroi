@@ -299,6 +299,7 @@ function ENT:Think()
 	-- Calculate forces
 	local motorForce = self.MotorForce*motorPower
 	local pneumaticForce = -sign*self.PneumaticBrakeForce*(self.BrakeCylinderPressure / 4.5)
+	if self.BrakeCylinderPressure < 0.05 then pneumaticForce = 0 end
 	
 	-- Apply sideways friction
 --	local sideSpeed = -self:GetVelocity():Dot(self:GetAngles():Right()) * 0.06858

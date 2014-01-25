@@ -75,7 +75,8 @@ function ENT:LoadSystem(a,b,...)
 	end
 	
 	if not Metrostroi.Systems[name] then error("No system defined: "..name) end
-	if self.Systems[sys_name] then error("System already defined: "..sys_name) end
+	if self.Systems[sys_name] then error("System already defined: "..sys_name)  end
+	
 	self[sys_name] = Metrostroi.Systems[name](self,...)
 	if (name ~= sys_name) or (b) then self[sys_name].Name = sys_name end
 	self.Systems[sys_name] = self[sys_name]

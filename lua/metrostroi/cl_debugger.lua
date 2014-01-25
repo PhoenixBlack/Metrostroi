@@ -41,7 +41,7 @@ Debugger.DisplayGroups["Train"] = {
 
 Debugger.DisplayGroups["Power Relays"] = {
 	Data = {
-		{"RRState","%.0f","on/off"},	
+		{"ReverserState","%.0f","on/off"},
 
 		{"LK1State","%.0f","on/off"},
 		{"LK2State","%.0f","on/off"},
@@ -56,10 +56,7 @@ Debugger.DisplayGroups["Power Relays"] = {
 		
 		{"RUTState","%.0f","on/off"},	
 		
-		{"TpState","%.0f","on/off"},
-		{"TpbState","%.0f","on/off"},
-		{"TbState","%.0f","on/off"},
-		{"TsState","%.0f","on/off"},
+		{"RRState","%.0f","on/off"},	
 	},
 	Settings = {
 		Ents = {"#gmod_subway_base"}
@@ -124,6 +121,11 @@ Debugger.DisplayGroups["Electric System"] = {
 		{"ElectricR1","%.3g","Ohm"},
 		{"ElectricR2","%.3g","Ohm"},
 		{"ElectricR3","%.3g","Ohm"},
+		
+		{"ElectricP1","%.1f","W"},
+		{"ElectricP2","%.1f","W"},
+		{"ElectricT1","%.2f","degC"},
+		{"ElectricT2","%.2f","degC"},
 	},
 	
 	Settings = {
@@ -143,6 +145,7 @@ Debugger.DisplayGroups["Engines"] = {
 		{"EnginesMoment24","%.2f",""},
 
 		{"RheostatControllerPosition","%.2f","position"},
+		{"PositionSwitchPosition","%.2f","position"},
 	},
 	
 	Settings = {

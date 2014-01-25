@@ -86,9 +86,9 @@ function TRAIN_SYSTEM:Think()
 	end
 
 	-- Enable controller when moving into zero position
-	if self.ControllerPosition == 0.0 then
-		Train.KVEnabled:TriggerInput("Close",1.0)
-	end
+	--if self.ControllerPosition == 0.0 then
+		--Train.KVEnabled:TriggerInput("Close",1.0)
+	--end
 
 	-- Trigger train wires according to the controller value
 	if self.ReverserPosition ~= 0 then
@@ -98,9 +98,9 @@ function TRAIN_SYSTEM:Think()
 		local X3 = (math.abs(self.ControllerPosition) == 3) and 1 or 0
 		
 		-- X1 X2 X3
-		Train:WriteTrainWire(1,W9 * (X1+X2))
-		Train:WriteTrainWire(2,W9 * X2)
-		Train:WriteTrainWire(3,W9 * X3)		
+		Train:WriteTrainWire(1,W9 * (X1+X2+X3))
+		Train:WriteTrainWire(2,W9 * (X2+X3))
+		Train:WriteTrainWire(3,W9 * (X3))		
 		Train:WriteTrainWire(20,W9 * (X1 + X2 + X3))
 		
 		-- T1 T2 T3

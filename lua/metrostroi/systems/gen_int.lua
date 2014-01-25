@@ -45,12 +45,12 @@ function ParseName(str)
 	if PSwitch(str) or PSwitch(string.sub(str,1,2)) then
 		local f = "C("
 		for k,v in pairs(split(str,",")) do
-			--if inverted then
-				if f ~= "C(" then f = f.." and " end
-			--else
-				--if f ~= "COND(" then f = f.." and " end
-			--end
-			f = f..PSwitch(v,inverted)
+			if inverted then
+				if f ~= "C(" then f = f.." or " end
+			else
+				if f ~= "C(" then f = f.." or " end
+			end
+			f = f..PSwitch(v)--,inverted)
 		end
 		f = f..")"
 		return f
@@ -60,24 +60,35 @@ function ParseName(str)
 	if string.sub(str,1,2) == "RK" then
 
 		local d = split(string.sub(str,3),"-")
-		if inverted then
+		--[[if inverted then
 			if d[2] then
 				return "C((RK < "..d[1]..") or (RK > "..d[2].."))"
 			else
 				return "C(RK ~= "..d[1]..")"
 			end
-		else
+		else]]--
 			if d[2] then
 				return "C((RK >= "..d[1]..") and (RK <= "..d[2].."))"
 			else
 				return "C(RK == "..d[1]..")"
 			end
-		end
+		--end
+	end
+	
+	-- Contactor
+	if (string.sub(str,1,1) == "A") and (tonumber(string.sub(str,2))) then
+		return "A["..string.sub(str,2).."]"
 	end
 	
 	-- See if relay is specified
 	if tonumber(str) then return str end
-	if string.sub(str,1,1) == "A" then return str end
+	if str == "RP" then 
+		if inverted then
+			return "(1.0-"..str..")"
+		else
+			return str 
+		end
+	end
 	if inverted then
 		return "(1.0-Train."..str..".Value)"	
 	else
@@ -90,6 +101,16 @@ function Simplify()
 	Statements = {}
 	NodeStatements = {}
 	Triggers = {}
+	
+	-- Parse names
+	for k,v in pairs(Network) do
+		if string.sub(v[1],1,2) == "TW" then
+			table.insert(Sources,v[1])
+		end
+		if string.sub(v[2],1,2) == "TW" then
+			table.insert(Sources,v[2])
+		end
+	end
 	
 	-- Parse triggers
 	for k,v in pairs(Network) do
@@ -192,6 +213,7 @@ function Simplify()
 	local simplified = true
 	while simplified do
 		simplified = false
+		
 		for k,v in pairs(Network) do
 			local src1,src2,dst1,dst2
 			for k2,v2 in pairs(Sources) do 
@@ -202,45 +224,108 @@ function Simplify()
 				--if v2 == v[1] then dst1 = true end
 				--if v2 == v[2] then dst2 = true end
 			--end
-			if src1 and (not NodeStatements[v[2]]) then
-				table.insert(Statements,{ ""..v[3].."*"..v[1].."", v[2] })
-				NodeStatements[v[2]] = #Statements
+			if src1 then
+				local stat = ""..v[3].."*"..v[1]..""
+				if NodeStatements[v[2]] then
+					Statements[NodeStatements[v[2]]][1] = 
+						Statements[NodeStatements[v[2]]][1] .. "+"..stat
+					--table.insert(Statements,{ Statements[NodeStatements[v[2]]][1] .. "+"..stat, v[2] })
+					--Statements[NodeStatements[v[2]]][1] = "0"
+					--Statements[NodeStatements[v[2]]][2] = "SKIP"
+					--NodeStatements[v[2]] = #Statements
+				else
+					table.insert(Statements,{ stat, v[2] })
+					NodeStatements[v[2]] = #Statements
+				end
 				simplified = true
-			elseif src2 and (not NodeStatements[v[1]]) then
-				table.insert(Statements,{ ""..v[3].."*"..v[2].."", v[1] })
-				NodeStatements[v[1]] = #Statements
+				Network[k] = nil
+			elseif src2 then
+				local stat = ""..v[3].."*"..v[2]..""
+				if NodeStatements[v[1]] then
+					--table.insert(Statements,{ Statements[NodeStatements[v[1]]][1] .. "+"..stat, v[1] })
+					--Statements[NodeStatements[v[1]]][1] = "0"
+					--Statements[NodeStatements[v[1]]][2] = "SKIP"
+					--NodeStatements[v[1]] = #Statements
+					Statements[NodeStatements[v[1]]][1] = 
+						Statements[NodeStatements[v[1]]][1] .. "+"..stat
+				else
+					table.insert(Statements,{ stat, v[1] })
+					NodeStatements[v[1]] = #Statements
+				end
 				simplified = true
-			elseif NodeStatements[v[1]] and (not NodeStatements[v[2]]) and (not src2) then
-				table.insert(Statements,{ "S[\""..Statements[NodeStatements[v[1]]][2].."\"]*"..v[3].."", v[2] })
-				NodeStatements[v[2]] = #Statements
+				Network[k] = nil
+			elseif NodeStatements[v[1]] and (not src2) then
+				local stat = "S[\""..Statements[NodeStatements[v[1]]][2].."\"]*"..v[3]
+				if NodeStatements[v[2]] then
+					--table.insert(Statements,{ Statements[NodeStatements[v[2]]][1] .. "+"..stat, v[2] })
+					--Statements[NodeStatements[v[2]]][1] = "0"
+					--Statements[NodeStatements[v[2]]][2] = "SKIP"
+					--NodeStatements[v[2]] = #Statements
+					Statements[NodeStatements[v[2]]][1] = 
+						Statements[NodeStatements[v[2]]][1] .. "+"..stat
+				else
+					table.insert(Statements,{ stat, v[2] })
+					NodeStatements[v[2]] = #Statements
+				end
 				simplified = true
-			elseif NodeStatements[v[2]] and (not NodeStatements[v[1]]) and (not src1) then
-				table.insert(Statements,{ "S[\""..Statements[NodeStatements[v[2]]][2].."\"]*"..v[3].."", v[1] })
-				NodeStatements[v[1]] = #Statements
+				Network[k] = nil
+			elseif NodeStatements[v[2]] and (not src1) then
+				local stat = "S[\""..Statements[NodeStatements[v[2]]][2].."\"]*"..v[3]..""
+				if NodeStatements[v[1]] then
+					Statements[NodeStatements[v[1]]][1] = 
+						Statements[NodeStatements[v[1]]][1].."+"..stat
+					--table.insert(Statements,{ Statements[NodeStatements[v[1]]][1] .. "+"..stat, v[1] })
+					--Statements[NodeStatements[v[1]]][1] = "0"
+					--Statements[NodeStatements[v[1]]][2] = "SKIP"
+					--NodeStatements[v[1]] = #Statements
+				else
+					table.insert(Statements,{ stat, v[1] })
+					NodeStatements[v[1]] = #Statements
+				end
 				simplified = true
+				Network[k] = nil
 			end
 		end
 	end
+	
+	-- Merge nodes as specified by user
+	for k,v in pairs(MergeNodes) do
+		Statements[NodeStatements[v[1]]][1] = 
+			Statements[NodeStatements[v[1]]][1].."+S[\""..v[2].."\"]"
+	end
+	
+	-- Reorder properly
+	for k1,v1 in pairs(Statements) do
+		local name = v1[2]
+		for k2,v2 in pairs(Statements) do
+			if (k2 < k1) and string.find(v2[1],"\""..name.."\"") then
+				print("OUT OF ORDER",v2[1],name,k1,k2)
+				table.insert(Statements,{v2[1],v2[2]})
+				NodeStatements[v2[2]] = #Statements
+				v2[2] = "SKIP"
+			end
+		end
+	end	
 end
 
 --------------------------------------------------------------------------------
 Network = {
 	----------------------------------------------------------------------------
 	-- Train wire 1
-	{	"TW1",	"1A",	"A[1]" },
+	{	"TW1",	"1A",	"A1" },
 	{	"1A",	"1T",	"!PS,PP" },
 	{	"1T",	"1P",	"NR" },
-	{	"1T",	"1P",	"RPU" },
+	{	"1T",	"1P",	"0" }, -- RPU
 		
 	{	"1P",	"1B",	"1" }, -- AVT
 	{	"1B",	"1G",	"!RP" },
 		
 	{	"1G",	"1E",	"!RK1" },
-	{	"1E",	"1Yu",	"#KSH2" },
+	{	"1E",	"1Yu",	"KSH2" },
 	{	"1E",	"1Ya",	"KSB2" },
 	{	"1Ya",	"1Yu",	"KSB1" },
 	{	"1Yu",	"1L",	"!PS,PT1" },
-	{	"1L",	"1Zh",	"LK5" },	
+	{	"1L",	"1Zh",	"LK2" }, -- Usually LK5
 	{	"1G",	"1Zh",	"LK3" },
 		
 	{	"1Zh",	"1K",	"!PS,PP" },
@@ -258,22 +343,102 @@ Network = {
 	{	"1R",	"0",	"#KSH1" },
 	{	"1R",	"0",	"#KSH2" },
 	
+	
 	----------------------------------------------------------------------------
 	-- Train wire 2
+	{	"TW2",	"2Zh",	"A2" },
+	{	"2Zh",	"2A",	"!KSB1" },
+	{	"2Zh",	"2A",	"!TR1" },
+	
+	{	"2A",	"2B",	"!PS,PT1" },
+	{	"2B",	"2G",	"!RK1-17" },
+	
+	{	"2A",	"2V",	"PP,PT2" },
+	{	"2V",	"2G",	"RK5-18" },
+	{	"2V",	"2R",	"RK2-4" },
+	{	"2R",	"2G",	"KSH1" },
+	
+	{	"2G",	"2Ye",	"LK4" },
+	{	"2Ye",	"0",	"#SR1" },
+	{	"2Ye",	"0",	"#RV1" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 3
+	{	"TW3",	"3A",	"A3" },
+	{	"3A",	"0",	"#Rper" },
+	
+
+	----------------------------------------------------------------------------
+	-- Train wires 4, 5
+	{	"TW4",	"4B",	"!Reverser" },
+	{	"4B",	"0",	"#RevBWD" },
+	{	"TW5",	"5B",	"Reverser" },
+	{	"5B",	"0",	"#RevFWD" },
+	
+	{	"TW4",	"5V",	"Reverser" },
+	{	"TW5",	"5V",	"!Reverser" },
+	{	"5V",	"5B'",	"LK3" },
+	{	"5B'",	"0",	"#LK4" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 9/10
+	{	"TW10",		"10AYa",	"A80" },
+	{	"10AYa",	"10AB",		"!LK3" },
+	{	"10AB",		"10AV",		"RK2-18" },
+	{	"10AV",		"2Ye_p",	"!LK4" },
+	
+	-- SDPP movement triggers
+	{	"10AYa",	"10E",		"!LK3" },
+	--{	"10AYa",	"10E",		"PM,PS3" }, --FIXME
+	{	"10AYa",	"10E",		"Rper" },
+	
+	-- SDPP step logic
+	{	"10E",		"10Yu",		"LK3" },
+	{	"10Yu",		"10Ya",		"RK18" },
+	{	"10Ya",		"10AG",		"!PS" },
+	
+	{	"10E",		"10AP",		"!LK1" },
+	{	"10AP",		"10AD",		"LK2" },
+	{	"10AP",		"10AD",		"PT1,PT2" },
+	
+	{	"10AD",		"10AR'",	"!TR2" },
+	{	"10AR'",	"10AR",		"!TR1" },
+	{	"10AR",		"10AG",		"PP,PT1,PT2" },
+	
+	{	"10AD",		"10AT'",	"TR2" },
+	{	"10AT'",	"10AT",		"TR1" },
+	{	"10AT",		"10AG",		"!PS,PP,PT2" },
+	
+	{	"10AG",		"0",		"#SDPP" },
+	
+	-- SDRK coil circuit
+	{	"TW10",		"10AE",		"A30" },
+	{	"10AE",		"10B",		"TR1" },
+	{	"10AE",		"10B",		"RV1" },
+	{	"10AE",		"10B",		"RV1" },
+	{	"10B",		"0",		"#SDRK_Coil" },
+	
+	-- SDRK motor circuit
+	{	"10AE",		"10M",		"SR1" },
+	--{	"10M",		"10MA",		"!RRT" },
+	--{	"10M",		"10N",		"RUT" },
+	{	"10M",		"10N",		"!RUT" },
+	{	"10N",		"0",		"#SDRK" },
 	
 	
 	----------------------------------------------------------------------------
 	-- Train wire 20
-	{ "TW20", "20A", "A17" },
-	{  "20A", "20B", "!RP" },
-	{  "20B", "0", "#LK2" },
-	{  "20B", "0", "#LK5" },
+	{	"TW20",	"20A",	"A17" },
+	{	"20A",	"20B",	"!RP" },
+	{	"20B",	"0",	"#LK2" },
+	{	"20B",	"0",	"#LK5" },
 }
-Sources = {
-	"TW20","TW1"
-}
-Drains = {
-	"0"
+Sources = {}
+Drains = { "0", "2Ye_p" }
+MergeNodes = {
+	{ "2Ye", "2Ye_p" } -- Merge 2Ye from train wire 10 and train wire 6
 }
 
 Simplify()
@@ -285,8 +450,56 @@ for k,v in pairs(Statements) do
 	print("S[\""..v[2].."\"] = "..v[1])
 end
 for k,v in pairs(Triggers) do
-	print("Trigger(\""..k.."\",S[\""..Statements[NodeStatements[v]][2].."\"])")
+	if not Statements[NodeStatements[v] ] then error("NO NODE "..v) end
+	print("Trigger(\""..k.."\",S[\""..Statements[NodeStatements[v] ][2].."\"])")
 end
---local f = io.open("gen_intcircuits.lua","w+")
---f:write(SRC)
---f:close()
+SRC = 
+[[-- Auto-generated by gen.lua
+
+local S = {}
+local function C(x) return x and 1 or 0 end
+
+function INTERNAL_CIRCUITS.Solve(Train,Triggers)
+	local A = {}
+	for i=1,100 do A[i] = 1 end
+
+	local P		= Train.PositionSwitch.SelectedPosition
+	local RK	= Train.RheostatController.SelectedPosition
+	local TW1	= Train:ReadTrainWire(1)  -- X1
+	local TW2	= Train:ReadTrainWire(2)  -- X2
+	local TW3	= Train:ReadTrainWire(3)  -- X3
+	local TW6	= Train:ReadTrainWire(6)  -- T
+	local TW4	= Train:ReadTrainWire(4)  -- R
+	local TW5	= Train:ReadTrainWire(5)  -- F
+	local TW20	= Train:ReadTrainWire(20) -- X
+	local TW10	= Train:ReadTrainWire(9) + Train:ReadTrainWire(10)
+
+	local RP = Train.RPL.Value + Train.RP1_3.Value + Train.RP2_4.Value
+	
+	-- Solve all circuits
+]]
+for k,v in pairs(Statements) do
+	if v[2] ~= "SKIP" then
+		SRC = SRC.."\tS[\""..v[2].."\"] = "..v[1].."\n"
+	end	
+end
+SRC = SRC..
+[[
+
+	-- Call all triggers
+]]
+for k,v in pairs(Triggers) do
+	if not Statements[NodeStatements[v] ] then error("NO NODE "..v) end
+	SRC = SRC.."\tTriggers[\""..k.."\"](S[\""..Statements[NodeStatements[v] ][2].."\"])\n"
+end
+SRC = SRC..
+[[
+	return S
+end]]
+
+
+--------------------------------------------------------------------------------
+--print(SRC)
+local f = io.open("gen_int_81_705.lua","w+")
+f:write(SRC)
+f:close()
