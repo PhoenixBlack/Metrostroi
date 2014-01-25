@@ -29,7 +29,7 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("RSU","Relay")
 	
 	-- Реле времени РВ1
-	self.Train:LoadSystem("RV1","Relay", { close_time = 0.7 })
+	self.Train:LoadSystem("RV1","Relay", { open_time = 0.7 })
 	-- Реле времени РВ2 (задерживает отключение ЛК2)
 	self.Train:LoadSystem("RV2","Relay", { close_time = 0.7 })
 	

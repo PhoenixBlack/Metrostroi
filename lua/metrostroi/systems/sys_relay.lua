@@ -136,7 +136,7 @@ end
 function TRAIN_SYSTEM:Think()
 	-- Check if power to relays dissapeared
 	local voltage,target = 12,0
-	if self.PowerSupply == "80V" then
+	--[[if self.PowerSupply == "80V" then
 		voltage = self.Train.BPSN.Power80V
 		target = 55.0
 	elseif self.PowerSupply == "AB" then
@@ -148,7 +148,7 @@ function TRAIN_SYSTEM:Think()
 	elseif self.PowerSupply == "Train Line" then
 		voltage = self.Train.Pneumatic.TrainLinePressure
 		target = 1.0
-	end
+	end]]--
 	
 	-- If no power supply specified, the relay will act as a contactor	
 	if voltage < target then

@@ -680,7 +680,7 @@ function ENT:Think()
 	end
 	
 	-- Run iterations on systems simulation
-	local maxIterations = 4
+	local maxIterations = 8
 	for iteration=1,maxIterations do
 		for k,v in pairs(self.Systems) do
 			v:Think(self.DeltaTime / maxIterations)
@@ -689,10 +689,10 @@ function ENT:Think()
 	
 	-- Add interesting debug variables
 	self.DebugVars["TW1 X1"] = self:ReadTrainWire(1)
-	self.DebugVars["TW2 X2"] = self:ReadTrainWire(3)
-	self.DebugVars["TW3 X3"] = self:ReadTrainWire(2)
-	self.DebugVars["TW4 FWD"] = self:ReadTrainWire(4)
-	self.DebugVars["TW5 BWD"] = self:ReadTrainWire(5)
+	self.DebugVars["TW2 X2"] = self:ReadTrainWire(2)
+	self.DebugVars["TW3 X3"] = self:ReadTrainWire(3)
+	self.DebugVars["TW4 FWD"] = self:ReadTrainWire(5)
+	self.DebugVars["TW5 BWD"] = self:ReadTrainWire(4)
 	self.DebugVars["TW6 T"] = self:ReadTrainWire(6)
 	self.DebugVars["TW20 1S"] = self:ReadTrainWire(20)
 
