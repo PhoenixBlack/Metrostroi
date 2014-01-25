@@ -35,13 +35,12 @@ function ENT:InitializeSystems()
 	-- Групповой переключатель положений
 	self:LoadSystem("PositionSwitch","EKG_18B")
 	-- Кулачковый контроллер
-	self:LoadSystem("KV","KV_66")
+	self:LoadSystem("KV","KV_70")
 
 	
 	-- Ящики с реле и контакторами
 	self:LoadSystem("LK_755A")
 	self:LoadSystem("YAR_13A")
-	--self:LoadSystem("YAK_31A")
 	self:LoadSystem("YAR_27")
 	self:LoadSystem("YAK_37E")
 	self:LoadSystem("YAS_44V")

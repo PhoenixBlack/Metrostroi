@@ -16,5 +16,5 @@ function TRAIN_SYSTEM:Outputs()
 end
 
 function TRAIN_SYSTEM:Think()
-
+	self.Value = 1
 end

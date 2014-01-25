@@ -27,48 +27,48 @@ function INTERNAL_CIRCUITS.Solve(Train,Triggers)
 	S["10AP-10AD"] = Train.LK2.Value+C((P == 3) or (P == 4))
 	S["10AE-10B"] = Train.TR1.Value+Train.RV1.Value
 	S["10AE-10B"] = S["10AE-10B"]+Train.RV1.Value
-	S["10AG-10AD"] = (1.0-Train.TR1.Value)*C((P == 2) or (P == 3) or (P == 4))*(1.0-Train.TR2.Value)+C((P == 1) or (P == 2) or (P == 4))*Train.TR2.Value*Train.TR1.Value
-	S["10AG-10E"] = C((P == 1))*Train.LK3.Value*C(RK == 18)+S["10AG-10AD"]*(1.0-Train.LK1.Value)*S["10AP-10AD"]
 	S["2V-2G"] = C((RK >= 5) and (RK <= 18))+C((RK >= 2) and (RK <= 4))*Train.KSH1.Value
-	S["1A-1R"] = (1.0-Train.RV1.Value)*C((P == 1))+C((RK >= 1) and (RK <= 5))*C((P == 2))
 	S["1E-1Yu"] = Train.KSH2.Value+Train.KSB2.Value*Train.KSB1.Value
-	S["1G-1Zh"] = S["1E-1Yu"]*C(RK == 1)*C((P == 1) or (P == 3))*Train.LK2.Value+Train.LK3.Value
-	S["2G-2A"] = S["2V-2G"]*C((P == 2) or (P == 4))+C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))
+	S["2A-2G"] = C((P == 2) or (P == 4))*S["2V-2G"]+C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))
+	S["1Zh-1G"] = C((P == 1) or (P == 3))*Train.LK2.Value*C(RK == 1)*S["1E-1Yu"]+Train.LK3.Value
+	S["10AG-10AD"] = C((P == 1) or (P == 2) or (P == 4))*Train.TR1.Value*Train.TR2.Value+C((P == 2) or (P == 3) or (P == 4))*(1.0-Train.TR2.Value)*(1.0-Train.TR1.Value)
+	S["1A-1R"] = C((RK >= 1) and (RK <= 5))*C((P == 2))+(1.0-Train.RV1.Value)*C((P == 1))
+	S["10AG-10E"] = C((P == 1))*Train.LK3.Value*C(RK == 18)+(1.0-Train.LK1.Value)*S["10AP-10AD"]*S["10AG-10AD"]
 	S["1A"] = A[1]*TW1
-	S["1Zh"] = S["1A"]*C((P == 1) or (P == 2))*S["1G-1Zh"]*S["1T-1P"]*1*(1.0-RP)
-	S["1R"] = S["1A"]*S["1A-1R"]
-	S["1K"] = S["1Zh"]*C((P == 1) or (P == 2))
-	S["1N"] = S["1Zh"]*C((P == 1) or (P == 3))
 	S["3A"] = A[3]*TW3
-	S["4B"] = (1.0-Train.Reverser.Value)*TW4
-	S["5B"] = Train.Reverser.Value*TW5
-	S["5V"] = Train.Reverser.Value*TW4+(1.0-Train.Reverser.Value)*TW5
-	S["5B'"] = S["5V"]*Train.LK3.Value
+	S["20B"] = (1.0-RP)*A[17]*TW20
+	S["1Zh"] = S["1A"]*S["1Zh-1G"]*(1.0-RP)*1*C((P == 1) or (P == 2))*S["1T-1P"]
+	S["1R"] = S["1A"]*S["1A-1R"]
+	S["1N"] = S["1Zh"]*C((P == 1) or (P == 3))
+	S["4B"] = (1.0-Train.RKR.Value)*TW4
 	S["10AYa"] = A[80]*TW10
-	S["20B"] = A[17]*(1.0-RP)*TW20
-	S["2Ye_p"] = S["10AYa"]*(1.0-Train.LK4.Value)*(1.0-Train.LK3.Value)*C((RK >= 2) and (RK <= 18))
-	S["10AG"] = S["10AYa"]*S["10AYa-10E"]*S["10AG-10E"]
 	S["10AE"] = A[30]*TW10
+	S["5B"] = Train.RKR.Value*TW5
 	S["10B"] = S["10AE"]*S["10AE-10B"]
-	S["10N"] = S["10AE"]*(1.0-Train.RUT.Value)*Train.SR1.Value
-	S["2Ye"] = S["2G-2A"]*Train.LK4.Value*A[2]*S["2Zh-2A"]*TW2+S["2Ye_p"]
+	S["2Ye_p"] = S["10AYa"]*(1.0-Train.LK4.Value)*(1.0-Train.LK3.Value)*C((RK >= 2) and (RK <= 18))
+	S["1K"] = S["1Zh"]*C((P == 1) or (P == 2))
+	S["10AG"] = S["10AYa"]*S["10AYa-10E"]*S["10AG-10E"]
+	S["5V"] = Train.RKR.Value*TW4+(1.0-Train.RKR.Value)*TW5
+	S["2Ye"] = Train.LK4.Value*S["2Zh-2A"]*S["2A-2G"]*A[2]*TW2+S["2Ye_p"]
+	S["5B'"] = S["5V"]*Train.LK3.Value
+	S["10N"] = S["10AE"]*Train.SR1.Value*(1.0-Train.RUT.Value)
 
 	-- Call all triggers
+	Triggers["ReverserBackward"](S["4B"])
 	Triggers["LK5"](S["20B"])
-	Triggers["Rper"](S["3A"])
-	Triggers["SDRK"](S["10N"])
-	Triggers["RV1"](S["2Ye"])
-	Triggers["LK4"](S["5B'"])
-	Triggers["KSH2"](S["1R"])
 	Triggers["LK2"](S["20B"])
-	Triggers["RevFWD"](S["5B"])
-	Triggers["RR"](S["1N"])
-	Triggers["RevBWD"](S["4B"])
-	Triggers["SDPP"](S["10AG"])
-	Triggers["SDRK_Coil"](S["10B"])
-	Triggers["SR1"](S["2Ye"])
+	Triggers["SDRK"](S["10N"])
+	Triggers["ReverserForward"](S["5B"])
 	Triggers["LK3"](S["1Zh"])
-	Triggers["KSH1"](S["1R"])
+	Triggers["SDRK_Coil"](S["10B"])
 	Triggers["LK1"](S["1K"])
+	Triggers["Rper"](S["3A"])
+	Triggers["KSH2"](S["1R"])
+	Triggers["SR1"](S["2Ye"])
+	Triggers["LK4"](S["5B'"])
+	Triggers["RV1"](S["2Ye"])
+	Triggers["SDPP"](S["10AG"])
+	Triggers["KSH1"](S["1R"])
+	Triggers["RR"](S["1N"])
 	return S
 end

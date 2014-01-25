@@ -29,10 +29,13 @@ end
 
 
 --group.Settings.Ents is a list of entities to show the group for, # is baseclass prefix
-Debugger.DisplayGroups["Train"] = {
+Debugger.DisplayGroups["Train State"] = {
 	Data = {
 		{"Speed","%.1f","km/h"},
-		{"Acceleration","%6.3f","m/s2"}
+		{"Acceleration","%6.3f","m/s2"},
+		
+		{"KVControllerPosition","%.0f","X/T"},
+		{"KVReverserPosition",  "%.0f","fwd/rev"},
 	},
 	Settings = {
 		Ents = {"#gmod_subway_base"}
@@ -41,7 +44,7 @@ Debugger.DisplayGroups["Train"] = {
 
 Debugger.DisplayGroups["Power Relays"] = {
 	Data = {
-		{"ReverserState","%.0f","on/off"},
+		{"RKRState","%.0f","0-fwd/1-rev"},
 
 		{"LK1State","%.0f","on/off"},
 		{"LK2State","%.0f","on/off"},
@@ -50,32 +53,91 @@ Debugger.DisplayGroups["Power Relays"] = {
 		{"KSH1State","%.0f","on/off"},
 		{"KSH2State","%.0f","on/off"},
 		
+		{"RKTTState","%.0f","on/off"},
+		{"RUTState","%.0f","on/off"},
+		{"DR1State","%.0f","on/off"},
+		{"DR2State","%.0f","on/off"},
+		
 		{"RPLState","%.0f","on/off"},
 		{"RP1_3State","%.0f","on/off"},
 		{"RP2_4State","%.0f","on/off"},
+		{"RPvozvratState","%.0f","on/off"},
 		
-		{"RUTState","%.0f","on/off"},	
-		
-		{"RRState","%.0f","on/off"},	
+		{"RZ_1State","%.0f","on/off"},
+		{"RZ_2State","%.0f","on/off"},
+		{"RZ_3State","%.0f","on/off"},
 	},
 	Settings = {
 		Ents = {"#gmod_subway_base"}
 	}
 }
 
-Debugger.DisplayGroups["Controller"] = {
+Debugger.DisplayGroups["Control Relays"] = {
 	Data = {
-		{"KVControllerPosition","%.0f","X/T"},
-		{"KVReverserPosition",  "%.0f","fwd/rev"},
-		{"TW1 X1", "%d", "level"},
-		{"TW2 X2", "%d", "level"},
-		{"TW3 X3", "%d", "level"},
+		{"RDState","%.0f","on/off"},
+		{"RVOState","%.0f","on/off"},
+		{"RVZState","%.0f","on/off"},
+		{"RT2State","%.0f","on/off"},
+		{"RRState","%.0f","on/off"},
 		
-		{"TW4 FWD", "%d", "level"},
-		{"TW5 BWD", "%d", "level"},
-		{"TW6 T", "%d", "level"},
+		{"NRState","%.0f","on/off"},
+		{"RSUState","%.0f","on/off"},
 		
-		{"TW20 1S", "%d", "level"},
+		{"RPLState","%.0f","on/off"},
+		{"RP1_3State","%.0f","on/off"},
+		{"RP2_4State","%.0f","on/off"},
+		{"RPvozvratState","%.0f","on/off"},
+		
+		{"RV1State","%.0f","on/off"},
+		{"RV2State","%.0f","on/off"},
+		
+		{"RRTState","%.0f","on/off"},
+		{"RRP1State","%.0f","on/off"},
+		{"SR1State","%.0f","on/off"},
+		{"RKRState","%.0f","on/off"},
+		
+		{"RperState","%.0f","on/off"},
+	},
+	Settings = {
+		Ents = {"#gmod_subway_base"}
+	}
+}
+
+Debugger.DisplayGroups["Train Wires"] = {
+	Data = {
+		{"TW1", "%d", "level"},
+		{"TW2", "%d", "level"},
+		{"TW3", "%d", "level"},
+		{"TW4", "%d", "level"},
+		{"TW5", "%d", "level"},
+		{"TW6", "%d", "level"},
+		{"TW7", "%d", "level"},
+		{"TW8", "%d", "level"},
+		{"TW9", "%d", "level"},
+		{"TW10", "%d", "level"},
+		{"TW11", "%d", "level"},
+		{"TW12", "%d", "level"},
+		{"TW13", "%d", "level"},
+		{"TW14", "%d", "level"},
+		{"TW15", "%d", "level"},
+		{"TW16", "%d", "level"},
+		
+		{"TW17", "%d", "level"},
+		{"TW18", "%d", "level"},
+		{"TW19", "%d", "level"},
+		{"TW20", "%d", "level"},
+		{"TW21", "%d", "level"},
+		{"TW22", "%d", "level"},
+		{"TW23", "%d", "level"},
+		{"TW24", "%d", "level"},
+		{"TW25", "%d", "level"},
+		{"TW26", "%d", "level"},
+		{"TW27", "%d", "level"},
+		{"TW28", "%d", "level"},
+		{"TW29", "%d", "level"},
+		{"TW30", "%d", "level"},
+		{"TW31", "%d", "level"},
+		{"TW32", "%d", "level"},
 	},
 	Settings = {
 		Ents = {"#gmod_subway_base"}
@@ -101,8 +163,11 @@ Debugger.DisplayGroups["Pneumatic System"] = {
 
 Debugger.DisplayGroups["Electric System"] = {
 	Data = {
-		--{"ElectricV13","%.3f","V"},
-		--{"ElectricV24","%.3f","V"},
+		{"ElectricMain750V","%.2f","V"},
+		{"ElectricPower750V","%.2f","V"},
+		{"ElectricAux750V","%.2f","V"},
+		{"ElectricAux80V","%.2f","V"},
+		
 		{"ElectricI13","%.2f","A"},
 		{"ElectricI24","%.2f","A"},
 		{"ElectricItotal","%.2f","A"},
@@ -114,13 +179,11 @@ Debugger.DisplayGroups["Electric System"] = {
 		{"ElectricIstator13","%.2f","A"},
 		{"ElectricIstator24","%.2f","A"},
 		
-		--{"ElectricRw13","%.3f","Ohm"},
-		--{"ElectricRw24","%.3f","Ohm"},	
-		{"ElectricRs1","%.3g","Ohm"},
-		{"ElectricRs2","%.3g","Ohm"},
 		{"ElectricR1","%.3g","Ohm"},
 		{"ElectricR2","%.3g","Ohm"},
 		{"ElectricR3","%.3g","Ohm"},
+		{"ElectricRs1","%.3g","Ohm"},
+		{"ElectricRs2","%.3g","Ohm"},
 		
 		{"ElectricP1","%.1f","W"},
 		{"ElectricP2","%.1f","W"},
@@ -144,12 +207,30 @@ Debugger.DisplayGroups["Engines"] = {
 		{"EnginesMoment13","%.2f",""},
 		{"EnginesMoment24","%.2f",""},
 
-		{"RheostatControllerPosition","%.2f","position"},
-		{"PositionSwitchPosition","%.2f","position"},
+		
 	},
 	
 	Settings = {
 		ignore_prefix = "Engines",
+		Ents = {"#gmod_subway_base"}
+	}
+}
+
+Debugger.DisplayGroups["Rheostat Controller and Position Switch"] = {
+	Data = {
+		{"SR1State","%.0f","on/off"},
+		{"RRState","%.0f","on/off"},
+		
+		{"RheostatControllerPosition","%.2f","position"},
+		{"PositionSwitchPosition","%.2f","position"},
+		
+		{"PositionSwitchMotorState","%.1f","state"},
+		{"PositionSwitchMotorCoilState","%.1f","state"},
+		{"RheostatControllerMotorState","%.1f","state"},
+		{"RheostatControllerMotorCoilState","%.1f","state"},
+	},
+	
+	Settings = {
 		Ents = {"#gmod_subway_base"}
 	}
 }
@@ -174,8 +255,8 @@ Debugger.DisplayGroups["DURA"] = {
 
 Debugger.DisplayGroups["Bogey"] = {
 	Data = {
-		{"Speed","%.2f","km/h"},
-		{"Acceleration","%.2f","","Accel"},
+		{"Speed","%.1f","km/h"},
+		{"Acceleration","%6.2f","","m/s2"},
 	},
 	
 	Settings = {

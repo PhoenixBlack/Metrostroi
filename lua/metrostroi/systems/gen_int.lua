@@ -57,7 +57,7 @@ function ParseName(str)
 	end
 	
 	-- See if rheostat is specified
-	if string.sub(str,1,2) == "RK" then
+	if (string.sub(str,1,2) == "RK") and not string.find(str,"RKR") then
 
 		local d = split(string.sub(str,3),"-")
 		--[[if inverted then
@@ -371,13 +371,13 @@ Network = {
 
 	----------------------------------------------------------------------------
 	-- Train wires 4, 5
-	{	"TW4",	"4B",	"!Reverser" },
-	{	"4B",	"0",	"#RevBWD" },
-	{	"TW5",	"5B",	"Reverser" },
-	{	"5B",	"0",	"#RevFWD" },
+	{	"TW4",	"4B",	"!RKR" },
+	{	"4B",	"0",	"#ReverserBackward" },
+	{	"TW5",	"5B",	"RKR" },
+	{	"5B",	"0",	"#ReverserForward" },
 	
-	{	"TW4",	"5V",	"Reverser" },
-	{	"TW5",	"5V",	"!Reverser" },
+	{	"TW4",	"5V",	"RKR" },
+	{	"TW5",	"5V",	"!RKR" },
 	{	"5V",	"5B'",	"LK3" },
 	{	"5B'",	"0",	"#LK4" },
 	
