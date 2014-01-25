@@ -13,6 +13,7 @@ function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
+	self:SetUseType(SIMPLE_USE)
 	
 	-- Train wires
 	self:ResetTrainWires()
@@ -22,7 +23,7 @@ function ENT:Initialize()
 	self:InitializeSystems()
 	
 	-- Prop-protection related
-	if CPPI then
+	if CPPI and self.Owner then
 		self:CPPISetOwner(self.Owner)
 	end
 
@@ -74,6 +75,10 @@ function ENT:Initialize()
 	self.ButtonBuffer = {}
 	self.KeyBuffer = {}
 	self.KeyMap = {}
+	
+	--External interaction areas
+	
+	self.InteractionAreas = {}
 
 	-- Joystick module support
 	if joystick then
@@ -101,6 +106,19 @@ function ENT:OnRemove()
 	if self.TrainEntities then
 		for k,v in pairs(self.TrainEntities) do
 			SafeRemoveEntity(v)
+		end
+	end
+end
+
+-- Interaction zones
+function ENT:Use(ply)
+	local tr = ply:GetEyeTrace()
+	if not tr.Hit then return end
+	local hitpos = self:WorldToLocal(tr.HitPos)
+	
+	for k,v in pairs(self.InteractionZones) do
+		if hitpos:Distance(v.Pos) < v.Radius then
+			self:ButtonEvent(v.ID,true)
 		end
 	end
 end
