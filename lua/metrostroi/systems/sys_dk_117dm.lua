@@ -68,9 +68,9 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	-- Apply moment
 	Train.FrontBogey.MotorForce = 40000
-	Train.FrontBogey.Reversed = (Train.Reverser.Value > 0.5)
+	Train.FrontBogey.Reversed = (Train.RKR.Value > 0.5)
 	Train.RearBogey.MotorForce  = 40000
-	Train.RearBogey.Reversed = (Train.Reverser.Value < 0.5)
+	Train.RearBogey.Reversed = (Train.RKR.Value < 0.5)
 	
 	if (math.abs(Train.Electric.I13) > 1.0) or (math.abs(Train.Electric.I24) > 1.0) then
 		Train.RearBogey.MotorPower  = (self.Moment13 + self.Moment24) / 2

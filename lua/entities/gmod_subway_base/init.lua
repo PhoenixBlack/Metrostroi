@@ -153,15 +153,27 @@ function ENT:TrainWireCanWrite(k)
 end
 
 function ENT:WriteTrainWire(k,v)
-	if self:TrainWireCanWrite(k) then
-		self.TrainWires[k] = v
-		self.TrainWireWriters[k] = {
-			ent = self,
-			time = CurTime()
-		}
-	else
+	-- Check if line is write-able
+	local can_write = self:TrainWireCanWrite(k)
+	if not can_write then
 		self:OnTrainWireError(k)
 	end
+	
+	if not tonumber(k) then
+		print(self,k,self.TrainWires[k],v)
+	end
+	
+	-- Set correct value on the train line
+	if can_write 
+	then self.TrainWires[k] = v
+	else self.TrainWires[k] = math.max(self.TrainWires[k] or 0,v)
+	end
+	
+	-- Set last writer
+	self.TrainWireWriters[k] = {
+		ent = self,
+		time = CurTime()
+	}
 end
 
 function ENT:ReadTrainWire(k)
@@ -674,7 +686,6 @@ function ENT:Think()
 			-- Joystick
 			if joystick then
 				self:HandleJoystickInput(ply)
-				
 			end
 		end
 	end
@@ -688,14 +699,9 @@ function ENT:Think()
 	end
 	
 	-- Add interesting debug variables
-	self.DebugVars["TW1 X1"] = self:ReadTrainWire(1)
-	self.DebugVars["TW2 X2"] = self:ReadTrainWire(2)
-	self.DebugVars["TW3 X3"] = self:ReadTrainWire(3)
-	self.DebugVars["TW4 FWD"] = self:ReadTrainWire(5)
-	self.DebugVars["TW5 BWD"] = self:ReadTrainWire(4)
-	self.DebugVars["TW6 T"] = self:ReadTrainWire(6)
-	self.DebugVars["TW20 1S"] = self:ReadTrainWire(20)
-
+	for i=1,32 do
+		self.DebugVars["TW"..i] = self:ReadTrainWire(i)
+	end
 	self:NextThink(CurTime())
 	return true
 end

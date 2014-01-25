@@ -1,11 +1,74 @@
 --------------------------------------------------------------------------------
--- Кулачковый контроллер КВ-66
+-- Кулачковый контроллер КВ-70
 --------------------------------------------------------------------------------
-Metrostroi.DefineSystem("KV_66")
+Metrostroi.DefineSystem("KV_70")
 
 function TRAIN_SYSTEM:Initialize()
 	self.ControllerPosition = 0
 	self.ReverserPosition = 0
+
+	self.ReverserMatrix = {
+		{"D",		"D1"	},
+		{	1,	0,	1		},
+		{"10",		"C3"	},
+		{	0,	0,	1		},
+		{"10",		"F1"	},
+		{	1,	1,	0		},
+		{"D4",		"15"	},
+		{	1,	0,	1		},
+		{"D8",		"15A"	},
+		{	0,	1,	0		},
+		{"3M35",	"4"		},
+		{	0,	0,	1		},
+		{"10AK",	"4"		},
+		{	1,	0,	0		},
+		{"10AK",	"5"		},
+		{	0,	0,	1		},
+		{"FR1",		"10"	},
+		{	1,	0,	1		},
+		{"F7",		"10"	},
+		{	1,	0,	1		},
+	}
+	self.ControllerMatrix = {
+		{"10",						"8"	},
+		{	1,	0,	0,	0,	0,	0,	0	},
+		{"U2",						"10AS"},
+		{	1,	1,	1,	0,	1,	1,	1	},
+		{"0",						"0"	},
+		{	0,	0,	0,	1,	0,	0,	0	},
+		{"10AK",					"2"	},
+		{	1,	1,	0,	0,	0,	1,	1	},
+		{"U2",						"3"	},
+		{	0,	0,	0,	0,	0,	0,	1	},
+		{"0",						"0"	},
+		{	0,	0,	0,	1,	1,	1,	1	},
+		{"10AO",					"33"},
+		{	0,	0,	0,	0,	1,	1,	1	},
+		{"10AO",					"33D"},
+		{	0,	0,	0,	1,	1,	1,	1	},
+		{"U2",						"33G"},
+		{	1,	1,	1,	0,	0,	0,	0	},
+		{"U2",						"20a"},
+		{	0,	0,	0,	0,	1,	1,	1	},
+		{"U2",						"25"},
+		{	0,	1,	0,	0,	0,	0,	0	},
+		{"10AC",					"U4"},
+		{	0,	0,	0,	1,	0,	0,	0	},
+		{"15A",						"15B"},
+		{	1,	1,	1,	1,	0,	0,	0	},
+		{"U2",						"20b"},
+		{	1,	1,	1,	0,	0,	0,	0	},
+	}
+	
+	-- Initialize contacts values
+	for i=1,#self.ReverserMatrix/2 do
+		local v = self.ReverserMatrix[i*2-1]
+		self[v[1].."-"..v[2]] = 0
+	end	
+	for i=1,#self.ControllerMatrix/2 do
+		local v = self.ControllerMatrix[i*2-1]
+		self[v[1].."-"..v[2]] = 0
+	end
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -84,30 +147,47 @@ function TRAIN_SYSTEM:Think()
 		self.ControllerPosition = 0
 		self.Train:PlayOnce("kv1",true,0.6)
 	end
-
-	-- Enable controller when moving into zero position
-	--if self.ControllerPosition == 0.0 then
-		--Train.KVEnabled:TriggerInput("Close",1.0)
-	--end
+	
+	-- Update contacts
+	for i=1,#self.ReverserMatrix/2 do
+		local v = self.ReverserMatrix[i*2-1]
+		local d = self.ReverserMatrix[i*2]
+		self[v[1].."-"..v[2]] = d[self.ReverserPosition+2]
+	end	
+	for i=1,#self.ControllerMatrix/2 do
+		local v = self.ControllerMatrix[i*2-1]
+		local d = self.ControllerMatrix[i*2]
+		self[v[1].."-"..v[2]] = d[self.ControllerPosition+4]
+	end
+	
+	-- FIXME: temporary commutation
+	Train:WriteTrainWire(1, self["10AO-33"])
+	Train:WriteTrainWire(33,self["10AO-33"])
+	
+	Train:WriteTrainWire(2, self["10AK-2"])
+	Train:WriteTrainWire(3, self["U2-3"])	
+	Train:WriteTrainWire(20,self["U2-20a"]+self["U2-20b"])	
+	
+	Train:WriteTrainWire(4, self["10AK-4"])
+	Train:WriteTrainWire(5, self["10AK-5"])		
+	Train:WriteTrainWire(6, self["U2-10AS"])
 
 	-- Trigger train wires according to the controller value
-	if self.ReverserPosition ~= 0 then
-		local W9 = Train:ReadTrainWire(9)
-		local X1 = (math.abs(self.ControllerPosition) == 1) and 1 or 0
-		local X2 = (math.abs(self.ControllerPosition) == 2) and 1 or 0
-		local X3 = (math.abs(self.ControllerPosition) == 3) and 1 or 0
+	--[[local W9 = Train:ReadTrainWire(9) * ((self.ReverserPosition ~= 0) and 1 or 0)
+	local X1 = (math.abs(self.ControllerPosition) == 1) and 1 or 0
+	local X2 = (math.abs(self.ControllerPosition) == 2) and 1 or 0
+	local X3 = (math.abs(self.ControllerPosition) == 3) and 1 or 0
 		
-		-- X1 X2 X3
-		Train:WriteTrainWire(1,W9 * (X1+X2+X3))
-		Train:WriteTrainWire(2,W9 * (X2+X3))
-		Train:WriteTrainWire(3,W9 * (X3))		
-		Train:WriteTrainWire(20,W9 * (X1 + X2 + X3))
+	-- X1 X2 X3
+	Train:WriteTrainWire(1,W9 * (X1+X2+X3))
+	Train:WriteTrainWire(2,W9 * (X2+X3))
+	Train:WriteTrainWire(3,W9 * (X3))		
+	Train:WriteTrainWire(20,W9 * (X1 + X2 + X3))
 		
-		-- T1 T2 T3
-		Train:WriteTrainWire(6,W9 * ((self.ControllerPosition < 0) and 1 or 0))
+	-- T1 T2 T3
+	Train:WriteTrainWire(6,W9 * ((self.ControllerPosition < 0) and 1 or 0))
 		
-		-- R1 R2
-		Train:WriteTrainWire(4,W9 * ((self.ReverserPosition == -1) and 1 or 0))
-		Train:WriteTrainWire(5,W9 * ((self.ReverserPosition ==  1) and 1 or 0))
-	end
+	-- R1 R2
+	Train:WriteTrainWire(4,W9 * ((self.ReverserPosition == -1) and 1 or 0))
+	Train:WriteTrainWire(5,W9 * ((self.ReverserPosition ==  1) and 1 or 0))]]--
 end

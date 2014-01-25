@@ -47,12 +47,6 @@ function TRAIN_SYSTEM:Initialize()
 	self.T2 = 25
 	self.P1 = 0
 	self.P2 = 0
-	
-	-- Реверсор (ПР-772)
-	self.Train:LoadSystem("Reverser","Relay","PR-772")
-	
-	-- Other relays
-	self.Train:LoadSystem("NR","Relay",{ normally_open = true })
 end
 
 
@@ -63,17 +57,12 @@ end
 function TRAIN_SYSTEM:Outputs()
 	return { "R1","R2","R3","Rs1","Rs2","Itotal","I13","I24",
 			 "Ustator13","Ustator24","Ishunt13","Istator13","Ishunt24","Istator24",
-			 "T1", "T2", "P1", "P2" }
+			 "T1", "T2", "P1", "P2",
+			 "Main750V", "Power750V", "Aux750V", "Aux80V" }
 end
 
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
-	--[[if name == "ResetRPL" then
-		self.Train:PlayOnce("switch",true)
-		self.Train.RPL:TriggerInput("Close",1.0)
-		self.Train.RP1_3:TriggerInput("Close",1.0)
-		self.Train.RP2_4:TriggerInput("Close",1.0)
-	end]]--
 end
 
 
@@ -101,10 +90,10 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	
 	
-	
+
 	----------------------------------------------------------------------------
 	-- Внешнее напряжение силовых цепей
-	self.Power750V = self.Main750V * Train.GV.Value * Train.LK1.Value	
+	self.Power750V = self.Main750V * Train.GV.Value * Train.LK1.Value
 	-- Реле РПЛ
 	self.Power750V = self.Power750V
 	
@@ -153,6 +142,7 @@ function TRAIN_SYSTEM:Think(dT)
 		self:SolvePS(Train)
 	end
 	
+	----------------------------------------------------------------------------
 	-- Calculate current through stator and shunt
 	self.Ustator13 = self.I13 * self.Rstator13
 	self.Ustator24 = self.I24 * self.Rstator24	
@@ -199,49 +189,17 @@ function TRAIN_SYSTEM:Think(dT)
 		["RV1"]		= function(V) Train.RV1:TriggerInput("Set",V) end,
 		["Rper"]	= function(V) Train.Rper:TriggerInput("Set",V) end,
 		
-		["RevFWD"]	= function(V) Train.Reverser:TriggerInput("Open",V) end,
-		["RevBWD"]	= function(V) Train.Reverser:TriggerInput("Close",V) end,
-		
 		["SDPP"]		= function(V) Train.PositionSwitch:TriggerInput("MotorState",V) end,
-		["SDRK_Coil"]	= function(V) end,
-		["SDRK"]		= function(V) --if Train.PositionSwitch.SelectedPosition == 2 then return end
+		["SDRK_Coil"]	= function(V) Train.RheostatController:TriggerInput("MotorCoilState",V*(-1.0 + 2.0*Train.RR.Value)) end,
+		["SDRK"]		= function(V) Train.RheostatController:TriggerInput("MotorState",V) end,
 		
-		Train.RheostatController:TriggerInput("MotorState",V * (-1.0 + 2.0*Train.RR.Value)) end,
+		["ReverserForward"]	= function(V) Train.RKR:TriggerInput("Open",V) end,
+		["ReverserBackward"]	= function(V) Train.RKR:TriggerInput("Close",V) end,
 	}
 	local S = self.InternalCircuits.Solve(Train,Triggers)
 	--print("---------------------")
 	for k,v in SortedPairs(S) do 
 		--print(k,v)
-	end
-
-	
-	----------------------------------------------------------------------------
-	-- РУТ (реле управления тягой) operation
-	self.RUTCurrent = self.I13 + self.I24
-	self.RUTTarget = 260
-	Train.RUT:TriggerInput("Set",(math.abs(self.RUTCurrent) > self.RUTTarget) and 1 or 0)
-	
-	-- Overload relays
-	--Train.RP1_3:TriggerInput("Close",b(self.I13 > 300))
-	--Train.RP2_4:TriggerInput("Close",b(self.I13 > 300))
-	--Train.RPL:TriggerInput("Close",b(self.Itotal > 600))
-	
-	-- Grounding relays
-	Train.RZ_3:TriggerInput("Set",0) -- FIXME
-	
-	----------------------------------------------------------------------------
-	-- Anchor of the rheostat controller
-	--local SDRK = SR1 * (1.0 - Train.RUT.Value)
-	--Train.RheostatController:TriggerInput("MotorState",SDRK * (-1.0 + 2.0*Train.RR.Value))
-	
-	
-	----------------------------------------------------------------------------
-	-- Time relay for LK1, LK3, LK4
-	if Train.RV2.Value == 1.0 then
-		Train.LK1:TriggerInput("Open",1.0)
-		Train.LK3:TriggerInput("Open",1.0)
-		Train.LK4:TriggerInput("Open",1.0)
-		Train.RV2:TriggerInput("Open",1.0)	
 	end
 end
 

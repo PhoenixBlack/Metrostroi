@@ -11,3 +11,9 @@ function TRAIN_SYSTEM:Initialize()
 	-- Номинальное значение срабатывания
 	self.DeltaCurrent = 120 -- A
 end
+
+function TRAIN_SYSTEM:Think()
+	--Train.DR1:TriggerInput("Set",Train.Electric.I13)
+	--Train.DR2:TriggerInput("Set",Train.Electric.I24)
+	--Train.RPL:TriggerInput("Set",Train.Electric.I13)
+end

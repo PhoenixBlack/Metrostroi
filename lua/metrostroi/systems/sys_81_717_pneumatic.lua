@@ -22,7 +22,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- 3 Closed
 	-- 4 Service application
 	-- 5 Emergency application
-	self.DriverValvePosition = 1
+	self.DriverValvePosition = 3
 
 	-- Rate of brake line filling from train line
 	self.BrakeLineFillRate			= 0.500 -- atm/sec
@@ -50,6 +50,10 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("PneumaticNo1","Relay")
 	-- Valve #2
 	self.Train:LoadSystem("PneumaticNo2","Relay")
+	
+	
+	-- Brake cylinder atmospheric valve open
+	self.BrakeCylinderValve = 0
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -92,8 +96,10 @@ function TRAIN_SYSTEM:Think(dT)
 		self[pressure.."_dPdT"] = (self[pressure.."_dPdT"] or 0) + dPdT
 		return dPdT
 	end
-	
-	
+
+	-- If valve in any of the bogeys is open, update according to value on train wire
+	self.BrakeLinePressure = self.Train:ReadTrainWire("BrakeLine")
+
 	-- Pressure at train line
 	self.TrainToBrakeValvePressure = self.TrainLinePressure*0.70
 	
@@ -142,18 +148,19 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	
 	-- Fill cylinders
-	equalizePressure("BrakeCylinderPressure", 
-		self.TrainToBrakeValvePressure - self.BrakeLineToCylinderValve, self.BrakeLineFillRate)
-	
-
-	--print(Format("%.3f  %.3f  %.3f  %.3f atm",
-		--self.BrakeLinePressure,self.ReservoirPressure,self.TrainLinePressure,self.BrakeCylinderPressure))	
-	--print(Format("%.3f  %.3f  %.3f  %.3f atm/sec",
-		--self.BrakeLinePressure_dPdT,self.ReservoirPressure_dPdT,self.TrainLinePressure_dPdT or 0,self.BrakeCylinderPressure_dPdT))
-	--print(self.DriverValvePosition)
+	local targetPressure = self.TrainToBrakeValvePressure - self.BrakeLineToCylinderValve
+	if math.abs(self.BrakeCylinderPressure - targetPressure) > 0.6 then
+		self.BrakeCylinderValve = 1
+	end
+	if math.abs(self.BrakeCylinderPressure - targetPressure) < 0.01 then
+		self.BrakeCylinderValve = 0
+	end
+	if self.BrakeCylinderValve == 1 then
+		equalizePressure("BrakeCylinderPressure", targetPressure, self.BrakeLineFillRate)
+	end
 	
 	-- Apply brakes
-	self.PneumaticBrakeForce = 110000.0
+	self.PneumaticBrakeForce = 80000.0
 	self.Train.FrontBogey.PneumaticBrakeForce = self.PneumaticBrakeForce 
 	self.Train.FrontBogey.BrakeCylinderPressure = self.BrakeCylinderPressure
 	self.Train.FrontBogey.BrakeCylinderPressure_dPdT = -self.BrakeCylinderPressure_dPdT ---self.BrakeCylinderPressure_dPdT
@@ -167,4 +174,7 @@ function TRAIN_SYSTEM:Think(dT)
 	self:TriggerOutput("BrakeCylinderPressure",  	self.BrakeCylinderPressure)
 	self:TriggerOutput("ReservoirPressure", 		self.ReservoirPressure)
 	self:TriggerOutput("TrainLinePressure",			self.TrainLinePressure)
+	
+	-- Write pressure back onto train line
+	self.Train:WriteTrainWire("BrakeLine",self.BrakeLinePressure)
 end
