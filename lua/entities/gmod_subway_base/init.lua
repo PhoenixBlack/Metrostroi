@@ -840,6 +840,7 @@ end
 -- OnButtonPress/Release as well as TriggerInput
 function ENT:ButtonEvent(button,state)
 	if state == nil then
+		print("PRESS",button)
 		self:OnButtonPress(button)
 		self:TriggerInput(button,1.0)
 	elseif (self.ButtonBuffer[button] ~= state) then

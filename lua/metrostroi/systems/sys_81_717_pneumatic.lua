@@ -57,8 +57,8 @@ function TRAIN_SYSTEM:Initialize()
 	
 	
 	-- Isolation valves
-	self.Train:LoadSystem("FrontBrakeLineIsolation","Relay","Switch")
-	self.Train:LoadSystem("RearBrakeLineIsolation","Relay","Switch")
+	self.Train:LoadSystem("FrontBrakeLineIsolation","Relay","Switch", { normally_closed = true })
+	self.Train:LoadSystem("RearBrakeLineIsolation","Relay","Switch", { normally_closed = true })
 
 	-- Brake cylinder atmospheric valve open
 	self.BrakeCylinderValve = 0
@@ -88,21 +88,29 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 end
 
 function TRAIN_SYSTEM:GetPressures(Train)
-	local frontBrakeIsolation = Train.FrontBrakeLineIsolation.Value > 0
-	local rearBrakeIsolation = Train.RearBrakeLineIsolation.Value > 0
-	print("ISOLATION",frontBrakeIsolation,rearBrakeIsolation)
+	local frontBrakeOpen = Train.FrontBrakeLineIsolation.Value == 0
+	local rearBrakeOpen = Train.RearBrakeLineIsolation.Value == 0
 	
-	if frontBrakeIsolation and (not Train.FrontTrain) then
+	-- If open into atmosphere, relieve pressure
+	if frontBrakeOpen and (not Train.FrontTrain) then
 		self.BrakeLinePressure = 0
 		return
 	end
-	if (self.RearIsolationValve == 0) and (not Train.RearTrain) then
+	if rearBrakeOpen and (not Train.RearTrain) then
 		self.BrakeLinePressure = 0
 		return
 	end
 	
+	-- If other end is closed, this one must be closed too
+	if Train.FrontTrain then
+		frontBrakeOpen = frontBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
+	end
+	if Train.RearTrain then
+		rearBrakeOpen = rearBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)
+	end
 	
-	if Train.FrontTrain and Train.RearTrain and	frontBrakeIsolation and rearBrakeIsolation then
+	-- Equalize pressure
+	if Train.FrontTrain and Train.RearTrain and	frontBrakeOpen and rearBrakeOpen then
 		self.BrakeLinePressure = 
 			(Train.FrontTrain.Pneumatic.BrakeLinePressure +
 			 Train.RearTrain.Pneumatic.BrakeLinePressure) / 2
@@ -110,10 +118,10 @@ function TRAIN_SYSTEM:GetPressures(Train)
 		self.ReservoirPressure = 
 			(Train.FrontTrain.Pneumatic.ReservoirPressure +
 			 Train.RearTrain.Pneumatic.ReservoirPressure) / 2
-	elseif Train.FrontTrain and	frontBrakeIsolation then
+	elseif Train.FrontTrain and	frontBrakeOpen then
 		self.BrakeLinePressure = Train.FrontTrain.Pneumatic.BrakeLinePressure
 		self.ReservoirPressure = Train.FrontTrain.Pneumatic.ReservoirPressure
-	elseif Train.RearTrain and rearBrakeIsolation then
+	elseif Train.RearTrain and rearBrakeOpen then
 		self.BrakeLinePressure = Train.RearTrain.Pneumatic.BrakeLinePressure
 		self.ReservoirPressure = Train.RearTrain.Pneumatic.ReservoirPressure
 	end
@@ -121,15 +129,27 @@ end
 
 
 function TRAIN_SYSTEM:SetPressures(Train)
-	if Train.FrontTrain and Train.RearTrain then
+	local frontBrakeOpen = Train.FrontBrakeLineIsolation.Value == 0
+	local rearBrakeOpen = Train.RearBrakeLineIsolation.Value == 0
+	
+	-- If other end is closed, this one must be closed too
+	if Train.FrontTrain then
+		frontBrakeOpen = frontBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
+	end
+	if Train.RearTrain then
+		rearBrakeOpen = rearBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)
+	end
+
+	-- Equalize pressure
+	if Train.FrontTrain and Train.RearTrain and frontBrakeOpen and rearBrakeOpen then
 		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
 		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
 		Train.FrontTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
 		Train.RearTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
-	elseif Train.FrontTrain then
+	elseif Train.FrontTrain and frontBrakeOpen then
 		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
 		Train.FrontTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
-	elseif Train.RearTrain then
+	elseif Train.RearTrain and rearBrakeOpen then
 		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
 		Train.RearTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
 	end

@@ -57,16 +57,16 @@ function ENT:Initialize()
 	self.InteractionZones = {
 		{	Pos = Vector(458,-30,-55),
 			Radius = 32,
-			ID = "PneumaticFrontBrakeLineIsolationToggle" },
+			ID = "FrontBrakeLineIsolationToggle" },
 		{	Pos = Vector(458, 30,-55),
 			Radius = 32,
-			ID = "PneumaticFrontTrainLineIsolationToggle" },
+			ID = "FrontTrainLineIsolationToggle" },
 		{	Pos = Vector(-482,30,-55),
 			Radius = 32,
-			ID = "PneumaticRearBrakeLineIsolationToggle" },
+			ID = "RearBrakeLineIsolationToggle" },
 		{	Pos = Vector(-482, -30,-55),
 			Radius = 32,
-			ID = "PneumaticRearTrainLineIsolationToggle" },
+			ID = "RearTrainLineIsolationToggle" },
 	}
 
 	
