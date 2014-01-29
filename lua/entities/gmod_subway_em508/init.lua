@@ -35,7 +35,7 @@ function ENT:Initialize()
 		[KEY_6] = "KVSetT1A",
 		[KEY_7] = "KVSetT2",
 		
-		[KEY_G] = "ElectricResetRPL",
+		[KEY_G] = "RPvozvratOpen",
 		
 		[KEY_0] = "KVReverserUp",
 		[KEY_9] = "KVReverserDown",		
@@ -101,6 +101,9 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:Think()
+	-- FIXME
+	self.MaxIterations = 8
+
 	-- Enable lights
 	self:SetLightPower(1, self.HeadLights.Value == 1.0)
 	self:SetLightPower(2, self.HeadLights.Value == 1.0)
@@ -121,12 +124,15 @@ function ENT:Think()
 	
 	-- Enable console
 	self:SetNWBool("Power",true)
-	self:SetNWBool("LxRK",self.RheostatController.MotorCoilState ~= 0.0)
+	self:SetNWBool("LxRK",self.LK4.Value ~= 0.0)
+	self:SetNWBool("RP1",self.RPvozvrat.Value ~= 0.0)
+	self:SetNWBool("RP2",self:ReadTrainWire("RP") ~= 0.0)
 	--self:SetNWBool("LST",self:ReadTrainWire(6) > 0.5)
 	self:SetNWBool("KVD",self:ReadTrainWire(20) > 0.5)
 	self:SetNWBool("HeadLights",self.HeadLights.Value == 1.0)
 	self:SetNWBool("CabinLights",self.CabinLights.Value == 1.0)
 	self:SetNWBool("InteriorLights",self.InteriorLights.Value == 1.0)
+	self:WriteTrainWire("RP",self.RPvozvrat.Value)
 	
 	-- Feed values
 	self:SetNWFloat("Reverser",self.KV.ReverserPosition)

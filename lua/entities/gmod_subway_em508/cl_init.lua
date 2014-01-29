@@ -1,4 +1,4 @@
-include("shared.lua")
+﻿include("shared.lua")
 
 
 --------------------------------------------------------------------------------
@@ -44,6 +44,19 @@ ENT.ButtonMap["ARS"] = {
 	scale = 0.0625/10,
 	
 	buttons = {}
+}
+
+-- Help panel
+ENT.ButtonMap["Help"] = {
+	pos = Vector(445.0,-36.0,30.0),
+	ang = Angle(40+180,0,0),
+	width = 20,
+	height = 20,
+	scale = 1,
+	
+	buttons = {
+		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Show help on driving the train"},
+	}
 }
 
 -- FIXME
@@ -165,6 +178,16 @@ ENT.ClientProps["interiorlights_off"] = {
 
 
 
+ENT.ClientProps["book"] = {
+	model = "models/props_lab/binderredlabel.mdl",
+	pos = Vector(449.0,-40.0,45.0),
+	ang = Angle(-135,0,85)
+}
+
+
+
+
+
 --------------------------------------------------------------------------------
 -- Add doors
 for i=0,3 do
@@ -264,10 +287,12 @@ function ENT:Draw()
 		self:DrawDigit((196+0) *10,	35*10, d2, 0.75, 0.55)
 		self:DrawDigit((196+10)*10,	35*10, d1, 0.75, 0.55)
 		
-		if self:GetNWBool("RP") then
+		if self:GetNWBool("RP1") then
 			surface.SetDrawColor(255,200,0)
 			surface.DrawRect(253*10,33*10,16*10,7*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",253*10+30,33*10-19,Color(0,0,0,255))
+		end
+		if self:GetNWBool("RP2") then
 			surface.SetDrawColor(255,200,0)
 			surface.DrawRect(290*10,33*10,16*10,7*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",290*10+30,33*10-19,Color(0,0,0,255))
@@ -298,4 +323,10 @@ function ENT:Draw()
 	self:DrawOnPanel("RearPneumatic",function()
 		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
 	end)
+end
+
+function ENT:OnButtonPressed(button)
+	if button == "ShowHelp" then
+		RunConsoleCommand("train_show_manual")
+	end
 end

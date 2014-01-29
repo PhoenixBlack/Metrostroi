@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+﻿--------------------------------------------------------------------------------
 -- Ящик с реле (ЯР-13A)
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("YAR_13A")
@@ -71,6 +71,7 @@ function TRAIN_SYSTEM:Think()
 	-- RUT operation
 	self.RUTCurrent = math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24)
 	self.RUTTarget = 260
+	if Train.PositionSwitch.SelectedPosition >= 3 then self.RUTTarget = 230 end
 	if Train.RUTpod > 0.5 
 	then Train.RUT:TriggerInput("Close",1.0)
 	else Train.RUT:TriggerInput("Set",self.RUTCurrent > self.RUTTarget)
@@ -88,9 +89,6 @@ function TRAIN_SYSTEM:Think()
 		(Train.RZ_1.Value == 1.0) or
 		(Train.RZ_2.Value == 1.0) or
 		(Train.RZ_3.Value == 1.0))
-		
-	-- HAX FIXME
-	Train.RPvozvrat:TriggerInput("Open",Train.KV.ReverserPosition == 0)
 		
 	-- RV2 time relay for LK1, LK3, LK4
 	Train.LK1:TriggerInput("Open",Train.RV2.Value)

@@ -605,6 +605,10 @@ local function handleKeyEvent(ply,key,pressed)
 			button.state = true
 			sendButtonMessage(button)
 			lastButton = button
+
+			if train.OnButtonPressed then
+				train:OnButtonPressed(button.ID)
+			end
 		end
 	else 
 		-- Reset the last button pressed
@@ -612,6 +616,10 @@ local function handleKeyEvent(ply,key,pressed)
 			if lastButton.state == true then
 				lastButton.state = false
 				sendButtonMessage(lastButton)
+			end
+
+			if train.OnButtonReleased then
+				train:OnButtonReleased(button.ID)
 			end
 		end
 	end
