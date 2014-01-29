@@ -29,7 +29,7 @@ function TRAIN_SYSTEM:Initialize()
 	})
 	
 	-- Реле времени РВ1
-	self.Train:LoadSystem("RV1","Relay","RM3100",{ close_time = 0.7 })
+	self.Train:LoadSystem("RV1","Relay","RM3100",{ open_time = 0.7 })
 	-- Реле времени РВ2 (задерживает отключение ЛК2)
 	self.Train:LoadSystem("RV2","Relay","RM3100",{ close_time = 0.7 })
 	
@@ -48,6 +48,13 @@ function TRAIN_SYSTEM:Initialize()
 	-- Only in Ezh
 	-- Реле перехода (Рпер)
 	self.Train:LoadSystem("Rper","Relay")
+	self.Train:LoadSystem("RUP","Relay")
+	
+	
+	-- Extra coils for some relays
+	self.Train.RUTpod = 0
+	self.Train.RRTuderzh = 0
+	self.Train.RRTpod = 0
 end
 
 function TRAIN_SYSTEM:Think()
@@ -64,7 +71,14 @@ function TRAIN_SYSTEM:Think()
 	-- RUT operation
 	self.RUTCurrent = math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24)
 	self.RUTTarget = 260
-	Train.RUT:TriggerInput("Set",self.RUTCurrent > self.RUTTarget)
+	if Train.RUTpod > 0.5 
+	then Train.RUT:TriggerInput("Close",1.0)
+	else Train.RUT:TriggerInput("Set",self.RUTCurrent > self.RUTTarget)
+	end
+	
+	-- RRT operation
+	Train.RRT:TriggerInput("Close",(Train.RRT.Value == 0.0) and (Train.RRTpod > 0.5) and (Train.RRTuderzh > 0.5))
+	Train.RRT:TriggerInput("Open",(Train.RRTuderzh < 0.5))
 	
 	-- RPvozvrat operation
 	Train.RPvozvrat:TriggerInput("Close",
@@ -74,6 +88,9 @@ function TRAIN_SYSTEM:Think()
 		(Train.RZ_1.Value == 1.0) or
 		(Train.RZ_2.Value == 1.0) or
 		(Train.RZ_3.Value == 1.0))
+		
+	-- HAX FIXME
+	Train.RPvozvrat:TriggerInput("Open",Train.KV.ReverserPosition == 0)
 		
 	-- RV2 time relay for LK1, LK3, LK4
 	Train.LK1:TriggerInput("Open",Train.RV2.Value)

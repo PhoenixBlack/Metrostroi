@@ -29,12 +29,15 @@ function SimplifySeries()
 				N2 = R2[1]
 				if (N1 == k) then N1 = R1[2] end
 				if (N2 == k) then N2 = R2[2] end
-
-				table.insert(Network,{ N1,N2,R1[3].."+"..R2[3] })
-				Network[kR1] = nil
-				Network[kR2] = nil
-				Simplified = true
-				return true
+				
+				-- If not connected in parallel
+				if N1 ~= N2 then
+					table.insert(Network,{ N1,N2,R1[3].."+"..R2[3] })
+					Network[kR1] = nil
+					Network[kR2] = nil
+					Simplified = true
+					return true
+				end
 			end
 		end
 	end
@@ -153,16 +156,16 @@ function Simplify(name)
 	Simplified = true
 	while Simplified do
 		Simplified = false
-		if not SimplifyParallel() then
-			if not SimplifySeries() then
+		if not SimplifySeries() then
+			if not SimplifyParallel() then
 				TransformYDelta()
 			end
 		end
 	end
 
-	--for k,v in pairs(Network) do
-		--print(v[1],v[2],v[3])
-	--end
+	--[[for k,v in pairs(Network) do
+		print(v[1],v[2],v[3])
+	end]]--
 	S =    "function RESISTOR_BLOCKS."..name.."(Train)\n"
 	S = S.."\tlocal RK = Train.RheostatController\n"
 	S = S.."\tlocal T = Train.PositionSwitch\n"
@@ -202,7 +205,7 @@ function Test()
 		[15] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
 		[16] = { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
 		[17] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
-		[18] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1 },
+		[18] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1 },
 	}
 	PositionConfiguration = {
 	--   ##      1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 
@@ -316,14 +319,14 @@ function Test()
 		ANS[i][9] = ANS[i][5]+ANS[i][6]+ANS[i][7]
 		
 		ANS[i][10] = RESISTOR_BLOCKS.S1(Train)
-		ANS[i][11] = RESISTOR_BLOCKS.S1(Train)
+		ANS[i][11] = RESISTOR_BLOCKS.S2(Train)
 	end
 	
 	PrintAnswers()
 end
 
 function PrintAnswers()
-	local INFO = "Rxx   PS1   PS2   PP1   PP2   PT2   PT2   T3    PS    PT     S1     S2 \n"
+	local INFO = "Rxx   PS1   PS2   PP1   PP2   PT1   PT2   T3    PS    PT     S1     S2 \n"
 	for i=1,18 do
 		local S = ""
 		for idx=1,#ANS[i] do
@@ -546,7 +549,7 @@ BaseNetwork = {
 	{ "L76",   "P31",   "RK[21]"},
 }
 Start = "P28"
-End = "L26"
+End = "L76"
 SRC = SRC..Simplify("S1")
 
 

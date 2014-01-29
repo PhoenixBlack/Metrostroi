@@ -68,7 +68,7 @@ function ENT:InitializeWheels()
 			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-3)))
 			wheels:SetAngles(self:GetAngles() + Angle(0,0,0))
 		else
-			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-12)))
+			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-10)))
 			wheels:SetAngles(self:GetAngles() + Angle(0,0,0))
 		end		
 		--wheels = ents.Create("gmod_subway_wheels")

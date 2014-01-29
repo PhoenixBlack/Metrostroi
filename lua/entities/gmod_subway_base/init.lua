@@ -719,7 +719,7 @@ function ENT:Think()
 	end
 	
 	-- Run iterations on systems simulation
-	local maxIterations = 4
+	local maxIterations = self.MaxIterations or 16
 	for k,v in pairs(self.Systems) do
 		if v.NoIterations then
 			v:Think(self.DeltaTime)

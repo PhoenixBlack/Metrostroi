@@ -52,6 +52,8 @@ Debugger.DisplayGroups["Power Relays"] = {
 		{"LK4State","%.0f","on/off"},
 		{"KSH1State","%.0f","on/off"},
 		{"KSH2State","%.0f","on/off"},
+		{"TR1State","%.0f","on/off"},
+		{"TR2State","%.0f","on/off"},
 		
 		{"RKTTState","%.0f","on/off"},
 		{"RUTState","%.0f","on/off"},
@@ -171,6 +173,7 @@ Debugger.DisplayGroups["Electric System"] = {
 		{"ElectricI13","%.2f","A"},
 		{"ElectricI24","%.2f","A"},
 		{"ElectricItotal","%.2f","A"},
+		{"ElectricIRT2","%.2f","A"},
 		
 		{"ElectricUstator13","%.3f","V"},
 		{"ElectricUstator24","%.3f","V"},
@@ -206,8 +209,9 @@ Debugger.DisplayGroups["Engines"] = {
 		{"EnginesRotationRate","%.1f","rpm"},
 		{"EnginesMoment13","%.2f",""},
 		{"EnginesMoment24","%.2f",""},
-
 		
+		{"EnginesFieldReduction13","%.2f","%"},
+		{"EnginesFieldReduction24","%.2f","%"},		
 	},
 	
 	Settings = {
@@ -216,21 +220,42 @@ Debugger.DisplayGroups["Engines"] = {
 	}
 }
 
-Debugger.DisplayGroups["Rheostat Controller and Position Switch"] = {
+Debugger.DisplayGroups["Rheostat Controller"] = {
 	Data = {
-		{"SR1State","%.0f","on/off"},
-		{"RRState","%.0f","on/off"},
-		
-		{"RheostatControllerPosition","%.2f","position"},
-		{"PositionSwitchPosition","%.2f","position"},
-		
-		{"PositionSwitchMotorState","%.1f","state"},
-		{"PositionSwitchMotorCoilState","%.1f","state"},
+		{"RheostatControllerRheostatController","",""},
+	
 		{"RheostatControllerMotorState","%.1f","state"},
 		{"RheostatControllerMotorCoilState","%.1f","state"},
+		
+		{"RheostatControllerPosition","%.2f","position"},
+		{"RheostatControllerVelocity","%.2f","1/sec"},
+		
+		{"RheostatControllerRKM","%.1f","state"},
+		{"RheostatControllerRKP","%.1f","state"},
 	},
 	
 	Settings = {
+		ignore_prefix = "RheostatController",
+		Ents = {"#gmod_subway_base"}
+	}
+}
+
+Debugger.DisplayGroups["Position Switch"] = {
+	Data = {
+		{"PositionSwitchPositionSwitch","",""},
+	
+		{"PositionSwitchMotorState","%.1f","state"},
+		{"PositionSwitchMotorCoilState","%.1f","state"},
+
+		{"PositionSwitchPosition","%.2f","position"},
+		{"PositionSwitchVelocity","%.2f","1/sec"},
+
+		{"PositionSwitchRKM","%.1f","state"},
+		{"PositionSwitchRKP","%.1f","state"},
+	},
+	
+	Settings = {
+		ignore_prefix = "PositionSwitch",
 		Ents = {"#gmod_subway_base"}
 	}
 }

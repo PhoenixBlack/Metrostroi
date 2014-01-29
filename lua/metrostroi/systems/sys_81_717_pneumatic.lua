@@ -51,9 +51,9 @@ function TRAIN_SYSTEM:Initialize()
 	
 	
 	-- Valve #1
-	self.Train:LoadSystem("PneumaticNo1","Relay")
+	self.Train:LoadSystem("PneumaticNo1","Relay",{ open_time = 1.0, close_time = 1.0 })
 	-- Valve #2
-	self.Train:LoadSystem("PneumaticNo2","Relay")
+	self.Train:LoadSystem("PneumaticNo2","Relay",{ close_time = 1.0 })
 	
 	
 	-- Isolation valves
@@ -223,7 +223,11 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	-- Valve #1
 	if self.Train.PneumaticNo1.Value == 1.0 then
-		self.BrakeLineToCylinderValve = self.BrakeLineToCylinderValve * 0.65
+		self.BrakeLineToCylinderValve = self.BrakeLineToCylinderValve * 0.70
+	end
+	-- Valve #2
+	if self.Train.PneumaticNo2.Value == 1.0 then
+		self.BrakeLineToCylinderValve = self.BrakeLineToCylinderValve * 0.00
 	end
 	
 	-- Fill cylinders

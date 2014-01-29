@@ -165,12 +165,15 @@ function TRAIN_SYSTEM:Think()
 	Train:WriteTrainWire(33,self["10AO-33"])
 
 	Train:WriteTrainWire(2, self["10AK-2"])
-	Train:WriteTrainWire(3, self["U2-3"])	
-	Train:WriteTrainWire(20,self["U2-20a"]+self["U2-20b"])	
+	Train:WriteTrainWire(3, self["U2-3"])
+	Train:WriteTrainWire(20,self["U2-20a"]+self["U2-20b"])
+	
+	Train:WriteTrainWire(25,self["U2-25"])
+	Train:WriteTrainWire(8, self["10-8"])
 	
 	Train:WriteTrainWire(4, self["10AK-4"])
-	Train:WriteTrainWire(5, self["10AK-5"])		
-	Train:WriteTrainWire(6, self["U2-10AS"])
+	Train:WriteTrainWire(5, self["10AK-5"])
+	Train:WriteTrainWire(6, self["U2-33G"])
 
 	-- Trigger train wires according to the controller value
 	--[[local W9 = Train:ReadTrainWire(9) * ((self.ReverserPosition ~= 0) and 1 or 0)
