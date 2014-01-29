@@ -133,11 +133,19 @@ function TRAIN_SYSTEM:SetPressures(Train)
 	local rearBrakeOpen = Train.RearBrakeLineIsolation.Value == 0
 	
 	-- If other end is closed, this one must be closed too
-	if Train.FrontTrain then
-		frontBrakeOpen = frontBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
+	if Train.FrontTrain then 
+		if Train.FrontTrain.FrontTrain == Train then -- Nose to nose
+			frontBrakeOpen = frontBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
+		else -- Rear to nose
+			rearBrakeOpen = rearBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
+		end
 	end
 	if Train.RearTrain then
-		rearBrakeOpen = rearBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)
+		if Train.RearTrain.FrontTrain == Train then -- Back to back
+			rearBrakeOpen = rearBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)
+		else
+			frontBrakeOpen = frontBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)		
+		end
 	end
 
 	-- Equalize pressure
