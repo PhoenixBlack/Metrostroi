@@ -716,8 +716,9 @@ function ENT:Think()
 		end
 	end
 	
-	-- Run iterations on systems simulation	
-	--[[local maxIterations = self.MaxIterations or 16
+	-- Run iterations on systems simulation
+	self.Iterations = self.Iterations or 0
+	local maxIterations = self.MaxIterations or 16
 	local subdiv = 4
 	for k,v in pairs(self.Systems) do
 		if v.NoIterations then
@@ -728,38 +729,44 @@ function ENT:Think()
 		for k,v in pairs(self.Systems) do
 			if not v.NoIterations then
 				if k == "Electric" then
-					v:Think(self.DeltaTime / maxIterations)
+					v:Think(self.DeltaTime / maxIterations,self.Iterations)
 				else
 					if ((iteration-1) % subdiv) == 0 then
-						v:Think(self.DeltaTime / (maxIterations/subdiv))
+						v:Think(self.DeltaTime / (maxIterations/subdiv),self.Iterations)
 					end
 				end
 			end
 		end
-	end]]--
+		self.Iterations = self.Iterations + 1
+	end
 	
 	-- Run iterations on systems simulation
-	self.Iterations = self.Iterations or 0
+	--[[self.Iterations = self.Iterations or 0
 	local maxIterations = self.MaxIterations or 16
 	for k,v in pairs(self.Systems) do
 		--if v.NoIterations then
-		if k ~= "Electric" then
+		if (k ~= "Electric") and (k ~= "Engines") then
 			v:Think(self.DeltaTime)
 		end
 	end
 	
 	local electric,electric_think
+	local engines,engines_think
 	for k,v in pairs(self.Systems) do
 		if k == "Electric" then
 			electric = v
 			electric_think = v.Think
-			break
+		end
+		if k == "Engines" then
+			engines = v
+			engines_think = v.Think
 		end
 	end
 	for iteration=1,maxIterations do
 		if electric_think then electric_think(electric,self.DeltaTime / (4*maxIterations),self.Iterations) end
+		if engines_think  then engines_think(engines,self.DeltaTime / (4*maxIterations),self.Iterations) end
 		self.Iterations = self.Iterations + 1
-	end
+	end]]--
 	
 	-- Add interesting debug variables
 	for i=1,32 do

@@ -43,14 +43,12 @@ function ENT:Initialize()
 		[KEY_S] = "KVControllerDown",
 		[KEY_F] = "PneumaticBrakeUp",
 		[KEY_R] = "PneumaticBrakeDown",
-		
-		[KEY_A] = "DURASelectAlternate",
-		[KEY_D] = "DURASelectMain",
+
 		[KEY_LSHIFT] = {
-			[KEY_W] = "Shift W",
-			[KEY_A] = "Shift A",
-			[KEY_S] = "Shift S",
-			[KEY_D] = "Shift D"
+			--[KEY_W] = "Shift W",
+			[KEY_A] = "DURASelectAlternate",
+			--[KEY_S] = "Shift S",
+			[KEY_D] = "DURASelectMain"
 		}
 	}
 	
@@ -112,8 +110,8 @@ function ENT:Think()
 	self:SetLightPower(6, self.HeadLights.Value == 1.0)
 	self:SetLightPower(7, self.HeadLights.Value == 1.0)
 	
-	self:SetLightPower(8, self.RR.Value == 1.0)
-	self:SetLightPower(9, self.RR.Value == 1.0)
+	self:SetLightPower(8, self.RKR.Value == 1.0)
+	self:SetLightPower(9, self.RKR.Value == 1.0)
 	
 	self:SetLightPower(10, self.CabinLights.Value == 1.0)
 	
