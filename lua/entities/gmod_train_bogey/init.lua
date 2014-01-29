@@ -272,7 +272,7 @@ function ENT:Think()
 	
 	self.Variables["Speed"]=self.Speed
 	
-	self.Acceleration = (self.Speed - (self.PrevSpeed or 0)) / self.DeltaTime
+	self.Acceleration = 0.277778*(self.Speed - (self.PrevSpeed or 0)) / self.DeltaTime
 	self.PrevSpeed = self.Speed
 
 	self.Variables["Acceleration"]=self.Acceleration
