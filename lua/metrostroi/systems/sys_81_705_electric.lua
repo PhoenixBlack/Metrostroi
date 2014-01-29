@@ -11,11 +11,16 @@ function TRAIN_SYSTEM:Initialize()
 	self.Aux80V = 0.0
 	
 	-- Resistances
-	self.R1 = 0.0
-	self.R2 = 0.0
-	self.R3 = 0.0
-	self.Rs1 = 0.0
-	self.Rs2 = 0.0
+	self.R1 = 1e9
+	self.R2 = 1e9
+	self.R3 = 1e9
+	self.Rs1 = 1e9
+	self.Rs2 = 1e9
+	
+	self.Rstator13 = 1e9
+	self.Rstator24 = 1e9
+	self.Ranchor13	= 1e9
+	self.Ranchor24	= 1e9
 	
 	-- Load resistor blocks
 	RESISTOR_BLOCKS = {}
@@ -69,7 +74,7 @@ end
 
 
 --------------------------------------------------------------------------------
-function TRAIN_SYSTEM:Think(dT)
+function TRAIN_SYSTEM:Think(dT,iteration)
 	local Train = self.Train
 	
 	----------------------------------------------------------------------------
@@ -100,37 +105,39 @@ function TRAIN_SYSTEM:Think(dT)
 	self.ExtraResistance = (1-Train.LK2.Value) * Train.KF_47A["L2-L4"]
 	
 	-- Вычисление сопротивления в резисторах реостатного контроллера
-	self.ResistorBlocks.InitializeResistances_81_705(Train)
-	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
-		self.R1 = self.ResistorBlocks.R1C1(Train)
-		self.R2 = self.ResistorBlocks.R2C1(Train)
-		self.R3 = 0.0
-	elseif Train.PositionSwitch.SelectedPosition == 2 then -- PP
-		self.R1 = self.ResistorBlocks.R1C2(Train)
-		self.R2 = self.ResistorBlocks.R2C2(Train)
-		self.R3 = 0.0
-	elseif Train.PositionSwitch.SelectedPosition >= 3 then -- PT
-		self.R1 = self.ResistorBlocks.R1C1(Train)
-		self.R2 = self.ResistorBlocks.R2C1(Train)
-		self.R3 = self.ResistorBlocks.R3(Train)
-	end
-	-- Apply LK3, LK4 contactors
-	self.R1 = self.R1 + 1e9*(1 - Train.LK3.Value)
-	self.R2 = self.R2 + 1e9*(1 - Train.LK4.Value)
+	if (iteration % 4 == 0) then
+		self.ResistorBlocks.InitializeResistances_81_705(Train)
+		if Train.PositionSwitch.SelectedPosition == 1 then -- PS
+			self.R1 = self.ResistorBlocks.R1C1(Train)
+			self.R2 = self.ResistorBlocks.R2C1(Train)
+			self.R3 = 0.0
+		elseif Train.PositionSwitch.SelectedPosition == 2 then -- PP
+			self.R1 = self.ResistorBlocks.R1C2(Train)
+			self.R2 = self.ResistorBlocks.R2C2(Train)
+			self.R3 = 0.0
+		elseif Train.PositionSwitch.SelectedPosition >= 3 then -- PT
+			self.R1 = self.ResistorBlocks.R1C1(Train)
+			self.R2 = self.ResistorBlocks.R2C1(Train)
+			self.R3 = self.ResistorBlocks.R3(Train)
+		end
+		-- Apply LK3, LK4 contactors
+		self.R1 = self.R1 + 1e9*(1 - Train.LK3.Value)
+		self.R2 = self.R2 + 1e9*(1 - Train.LK4.Value)
 
-	-- Shunt resistance
-	self.Rs1 = self.ResistorBlocks.S1(Train) + 1e9*(1 - Train.KSH1.Value)
-	self.Rs2 = self.ResistorBlocks.S2(Train) + 1e9*(1 - Train.KSH2.Value)
+		-- Shunt resistance
+		self.Rs1 = self.ResistorBlocks.S1(Train) + 1e9*(1 - Train.KSH1.Value)
+		self.Rs2 = self.ResistorBlocks.S2(Train) + 1e9*(1 - Train.KSH2.Value)
 	
-	-- Calculate total resistance of engines winding
-	local RwAnchor = Train.Engines.Rw*2 -- Double because each set includes two engines
-	local RwStator = Train.Engines.Rw*2
-	-- Total resistance of the stator + shunt
-	self.Rstator13	= (RwStator^-1 + self.Rs1^-1)^-1
-	self.Rstator24	= (RwStator^-1 + self.Rs2^-1)^-1
-	-- Total resistance of entire motor
-	self.Ranchor13	= RwAnchor
-	self.Ranchor24	= RwAnchor
+		-- Calculate total resistance of engines winding
+		local RwAnchor = Train.Engines.Rw*2 -- Double because each set includes two engines
+		local RwStator = Train.Engines.Rw*2
+		-- Total resistance of the stator + shunt
+		self.Rstator13	= (RwStator^-1 + self.Rs1^-1)^-1
+		self.Rstator24	= (RwStator^-1 + self.Rs2^-1)^-1
+		-- Total resistance of entire motor
+		self.Ranchor13	= RwAnchor
+		self.Ranchor24	= RwAnchor
+	end
 	
 	-- Вычисление электросети (calculate electric power network)
 	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
@@ -175,8 +182,8 @@ function TRAIN_SYSTEM:Think(dT)
 	self.T2 = self.T2 + self.P2 * 5e-4 * dT - (self.T2 - 25)*0.0001
 	
 	-- Output interesting variables
-	local outputs = self:Outputs()
-	for k,v in pairs(outputs) do
+	self.outputs = self.outputs or self:Outputs()
+	for k,v in pairs(self.outputs) do
 		self:TriggerOutput(v,self[v])
 	end
 	
@@ -186,7 +193,7 @@ function TRAIN_SYSTEM:Think(dT)
 	----------------------------------------------------------------------------
 	-- Calculate internal circuits
 	local KSH1,KSH2 = 0,0
-	local Triggers = {
+	self.Triggers = self.Triggers or {
 		["LK1"] 		= function(V) Train.LK1:TriggerInput("Close",V) end,
 		["LK2"]			= function(V) Train.LK2:TriggerInput("Set",V) 
 									  Train.RV2:TriggerInput("Close",(1.0-V) * Train.LK2.Value) end,
@@ -219,12 +226,13 @@ function TRAIN_SYSTEM:Think(dT)
 		["ReverserBackward"]	= function(V) Train.RKR:TriggerInput("Close",V) end,
 		["PneumaticNo1"]		= function(V) Train.PneumaticNo1:TriggerInput("Set",V) end,
 		["PneumaticNo2"]		= function(V) Train.PneumaticNo2:TriggerInput("Set",V) end,
-	}	
-	local S = self.InternalCircuits.Solve(Train,Triggers)
+	}
+	local S = self.InternalCircuits.Solve(Train,self.Triggers)
+	
 	--print("---------------------")
-	for k,v in SortedPairs(S) do 
+	--for k,v in SortedPairs(S) do 
 		--print(k,v)
-	end
+	--end
 	Train.KSH1:TriggerInput("Set",KSH1)
 	Train.KSH2:TriggerInput("Set",KSH2)
 	--print(Train.RheostatController.Position,Train.RheostatController.MotorCoilState,Train.RheostatController.MotorState)

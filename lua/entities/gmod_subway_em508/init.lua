@@ -145,3 +145,15 @@ function ENT:Think()
 	self.DebugVars["Acceleration"] = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2
 	return self.BaseClass.Think(self)
 end
+
+
+--------------------------------------------------------------------------------
+function ENT:OnCouple(train,isfront)
+	self.BaseClass.OnCouple(self,train,isfront)
+	
+	if isfront then
+		self.FrontBrakeLineIsolation:TriggerInput("Open",1.0)
+	else
+		self.RearBrakeLineIsolation:TriggerInput("Open",1.0)
+	end
+end

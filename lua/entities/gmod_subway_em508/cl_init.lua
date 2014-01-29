@@ -46,6 +46,24 @@ ENT.ButtonMap["ARS"] = {
 	buttons = {}
 }
 
+-- FIXME
+ENT.ButtonMap["FrontPneumatic"] = {
+	pos = Vector(459.0,-45.0,-50.0),
+	ang = Angle(0,90,90),
+	width = 900,
+	height = 100,
+	scale = 0.1,
+	buttons = {}
+}
+ENT.ButtonMap["RearPneumatic"] = {
+	pos = Vector(-481.0,45.0,-50.0),
+	ang = Angle(0,270,90),
+	width = 900,
+	height = 100,
+	scale = 0.1,
+	buttons = {}
+}
+
 
 
 
@@ -272,5 +290,12 @@ function ENT:Draw()
 			surface.DrawRect(101*10,73*10,16*10,7*10)
 			--draw.DrawText("ЛРК","MetrostroiSubway_LargeText",101*10-4,73*10-5,Color(0,0,0,255))
 		end
+	end)
+	
+	self:DrawOnPanel("FrontPneumatic",function()
+		draw.DrawText(self:GetNWBool("FI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
+	end)
+	self:DrawOnPanel("RearPneumatic",function()
+		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
 	end)
 end

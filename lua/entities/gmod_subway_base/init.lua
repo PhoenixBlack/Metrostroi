@@ -702,11 +702,9 @@ function ENT:Think()
 	
 	-- Handle player input
 	if IsValid(self.DriverSeat) then
-		
 		local ply = self.DriverSeat:GetPassenger(0) 
 		
 		if ply and IsValid(ply) then
-			
 			if self.KeyMap then
 				self:HandleKeyboardInput(ply)
 			end
@@ -718,8 +716,9 @@ function ENT:Think()
 		end
 	end
 	
-	-- Run iterations on systems simulation
-	local maxIterations = self.MaxIterations or 16
+	-- Run iterations on systems simulation	
+	--[[local maxIterations = self.MaxIterations or 16
+	local subdiv = 4
 	for k,v in pairs(self.Systems) do
 		if v.NoIterations then
 			v:Think(self.DeltaTime)
@@ -728,9 +727,38 @@ function ENT:Think()
 	for iteration=1,maxIterations do
 		for k,v in pairs(self.Systems) do
 			if not v.NoIterations then
-				v:Think(self.DeltaTime / maxIterations)
+				if k == "Electric" then
+					v:Think(self.DeltaTime / maxIterations)
+				else
+					if ((iteration-1) % subdiv) == 0 then
+						v:Think(self.DeltaTime / (maxIterations/subdiv))
+					end
+				end
 			end
 		end
+	end]]--
+	
+	-- Run iterations on systems simulation
+	self.Iterations = self.Iterations or 0
+	local maxIterations = self.MaxIterations or 16
+	for k,v in pairs(self.Systems) do
+		--if v.NoIterations then
+		if k ~= "Electric" then
+			v:Think(self.DeltaTime)
+		end
+	end
+	
+	local electric,electric_think
+	for k,v in pairs(self.Systems) do
+		if k == "Electric" then
+			electric = v
+			electric_think = v.Think
+			break
+		end
+	end
+	for iteration=1,maxIterations do
+		if electric_think then electric_think(electric,self.DeltaTime / (4*maxIterations),self.Iterations) end
+		self.Iterations = self.Iterations + 1
 	end
 	
 	-- Add interesting debug variables
