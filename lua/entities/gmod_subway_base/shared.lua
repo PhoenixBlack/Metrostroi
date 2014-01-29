@@ -84,9 +84,7 @@ function ENT:LoadSystem(a,b,...)
 	if SERVER then
 		self[sys_name].TriggerOutput = function(sys,name,value)
 			local varname = (sys.Name or "")..name
-			if Wire_TriggerOutput then
-				Wire_TriggerOutput(self, varname, tonumber(value) or 0)
-			end
+			--self:TriggerOutput(varname, tonumber(value) or 0)
 			self.DebugVars[varname] = value
 		end
 	end

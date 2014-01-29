@@ -260,4 +260,8 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	-- Set pressures (if isolation valves are open, propagate pressure to next wagon)
 	self:SetPressures(Train)
+	
+	-- FIXME
+	Train:SetNWBool("FI",Train.FrontBrakeLineIsolation.Value ~= 0)
+	Train:SetNWBool("RI",Train.RearBrakeLineIsolation.Value ~= 0)
 end
