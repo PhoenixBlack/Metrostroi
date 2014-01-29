@@ -123,7 +123,7 @@ function ENT:Think()
 	
 	-- Enable console
 	self:SetNWBool("Power",true)
-	self:SetNWBool("LxRK",self.RheostatController.Moving ~= 0.0)
+	self:SetNWBool("LxRK",self.RheostatController.MotorCoilState ~= 0.0)
 	--self:SetNWBool("LST",self:ReadTrainWire(6) > 0.5)
 	self:SetNWBool("KVD",self:ReadTrainWire(20) > 0.5)
 	self:SetNWBool("HeadLights",self.HeadLights.Value == 1.0)
@@ -139,7 +139,7 @@ function ENT:Think()
 	self:SetNWFloat("BrakeCylinder",self.Pneumatic.BrakeCylinderPressure)
 	
 	self:SetNWFloat("Volts",self.Electric.Power750V)
-	self:SetNWFloat("Amperes",math.abs(self.Electric.Itotal))
+	self:SetNWFloat("Amperes",math.abs(self.Electric.I24))
 	self:SetNWFloat("Speed",(self.FrontBogey.Speed + self.RearBogey.Speed)/2)
 	self.DebugVars["Speed"] = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
 	self.DebugVars["Acceleration"] = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2

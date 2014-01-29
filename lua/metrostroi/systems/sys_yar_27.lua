@@ -17,3 +17,10 @@ function TRAIN_SYSTEM:Initialize()
 	-- Реле реверсировки (РР)
 	self.Train:LoadSystem("RR","Relay","RPU-116T")
 end
+
+function TRAIN_SYSTEM:Think()
+	local Train = self.Train
+	
+	-- RT2 relay operation
+	Train.RT2:TriggerInput("Set",Train.Electric.IRT2)
+end

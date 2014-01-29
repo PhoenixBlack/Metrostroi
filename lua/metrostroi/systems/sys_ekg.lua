@@ -19,11 +19,13 @@ function TRAIN_SYSTEM:Initialize()
 	self.OverrideRate = self.OverrideRate or {}
 	
 	-- Initialize motor state and position
-	self.Moving = 0
-	self.Position = 1
-	self.SelectedPosition = 1
-	self.MotorState = 0
-	self.MotorCoilState = 1
+	self.Position = 1			-- Current literal position
+	self.Velocity = 0			-- Current velocity
+	self.SelectedPosition = 1	-- Currently selected set of contactors
+	self.MotorState = 0			-- State of motor (1 go, -1 brake)
+	self.MotorCoilState = 1		-- State of the motor coil (selects direction)
+	self.RKM = 0				-- Intermediate position contactor
+	self.RKP = 0				-- Final position contactor
 	
 	-- Max position
 	self.MaxPosition = #self.Configuration
@@ -34,7 +36,7 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { "Position", "MotorState", "MotorCoilState", "Moving" }
+	return { "Position", "Velocity", "MotorState", "MotorCoilState", "RKM","RKP" }
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
@@ -67,48 +69,43 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	
 	-- Start motor rotation
-	local motorForce = self.MotorState*self.MotorCoilState
-	if (motorForce > 0.0) and (self.Moving == 0.0) then
-		self.Moving =  1.0
-	end
-	if (motorForce < 0.0) and (self.Moving == 0.0) then
-		self.Moving = -1.0
-	end
-	
-	-- Threshold for motor stopping
-	local threshold = 0.3 
-	
-	-- Stop motor rotation
-	local delta = self.Position - math.floor(self.Position)
-	if delta > 0.5 then delta = 1.0 - delta end
-	
-	if (motorForce == 0.0) and (self.Moving ~= 0.0) and (delta < threshold) then
-		self.Moving = 0.0
-	end
+	local motorForce = 0
+	if self.MotorState ==  1.0 then motorForce =  128.0*self.MotorCoilState end
+	if self.MotorState == -1.0 then motorForce = -128.0*self.Velocity end
 	
 	-- Move motor
+	local threshold = 0.10 -- Maximum single step of motor per frame
 	local rate = self.OverrideRate[position] or self.RotationRate
-	self.Position = self.Position + self.Moving*math.min(threshold*0.5,rate * dT)
+	self.Velocity = math.max(-rate,math.min(rate,self.Velocity + motorForce*dT))
+	self.Position = self.Position + math.min(threshold*0.5,self.Velocity * dT)
 	
 	-- Limit motor from moving too far
 	if not self.WrapsAround then
-		if self.Position > self.MaxPosition+0.4 then
-			self.Position = self.MaxPosition+0.4
+		if self.Position > self.MaxPosition+0.1 then
+			self.Position = self.MaxPosition+0.1
+			self.Velocity = 0.0
 			self.MotorState = 0.0
-			self.Moving = 0.0
 		end
-		if self.Position < 0.6 then
-			self.Position = 0.6
+		if self.Position < 0.9 then
+			self.Position = 0.9
+			self.Velocity = 0.0
 			self.MotorState = 0.0
-			self.Moving = 0.0
 		end
 	else
-		if self.Position > self.MaxPosition+0.4 then self.Position = 0.6 end
-		if self.Position < 0.6  then self.Position = self.MaxPosition+0.4 end
+		if self.Position > self.MaxPosition+0.1 then self.Position = 0.9 end
+		if self.Position < 0.9  then self.Position = self.MaxPosition+0.1 end
 	end
+	
+	-- Update position contactors
+	local f = self.Position - position
+	self.RKM = ((f < -0.30) or  (f > 0.30)) and 1 or 0
+	self.RKP = ((f > -0.10) and (f < 0.10)) and 1 or 0
 
+	-- Update outputs
 	self:TriggerOutput("Position",self.Position)
+	self:TriggerOutput("Velocity",self.Velocity)
 	self:TriggerOutput("MotorState",self.MotorState)
 	self:TriggerOutput("MotorCoilState",self.MotorCoilState)
-	self:TriggerOutput("Moving",self.Moving)
+	self:TriggerOutput("RKM",self.RKM)
+	self:TriggerOutput("RKP",self.RKP)
 end
