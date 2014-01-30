@@ -102,7 +102,7 @@ end
 --------------------------------------------------------------------------------
 function ENT:Think()
 	-- FIXME
-	self.MaxIterations = 8
+	self.MaxIterations = 16
 
 	-- Enable lights
 	self:SetLightPower(1, self.HeadLights.Value == 1.0)
