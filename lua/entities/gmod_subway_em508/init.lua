@@ -138,7 +138,7 @@ function ENT:Think()
 	self:SetNWFloat("Reverser",self.KV.ReverserPosition)
 	self:SetNWFloat("Controller",self.KV.ControllerPosition)
 	self:SetNWFloat("DriverValve",self.Pneumatic.DriverValvePosition)	
-	self:SetNWFloat("BrakeLine",self.Pneumatic.BrakeLinePressure)
+	self:SetNWFloat("BrakeLine",self.Pneumatic.ReservoirPressure)
 	self:SetNWFloat("TrainLine",self.Pneumatic.TrainLinePressure)
 	self:SetNWFloat("BrakeCylinder",self.Pneumatic.BrakeCylinderPressure)
 	

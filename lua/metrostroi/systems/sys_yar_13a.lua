@@ -71,7 +71,10 @@ function TRAIN_SYSTEM:Think()
 	-- RUT operation
 	self.RUTCurrent = math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24)
 	self.RUTTarget = 260
-	if Train.PositionSwitch.SelectedPosition >= 3 then self.RUTTarget = 230 end
+	-- HACK: increase RUT current on slopes
+	if math.abs(Train:GetAngles().pitch) > 2.5 then self.RUTTarget = self.RUTTarget + 75 end	
+	if Train.PositionSwitch.SelectedPosition >= 3 then self.RUTTarget = 180 end
+	
 	if Train.RUTpod > 0.5 
 	then Train.RUT:TriggerInput("Close",1.0)
 	else Train.RUT:TriggerInput("Set",self.RUTCurrent > self.RUTTarget)

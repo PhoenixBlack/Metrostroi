@@ -270,12 +270,13 @@ function ENT:Think()
 	if localSpeed < 0 then sign = -1 end
 	self.Speed = absSpeed
 	
-	self.Variables["Speed"]=self.Speed
-	
+	-- Calculate acceleration in m/s
 	self.Acceleration = 0.277778*(self.Speed - (self.PrevSpeed or 0)) / self.DeltaTime
 	self.PrevSpeed = self.Speed
 
-	self.Variables["Acceleration"]=self.Acceleration
+	-- Add variables to debugger
+	self.Variables["Speed"] = self.Speed
+	self.Variables["Acceleration"] = self.Acceleration
 
 	-- Final brake cylinder pressure
 	--self.BrakeCylinderPressure = math.max(0.0,4.5 - self.BrakeLinePressure)
@@ -298,20 +299,26 @@ function ENT:Think()
 	
 	-- Calculate forces
 	local motorForce = self.MotorForce*motorPower
-	local pneumaticForce = -sign*self.PneumaticBrakeForce*(self.BrakeCylinderPressure / 4.5)
+	local pneumaticFactor = math.max(0,math.min(1,8*self.Speed))
+	local pneumaticForce = -sign*pneumaticFactor*self.PneumaticBrakeForce*(self.BrakeCylinderPressure / 4.5)
 	if self.BrakeCylinderPressure < 0.05 then pneumaticForce = 0 end
 	
+	-- Compensate forward friction
+	local compensateA = self.Speed / 245
+	local compensateF = sign * self:GetPhysicsObject():GetMass() * compensateA
 	-- Apply sideways friction
---	local sideSpeed = -self:GetVelocity():Dot(self:GetAngles():Right()) * 0.06858
---	local sideForce = sideSpeed*100000
+	local sideSpeed = -self:GetVelocity():Dot(self:GetAngles():Right()) * 0.06858
+	if sideSpeed < 0.5 then sideSpeed = 0 end
+	local sideForce = sideSpeed * 0.5 * self:GetPhysicsObject():GetMass()
 	
 	-- Apply force
 	local dt_scale = 66.6/(1/self.DeltaTime)
-	local force = dt_scale*(motorForce + pneumaticForce)
+	local force = dt_scale*(motorForce + pneumaticForce + compensateF)
+	local side_force = dt_scale*(sideForce)
 	
 	if self.Reversed
-	then self:GetPhysicsObject():ApplyForceCenter( self:GetAngles():Forward()*force)-- + self:GetAngles():Forward()*side_force*dt_scale)
-	else self:GetPhysicsObject():ApplyForceCenter(-self:GetAngles():Forward()*force)-- + self:GetAngles():Forward()*side_force*dt_scale)
+	then self:GetPhysicsObject():ApplyForceCenter( self:GetAngles():Forward()*force + self:GetAngles():Right()*side_force)
+	else self:GetPhysicsObject():ApplyForceCenter(-self:GetAngles():Forward()*force + self:GetAngles():Right()*side_force)
 	end
 	
 	-- Send parameters to client

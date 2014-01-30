@@ -178,13 +178,14 @@ function ENT:Think()
 		]]--
 	end
 	
+	--print("Acceleration at (0,0,0)",self:GetTrainAccelerationAtPos(Vector(0,0,0)))
+	--print("Acceleration at (400,0,0)",self:GetTrainAccelerationAtPos(Vector(400,0,0)))
 	--Example of pose parameter
 	--[[for k,v in pairs(self.ClientEnts) do
 		if v:GetPoseParameterRange(0) != nil then
 			v:SetPoseParameter("position",math.sin(CurTime()*4)/2+0.5)
 		end
 	end]]--
-
 end
 
 
@@ -398,39 +399,73 @@ end
 
 
 
+--------------------------------------------------------------------------------
+-- Get train acceleration at given position in train
+--------------------------------------------------------------------------------
+function ENT:GetTrainAccelerationAtPos(pos)
+	local localAcceleration = self:GetTrainAcceleration()
+	local angularVelocity = self:GetTrainAngularVelocity()
+	
+	return localAcceleration - angularVelocity:Cross(angularVelocity:Cross(pos*0.01905))
+end
+
+
+
 
 
 
 --------------------------------------------------------------------------------
 -- Look into mirrors hook
 --------------------------------------------------------------------------------
-hook.Add("CalcView", "Metrostroi_ThirdPersonMirrorView", function(ply,pos,ang,fov,nearz,farz)
-	--[[local seat = ply:GetVehicle()
+hook.Add("CalcView", "Metrostroi_TrainView", function(ply,pos,ang,fov,znear,zfar)
+	local seat = ply:GetVehicle()
 	if (not seat) or (not seat:IsValid()) then return end
 	local train = seat:GetNWEntity("TrainEntity")
 	if (not train) or (not train:IsValid()) then return end
 	
-	if seat:GetThirdPersonMode() then
-	local trainAng = ang - train:GetAngles()
-	if trainAng.y >  180 then trainAng.y = trainAng.y - 360 end
-	if trainAng.y < -180 then trainAng.y = trainAng.y + 360 end
-	if trainAng.y > 0 then
-		return {
-			origin = train:LocalToWorld(Vector(-471,70,34)),
-			angles = train:GetAngles() + Angle(2,5,0),
-			fov = 20,
-			znear = znear,
-			zfar = zfar
-		}
-	else --if trainAng.y < 0 then
-		return {
-			origin = train:LocalToWorld(Vector(-471,-70,34)),
-			angles = train:GetAngles() + Angle(2,-5,0),
-			fov = 20,
-			znear = znear,
-			zfar = zfar
-		}
-	end
+	--[[-- Get acceleration in the train
+	local headPos = train:WorldToLocal(pos)
+	local acceleration = train:GetTrainAccelerationAtPos(headPos)
+	train.Acceleration = train.Acceleration or Vector(0,0,0)
+	train.Acceleration = train.Acceleration + 0.5*(acceleration - train.Acceleration)*train.DeltaTime
+	if train.Acceleration:Length() > 100 then train.Acceleration = Vector(0,0,0) end
+	
+	-- Calculate direction
+	local direction = train.Acceleration:GetNormalized()
+	-- Calculate visual offset
+	local a = train.Acceleration:Length()
+	local factor = a * math.exp(-0.05*a)
+	local offset = 4 * direction * factor
+	
+	print(train.Acceleration)
+	-- Apply offset
+	return {
+		origin = train:LocalToWorld(headPos + 0.1*offset),
+		angles = ang + Angle(offset.x,0,0),
+	}]]--
+	
+	
+	--[[if seat:GetThirdPersonMode() then
+		local trainAng = ang - train:GetAngles()
+		if trainAng.y >  180 then trainAng.y = trainAng.y - 360 end
+		if trainAng.y < -180 then trainAng.y = trainAng.y + 360 end
+		if trainAng.y > 0 then
+			return {
+				origin = train:LocalToWorld(Vector(-471,70,34)),
+				angles = train:GetAngles() + Angle(2,5,0),
+				fov = 20,
+				znear = znear,
+				zfar = zfar
+			}
+		else --if trainAng.y < 0 then
+			return {
+				origin = train:LocalToWorld(Vector(-471,-70,34)),
+				angles = train:GetAngles() + Angle(2,-5,0),
+				fov = 20,
+				znear = znear,
+				zfar = zfar
+			}
+		end
 	end]]--
 end)
 

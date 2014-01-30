@@ -115,9 +115,11 @@ function ENT:Use(ply)
 	if not tr.Hit then return end
 	local hitpos = self:WorldToLocal(tr.HitPos)
 	
-	for k,v in pairs(self.InteractionZones) do
-		if hitpos:Distance(v.Pos) < v.Radius then
-			self:ButtonEvent(v.ID)
+	if self.InteractionZones then
+		for k,v in pairs(self.InteractionZones) do
+			if hitpos:Distance(v.Pos) < v.Radius then
+				self:ButtonEvent(v.ID)
+			end
 		end
 	end
 end
@@ -190,7 +192,7 @@ function ENT:WriteTrainWire(k,v)
 	end
 	
 	-- Record us as last writer
-	if wrote then
+	if wrote and ((v > 0) or can_write) then
 		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
 		self.TrainWireWriters[k].ent = self
 		self.TrainWireWriters[k].time = CurTime()
@@ -700,6 +702,16 @@ function ENT:Think()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
 	
+	-- Calculate train acceleration
+	self.PreviousVelocity = self.PreviousVelocity or self:GetVelocity()
+	local accelerationVector = 0.01905*(self:GetPhysicsObject():GetVelocity() - self.PreviousVelocity) / self.DeltaTime
+	accelerationVector:Rotate(self:GetAngles())
+	self:SetTrainAcceleration(accelerationVector)
+	self.PreviousVelocity = self:GetVelocity()
+	
+	-- Get angular velocity
+	self:SetTrainAngularVelocity(math.pi*self:GetPhysicsObject():GetAngleVelocity()/180)
+	
 	-- Handle player input
 	if IsValid(self.DriverSeat) then
 		local ply = self.DriverSeat:GetPassenger(0) 
@@ -875,7 +887,6 @@ end
 -- OnButtonPress/Release as well as TriggerInput
 function ENT:ButtonEvent(button,state)
 	if state == nil then
-		print("PRESS",button)
 		self:OnButtonPress(button)
 		self:TriggerInput(button,1.0)
 	elseif (self.ButtonBuffer[button] ~= state) then
