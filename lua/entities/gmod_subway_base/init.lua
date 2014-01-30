@@ -6,6 +6,7 @@ include("shared.lua")
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
+	-- Initialize physics for the selected model
 	if self:GetModel() == "models/error.mdl" then
 		self:SetModel("models/props_lab/reciever01a.mdl")
 	end
@@ -14,7 +15,6 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 	self:SetUseType(SIMPLE_USE)
 	
-	
 	-- Train wires
 	self:ResetTrainWires()
 	-- Systems defined in the train
@@ -22,6 +22,7 @@ function ENT:Initialize()
 	-- Initialize train systems
 	self:InitializeSystems()
 	
+	-- Prop-protection related
 	if CPPI and self.Owner then
 		self:CPPISetOwner(self.Owner)
 	end
@@ -75,8 +76,7 @@ function ENT:Initialize()
 	self.KeyBuffer = {}
 	self.KeyMap = {}
 	
-	--External interaction areas
-	
+	-- External interaction areas
 	self.InteractionAreas = {}
 
 	-- Joystick module support
@@ -115,9 +115,11 @@ function ENT:Use(ply)
 	if not tr.Hit then return end
 	local hitpos = self:WorldToLocal(tr.HitPos)
 	
-	for k,v in pairs(self.InteractionZones) do
-		if hitpos:Distance(v.Pos) < v.Radius then
-			self:ButtonEvent(v.ID)
+	if self.InteractionZones then
+		for k,v in pairs(self.InteractionZones) do
+			if hitpos:Distance(v.Pos) < v.Radius then
+				self:ButtonEvent(v.ID)
+			end
 		end
 	end
 end
@@ -170,15 +172,30 @@ function ENT:TrainWireCanWrite(k)
 	return true
 end
 
+local TRAIN_WIRE_TICKS = 0
+hook.Add("Think","metrostroi-trainwire_tick-think",function()
+	TRAIN_WIRE_TICKS = TRAIN_WIRE_TICKS + 1
+end)
+
 function ENT:WriteTrainWire(k,v)
-	if self:TrainWireCanWrite(k) then
+	-- Check if line is write-able
+	local can_write = self:TrainWireCanWrite(k)
+	local wrote = false
+	
+	-- If value is write-able, write it right away and do nothing interesting
+	if can_write then
 		self.TrainWires[k] = v
-		self.TrainWireWriters[k] = {
-			ent = self,
-			time = CurTime()
-		}
-	else
-		self:OnTrainWireError(k)
+		wrote = true
+	elseif v > 0 then -- If trying to write positive value, overwrite value of the previous writer
+		self.TrainWires[k] = v
+		wrote = true
+	end
+	
+	-- Record us as last writer
+	if wrote and ((v > 0) or can_write) then
+		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
+		self.TrainWireWriters[k].ent = self
+		self.TrainWireWriters[k].time = CurTime()
 	end
 end
 
@@ -567,10 +584,13 @@ function ENT:HandleJoystickInput(ply)
 		end
 	end
 end
+
+
+
+
 --------------------------------------------------------------------------------
 -- Keyboard input
 --------------------------------------------------------------------------------
-
 function ENT:IsModifier(key)
 	return type(self.KeyMap[key]) == "table"
 end
@@ -669,6 +689,10 @@ function ENT:HandleKeyboardInput(ply)
 	end
 	
 end
+
+
+
+
 --------------------------------------------------------------------------------
 -- Process train logic
 --------------------------------------------------------------------------------
@@ -678,13 +702,21 @@ function ENT:Think()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
 	
+	-- Calculate train acceleration
+	self.PreviousVelocity = self.PreviousVelocity or self:GetVelocity()
+	local accelerationVector = 0.01905*(self:GetPhysicsObject():GetVelocity() - self.PreviousVelocity) / self.DeltaTime
+	accelerationVector:Rotate(self:GetAngles())
+	self:SetTrainAcceleration(accelerationVector)
+	self.PreviousVelocity = self:GetVelocity()
+	
+	-- Get angular velocity
+	self:SetTrainAngularVelocity(math.pi*self:GetPhysicsObject():GetAngleVelocity()/180)
+	
 	-- Handle player input
 	if IsValid(self.DriverSeat) then
-		
 		local ply = self.DriverSeat:GetPassenger(0) 
 		
 		if ply and IsValid(ply) then
-			
 			if self.KeyMap then
 				self:HandleKeyboardInput(ply)
 			end
@@ -692,28 +724,66 @@ function ENT:Think()
 			-- Joystick
 			if joystick then
 				self:HandleJoystickInput(ply)
-				
 			end
 		end
 	end
 	
 	-- Run iterations on systems simulation
-	local maxIterations = 4
+	self.Iterations = self.Iterations or 0
+	local maxIterations = self.MaxIterations or 16
+	local subdiv = 4
+	for k,v in pairs(self.Systems) do
+		if v.NoIterations then
+			v:Think(self.DeltaTime)
+		end
+	end
 	for iteration=1,maxIterations do
 		for k,v in pairs(self.Systems) do
-			v:Think(self.DeltaTime / maxIterations)
+			if not v.NoIterations then
+				if k == "Electric" then
+					v:Think(self.DeltaTime / maxIterations,self.Iterations)
+				else
+					if ((iteration-1) % subdiv) == 0 then
+						v:Think(self.DeltaTime / (maxIterations/subdiv),self.Iterations)
+					end
+				end
+			end
+		end
+		self.Iterations = self.Iterations + 1
+	end
+	
+	-- Run iterations on systems simulation
+	--[[self.Iterations = self.Iterations or 0
+	local maxIterations = self.MaxIterations or 16
+	for k,v in pairs(self.Systems) do
+		--if v.NoIterations then
+		if (k ~= "Electric") and (k ~= "Engines") then
+			v:Think(self.DeltaTime)
 		end
 	end
 	
+	local electric,electric_think
+	local engines,engines_think
+	for k,v in pairs(self.Systems) do
+		if k == "Electric" then
+			electric = v
+			electric_think = v.Think
+		end
+		if k == "Engines" then
+			engines = v
+			engines_think = v.Think
+		end
+	end
+	for iteration=1,maxIterations do
+		if electric_think then electric_think(electric,self.DeltaTime / (4*maxIterations),self.Iterations) end
+		if engines_think  then engines_think(engines,self.DeltaTime / (4*maxIterations),self.Iterations) end
+		self.Iterations = self.Iterations + 1
+	end]]--
+	
 	-- Add interesting debug variables
-	self.DebugVars["TW1 X1"] = self:ReadTrainWire(1)
-	self.DebugVars["TW2 X2"] = self:ReadTrainWire(3)
-	self.DebugVars["TW3 X3"] = self:ReadTrainWire(2)
-	self.DebugVars["TW4 FWD"] = self:ReadTrainWire(4)
-	self.DebugVars["TW5 BWD"] = self:ReadTrainWire(5)
-	self.DebugVars["TW6 T"] = self:ReadTrainWire(6)
-	self.DebugVars["TW20 1S"] = self:ReadTrainWire(20)
-
+	for i=1,32 do
+		self.DebugVars["TW"..i] = self:ReadTrainWire(i)
+	end
 	self:NextThink(CurTime())
 	return true
 end
@@ -774,7 +844,6 @@ function ENT:SpawnFunction(ply, tr)
 	ent:Spawn()
 	ent:Activate()
 	
-	
 	if not inhibitrerail then Metrostroi.RerailTrain(ent) end
 	
 	-- Debug mode
@@ -822,7 +891,7 @@ function ENT:ButtonEvent(button,state)
 		self:TriggerInput(button,1.0)
 	elseif (self.ButtonBuffer[button] ~= state) then
 		self.ButtonBuffer[button] = state
-		
+
 		if state then
 			self:OnButtonPress(button)
 			self:TriggerInput(button,1.0)

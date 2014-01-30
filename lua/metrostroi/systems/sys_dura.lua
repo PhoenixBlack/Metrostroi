@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- ДУРА
+-- ДУРА (Дополнительная Универсальная Радиоаппаратура)
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("DURA")
 
@@ -38,7 +38,7 @@ function TRAIN_SYSTEM:Think()
 	
 	-- Check ARS signals
 	self.Timer = self.Timer or CurTime()
-	if CurTime() - self.Timer > 0.10 then
+	if CurTime() - self.Timer > 0.50 then
 		self.Timer = CurTime()
 
 		-- Get next track switch and get its state

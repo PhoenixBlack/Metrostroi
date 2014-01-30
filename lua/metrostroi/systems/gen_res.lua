@@ -29,12 +29,15 @@ function SimplifySeries()
 				N2 = R2[1]
 				if (N1 == k) then N1 = R1[2] end
 				if (N2 == k) then N2 = R2[2] end
-
-				table.insert(Network,{ N1,N2,R1[3].."+"..R2[3] })
-				Network[kR1] = nil
-				Network[kR2] = nil
-				Simplified = true
-				return true
+				
+				-- If not connected in parallel
+				if N1 ~= N2 then
+					table.insert(Network,{ N1,N2,R1[3].."+"..R2[3] })
+					Network[kR1] = nil
+					Network[kR2] = nil
+					Simplified = true
+					return true
+				end
 			end
 		end
 	end
@@ -153,16 +156,16 @@ function Simplify(name)
 	Simplified = true
 	while Simplified do
 		Simplified = false
-		if not SimplifyParallel() then
-			if not SimplifySeries() then
+		if not SimplifySeries() then
+			if not SimplifyParallel() then
 				TransformYDelta()
 			end
 		end
 	end
 
-	--for k,v in pairs(Network) do
-		--print(v[1],v[2],v[3])
-	--end
+	--[[for k,v in pairs(Network) do
+		print(v[1],v[2],v[3])
+	end]]--
 	S =    "function RESISTOR_BLOCKS."..name.."(Train)\n"
 	S = S.."\tlocal RK = Train.RheostatController\n"
 	S = S.."\tlocal T = Train.PositionSwitch\n"
@@ -202,7 +205,7 @@ function Test()
 		[15] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
 		[16] = { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
 		[17] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
-		[18] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1 },
+		[18] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1 },
 	}
 	PositionConfiguration = {
 	--   ##      1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 
@@ -275,6 +278,8 @@ function Test()
 		Train.KF_50A[k] = v
 		Train.YAS_44V[k] = v
 	end
+	Train.TR1 = { Value = 0 }
+	Train.TR2 = { Value = 0 }
 	
 	-- Run tests
 	ANS = {}
@@ -289,6 +294,8 @@ function Test()
 		for k,v in pairs(PositionConfiguration[1]) do
 			Train.PositionSwitch[k] = 1e-9 + 1e9 * (1-v)
 		end
+		Train.TR1 = { Value = 0 }
+		Train.TR2 = { Value = 0 }
 		ANS[i][1] = RESISTOR_BLOCKS.R1C1(Train)
 		ANS[i][2] = RESISTOR_BLOCKS.R2C1(Train)
 		
@@ -301,6 +308,8 @@ function Test()
 		for k,v in pairs(PositionConfiguration[3]) do
 			Train.PositionSwitch[k] = 1e-9 + 1e9 * (1-v)
 		end
+		Train.TR1 = { Value = 1 }
+		Train.TR2 = { Value = 1 }
 		ANS[i][5] = RESISTOR_BLOCKS.R1C1(Train)
 		ANS[i][6] = RESISTOR_BLOCKS.R2C1(Train)
 		ANS[i][7] = RESISTOR_BLOCKS.R3(Train)
@@ -310,14 +319,14 @@ function Test()
 		ANS[i][9] = ANS[i][5]+ANS[i][6]+ANS[i][7]
 		
 		ANS[i][10] = RESISTOR_BLOCKS.S1(Train)
-		ANS[i][11] = RESISTOR_BLOCKS.S1(Train)
+		ANS[i][11] = RESISTOR_BLOCKS.S2(Train)
 	end
 	
 	PrintAnswers()
 end
 
 function PrintAnswers()
-	local INFO = "Rxx   PS1   PS2   PP1   PP2   PT2   PT2   T3    PS    PT     S1     S2 \n"
+	local INFO = "Rxx   PS1   PS2   PP1   PP2   PT1   PT2   T3    PS    PT     S1     S2 \n"
 	for i=1,18 do
 		local S = ""
 		for idx=1,#ANS[i] do
@@ -444,7 +453,7 @@ BaseNetwork = {
 	{ "L8",   "P4",  "RK[5]+T[1]"},
 
 	{ "L8",   "P3",  "RK[3]"},
-	{ "L8",   "P3",  "T[10]"},
+	{ "L8",   "P3",  "1e-9+1e9*(1.0-Train.TR2.Value)"},
 	
 	{ "P1",   "P14", "RK[1]"},
 	{ "P3",   "P14", "P3_P14"},
@@ -487,7 +496,7 @@ BaseNetwork = {
 	{ "L12",  "P18", "RK[6]+T[15]"},
 
 	{ "L12",  "P17", "RK[4]"},
-	{ "L12",  "P17", "T[11]"},
+	{ "L12",  "P17", "1e-9+1e9*(1.0-Train.TR2.Value)"},
 	
 	{ "P17",  "P76", "P17_P76"},
 	{ "P76",  "P27", "P76_P27"},
@@ -540,7 +549,7 @@ BaseNetwork = {
 	{ "L76",   "P31",   "RK[21]"},
 }
 Start = "P28"
-End = "L26"
+End = "L76"
 SRC = SRC..Simplify("S1")
 
 

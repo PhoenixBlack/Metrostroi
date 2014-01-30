@@ -21,22 +21,7 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("RRP2","Relay","KPD-110")
 	-- РЗП (защита первичного инвертора БПСН)
 	self.Train:LoadSystem("RZP","Relay","REM-651D")
-	-- ТР1 (переключение в цепях управления для перехода на тормозной режим)
+	-- ТР1,ТР2 (переключение в цепях управления для перехода на тормозной режим)
 	self.Train:LoadSystem("TR1","Relay","RPUZ-114-T-UHLZA")
-end
-
-function TRAIN_SYSTEM:Inputs()
-	return { }
-end
-
-function TRAIN_SYSTEM:Outputs()
-	return { }
-end
-
-function TRAIN_SYSTEM:TriggerInput(name,value)	
-	
-end
-
-function TRAIN_SYSTEM:Think()
-
+	self.Train:LoadSystem("TR2","Relay","RPUZ-114-T-UHLZA")
 end
