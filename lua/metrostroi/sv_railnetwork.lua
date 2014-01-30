@@ -998,7 +998,7 @@ end
 
 --Rerails given train entity
 Metrostroi.RerailTrain = function(train)
-	local bogeyOffset = 42 --Z distance between bogey origin and top of track
+	local bogeyOffset = 34 --Z distance between bogey origin and top of track
 
 	--Safety checks
 	if not IsValid(train) or train.SubwayTrain == nil then return false end

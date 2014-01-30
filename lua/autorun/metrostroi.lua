@@ -109,7 +109,7 @@ local function LoadSystem(name)
 	Metrostroi.Systems[name] = function(train,...)
 		local tbl = { _base = name }
 		local TRAIN_SYSTEM = Metrostroi.BaseSystems[tbl._base]
-		--if not TRAIN_SYSTEM then error("No system: "..tbl._base) end
+		if not TRAIN_SYSTEM then print("No system: "..tbl._base) return end
 		for k,v in pairs(TRAIN_SYSTEM) do
 			if type(v) == "function" then
 				tbl[k] = function(...) 
@@ -163,8 +163,6 @@ LoadSystem("DURA")
 --LoadSystem("BPSN_5U2M")
 
 --LoadSystem("NK_80")
---LoadSystem("YAK_36")
---LoadSystem("YAK_37E")
 
 LoadSystem("EKG")
 
@@ -172,18 +170,21 @@ LoadSystem("EKG")
 LoadSystem("81_717_Pneumatic")
 LoadSystem("81_705_Electric")
 LoadSystem("DK_117DM")
+LoadSystem("GV_10ZH")
 LoadSystem("TR_3B")
 LoadSystem("YAP_57")
 LoadSystem("EKG_17B")
 LoadSystem("EKG_18B")
 LoadSystem("KF_47A")
 LoadSystem("KF_50A")
-LoadSystem("GV_10ZH")
-LoadSystem("KV_66")
+LoadSystem("KV_70")
 LoadSystem("LK_755A")
-LoadSystem("YAK_31A")
 LoadSystem("YAR_13A")
+LoadSystem("YAR_27")
+LoadSystem("YAK_37E")
 LoadSystem("YAS_44V")
+LoadSystem("YARD_2")
+LoadSystem("PR_14X_Panels")
 
 -- Tatra T3
 LoadSystem("Tatra_Systems")

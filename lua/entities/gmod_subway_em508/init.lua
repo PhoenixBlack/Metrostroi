@@ -35,7 +35,7 @@ function ENT:Initialize()
 		[KEY_6] = "KVSetT1A",
 		[KEY_7] = "KVSetT2",
 		
-		[KEY_G] = "ElectricResetRPL",
+		[KEY_G] = "RPvozvratOpen",
 		
 		[KEY_0] = "KVReverserUp",
 		[KEY_9] = "KVReverserDown",		
@@ -43,24 +43,30 @@ function ENT:Initialize()
 		[KEY_S] = "KVControllerDown",
 		[KEY_F] = "PneumaticBrakeUp",
 		[KEY_R] = "PneumaticBrakeDown",
-		
-		[KEY_A] = "DURASelectAlternate",
-		[KEY_D] = "DURASelectMain",
+
 		[KEY_LSHIFT] = {
-			[KEY_W] = "Shift W",
-			[KEY_A] = "Shift A",
-			[KEY_S] = "Shift S",
-			[KEY_D] = "Shift D"
+			--[KEY_W] = "Shift W",
+			[KEY_A] = "DURASelectAlternate",
+			--[KEY_S] = "Shift S",
+			[KEY_D] = "DURASelectMain"
 		}
 	}
 	
 	self.InteractionZones = {
-		{
-			Pos = Vector(-482,-16,1),
-			Radius = 10,
-			ID = "RearDoorHandle",
-		}
+		{	Pos = Vector(458,-30,-55),
+			Radius = 32,
+			ID = "FrontBrakeLineIsolationToggle" },
+		{	Pos = Vector(458, 30,-55),
+			Radius = 32,
+			ID = "FrontTrainLineIsolationToggle" },
+		{	Pos = Vector(-482,30,-55),
+			Radius = 32,
+			ID = "RearBrakeLineIsolationToggle" },
+		{	Pos = Vector(-482, -30,-55),
+			Radius = 32,
+			ID = "RearTrainLineIsolationToggle" },
 	}
+
 	
 	-- Lights
 	self.Lights = {
@@ -95,6 +101,9 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:Think()
+	-- FIXME
+	self.MaxIterations = 16
+
 	-- Enable lights
 	self:SetLightPower(1, self.HeadLights.Value == 1.0)
 	self:SetLightPower(2, self.HeadLights.Value == 1.0)
@@ -104,8 +113,8 @@ function ENT:Think()
 	self:SetLightPower(6, self.HeadLights.Value == 1.0)
 	self:SetLightPower(7, self.HeadLights.Value == 1.0)
 	
-	self:SetLightPower(8, self.RR.Value == 1.0)
-	self:SetLightPower(9, self.RR.Value == 1.0)
+	self:SetLightPower(8, self.RKR.Value == 1.0)
+	self:SetLightPower(9, self.RKR.Value == 1.0)
 	
 	self:SetLightPower(10, self.CabinLights.Value == 1.0)
 	
@@ -115,25 +124,40 @@ function ENT:Think()
 	
 	-- Enable console
 	self:SetNWBool("Power",true)
-	self:SetNWBool("LxRK",self.RheostatController.Moving ~= 0.0)
+	self:SetNWBool("LxRK",self.LK4.Value ~= 0.0)
+	self:SetNWBool("RP1",self.RPvozvrat.Value ~= 0.0)
+	self:SetNWBool("RP2",self:ReadTrainWire("RP") ~= 0.0)
 	--self:SetNWBool("LST",self:ReadTrainWire(6) > 0.5)
 	self:SetNWBool("KVD",self:ReadTrainWire(20) > 0.5)
 	self:SetNWBool("HeadLights",self.HeadLights.Value == 1.0)
 	self:SetNWBool("CabinLights",self.CabinLights.Value == 1.0)
 	self:SetNWBool("InteriorLights",self.InteriorLights.Value == 1.0)
+	self:WriteTrainWire("RP",self.RPvozvrat.Value)
 	
 	-- Feed values
 	self:SetNWFloat("Reverser",self.KV.ReverserPosition)
 	self:SetNWFloat("Controller",self.KV.ControllerPosition)
 	self:SetNWFloat("DriverValve",self.Pneumatic.DriverValvePosition)	
-	self:SetNWFloat("BrakeLine",self.Pneumatic.BrakeLinePressure)
+	self:SetNWFloat("BrakeLine",self.Pneumatic.ReservoirPressure)
 	self:SetNWFloat("TrainLine",self.Pneumatic.TrainLinePressure)
 	self:SetNWFloat("BrakeCylinder",self.Pneumatic.BrakeCylinderPressure)
 	
 	self:SetNWFloat("Volts",self.Electric.Power750V)
-	self:SetNWFloat("Amperes",math.abs(self.Electric.Itotal))
+	self:SetNWFloat("Amperes",math.abs(self.Electric.I24))
 	self:SetNWFloat("Speed",(self.FrontBogey.Speed + self.RearBogey.Speed)/2)
 	self.DebugVars["Speed"] = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
 	self.DebugVars["Acceleration"] = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2
 	return self.BaseClass.Think(self)
+end
+
+
+--------------------------------------------------------------------------------
+function ENT:OnCouple(train,isfront)
+	self.BaseClass.OnCouple(self,train,isfront)
+	
+	if isfront then
+		self.FrontBrakeLineIsolation:TriggerInput("Open",1.0)
+	else
+		self.RearBrakeLineIsolation:TriggerInput("Open",1.0)
+	end
 end

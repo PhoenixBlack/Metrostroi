@@ -11,17 +11,28 @@ function TRAIN_SYSTEM:Initialize()
 	self.Aux80V = 0.0
 	
 	-- Resistances
-	self.R1 = 0.0
-	self.R2 = 0.0
-	self.R3 = 0.0
-	self.Rs1 = 0.0
-	self.Rs2 = 0.0
+	self.R1 = 1e9
+	self.R2 = 1e9
+	self.R3 = 1e9
+	self.Rs1 = 1e9
+	self.Rs2 = 1e9
+	
+	self.Rstator13 = 1e9
+	self.Rstator24 = 1e9
+	self.Ranchor13	= 1e9
+	self.Ranchor24	= 1e9
 	
 	-- Load resistor blocks
 	RESISTOR_BLOCKS = {}
 	include("metrostroi/systems/gen_resblocks.lua")
 	self.ResistorBlocks = RESISTOR_BLOCKS
 	RESISTOR_BLOCKS = nil
+	
+	-- Load internal circuits
+	INTERNAL_CIRCUITS = {}
+	include("metrostroi/systems/gen_int_81_705.lua")
+	self.InternalCircuits = INTERNAL_CIRCUITS
+	INTERNAL_CIRCUITS = nil
 	
 	-- Electric network info
 	self.Itotal = 0.0
@@ -37,9 +48,11 @@ function TRAIN_SYSTEM:Initialize()
 	-- Calculate current through rheostats 1, 2
 	self.IR1 = self.Itotal
 	self.IR2 = self.Itotal
-	
-	-- Reverser
-	self.Train:LoadSystem("Reverser","Relay",{ contactor = true })
+	self.IRT2 = self.Itotal
+	self.T1 = 25
+	self.T2 = 25
+	self.P1 = 0
+	self.P2 = 0
 end
 
 
@@ -48,25 +61,20 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { "R1","R2","R3","Rs1","Rs2","Itotal","I13","I24",
-			 "Ustator13","Ustator24","Ishunt13","Istator13","Ishunt24","Istator24" }
+	return { "R1","R2","R3","Rs1","Rs2","Itotal","I13","I24","IRT2",
+			 "Ustator13","Ustator24","Ishunt13","Istator13","Ishunt24","Istator24",
+			 "T1", "T2", "P1", "P2",
+			 "Main750V", "Power750V", "Aux750V", "Aux80V" }
 end
 
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
-	--[[if name == "ResetRPL" then
-		self.Train:PlayOnce("switch",true)
-		self.Train.RPL:TriggerInput("Close",1.0)
-		self.Train.RP1_3:TriggerInput("Close",1.0)
-		self.Train.RP2_4:TriggerInput("Close",1.0)
-	end]]--
 end
 
 
 
 --------------------------------------------------------------------------------
-local function b(x) return x and 1 or 0 end
-function TRAIN_SYSTEM:Think()
+function TRAIN_SYSTEM:Think(dT,iteration)
 	local Train = self.Train
 	
 	----------------------------------------------------------------------------
@@ -88,12 +96,10 @@ function TRAIN_SYSTEM:Think()
 	
 	
 	
-	
+
 	----------------------------------------------------------------------------
 	-- Внешнее напряжение силовых цепей
-	self.Power750V = self.Main750V * Train.GV.Value * Train.LK1.Value	
-	-- Реле РПЛ
-	self.Power750V = self.Power750V * Train.RPL.Value
+	self.Power750V = self.Main750V * Train.GV.Value
 	
 	-- Ослабление резистором Л1-Л2
 	self.ExtraResistance = (1-Train.LK2.Value) * Train.KF_47A["L2-L4"]
@@ -120,10 +126,10 @@ function TRAIN_SYSTEM:Think()
 	-- Shunt resistance
 	self.Rs1 = self.ResistorBlocks.S1(Train) + 1e9*(1 - Train.KSH1.Value)
 	self.Rs2 = self.ResistorBlocks.S2(Train) + 1e9*(1 - Train.KSH2.Value)
-	
+
 	-- Calculate total resistance of engines winding
-	local RwAnchor = Train.Engines.Rw/2
-	local RwStator = Train.Engines.Rw/2
+	local RwAnchor = Train.Engines.Rw*2 -- Double because each set includes two engines
+	local RwStator = Train.Engines.Rw*2
 	-- Total resistance of the stator + shunt
 	self.Rstator13	= (RwStator^-1 + self.Rs1^-1)^-1
 	self.Rstator24	= (RwStator^-1 + self.Rs2^-1)^-1
@@ -134,283 +140,103 @@ function TRAIN_SYSTEM:Think()
 	-- Вычисление электросети (calculate electric power network)
 	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
 		self:SolvePS(Train)
+	elseif Train.PositionSwitch.SelectedPosition == 2 then -- PS
+		self:SolvePP(Train)
 	else
-	
+		self:SolvePT(Train)
 	end
+	
+	----------------------------------------------------------------------------
+	-- Calculate current through stator and shunt
+	self.Ustator13 = self.I13 * self.Rstator13
+	self.Ustator24 = self.I24 * self.Rstator24	
+	
+	self.Ishunt13  = self.Ustator13 / self.Rs1
+	self.Istator13 = self.Ustator13 / self.Ranchor13 -- FIXME: use stators own resistance
+	self.Ishunt24  = self.Ustator24 / self.Rs2
+	self.Istator24 = self.Ustator24 / self.Ranchor24
+	
+	if Train.PositionSwitch.SelectedPosition >= 3 then
+		local I1,I2 = self.Ishunt13,self.Ishunt24
+		self.Ishunt13 = -I2
+		self.Ishunt24 = -I1
+		
+		I1,I2 = self.Istator13,self.Istator24
+		self.Istator13 = -I2
+		self.Istator24 = -I1
+	end
+	
+	-- Calculate current through rheostats 1, 2
+	self.IR1 = self.I13
+	self.IR2 = self.I24
+	
+	-- Calculate current through RT2 relay
+	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_v"])
+	
+	-- Calculate power and heating
+	self.P1 = (self.IR1^2) * self.R1
+	self.P2 = (self.IR2^2) * self.R2
+	self.T1 = self.T1 + self.P1 * 5e-4 * dT - (self.T1 - 25)*0.0001
+	self.T2 = self.T2 + self.P2 * 5e-4 * dT - (self.T2 - 25)*0.0001
 	
 	-- Output interesting variables
-	local outputs = self:Outputs()
-	for k,v in pairs(outputs) do
+	self.outputs = self.outputs or self:Outputs()
+	for k,v in pairs(self.outputs) do
 		self:TriggerOutput(v,self[v])
 	end
-	self:TriggerOutput("U13",	self.U13)
-	self:TriggerOutput("U24",	self.U24)
-	self:TriggerOutput("VR1",	self.VR1)
-	self:TriggerOutput("VR2",	self.VR2)
-	self:TriggerOutput("I13",	self.I13)
-	self:TriggerOutput("I24",	self.I24)
-	self:TriggerOutput("Itotal",self.Itotal)
 	
 	
 	
 	
 	----------------------------------------------------------------------------
-	-- Комутация напряжения между поездными проводами и реле
-	local P = Train.PositionSwitch.SelectedPosition
-	local RK = Train.RheostatController.SelectedPosition
-	local X1 = Train:ReadTrainWire(1)
-	local X2 = Train:ReadTrainWire(2)
-	local X3 = Train:ReadTrainWire(3)
-	local T = Train:ReadTrainWire(6)
-	local F = Train:ReadTrainWire(4)
-	local R = Train:ReadTrainWire(5)
-	local X = Train:ReadTrainWire(20)
-	local B2 = Train:ReadTrainWire(9) + Train:ReadTrainWire(10)
-	
-	-- FIXME make these relays
-	local SR1 = 0
-	
-	-- Train wire 4, 5
-	if (F > 0.5) and (Train.Reverser.Value == 1.0) then -- 4B
-		Train.Reverser:TriggerInput("Open",1.0)
-	end
-	if (R > 0.5) and (Train.Reverser.Value == 0.0) then -- 5B
-		Train.Reverser:TriggerInput("Close",1.0)
-	end
-	local _5B  = 0.0 -- 5B
-	if Train.Reverser.Value == 0.0 
-	then _5B = F
-	else _5B = R
-	end
-	local _5D = _5B * Train.LK3.Value * Train.RPL.Value
-	Train.LK4:TriggerInput("Close",_5D)
-	
-	
-	-- Train wire 20
-	Train.LK2:TriggerInput("Set",X * Train.RPL.Value)
-	Train.RV2:TriggerInput("Close",(1.0 - X * Train.RPL.Value) * Train.LK2.Value)
-	
-	
-	-- Train wire 9, 10
-	local _10AV =  B2  * (1.0-Train.LK3.Value) * 
-						 (1.0-Train.LK4.Value) * b((RK >= 2) and (RK <= 18))
-	local _10E  =  B2  * (1.0-Train.LK3.Value) + Train.Rper.Value
-	local _10Yu = _10E * Train.LK3.Value * b(RK == 18) * b(P ~= 1)
-	local _10Ap = _10E * (1.0 - Train.LK1.Value)
-	local _10Ad = _10Ap * (Train.LK2.Value + b(P >= 3))
-	local _10Ag = _10Yu + 0.0*b(P ~= 3) + 1*b(P ~= 1)
-	--print(_10Ag)
-	
-	-- Train wire 1
-	local _1T  =  X1  * b((P == 1) or (P == 2)) -- PS, PP
-	local _1P  = _1T  * b(true or true) -- RPU or NR
-	local _1G  = _1P  * Train.RPL.Value -- AVT, RP
-	
-	local _1E  = _1G  * b(RK == 1)
-	local _1Yu = _1E  * (b(false) + Train.KSH2.Value) -- KSB1 and KSB2
-	local _1L  = _1Yu * b((P == 1) or (P == 3)) -- PS, PT	
-	
-	local _1Zh = _1G * Train.LK3.Value + _1L * Train.LK2.Value
-	local _1K = _1Zh * b((P == 1) or (P == 2)) -- PP, PS
-	
-	Train.LK3:TriggerInput("Close",_1Zh)
-	Train.LK1:TriggerInput("Close",_1K)
-	Train.RR:TriggerInput("Set", _1Zh * b((P == 1) or (P == 3)))
-	
-	local _1V =  X1 * b((P == 1) or (P == 2)) -- PP, PS
-	local _1M =  X1 * b(RK > 5) * b(P == 2)
-	local _1R = _1V + _1M
-	Train.KSH1:TriggerInput("Set",_1R)
-	Train.KSH2:TriggerInput("Set",_1R)
-	
-	
-	-- Train wire 2
-	local _2A  =  X2  * (b(true) + b(P ~= 3)) -- KSB1
-	local _2B  = _2A  * b((P == 1) or (P == 3)) -- PS, PT1
-	local _2V  = _2A  * b((P == 2) or (P == 4)) -- PP, PT2
-	local _2R  = _2V  * b((RK >= 2) and (RK <= 4)) * Train.KSH1.Value
-	local _2G  = _2B  * b((RK >= 1) and (RK <= 17)) + 
-	             _2V  * b((RK >= 5) and (RK <= 18))
-				 
-	local _2E  = _2G  * Train.LK4.Value + _10AV
-	SR1 = _2E
-	
-	
-	-- Train wire 3
-	Train.Rper:TriggerInput("Set",X3)
-
-	
-	----------------------------------------------------------------------------
-	-- РУТ (реле управления тягой) operation
-	self.RUTCurrent = self.I13 + self.I24
-	self.RUTTarget = 260
-	Train.RUT:TriggerInput("Set",(math.abs(self.RUTCurrent) > self.RUTTarget) and 1 or 0)
-	
-	----------------------------------------------------------------------------
-	-- Anchor of the rheostat controller
-	local SDRK = SR1 * (1.0 - Train.RUT.Value)
-	Train.RheostatController:TriggerInput("MotorState",SDRK * (-1.0 + 2.0*Train.RR.Value))
-	
-	
-	----------------------------------------------------------------------------
-	-- Time relay for LK1, LK3, LK4
-	if Train.RV2.Value == 1.0 then
-		Train.LK1:TriggerInput("Open",1.0)
-		Train.LK3:TriggerInput("Open",1.0)
-		Train.LK4:TriggerInput("Open",1.0)
-		Train.RV2:TriggerInput("Open",1.0)	
-	end
-	--Train.RV2:TriggerInput("Close",(1.0 - X1 - X2 - X3) * Train.LK2.Value)	
+	-- Calculate internal circuits
+	local KSH1,KSH2 = 0,0
+	self.Triggers = { -- FIXME
+		["LK1"] 		= function(V) Train.LK1:TriggerInput("Close",V) end,
+		["LK2"]			= function(V) Train.LK2:TriggerInput("Set",V) 
+									  Train.RV2:TriggerInput("Close",(1.0-V) * Train.LK2.Value) end,
+		["LK3"]			= function(V) Train.LK3:TriggerInput("Close",V) end,
+		["LK4"]			= function(V) Train.LK4:TriggerInput("Close",V) end,
+		["LK5"]			= function(V) end,
 		
-	-- Разбор
-	--[[if ((X < 0.5) and ((Train.LK3.Value == 1.0) or (Train.LK4.Value == 1.0))) or
-	   ((X > 0.5) and (T < 0.5) and (Train.Tb.Value == 1.0)) then
-		Train.LK2:TriggerInput("Open",1.0)
-		Train.KSH1:TriggerInput("Open",1.0)
-		Train.KSH2:TriggerInput("Open",1.0)
+		["TR1"]			= function(V) Train.TR1:TriggerInput("Set",V) end,
+		["TR2"]			= function(V) Train.TR2:TriggerInput("Set",V) end,
+		["KSH1"]		= function(V) KSH1 = KSH1 + V end,
+		["KSH2"]		= function(V) KSH2 = KSH2 + V end,
+		["KSB1"]		= function(V) Train.KSB1:TriggerInput("Set",V) KSH1 = KSH1 + V end,
+		["KSB2"]		= function(V) Train.KSB2:TriggerInput("Set",V) KSH2 = KSH2 + V end,
+		["RUP"]			= function(V) Train.RUP:TriggerInput("Set",V) end,
+
+		["RR"]			= function(V) Train.RR:TriggerInput("Set",V) end,
+		["SR1"]			= function(V) Train.SR1:TriggerInput("Set",V) end,
+		["RV1"]			= function(V) Train.RV1:TriggerInput("Set",V) end,
+		["Rper"]		= function(V) Train.Rper:TriggerInput("Set",V) end,
 		
-		-- Timed closing of the LK2 relay
-		Train.RV2:TriggerInput("Close",1.0)	
+		["RRTuderzh"]	= function(V) Train.RRTuderzh = V end,
+		["RRTpod"]		= function(V) Train.RRTpod = V end,
+		["RUTpod"]		= function(V) Train.RUTpod = V end,
 		
-		-- Razbor of the circuit
-		Train.Tp:TriggerInput("Open",1.0)
-		Train.Tpb:TriggerInput("Open",1.0)
-		Train.Tb:TriggerInput("Open",1.0)
-		Train.Ts:TriggerInput("Open",1.0)
-	end
-
-	
-	-- Сбор на ход
-	if (T < 0.5) and (X > 0.5) then
-		Train.PneumaticNo1:TriggerInput("Open",1.0)
-		Train.PneumaticNo2:TriggerInput("Open",1.0)
-	end
-	--if Train.Pneumatic.BrakeCylinderPressure > 0.5 then X1 = 0 X2 = 0 X3 = 0 X = 0 end
-	if (T < 0.5) and (X1 > 0.5) and (Train.RheostatController.Position < 1.5) then
-		Train.LK1:TriggerInput("Close",1.0)
-		Train.LK2:TriggerInput("Close",1.0)
-		Train.LK3:TriggerInput("Close",1.0)
-		Train.LK4:TriggerInput("Close",1.0)
-		Train.KSH1:TriggerInput("Close",1.0)
-		Train.KSH2:TriggerInput("Close",1.0)
-
-		-- Сбор последовательной схемы
-		Train.Tp:TriggerInput("Open",1.0)
-		Train.Tpb:TriggerInput("Open",1.0)
-		Train.Tb:TriggerInput("Open",1.0)
-		Train.Ts:TriggerInput("Close",1.0)
-	end
-	if (T < 0.5) and ((X2 > 0.5) or ((Train.Tp.Value == 0.0) and (X3 > 0.5))) and (Train.RheostatController.Position < 1.5) then
-		Train.LK1:TriggerInput("Close",1.0)
-		Train.LK2:TriggerInput("Close",1.0)
-		Train.LK3:TriggerInput("Close",1.0)
-		Train.LK4:TriggerInput("Close",1.0)
-		Train.KSH1:TriggerInput("Close",1.0)
-		Train.KSH2:TriggerInput("Close",1.0)
-
-		-- Сбор последовательной схемы
-		Train.Tp:TriggerInput("Open",1.0)
-		Train.Tpb:TriggerInput("Open",1.0)
-		Train.Tb:TriggerInput("Open",1.0)
-		Train.Ts:TriggerInput("Close",1.0)
-	end
-	if (T < 0.5) and (X3 > 0.5) and (Train.RheostatController.Position > 17.5) then
-		Train.LK1:TriggerInput("Close",1.0)
-		Train.LK2:TriggerInput("Close",1.0)
-		Train.LK3:TriggerInput("Close",1.0)
-		Train.LK4:TriggerInput("Close",1.0)
-		Train.KSH1:TriggerInput("Close",1.0)
-		Train.KSH2:TriggerInput("Close",1.0)
-
-		-- Сбор паралельной схемы
-		Train.Tp:TriggerInput("Close",1.0)
-		Train.Tpb:TriggerInput("Close",1.0)
-		Train.Tb:TriggerInput("Open",1.0)
-		Train.Ts:TriggerInput("Open",1.0)
-	end
-	
-	-- Сбор на тормоз
-	if (T > 0.5) and (X > 0.5) then
-		Train.LK1:TriggerInput("Open",1.0)
-		Train.LK2:TriggerInput("Close",1.0)
-		Train.LK3:TriggerInput("Close",1.0)
-		Train.LK4:TriggerInput("Close",1.0)
-
-		Train.KSH1:TriggerInput("Open",1.0)
-		Train.KSH2:TriggerInput("Open",1.0)
-
-		-- Сбор последовательной схемы
-		--Train.Tp:TriggerInput("Close",1.0)
-		--Train.Tpb:TriggerInput("Close",1.0)
-		--Train.Tb:TriggerInput("Close",1.0)
-		--Train.Ts:TriggerInput("Open",1.0)
+		["SDPP"]		= function(V) Train.PositionSwitch:TriggerInput("MotorState",-1.0 + 2.0*math.max(0,V)) end,
+		["SDRK_Coil"]	= function(V) Train.RheostatController:TriggerInput("MotorCoilState",V*(-1.0 + 2.0*Train.RR.Value)) end,
+		["SDRK"]		= function(V) Train.RheostatController:TriggerInput("MotorState",V) end,
 		
-		Train.Tp:TriggerInput("Open",1.0)
-		Train.Tpb:TriggerInput("Open",1.0)
-		Train.Tb:TriggerInput("Close",1.0)
-		Train.Ts:TriggerInput("Close",1.0)
-	end
+		["ReverserForward"]		= function(V) Train.RKR:TriggerInput("Open",V) end,
+		["ReverserBackward"]	= function(V) Train.RKR:TriggerInput("Close",V) end,
+		["PneumaticNo1"]		= function(V) Train.PneumaticNo1:TriggerInput("Set",V) end,
+		["PneumaticNo2"]		= function(V) Train.PneumaticNo2:TriggerInput("Set",V) end,
+	}
+	local S = self.InternalCircuits.Solve(Train,self.Triggers)
 	
-	
-	
-	
-	----------------------------------------------------------------------------
-	-- РУТ (реле управления тягой) operation
-	self.RUTCurrent = self.I13 + self.I24
-	self.RUTTarget = 260
-	if Train.Tb.Value == 1.0 then
-		self.RUTCurrent = self.RUTCurrent*0.50
-	end
-	if math.abs(self.RUTCurrent) < self.RUTTarget then
-		Train.RUT:TriggerInput("Close",1.0)
-	else
-		Train.RUT:TriggerInput("Open",1.0)
-	end
-	
-	-- Rheostat controller operation
-	if (Train.LK3.Value == 0.0) and (Train.LK4.Value == 0.0) then
-		Train.RheostatController:TriggerInput("Down",1.0)
-	elseif Train.RUT.Value == 1.0 then
-		if (X1 < 0.5) then
-			if (T < 0.5) then -- Drive
-				if Train.Tp.Value == 0.0 
-				then Train.RheostatController:TriggerInput("Up",1.0)
-				else Train.RheostatController:TriggerInput("Down",1.0)
-				end
-			else -- Brake
-				if (X3 > 0.5) then
-					Train.RheostatController:TriggerInput("Up",1.0)
-					if Train.RheostatController.Position > 12.5 then
-						Train.PneumaticNo1:TriggerInput("Close",1.0)
-					end
-				end
-			end
-		end
-	end
-	if (X2 > 0.5) then
-		-- Вывод реостата
-		if (self.PreviousT1A ~= true) and (T > 0.5) and (X2 > 0.5) then
-			Train.RheostatController:TriggerInput("Up",1.0)
-		end
-	end
-	self.PreviousT1A = (T > 0.5) and ((X2 > 0.5) or (X3 > 0.5))]]--
-	
-	--[[
-	-- Trigger close
-	--print("VALUE",Train.LK2.Value)
-	if Train.KV.ControllerPosition == 3 then
-		if Train.Engine.RUTCurrent > 1500 then
-			Train.RPL:TriggerInput("Open",1.0)
-			Train.RP1_3:TriggerInput("Open",1.0)
-			Train.RP2_4:TriggerInput("Open",1.0)
-		end
-	else
-		if Train.Engine.RUTCurrent > 750 then
-			Train.RPL:TriggerInput("Open",1.0)
-			Train.RP1_3:TriggerInput("Open",1.0)
-			Train.RP2_4:TriggerInput("Open",1.0)
-		end
-	end]]--
+	--print("---------------------")
+	--for k,v in SortedPairs(S) do 
+		--print(k,v)
+	--end
+	Train.KSH1:TriggerInput("Set",KSH1)
+	Train.KSH2:TriggerInput("Set",KSH2)
+	--print(Train.RheostatController.Position,Train.RheostatController.MotorCoilState,Train.RheostatController.MotorState)
+	--print(Train.RheostatController.Position,Train.RheostatController.RKM,Train.RheostatController.RKP)
+	--print("RRT1",RRTpod,RRTuderzh)
+	--print("BRAKE SHORT",1-10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value)))
 end
 
 
@@ -421,36 +247,43 @@ function TRAIN_SYSTEM:SolvePS(Train)
 	local Rtotal = self.Ranchor13 + self.Ranchor24 + self.Rstator13 + self.Rstator24 +
 		self.R1 + self.R2 + self.R3
 		
-	--print(Rtotal)
-		
 	-- Calculate total current
 	self.Itotal = (self.Power750V - Train.Engines.E13 - Train.Engines.E24) / Rtotal
+	
+	-- Circuit must be closed
+	if Train.LK1.Value == 0.0 then self.Itotal = 0 end
 	
 	-- Calculate current through engines 13, 24
 	self.I13 = self.Itotal
 	self.I24 = self.Itotal
+end
+
+
+function TRAIN_SYSTEM:SolvePP(Train)
+	-- Calculate total resistance of each branch
+	local Rtotal13 = self.Ranchor13 + self.Rstator13 + self.R1
+	local Rtotal24 = self.Ranchor24 + self.Rstator24 + self.R2
 	
-	-- Calculate current through stator and shunt
-	self.Ustator13 = self.I13 * self.Rstator13
-	self.Ustator24 = self.I24 * self.Rstator24	
+	-- Calculate current through engines 13, 24
+	self.I13 = (self.Power750V - Train.Engines.E13) / Rtotal13
+	self.I24 = (self.Power750V - Train.Engines.E24) / Rtotal24
 	
-	self.Ishunt13  = self.Ustator13 / self.Rs1
-	self.Istator13 = self.Ustator13 / self.Ranchor13 -- FIXME: use stators own resistance
-	self.Ishunt24  = self.Ustator24 / self.Rs2
-	self.Istator24 = self.Ustator24 / self.Ranchor24
+	-- Circuit must be closed
+	if Train.LK1.Value == 0.0 then self.I13,self.I24 = 0,0 end
 	
-	-- Calculate current through rheostats 1, 2
-	self.IR1 = self.Itotal
-	self.IR2 = self.Itotal
+	-- Calculate total current
+	self.Itotal = self.I13 + self.I24
+end
+
+function TRAIN_SYSTEM:SolvePT(Train)
+	-- Calculate total resistance of the entire braking circuit
+	local Rtotal = self.Ranchor13 + self.Ranchor24 + self.Rstator13 + self.Rstator24 +
+		self.R1 + self.R2 + self.R3
 	
+	-- Calculate total current
+	self.Itotal = (self.Power750V*Train.LK1.Value - 0.5*(Train.Engines.E13+Train.Engines.E24)) / Rtotal
 	
-	
-	--self.Vs 	= V[1] - V[2]
-	--self.U13 	= V[2] - V[4]
-	--self.U24 	= V[6] - V[8]
-	--self.VR1 	= V[4] - V[5]
-	--self.VR2 	= V[8] - V[0]
-	--self.I13 	= (V[3] - V[4])/self.Rw13
-	--self.I24 	= (V[7] - V[8])/self.Rw24
-	--self.Itotal	= (V[1] - V[2])/(1e-9 + self.ExtraResistance)
+	-- Calculate current through engines 13, 24
+	self.I13 = self.Itotal / 2
+	self.I24 = self.Itotal / 2
 end

@@ -13,19 +13,3 @@ function TRAIN_SYSTEM:Initialize()
 	-- ТРК (защита мотор-компрессора от перегрузки)
 	self.Train:LoadSystem("TPK","Relay","TRTP-115")
 end
-
-function TRAIN_SYSTEM:Inputs()
-	return { }
-end
-
-function TRAIN_SYSTEM:Outputs()
-	return { }
-end
-
-function TRAIN_SYSTEM:TriggerInput(name,value)	
-	
-end
-
-function TRAIN_SYSTEM:Think()
-
-end

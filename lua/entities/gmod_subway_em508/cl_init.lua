@@ -1,4 +1,4 @@
-include("shared.lua")
+﻿include("shared.lua")
 
 
 --------------------------------------------------------------------------------
@@ -43,6 +43,37 @@ ENT.ButtonMap["ARS"] = {
 	height = 95*10,
 	scale = 0.0625/10,
 	
+	buttons = {}
+}
+
+-- Help panel
+ENT.ButtonMap["Help"] = {
+	pos = Vector(445.0,-36.0,30.0),
+	ang = Angle(40+180,0,0),
+	width = 20,
+	height = 20,
+	scale = 1,
+	
+	buttons = {
+		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Show help on driving the train"},
+	}
+}
+
+-- FIXME
+ENT.ButtonMap["FrontPneumatic"] = {
+	pos = Vector(459.0,-45.0,-50.0),
+	ang = Angle(0,90,90),
+	width = 900,
+	height = 100,
+	scale = 0.1,
+	buttons = {}
+}
+ENT.ButtonMap["RearPneumatic"] = {
+	pos = Vector(-481.0,45.0,-50.0),
+	ang = Angle(0,270,90),
+	width = 900,
+	height = 100,
+	scale = 0.1,
 	buttons = {}
 }
 
@@ -147,6 +178,16 @@ ENT.ClientProps["interiorlights_off"] = {
 
 
 
+ENT.ClientProps["book"] = {
+	model = "models/props_lab/binderredlabel.mdl",
+	pos = Vector(449.0,-40.0,45.0),
+	ang = Angle(-135,0,85)
+}
+
+
+
+
+
 --------------------------------------------------------------------------------
 -- Add doors
 for i=0,3 do
@@ -199,14 +240,15 @@ function ENT:Think()
 		self:RemoveCSEnts()
 		self:CreateCSEnts()
 	end
-
-	self:Animate("brake", 			1-self:GetNWFloat("DriverValve")/5, 			0.00, 0.65,  256,24)
+	
+	-- Simulate pressure gauges getting stuck a little
+	self:Animate("brake", 			(1-self:GetNWFloat("DriverValve")/5)^0.5, 		0.00, 0.65,  256,24)
 	self:Animate("controller",		(self:GetNWFloat("Controller")+3)/7, 			0.30, 0.70,  384,24)
 	self:Animate("reverser",		1-(self:GetNWFloat("Reverser")+1)/2, 			0.20, 0.55,  4,false)
 	
-	self:Animate("brake_line",		self:GetNWFloat("BrakeLine")/16.0, 				0.16, 0.84)
-	self:Animate("train_line",		self:GetNWFloat("TrainLine")/16.0, 				0.16, 0.84)
-	self:Animate("brake_cylinder",	self:GetNWFloat("BrakeCylinder")/6.0, 	 		0.17, 0.86)
+	self:Animate("brake_line",		self:GetNWFloat("BrakeLine")/16.0, 				0.16, 0.84,  256,2,0.01)
+	self:Animate("train_line",		self:GetNWFloat("TrainLine")/16.0, 				0.16, 0.84,  256,2,0.01)
+	self:Animate("brake_cylinder",	self:GetNWFloat("BrakeCylinder")/6.0, 	 		0.17, 0.86,  256,2,0.03)
 	self:Animate("voltmeter",		self:GetNWFloat("Volts")/1000.0, 				0.38, 0.63)
 	self:Animate("ampermeter",		self:GetNWFloat("Amperes")/1000.0, 				0.38, 0.63)
 	
@@ -245,10 +287,12 @@ function ENT:Draw()
 		self:DrawDigit((196+0) *10,	35*10, d2, 0.75, 0.55)
 		self:DrawDigit((196+10)*10,	35*10, d1, 0.75, 0.55)
 		
-		if self:GetNWBool("RP") then
+		if self:GetNWBool("RP1") then
 			surface.SetDrawColor(255,200,0)
 			surface.DrawRect(253*10,33*10,16*10,7*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",253*10+30,33*10-19,Color(0,0,0,255))
+		end
+		if self:GetNWBool("RP2") then
 			surface.SetDrawColor(255,200,0)
 			surface.DrawRect(290*10,33*10,16*10,7*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",290*10+30,33*10-19,Color(0,0,0,255))
@@ -272,4 +316,17 @@ function ENT:Draw()
 			--draw.DrawText("ЛРК","MetrostroiSubway_LargeText",101*10-4,73*10-5,Color(0,0,0,255))
 		end
 	end)
+	
+	self:DrawOnPanel("FrontPneumatic",function()
+		draw.DrawText(self:GetNWBool("FI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
+	end)
+	self:DrawOnPanel("RearPneumatic",function()
+		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
+	end)
+end
+
+function ENT:OnButtonPressed(button)
+	if button == "ShowHelp" then
+		RunConsoleCommand("train_show_manual")
+	end
 end
