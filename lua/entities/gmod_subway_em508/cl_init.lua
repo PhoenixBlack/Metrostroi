@@ -242,7 +242,7 @@ function ENT:Think()
 	end
 	
 	-- Simulate pressure gauges getting stuck a little
-	self:Animate("brake", 			1-self:GetNWFloat("DriverValve")/5, 			0.00, 0.65,  256,24)
+	self:Animate("brake", 			(1-self:GetNWFloat("DriverValve")/5)^0.5, 		0.00, 0.65,  256,24)
 	self:Animate("controller",		(self:GetNWFloat("Controller")+3)/7, 			0.30, 0.70,  384,24)
 	self:Animate("reverser",		1-(self:GetNWFloat("Reverser")+1)/2, 			0.20, 0.55,  4,false)
 	

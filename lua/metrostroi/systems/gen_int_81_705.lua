@@ -3,7 +3,7 @@
 local A = {}
 local S = {}
 local T = {}
-for i=1,4 do T[i] = 0 end
+for i=1,3 do T[i] = 0 end
 local function C(x) return x and 1 or 0 end
 
 local min = math.min
@@ -37,29 +37,29 @@ function INTERNAL_CIRCUITS.Solve(Train,Triggers)
 	S["10AP-10AD"] = Train.LK2.Value+C((P == 3) or (P == 4))
 	S["10AE-10B"] = Train.TR1.Value+Train.RV1.Value
 	S["10AE-10B"] = Train.RV1.Value+S["10AE-10B"]
+	S["1E-1Yu"] = Train.KSH2.Value+Train.KSB2.Value*Train.KSB1.Value
 	S["2V-2G"] = C((RK >= 5) and (RK <= 18))+C((RK >= 2) and (RK <= 4))*Train.KSH1.Value
 	S["10Zh-10N"] = Train.RheostatController.RKM+(1.0-Train.RUT.Value)*Train.SR1.Value*(1.0-Train.RRT.Value)
-	S["1A-1R"] = C((RK >= 1) and (RK <= 5))*C((P == 2))+(1.0-Train.RV1.Value)*C((P == 1))
-	S["1E-1Yu"] = Train.KSH2.Value+Train.KSB2.Value*Train.KSB1.Value
-	S["10AG-10AD"] = C((P == 1) or (P == 2) or (P == 4))*Train.TR2.Value*Train.TR1.Value+C((P == 2) or (P == 3) or (P == 4))*(1.0-Train.TR2.Value)*(1.0-Train.TR1.Value)
-	S["10AG-10E"] = C((P == 1))*Train.LK3.Value*C(RK == 18)+S["10AG-10AD"]*(1.0-Train.LK1.Value)*S["10AP-10AD"]
+	S["10AG-10AD"] = (1.0-Train.TR1.Value)*C((P == 2) or (P == 3) or (P == 4))*(1.0-Train.TR2.Value)+Train.TR2.Value*Train.TR1.Value*C((P == 1) or (P == 2) or (P == 4))
+	S["10AG-10E"] = S["10AG-10AD"]*(1.0-Train.LK1.Value)*S["10AP-10AD"]+Train.LK3.Value*C(RK == 18)*C((P == 1))
 	S["1G-1Zh"] = Train.LK3.Value+C(RK == 1)*S["1E-1Yu"]*C((P == 1) or (P == 3))*Train.LK2.Value
-	S["2A-2G"] = C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))+C((P == 2) or (P == 4))*S["2V-2G"]
+	S["1A-1R"] = (1.0-Train.RV1.Value)*C((P == 1))+C((RK >= 1) and (RK <= 5))*C((P == 2))
+	S["2A-2G"] = C((P == 2) or (P == 4))*S["2V-2G"]+C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))
 	S["1A"] = A[1]*TW1
 	S["3A"] = A[3]*TW3
 	S["4B"] = (1.0-Train.RKR.Value)*TW4
 	S["5B"] = Train.RKR.Value*TW5
-	S["5V"] = Train.RKR.Value*TW4+T[4]*(1.0-Train.RKR.Value)
+	S["5V"] = (1.0-Train.RKR.Value)*TW5+T[2]*Train.RKR.Value
 	S["5B'"] = S["5V"]*Train.LK3.Value
 	S["6A"] = A[6]*TW6
 	S["8A"] = A[8]*TW8
 	S["8Zh"] = S["8A"]*C((RK >= 17) and (RK <= 18))
 	S["10AYa"] = A[80]*TW10
-	S["2Ye"] = Train.LK4.Value*S["2A-2G"]*A[2]*S["2Zh-2A"]*TW2+T[2]*(1.0-Train.LK4.Value)
+	S["6Yu"] = S["6A"]*C((P == 3) or (P == 4))*C((RK >= 1) and (RK <= 5))
 	S["1R"] = S["1A"]*S["1A-1R"]
 	S["10AG"] = S["10AYa"]*S["10AG-10E"]*S["10AYa-10E"]
+	S["2Ye"] = A[2]*S["2Zh-2A"]*Train.LK4.Value*S["2A-2G"]*TW2+T[3]*(1.0-Train.LK4.Value)
 	S["10AE"] = A[30]*TW10
-	S["8G"] = S["8A"]*(1.0-Train.RT2.Value)*S["8A-8Ye"]
 	S["10I"] = S["10AE"]*Train.RheostatController.RKM
 	S["10AH"] = S["10I"]*(1.0-Train.LK1.Value)
 	S["10H"] = S["10I"]*Train.LK4.Value
@@ -67,43 +67,42 @@ function INTERNAL_CIRCUITS.Solve(Train,Triggers)
 	S["10B"] = S["10AE"]*S["10AE-10B"]
 	S["10AV"] = S["10AYa"]*(1.0-Train.LK3.Value)*C((RK >= 2) and (RK <= 18))
 	S["1P"] = S["1A"]*C((P == 1) or (P == 2))*S["1T-1P"]+T[1]*C((P == 3) or (P == 4))
-	S["6Yu"] = S["6A"]*C((P == 3) or (P == 4))*C((RK >= 1) and (RK <= 5))
+	S["8G"] = S["8A"]*(1.0-Train.RT2.Value)*S["8A-8Ye"]
 	S["20B"] = A[17]*(1.0-Train.RPvozvrat.Value)*TW20
-	S["1Zh"] = S["1P"]*1*(1.0-Train.RPvozvrat.Value)*S["1G-1Zh"]
 	S["10N"] = S["10AE"]*S["10Zh-10N"]*1+T["SDRK_ShortCircuit"]
+	S["1Zh"] = S["1P"]*1*(1.0-Train.RPvozvrat.Value)*S["1G-1Zh"]
 	S["1K"] = S["1Zh"]*C((P == 1) or (P == 2))
 	S["1N"] = S["1Zh"]*C((P == 1) or (P == 3))
 
 	-- Call all triggers
-	Triggers["KSH2"](S["1R"])
-	Triggers["LK1"](S["1K"])
-	Triggers["KSB1"](S["6Yu"])
-	T[4] = min(1,TW5)
-	Triggers["RRTuderzh"](S["25A"])
-	Triggers["LK5"](S["20B"])
-	Triggers["ReverserForward"](S["5B"])
-	Triggers["SDRK_Coil"](S["10B"])
-	Triggers["LK4"](S["5B'"])
-	T[1] = min(1,S["6A"])
-	T[3] = min(1,S["5V"])
-	Triggers["ReverserBackward"](S["4B"])
-	Triggers["PneumaticNo2"](S["8G"])
-	Triggers["SR1"](S["2Ye"])
-	Triggers["TR1"](S["6A"])
-	Triggers["TR2"](S["6A"])
-	Triggers["RUTpod"](S["10H"])
-	Triggers["LK3"](S["1Zh"])
-	Triggers["PneumaticNo1"](S["8Zh"])
-	T[2] = min(1,S["10AV"])
-	Triggers["Rper"](S["3A"])
-	Triggers["RUP"](S["6Yu"])
-	Triggers["LK2"](S["20B"])
-	Triggers["RV1"](S["2Ye"])
+	T[3] = min(1,S["10AV"])
 	Triggers["SDPP"](S["10AG"])
-	Triggers["RRTpod"](S["10AH"])
-	Triggers["RR"](S["1N"])
+	Triggers["ReverserForward"](S["5B"])
+	Triggers["LK5"](S["20B"])
+	Triggers["KSH1"](S["1R"])
+	Triggers["LK2"](S["20B"])
+	Triggers["TR2"](S["6A"])
+	T[2] = min(1,TW4)
+	T[1] = min(1,S["6A"])
+	Triggers["SR1"](S["2Ye"])
+	Triggers["LK1"](S["1K"])
 	Triggers["KSB2"](S["6Yu"])
 	Triggers["SDRK"](S["10N"])
-	Triggers["KSH1"](S["1R"])
+	Triggers["RRTuderzh"](S["25A"])
+	Triggers["RR"](S["1N"])
+	Triggers["Rper"](S["3A"])
+	Triggers["TR1"](S["6A"])
+	Triggers["ReverserBackward"](S["4B"])
+	Triggers["RRTpod"](S["10AH"])
+	Triggers["SDRK_Coil"](S["10B"])
+	Triggers["PneumaticNo2"](S["8G"])
+	Triggers["PneumaticNo1"](S["8Zh"])
+	Triggers["RUTpod"](S["10H"])
+	Triggers["LK4"](S["5B'"])
+	Triggers["KSH2"](S["1R"])
+	Triggers["RUP"](S["6Yu"])
+	Triggers["KSB1"](S["6Yu"])
+	Triggers["RV1"](S["2Ye"])
+	Triggers["LK3"](S["1Zh"])
 	return S
 end

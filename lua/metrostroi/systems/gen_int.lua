@@ -606,6 +606,7 @@ AddToNodes = {
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
 	{ "10AV", "2Ye" },
+	{ "TW4", "5V" },
 }
 ExtraStatements = {
 [[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],

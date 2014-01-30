@@ -11,13 +11,22 @@ ENT.Category		= "Metrostroi"
 ENT.Spawnable       = true
 ENT.AdminSpawnable  = false
 
+
+
+
+--------------------------------------------------------------------------------
+-- Default initializer only loads up DURA
+--------------------------------------------------------------------------------
 function ENT:InitializeSystems()
-	-- Do nothing
 	self:LoadSystem("DURA","DURA")
 end
 
+
+
+--------------------------------------------------------------------------------
+-- Load/define basic sounds
+--------------------------------------------------------------------------------
 function ENT:InitializeSounds()
-	-- Load basic sounds
 	self.SoundNames = {}
 	self.SoundNames["switch"]	= "subway_trains/click_1.wav"
 	self.SoundNames["click1"]	= "subway_trains/click_1.wav"
@@ -62,7 +71,12 @@ function ENT:InitializeSounds()
 	self.SoundTimeout["switch"] = 0.0
 end
 
--- Load system
+
+
+
+--------------------------------------------------------------------------------
+-- Load a single system with given name
+--------------------------------------------------------------------------------
 function ENT:LoadSystem(a,b,...)
 	local name
 	local sys_name
@@ -88,4 +102,78 @@ function ENT:LoadSystem(a,b,...)
 			self.DebugVars[varname] = value
 		end
 	end
+end
+
+
+
+
+--------------------------------------------------------------------------------
+-- Setup datatables for faster, more optimized transmission
+--------------------------------------------------------------------------------
+function ENT:SetupDataTables()
+	-- Int0,Int1: packed floating point values
+	self:NetworkVar("Int", 0, "PackedInt0")
+	self:NetworkVar("Int", 1, "PackedInt1")
+	-- Int2,Int3: packed bit values
+	self:NetworkVar("Int", 2, "PackedInt2")
+	self:NetworkVar("Int", 3, "PackedInt3")
+	
+	-- Acceleration of the train as felt in the center of mass
+	self:NetworkVar("Vector", 0, "TrainAcceleration")
+	-- Angular velocity of the train
+	self:NetworkVar("Vector", 1, "TrainAngularVelocity")
+end
+
+--------------------------------------------------------------------------------
+-- Set/get tightly packed float (for speed, pneumatic gauges, etc)
+--------------------------------------------------------------------------------
+function ENT:SetPackedRatio(idx,ratio,max)
+	local int = 0
+	if idx > 3 then int = 1 idx = idx-4 end
+	
+	-- Generate 8-bit integer
+	local int_ratio = math.min(255,math.max(0,math.floor(255*(ratio/(max or 1))+0.5)))
+	-- Pack 8-bit integer
+	local packed_value = bit.lshift(int_ratio,8*idx)
+	local mask = bit.bnot(bit.lshift(0xFF,8*idx))
+	
+	-- Create total packed integer
+	local new_int = bit.bor(bit.band(self["GetPackedInt"..int](self),mask),packed_value)
+	self["SetPackedInt"..int](self,new_int)
+end
+
+function ENT:GetPackedRatio(idx,max)
+	local int = 0
+	if idx > 3 then int = 1 idx = idx-4 end
+	
+	-- Pack 8-bit integer
+	local mask = bit.lshift(0xFF,8*idx)
+	local packed_value = bit.rshift(bit.band(self["GetPackedInt"..int](self),mask),8*idx)
+	
+	-- Generate ratio
+	return (packed_value/255)*(max or 1)
+end
+
+--------------------------------------------------------------------------------
+-- Set/get tightly packed boolean (for gauges, lights)
+--------------------------------------------------------------------------------
+function ENT:SetPackedBool(idx,value)
+	local int = 2
+	if idx > 3 then int = 3 idx = idx-4 end
+	
+	-- Pack value
+	local packed_value = bit.lshift(value and 1 or 0,idx)
+	local mask = bit.bnot(bit.lshift(1,idx))
+	
+	-- Create total packed integer
+	local new_int2 = bit.bor(bit.band(self["GetPackedInt"..int](self),mask),packed_value)
+	self["SetPackedInt"..int](self,new_int2)
+end
+
+function ENT:GetPackedBool(idx)
+	local int = 2
+	if idx > 3 then int = 3 idx = idx-4 end
+	
+	local mask = bit.lshift(1,idx)
+	return bit.band(self["GetPackedInt"..int](self),mask) ~= 0
 end
