@@ -6,6 +6,7 @@ Metrostroi.DefineSystem("KV_70")
 function TRAIN_SYSTEM:Initialize()
 	self.ControllerPosition = 0
 	self.ReverserPosition = 0
+	self.RealControllerPosition = 0
 
 	self.ReverserMatrix = {
 		{"D",		"D1"	},
@@ -148,6 +149,17 @@ function TRAIN_SYSTEM:Think()
 		self.Train:PlayOnce("kv1",true,0.6)
 	end
 	
+	-- Move controller
+	self.Timer = self.Timer or CurTime()
+	if ((CurTime() - self.Timer > 0.15) and (self.ControllerPosition > self.RealControllerPosition)) then
+		self.Timer = CurTime()
+		self.RealControllerPosition = self.RealControllerPosition + 1
+	end
+	if ((CurTime() - self.Timer > 0.15) and (self.ControllerPosition < self.RealControllerPosition)) then
+		self.Timer = CurTime()
+		self.RealControllerPosition = self.RealControllerPosition - 1
+	end
+	
 	-- Update contacts
 	for i=1,#self.ReverserMatrix/2 do
 		local v = self.ReverserMatrix[i*2-1]
@@ -157,7 +169,7 @@ function TRAIN_SYSTEM:Think()
 	for i=1,#self.ControllerMatrix/2 do
 		local v = self.ControllerMatrix[i*2-1]
 		local d = self.ControllerMatrix[i*2]
-		self[v[1].."-"..v[2]] = d[self.ControllerPosition+4]
+		self[v[1].."-"..v[2]] = d[self.RealControllerPosition+4]
 	end
 	
 	-- FIXME: temporary commutation
