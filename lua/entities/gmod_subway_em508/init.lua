@@ -48,8 +48,10 @@ function ENT:Initialize()
 			--[KEY_W] = "Shift W",
 			[KEY_A] = "DURASelectAlternate",
 			--[KEY_S] = "Shift S",
-			[KEY_D] = "DURASelectMain"
-		}
+			[KEY_D] = "DURASelectMain",			
+			[KEY_1] = "DIPonSet",
+			[KEY_2] = "DIPoffSet",
+		},
 	}
 	
 	self.InteractionZones = {
@@ -93,58 +95,61 @@ function ENT:Initialize()
 	}
 	
 	-- Load relays for lights
-	self:LoadSystem("HeadLights","Relay")
-	self:LoadSystem("CabinLights","Relay")
-	self:LoadSystem("InteriorLights","Relay")
+	self:LoadSystem("HeadLights","Relay","Switch")
 end
 
 
 --------------------------------------------------------------------------------
 function ENT:Think()
-	-- FIXME
-	self.MaxIterations = 16
-
 	-- Enable lights
-	self:SetLightPower(1, self.HeadLights.Value == 1.0)
-	self:SetLightPower(2, self.HeadLights.Value == 1.0)
-	self:SetLightPower(3, self.HeadLights.Value == 1.0)
-	self:SetLightPower(4, self.HeadLights.Value == 1.0)
-	self:SetLightPower(5, self.HeadLights.Value == 1.0)
-	self:SetLightPower(6, self.HeadLights.Value == 1.0)
-	self:SetLightPower(7, self.HeadLights.Value == 1.0)
+	self:SetLightPower(1, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
+	self:SetLightPower(2, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
+	self:SetLightPower(3, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
+	self:SetLightPower(4, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
+	self:SetLightPower(5, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
+	self:SetLightPower(6, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
+	self:SetLightPower(7, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
 	
-	self:SetLightPower(8, self.RKR.Value == 1.0)
-	self:SetLightPower(9, self.RKR.Value == 1.0)
+	self:SetLightPower(8, (self.RKR.Value * self:ReadTrainWire(10)) == 1.0)
+	self:SetLightPower(9, (self.RKR.Value * self:ReadTrainWire(10)) == 1.0)
 	
-	self:SetLightPower(10, self.CabinLights.Value == 1.0)
+	self:SetLightPower(10, self.Electric.Lights80V > 65.0)
+	self:SetLightPower(11, self.Electric.Lights80V > 65.0)
+	self:SetLightPower(12, self.Electric.Lights80V > 65.0)
+	self:SetLightPower(13, self.Electric.Lights80V > 65.0)
 	
-	self:SetLightPower(11, self.InteriorLights.Value == 1.0)
-	self:SetLightPower(12, self.InteriorLights.Value == 1.0)
-	self:SetLightPower(13, self.InteriorLights.Value == 1.0)
+	-- Feed switch states
+	self:SetPackedBool(0,self.HeadLights.Value == 1.0)
+	self:SetPackedBool(1,self.HeadLights.Value == 1.0)
+	--self:SetPackedBool(1,self.CabinLights.Value == 1.0)
+	self:SetPackedBool(2,self.DIPon.Value == 1.0)
+	self:SetPackedBool(3,self.DIPoff.Value == 1.0)	
 	
-	-- Enable console
-	self:SetNWBool("Power",true)
-	self:SetNWBool("LxRK",self.LK4.Value ~= 0.0)
-	self:SetNWBool("RP1",self.RPvozvrat.Value ~= 0.0)
-	self:SetNWBool("RP2",self:ReadTrainWire("RP") ~= 0.0)
-	--self:SetNWBool("LST",self:ReadTrainWire(6) > 0.5)
-	self:SetNWBool("KVD",self:ReadTrainWire(20) > 0.5)
-	self:SetNWBool("HeadLights",self.HeadLights.Value == 1.0)
-	self:SetNWBool("CabinLights",self.CabinLights.Value == 1.0)
-	self:SetNWBool("InteriorLights",self.InteriorLights.Value == 1.0)
-	self:WriteTrainWire("RP",self.RPvozvrat.Value)
+	-- DIP/power
+	self:SetPackedBool(32,self.Electric.Aux80V > 65.0)
+	-- LxRK
+	self:SetPackedBool(33,self.RheostatController.MotorCoilState ~= 0.0)
+	-- NR1
+	self:SetPackedBool(34,self.NR.Value == 1.0)
+	-- RP1
+	self:SetPackedBool(35,self.RPvozvrat.Value ~= 0.0)
+	-- RP2
+	self:SetPackedBool(36,self:ReadTrainWire("RP") ~= 0.0)
+	self:WriteTrainWire("RP",self.RPvozvrat.Value) -- TEMP HACK
 	
-	-- Feed values
-	self:SetNWFloat("Reverser",self.KV.ReverserPosition)
-	self:SetNWFloat("Controller",self.KV.ControllerPosition)
-	self:SetNWFloat("DriverValve",self.Pneumatic.DriverValvePosition)	
-	self:SetNWFloat("BrakeLine",self.Pneumatic.ReservoirPressure)
-	self:SetNWFloat("TrainLine",self.Pneumatic.TrainLinePressure)
-	self:SetNWFloat("BrakeCylinder",self.Pneumatic.BrakeCylinderPressure)
+	-- Feed packed floats
+	local speed = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
+	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/5)
+	self:SetPackedRatio(1, (self.KV.ControllerPosition+3)/7)
+	self:SetPackedRatio(2, 1-(self.KV.ReverserPosition+1)/2)
+	self:SetPackedRatio(3, speed/100.0)
 	
-	self:SetNWFloat("Volts",self.Electric.Power750V)
-	self:SetNWFloat("Amperes",math.abs(self.Electric.I24))
-	self:SetNWFloat("Speed",(self.FrontBogey.Speed + self.RearBogey.Speed)/2)
+	self:SetPackedRatio(8, self.Pneumatic.ReservoirPressure/16.0)
+	self:SetPackedRatio(9, self.Pneumatic.TrainLinePressure/16.0)
+	self:SetPackedRatio(10,self.Pneumatic.BrakeCylinderPressure/6.0)
+	self:SetPackedRatio(11,self.Electric.Power750V/1000.0)
+	self:SetPackedRatio(12,math.abs(self.Electric.I24)/1000.0)	
+
 	self.DebugVars["Speed"] = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
 	self.DebugVars["Acceleration"] = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2
 	return self.BaseClass.Think(self)
@@ -152,12 +157,19 @@ end
 
 
 --------------------------------------------------------------------------------
+function ENT:OnButtonPress(button)
+	if (button == "DIPonSet") or
+	   (button == "DIPoffSet") or
+	   (button == "HeadLightsToggle") then
+		self:PlayOnce("switch","cabin")
+	end
+end
+
 function ENT:OnCouple(train,isfront)
 	self.BaseClass.OnCouple(self,train,isfront)
 	
-	if isfront then
-		self.FrontBrakeLineIsolation:TriggerInput("Open",1.0)
-	else
-		self.RearBrakeLineIsolation:TriggerInput("Open",1.0)
+	if isfront 
+	then self.FrontBrakeLineIsolation:TriggerInput("Open",1.0)
+	else self.RearBrakeLineIsolation:TriggerInput("Open",1.0)
 	end
 end

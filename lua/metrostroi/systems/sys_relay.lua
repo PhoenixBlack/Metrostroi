@@ -24,11 +24,15 @@ function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
 		if relay_types[relay_type] then
 			parameters = relay_types[relay_type]
 		else
-			print("[sys_relay.lua] Unknown relay type: "..parameters)
+			--print("[sys_relay.lua] Unknown relay type: "..parameters)
 			parameters = {}
 		end
 		parameters.relay_type = relay_type
 	end
+	
+	-- Create new table
+	local old_param = parameters
+	parameters = {} for k,v in pairs(old_param) do parameters[k] = v end
 	
 	-- Add extra parameters
 	if type(extra_parameters) == "table" then
@@ -115,6 +119,7 @@ function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
 		self.TargetValue = 0.0
 		self.Value = 0.0
 	end
+	
 	-- Time when relay should change its value
 	self.ChangeTime = nil
 end
