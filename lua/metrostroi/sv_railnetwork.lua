@@ -759,6 +759,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Register Joystick Controlls
+-- Author: HunterNL
 --------------------------------------------------------------------------------
 
 if not Metrostroi.JoystickValueRemap then
@@ -816,7 +817,18 @@ Metrostroi.GetJoystickInput = function(ply,uid)
 end
 
 --------------------------------------------------------------------------------
+-- Player meta table magic
+-- Author: HunterNL
+--------------------------------------------------------------------------------
+
+local Player = FindMetaTable("Player")
+function Player:CanDriveTrains()
+	return IsValid(self:GetWeapon("train_reverser_switch")) or self:IsAdmin()
+end
+
+--------------------------------------------------------------------------------
 -- Rerail tool
+-- Author: HunterNL
 --------------------------------------------------------------------------------
 local function dirdebug(v1,v2)
 	debugoverlay.Line(v1,v1+v2*30,10,Color(255,0,0),true)

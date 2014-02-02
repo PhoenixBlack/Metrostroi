@@ -42,8 +42,6 @@ ENT.ButtonMap["ARS"] = {
 	width = 410*10,
 	height = 95*10,
 	scale = 0.0625/10,
-	
-	buttons = {}
 }
 
 -- Help panel
@@ -66,7 +64,6 @@ ENT.ButtonMap["FrontPneumatic"] = {
 	width = 900,
 	height = 100,
 	scale = 0.1,
-	buttons = {}
 }
 ENT.ButtonMap["RearPneumatic"] = {
 	pos = Vector(-481.0,45.0,-50.0),
@@ -74,7 +71,6 @@ ENT.ButtonMap["RearPneumatic"] = {
 	width = 900,
 	height = 100,
 	scale = 0.1,
-	buttons = {}
 }
 
 
@@ -259,7 +255,7 @@ function ENT:Think()
 	self:Animate("dip_off",			self:GetPackedBool(3) and 1 or 0, 	0,1, 16, false)
 	
 	-- DIP sound
-	self:SetSoundState("bpsn2",self:GetPackedBool(32) and 1 or 0,1.0)
+	--self:SetSoundState("bpsn2",self:GetPackedBool(32) and 1 or 0,1.0)
 end
 
 surface.CreateFont("MetrostroiSubway_LargeText", {
