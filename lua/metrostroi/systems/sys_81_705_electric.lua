@@ -5,10 +5,16 @@ Metrostroi.DefineSystem("81_705_Electric")
 
 
 function TRAIN_SYSTEM:Initialize()
+	-- General power output
 	self.Main750V = 0.0
 	self.Aux750V = 0.0
 	self.Power750V = 0.0
 	self.Aux80V = 0.0
+	self.Lights80V = 0.0
+	
+	-- Specific output points
+	--self.B12 = 0
+	--self.B2 = 0
 	
 	-- Resistances
 	self.R1 = 1e9
@@ -53,6 +59,9 @@ function TRAIN_SYSTEM:Initialize()
 	self.T2 = 25
 	self.P1 = 0
 	self.P2 = 0
+	
+	-- Need many iterations for engine simulation to converge
+	self.SubIterations = 16
 end
 
 
@@ -64,7 +73,7 @@ function TRAIN_SYSTEM:Outputs()
 	return { "R1","R2","R3","Rs1","Rs2","Itotal","I13","I24","IRT2",
 			 "Ustator13","Ustator24","Ishunt13","Istator13","Ishunt24","Istator24",
 			 "T1", "T2", "P1", "P2",
-			 "Main750V", "Power750V", "Aux750V", "Aux80V" }
+			 "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V" }
 end
 
 
@@ -74,25 +83,27 @@ end
 
 
 --------------------------------------------------------------------------------
-function TRAIN_SYSTEM:Think(dT,iteration)
+function TRAIN_SYSTEM:Think(dT)
 	local Train = self.Train
 	
 	----------------------------------------------------------------------------
 	-- Вспомагательные цепи
 	self.Aux750V = 750--Train.TR.Main750V * self.Train.PNB_1250_1.Value * self.Train.PNB_1250_2.Value * Train.KVC.Value		
 	-- Питание вспомагательных цепей 80V
-	self.Aux80V = 80 --math.max(Train.BPSN.Output80V * self.Train.VB.Value, Train.Battery.Voltage)
+	self.Aux80V = Train.PowerSupply.XT3[1]
+	-- Питание освещения 80V
+	self.Lights80V = Train.PowerSupply.XT3[4]
 	-- Вывод питания на вагоны
-	if self.Aux80V > 70.0 
-	then Train:WriteTrainWire(9,1)
-	else Train:WriteTrainWire(9,0)
+	if self.Aux80V > 65.0 
+	then Train:WriteTrainWire(9,1)	Train:WriteTrainWire(10,1)
+	else Train:WriteTrainWire(9,0)	Train:WriteTrainWire(10,0)
 	end
 	
 	
 	
 	----------------------------------------------------------------------------
 	-- Главные электрические цепи
-	self.Main750V = Train.TR.Main750V * Train.PNB_1250_1.Value
+	self.Main750V = Train.TR.Main750V * Train.PNB_1250_1.Value * Train.PNB_1250_2.Value
 	
 	
 	
@@ -145,6 +156,9 @@ function TRAIN_SYSTEM:Think(dT,iteration)
 	else
 		self:SolvePT(Train)
 	end
+	
+	
+	
 	
 	----------------------------------------------------------------------------
 	-- Calculate current through stator and shunt
@@ -220,23 +234,30 @@ function TRAIN_SYSTEM:Think(dT,iteration)
 		["SDRK_Coil"]	= function(V) Train.RheostatController:TriggerInput("MotorCoilState",V*(-1.0 + 2.0*Train.RR.Value)) end,
 		["SDRK"]		= function(V) Train.RheostatController:TriggerInput("MotorState",V) end,
 		
+		["XR3.2"]		= function(V) Train.PowerSupply:TriggerInput("XR3.2",V) end,
+		["XR3.3"]		= function(V) Train.PowerSupply:TriggerInput("XR3.3",V) end,
+		
 		["ReverserForward"]		= function(V) Train.RKR:TriggerInput("Open",V) end,
 		["ReverserBackward"]	= function(V) Train.RKR:TriggerInput("Close",V) end,
 		["PneumaticNo1"]		= function(V) Train.PneumaticNo1:TriggerInput("Set",V) end,
 		["PneumaticNo2"]		= function(V) Train.PneumaticNo2:TriggerInput("Set",V) end,
 	}
 	local S = self.InternalCircuits.Solve(Train,self.Triggers)
-	
 	--print("---------------------")
 	--for k,v in SortedPairs(S) do 
 		--print(k,v)
 	--end
 	Train.KSH1:TriggerInput("Set",KSH1)
 	Train.KSH2:TriggerInput("Set",KSH2)
-	--print(Train.RheostatController.Position,Train.RheostatController.MotorCoilState,Train.RheostatController.MotorState)
-	--print(Train.RheostatController.Position,Train.RheostatController.RKM,Train.RheostatController.RKP)
-	--print("RRT1",RRTpod,RRTuderzh)
-	--print("BRAKE SHORT",1-10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value)))
+	
+	
+	
+	
+	----------------------------------------------------------------------------
+	-- Calculate current flow out of the battery
+	--local totalCurrent = 5*A30 + 63*A24 + 16*A44 + 5*A39 + 10*A80
+	--local totalCurrent = 20 + 60*DIP
+
 end
 
 

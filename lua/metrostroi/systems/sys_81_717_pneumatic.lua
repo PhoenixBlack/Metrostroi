@@ -4,10 +4,6 @@
 Metrostroi.DefineSystem("81_717_Pneumatic")
 
 function TRAIN_SYSTEM:Initialize()
-	-- Limit number of iterations to just one
-	self.NoIterations = true
-	
-	
 	-- Position of the train drivers valve
 	-- 1 Accelerated charge
 	-- 2 Normal charge (brake release)
@@ -237,7 +233,7 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	----------------------------------------------------------------------------
 	-- Fill brake cylinders
-	local targetPressure = math.min(6.0,2*(self.TrainToBrakeReducedPressure - self.BrakeLinePressure))
+	local targetPressure = math.max(0,math.min(6.0,2*(self.TrainToBrakeReducedPressure - self.BrakeLinePressure)))
 	if math.abs(self.BrakeCylinderPressure - targetPressure) > 0.200 then
 		self.BrakeCylinderValve = 1
 	end
@@ -245,7 +241,7 @@ function TRAIN_SYSTEM:Think(dT)
 		self.BrakeCylinderValve = 0
 	end
 	if self.BrakeCylinderValve == 1 then
-		equalizePressure("BrakeCylinderPressure", targetPressure, 0.50)
+		equalizePressure("BrakeCylinderPressure", targetPressure, 0.75)
 	end
 	
 	-- Valve #1
