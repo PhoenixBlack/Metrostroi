@@ -19,12 +19,18 @@ local function GetCommand(str)
 end
 
 local function AreInTalkRange(listener,speaker)
-	return listener:GetShootPos():Distance(speaker:GetShootPos()) < TALK_RANGE
+	return 
+	(listener:GetShootPos():Distance(speaker:GetShootPos()) < TALK_RANGE)
+		or
+	(listener:IsAdmin() and listener:GetInfoNum("metro_admin_listentoall",0) > 0)
+	
 end
 
 function GM:PlayerSay(sender,text,teamonly)
 	if HasPrefix(text) then
 		return ""
+	else
+		return text
 	end
 end
 --[[
