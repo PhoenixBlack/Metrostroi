@@ -122,12 +122,45 @@ function ENT:Initialize()
 	self.Systems = {}
 	-- Initialize train systems
 	self:InitializeSystems()
+	
+	-- Create sounds
+	self:InitializeSounds()
+	self.Sounds = {}
+	for k,v in pairs(self.SoundNames) do
+		if type(v) == "string" then
+			util.PrecacheSound(v)
+			self.Sounds[k] = CreateSound(self, Sound(v))
+		end
+	end
 end
 
 function ENT:OnRemove()
 	self:RemoveCSEnts()
 	drawCrosshair = false
 	toolTipText = nil
+	
+	for k,v in pairs(self.Sounds) do
+		v:Stop()
+	end
+end
+
+
+
+
+--------------------------------------------------------------------------------
+-- Sound functions (clientside)
+--------------------------------------------------------------------------------
+function ENT:SetSoundState(sound,volume,pitch)
+	if (volume <= 0) or (pitch <= 0) then
+		self.Sounds[sound]:Stop()
+		self.Sounds[sound]:ChangeVolume(0.0,0)
+		return
+	end
+
+	local pch = math.floor(math.max(0,math.min(255,100*pitch)) + math.random())
+	self.Sounds[sound]:Play()
+	self.Sounds[sound]:ChangeVolume(math.max(0,math.min(255,2.55*volume)) + (0.001/2.55) + (0.001/2.55)*math.random(),0)
+	self.Sounds[sound]:ChangePitch(pch+1,0)
 end
 
 

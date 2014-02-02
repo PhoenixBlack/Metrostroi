@@ -50,7 +50,11 @@ function ENT:InitializeSystems()
 	self:LoadSystem("Electric","81_705_Electric")
 	-- Пневмосистема 81-705
 	self:LoadSystem("Pneumatic","81_717_Pneumatic")
+	-- Панель управления 81-705
+	self:LoadSystem("Panel","81_705_Panel")
 	
+	self:LoadSystem("Battery")
+	self:LoadSystem("PowerSupply","DIP_01K")
 	
 	self:LoadSystem("DURA","DURA")
 end

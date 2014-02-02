@@ -169,6 +169,7 @@ LoadSystem("EKG")
 -- 81-717, Ezh
 LoadSystem("81_717_Pneumatic")
 LoadSystem("81_705_Electric")
+LoadSystem("81_705_Panel")
 LoadSystem("DK_117DM")
 LoadSystem("GV_10ZH")
 LoadSystem("TR_3B")
@@ -185,6 +186,9 @@ LoadSystem("YAK_37E")
 LoadSystem("YAS_44V")
 LoadSystem("YARD_2")
 LoadSystem("PR_14X_Panels")
+
+LoadSystem("Battery")
+LoadSystem("DIP_01K")
 
 -- Tatra T3
 LoadSystem("Tatra_Systems")
