@@ -871,15 +871,20 @@ function ENT:ButtonEvent(button,state)
 		self:OnButtonPress(button)
 		self:TriggerInput(button,1.0)
 	elseif (self.ButtonBuffer[button] ~= state) then
+		
+		-- Dont generate events when the buffer is being filled with false states
+		-- Though this might go wrong if some button ever starts of enabled
+		if not (state == false and self.ButtonBuffer[button] == nil) then
+			if state then
+				self:OnButtonPress(button)
+				self:TriggerInput(button,1.0)
+			else
+				self:OnButtonRelease(button)
+				self:TriggerInput(button,0.0)
+			end
+		end
 		self.ButtonBuffer[button] = state
 
-		if state then
-			self:OnButtonPress(button)
-			self:TriggerInput(button,1.0)
-		else
-			self:OnButtonRelease(button)
-			self:TriggerInput(button,0.0)
-		end
 	end
 end
 
