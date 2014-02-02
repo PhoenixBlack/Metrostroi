@@ -1,0 +1,7 @@
+"metrostroi"
+{
+	"base"		"base"
+	"title"		"Metrostroi"
+	"maps" 		"metrostroi"
+	"menusystem"	"1"
+}
