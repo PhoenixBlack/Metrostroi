@@ -266,9 +266,13 @@ function ENT:Draw()
 						surface.DrawText(string.format("%d %d",panel.aimX,panel.aimY))
 					end
 					
+					
 					--surface.SetDrawColor(255,255,255)
 					--surface.DrawRect(0,0,panel.width,panel.height)
 					if panel.buttons then
+						
+						surface.SetAlphaMultiplier(0.2) 
+						
 						for kb,button in pairs(panel.buttons) do
 							if not button.ID then
 								surface.SetDrawColor(25,40,180)
@@ -280,7 +284,13 @@ function ENT:Draw()
 							self:DrawCircle(button.x,button.y,button.radius or 10)
 							surface.DrawRect(button.x-8,button.y-8,16,16)
 						end
+						
+						--Gotta reset this otherwise the qmenu draws transparent as well
+						surface.SetAlphaMultiplier(1) 
+						
 					end
+					
+					
 				end)
 			end
 		end
