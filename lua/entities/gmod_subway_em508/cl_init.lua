@@ -45,9 +45,9 @@ ENT.ButtonMap["ARS"] = {
 	
 	-- TODO: If you know what the lights mean, give them the right tooltips
 	buttons = {
-		{x=2048,y=411,tooltip="Speed",radius=110},
-		{x=2638,y=363,tooltip="I ERROR",radius=110},
-		{x=3000,y=363,tooltip="SOMETHING ERROR",radius=110},
+		{x=2045,y=406,tooltip="Speed",radius=120},
+		{x=2610,y=363,tooltip="I ERROR",radius=110},
+		{x=2982,y=363,tooltip="SOMETHING ERROR",radius=110},
 	}
 }
 

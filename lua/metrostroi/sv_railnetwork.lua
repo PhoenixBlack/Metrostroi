@@ -854,7 +854,7 @@ local function traceWorldOnly(pos,dir)
 		endpos = pos+dir,
 		mask = MASK_NPCWORLDSTATIC
 	})
-	if false then
+	if false then -- Shows all traces done by rerailer
 		debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
 		debugoverlay.Sphere(tr.StartPos,2,10,Color(0,255,255),true)
 	end
@@ -880,8 +880,8 @@ end
 --Elevates a position to track level
 --Requires a position in the center of the track
 local function ElevateToTrackLevel(pos,right,up)
-	local tr1 = traceWorldOnly(pos+up*200+right*41,-up*500)
-	local tr2 = traceWorldOnly(pos+up*200-right*41,-up*500)
+	local tr1 = traceWorldOnly(pos+up*200+right*42,-up*500)
+	local tr2 = traceWorldOnly(pos+up*200-right*42,-up*500)
 	if not tr1.Hit or not tr2.Hit then return false end
 	return (tr1.HitPos + tr2.HitPos)/2
 end
