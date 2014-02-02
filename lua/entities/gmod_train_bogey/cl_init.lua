@@ -9,7 +9,7 @@ function ENT:ReinitializeSounds()
 	self.SoundNames["run1"]		= "subway_trains/run_1.wav"
 	self.SoundNames["run2"]		= "subway_trains/run_2.wav"
 	self.SoundNames["run3"]		= "subway_trains/run_3.wav"
-	self.SoundNames["release"] 	= "subway_trains/release_1.wav"
+	self.SoundNames["release"]	= "subway_trains/release_1.wav"
 	
 	-- Remove old sounds
 	if self.Sounds then
@@ -122,7 +122,7 @@ function ENT:Think()
 	local threshold = 0.01
 	if dPdT < -threshold then
 		local volRamp = math.min(0.01,-0.1*(dPdT+threshold))
-		self:SetSoundState("release",volRamp,1.6)
+		self:SetSoundState("release",volRamp,1.7)
 	elseif dPdT > threshold then
 		local volRamp = (dPdT-threshold)/4.000
 		self:SetSoundState("release",volRamp,1.0)

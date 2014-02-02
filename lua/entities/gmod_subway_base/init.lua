@@ -729,56 +729,37 @@ function ENT:Think()
 	end
 	
 	-- Run iterations on systems simulation
-	self.Iterations = self.Iterations or 0
-	local maxIterations = self.MaxIterations or 16
-	local subdiv = 4
-	for k,v in pairs(self.Systems) do
-		if v.NoIterations then
-			v:Think(self.DeltaTime)
-		end
-	end
-	for iteration=1,maxIterations do
+	local iterationsCount = 1
+	if (not self.Schedule) or (iterationsCount ~= self.Schedule.IterationsCount) then
+		self.Schedule = { IterationsCount = iterationsCount }
+		
+		-- Find max number of iterations
+		local maxIterations = 0
+		for k,v in pairs(self.Systems) do maxIterations = math.max(maxIterations,(v.SubIterations or 1)) end
+
+		-- Create a schedule of simulation
+		for iteration=1,maxIterations do self.Schedule[iteration] = {} end
+
+		-- Populate schedule
 		for k,v in pairs(self.Systems) do
-			if not v.NoIterations then
-				if k == "Electric" then
-					v:Think(self.DeltaTime / maxIterations,self.Iterations)
-				else
-					if ((iteration-1) % subdiv) == 0 then
-						v:Think(self.DeltaTime / (maxIterations/subdiv),self.Iterations)
-					end
+			local simIterationsPerIteration = (v.SubIterations or 1) / maxIterations
+			local iterations = 0
+			for iteration=1,maxIterations do
+				iterations = iterations + simIterationsPerIteration
+				while iterations >= 1 do
+					table.insert(self.Schedule[iteration],v)
+					iterations = iterations - 1
 				end
 			end
 		end
-		self.Iterations = self.Iterations + 1
 	end
 	
-	-- Run iterations on systems simulation
-	--[[self.Iterations = self.Iterations or 0
-	local maxIterations = self.MaxIterations or 16
-	for k,v in pairs(self.Systems) do
-		--if v.NoIterations then
-		if (k ~= "Electric") and (k ~= "Engines") then
-			v:Think(self.DeltaTime)
+	-- Simulate according to schedule
+	for i,s in ipairs(self.Schedule) do
+		for k,v in ipairs(s) do
+			v:Think(self.DeltaTime / (v.SubIterations or 1),i)
 		end
 	end
-	
-	local electric,electric_think
-	local engines,engines_think
-	for k,v in pairs(self.Systems) do
-		if k == "Electric" then
-			electric = v
-			electric_think = v.Think
-		end
-		if k == "Engines" then
-			engines = v
-			engines_think = v.Think
-		end
-	end
-	for iteration=1,maxIterations do
-		if electric_think then electric_think(electric,self.DeltaTime / (4*maxIterations),self.Iterations) end
-		if engines_think  then engines_think(engines,self.DeltaTime / (4*maxIterations),self.Iterations) end
-		self.Iterations = self.Iterations + 1
-	end]]--
 	
 	-- Add interesting debug variables
 	for i=1,32 do

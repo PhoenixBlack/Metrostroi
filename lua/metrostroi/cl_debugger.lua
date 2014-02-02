@@ -200,6 +200,20 @@ Debugger.DisplayGroups["Electric System"] = {
 	}
 }
 
+Debugger.DisplayGroups["DIP-01K"] = {
+	Data = {
+		{"PowerSupplyDIP-01K","",""},
+
+		{"PowerSupplyXT3.1","%.2f","V"},
+		{"PowerSupplyXT3.4","%.2f","V"},
+		{"PowerSupplyXT1.2","%.2f","V"},
+	},
+	Settings = {
+		ignore_prefix = "PowerSupply",
+		Ents = {"#gmod_subway_base"}
+	}
+}
+
 Debugger.DisplayGroups["Engines"] = {
 	Data = {
 		{"EnginesMagneticFlux13","%.3f",""},

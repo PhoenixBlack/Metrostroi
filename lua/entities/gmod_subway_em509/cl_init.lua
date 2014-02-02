@@ -1,4 +1,4 @@
-include("shared.lua")
+﻿include("shared.lua")
 
 
 --------------------------------------------------------------------------------
@@ -15,8 +15,8 @@ ENT.ButtonMap["Main"] = {
 	scale = 0.0625,
 	
 	buttons = {		
-		{ID = "InteriorLightsClose",	x=22,  y=19, radius=20, tooltip="Turn interior lights ON"},
-		{ID = "InteriorLightsOpen",		x=66,  y=19, radius=20, tooltip="Turn interior lights OFF"},
+		{ID = "DIPonSet",	x=22,  y=19, radius=20, tooltip="Turn DIP and interior lights ON"},
+		{ID = "DIPoffSet",	x=66,  y=19, radius=20, tooltip="Turn DIP and interior lights OFF"},
 	}
 }
 
@@ -31,6 +31,7 @@ ENT.ButtonMap["Front"] = {
 	buttons = {
 		{ID = "HeadLightsToggle",		x=400, y=75, radius=15, tooltip="Head lights TOGGLE"},
 		{ID = "CabinLightsToggle",		x=387, y=28, radius=15, tooltip="Cabin lights TOGGLE"},	
+		{x=234,y=33,tooltip="Speed"}
 	}
 }
 
@@ -42,6 +43,37 @@ ENT.ButtonMap["ARS"] = {
 	height = 95*10,
 	scale = 0.0625/10,
 	
+	buttons = {}
+}
+
+-- Help panel
+ENT.ButtonMap["Help"] = {
+	pos = Vector(445.0,-36.0,30.0),
+	ang = Angle(40+180,0,0),
+	width = 20,
+	height = 20,
+	scale = 1,
+	
+	buttons = {
+		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Show help on driving the train"},
+	}
+}
+
+-- FIXME
+ENT.ButtonMap["FrontPneumatic"] = {
+	pos = Vector(459.0,-45.0,-50.0),
+	ang = Angle(0,90,90),
+	width = 900,
+	height = 100,
+	scale = 0.1,
+	buttons = {}
+}
+ENT.ButtonMap["RearPneumatic"] = {
+	pos = Vector(-481.0,45.0,-50.0),
+	ang = Angle(0,270,90),
+	width = 900,
+	height = 100,
+	scale = 0.1,
 	buttons = {}
 }
 
@@ -127,21 +159,31 @@ ENT.ClientProps["headlights"] = {
 	pos = Vector(443.1,-60.0,0.5),
 	ang = Angle(-90,0,0)
 }
-ENT.ClientProps["cabinlights"] = {
+ENT.ClientProps["panellights"] = {
 	model = "models/metrostroi/81-717/switch04.mdl",
 	pos = Vector(444.1,-59.3,3.3),
 	ang = Angle(-90,0,0)
 }
-ENT.ClientProps["interiorlights_on"] = {
-	model = "models/metrostroi/81-717/switch03.mdl",
+ENT.ClientProps["dip_on"] = {
+	model = "models/metrostroi/81-717/switch02.mdl",
 	pos = Vector(444.3,-36.4,-1.4),
 	ang = Angle(-20,0,0)
 }
-ENT.ClientProps["interiorlights_off"] = {
-	model = "models/metrostroi/81-717/switch03.mdl",
+ENT.ClientProps["dip_off"] = {
+	model = "models/metrostroi/81-717/switch02.mdl",
 	pos = Vector(443.9,-39.2,-1.4),
 	ang = Angle(-20,0,0)
 }
+
+
+
+
+ENT.ClientProps["book"] = {
+	model = "models/props_lab/binderredlabel.mdl",
+	pos = Vector(449.0,-40.0,45.0),
+	ang = Angle(-135,0,85)
+}
+
 
 
 
@@ -151,34 +193,34 @@ ENT.ClientProps["interiorlights_off"] = {
 for i=0,3 do
 	for k=0,1 do
 		table.insert(ENT.ClientProps,{
-			model = "models/metrostroi/e/em508_door1.mdl",
+			model = "models/metrostroi/e/em509_door1.mdl",
 			pos = Vector(353.0 - 35*k - 231*i,-65*(1-2*k),-1.8),
 			ang = Angle(0,180*k,0)
 		})
 		table.insert(ENT.ClientProps,{
-			model = "models/metrostroi/e/em508_door2.mdl",
+			model = "models/metrostroi/e/em509_door2.mdl",
 			pos = Vector(353.0 - 35*(1-k) - 231*i,-65*(1-2*k),-1.8),
 			ang = Angle(0,180*k,0)
 		})
 	end
 end
 table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/e/em508_door5.mdl",
+	model = "models/metrostroi/e/em509_door5.mdl",
 	pos = Vector(456.5,0.4,-3.8),
 	ang = Angle(0,0,0)
 })
 table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/e/em508_door5.mdl",
+	model = "models/metrostroi/e/em509_door5.mdl",
 	pos = Vector(-479.5,-0.5,-3.8),
 	ang = Angle(0,180,0)
 })
 table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/e/em508_door4.mdl",
+	model = "models/metrostroi/e/em509_door4.mdl",
 	pos = Vector(386.5,0.4,5.2),
 	ang = Angle(0,0,0)
 })
 table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/e/em508_door3.mdl",
+	model = "models/metrostroi/e/em509_door3.mdl",
 	pos = Vector(425.6,65.2,-2.2),
 	ang = Angle(0,0,0)
 })
@@ -198,22 +240,26 @@ function ENT:Think()
 		self:RemoveCSEnts()
 		self:CreateCSEnts()
 	end
+	
+	-- Simulate pressure gauges getting stuck a little
+	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
+	self:Animate("controller",		self:GetPackedRatio(1),				0.30, 0.70,  384,24)
+	self:Animate("reverser",		self:GetPackedRatio(2),				0.20, 0.55,  4,false)
+	self:Animate("speedometer", 	self:GetPackedRatio(3),				0.38,0.64)
 
-	self:Animate("brake", 			1-self:GetNWFloat("DriverValve")/5, 			0.00, 0.65,  256,24)
-	self:Animate("controller",		(self:GetNWFloat("Controller")+3)/7, 			0.30, 0.70,  384,24)
-	self:Animate("reverser",		1-(self:GetNWFloat("Reverser")+1)/2, 			0.20, 0.55,  4,false)
+	self:Animate("brake_line",		self:GetPackedRatio(8),				0.16, 0.84,  256,2,0.01)
+	self:Animate("train_line",		self:GetPackedRatio(9),				0.16, 0.84,  256,2,0.01)
+	self:Animate("brake_cylinder",	self:GetPackedRatio(10),	 		0.17, 0.86,  256,2,0.03)
+	self:Animate("voltmeter",		self:GetPackedRatio(11),			0.38, 0.63)
+	self:Animate("ampermeter",		self:GetPackedRatio(12),			0.38, 0.63)
 	
-	self:Animate("brake_line",		self:GetNWFloat("BrakeLine")/16.0, 				0.16, 0.84)
-	self:Animate("train_line",		self:GetNWFloat("TrainLine")/16.0, 				0.16, 0.84)
-	self:Animate("brake_cylinder",	self:GetNWFloat("BrakeCylinder")/6.0, 	 		0.17, 0.86)
-	self:Animate("voltmeter",		self:GetNWFloat("Volts")/1000.0, 				0.38, 0.63)
-	self:Animate("ampermeter",		self:GetNWFloat("Amperes")/1000.0, 				0.38, 0.63)
+	self:Animate("headlights",		self:GetPackedBool(0) and 1 or 0, 	0,1, 8, false)
+	--self:Animate("panellights",		self:GetPackedBool(1) and 1 or 0, 	0,1, 8, false)
+	self:Animate("dip_on",			self:GetPackedBool(2) and 1 or 0, 	0,1, 16, false)
+	self:Animate("dip_off",			self:GetPackedBool(3) and 1 or 0, 	0,1, 16, false)
 	
-	self:Animate("headlights",		self:GetNWBool("HeadLights") and 0 or 1, 		0,1, 8, false)
-	self:Animate("cabinlights",		self:GetNWBool("CabinLights") and 0 or 1, 		0,1, 8, false)
-	self:Animate("speedometer", 	self:GetNWFloat("Speed")/100,					0.38,0.64)
-	
-	--for k,v in pairs(ENT.ButtonMap[panelname].buttons) do print v.state end
+	-- DIP sound
+	self:SetSoundState("bpsn2",self:GetPackedBool(32) and 1 or 0,1.0)
 end
 
 surface.CreateFont("MetrostroiSubway_LargeText", {
@@ -236,39 +282,56 @@ surface.CreateFont("MetrostroiSubway_LargeText", {
 function ENT:Draw()
 	self.BaseClass.Draw(self)
 	self:DrawOnPanel("ARS",function()
-		if not self:GetNWBool("Power") then return end
+		if not self:GetPackedBool(32) then return end
 	
-		local speed = self:GetNWFloat("Speed")
+		local speed = self:GetPackedRatio(3)*100.0
 		local d1 = math.floor(speed) % 10
 		local d2 = math.floor(speed / 10) % 10
 		self:DrawDigit((196+0) *10,	35*10, d2, 0.75, 0.55)
 		self:DrawDigit((196+10)*10,	35*10, d1, 0.75, 0.55)
 		
-		if self:GetNWBool("RP") then
+		if self:GetPackedBool(35) then
 			surface.SetDrawColor(255,200,0)
 			surface.DrawRect(253*10,33*10,16*10,7*10)
-			draw.DrawText("??","MetrostroiSubway_LargeText",253*10+30,33*10-19,Color(0,0,0,255))
+			draw.DrawText("РП","MetrostroiSubway_LargeText",253*10+30,33*10-19,Color(0,0,0,255))
+		end
+		if self:GetPackedBool(36) then
 			surface.SetDrawColor(255,200,0)
 			surface.DrawRect(290*10,33*10,16*10,7*10)
-			draw.DrawText("??","MetrostroiSubway_LargeText",290*10+30,33*10-19,Color(0,0,0,255))
+			draw.DrawText("РП","MetrostroiSubway_LargeText",290*10+30,33*10-19,Color(0,0,0,255))
 		end
 		
-		if self:GetNWBool("LKT") then
+		--[[if self:GetNWBool("LKT") then
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(133*10,73*10,16*10,7*10)
-			draw.DrawText("??","MetrostroiSubway_LargeText",133*10+30,73*10-20,Color(0,0,0,255))
-		end
-			
+			draw.DrawText("КТ","MetrostroiSubway_LargeText",133*10+30,73*10-20,Color(0,0,0,255))
+		end			
 		if self:GetNWBool("KVD") then
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(165*10,73*10,16*10,7*10)
-			draw.DrawText("???","MetrostroiSubway_LargeText",165*10,73*10-20,Color(0,0,0,255))
-		end
-			
-		if self:GetNWBool("LxRK") then
+			draw.DrawText("КВД","MetrostroiSubway_LargeText",165*10,73*10-20,Color(0,0,0,255))
+		end]]--	
+		if self:GetPackedBool(33) then
 			surface.SetDrawColor(255,200,0)
 			surface.DrawRect(101*10,73*10,16*10,7*10)
-			--draw.DrawText("???","MetrostroiSubway_LargeText",101*10-4,73*10-5,Color(0,0,0,255))
+		end
+		if self:GetPackedBool(34) then
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(196*10,73*10,16*10,7*10)
+			draw.DrawText("НР1","MetrostroiSubway_LargeText",196*10,73*10-20,Color(0,0,0,255))
 		end
 	end)
+	
+	self:DrawOnPanel("FrontPneumatic",function()
+		draw.DrawText(self:GetNWBool("FI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
+	end)
+	self:DrawOnPanel("RearPneumatic",function()
+		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
+	end)
+end
+
+function ENT:OnButtonPressed(button)
+	if button == "ShowHelp" then
+		RunConsoleCommand("train_show_manual")
+	end
 end

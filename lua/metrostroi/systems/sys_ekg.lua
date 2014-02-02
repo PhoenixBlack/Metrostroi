@@ -15,7 +15,7 @@ function TRAIN_SYSTEM:Initialize()
 	for k,v in ipairs(self.Configuration[1]) do self[k.."_v"] = 0 end
 	
 	-- Rate of rotation (positions per second
-	self.RotationRate = self.RotationRate or 6
+	self.RotationRate = self.RotationRate or 6.5
 	self.OverrideRate = self.OverrideRate or {}
 	
 	-- Initialize motor state and position
@@ -68,15 +68,13 @@ function TRAIN_SYSTEM:Think(dT)
 		self[k.."_v"] = v
 	end
 	
-	-- Start motor rotation
-	local motorForce = 0
-	if self.MotorState ==  1.0 then motorForce =  128.0*self.MotorCoilState end
-	if self.MotorState == -1.0 then motorForce = -128.0*self.Velocity end
+	-- Start or stop motor rotation
+	local rate = self.OverrideRate[position] or self.RotationRate
+	if self.MotorState ==  1.0 then self.Velocity = rate*math.max(-1,math.min(1,self.MotorCoilState)) end
+	if self.MotorState == -1.0 then self.Velocity = 0 end
 	
 	-- Move motor
 	local threshold = 0.10 -- Maximum single step of motor per frame
-	local rate = self.OverrideRate[position] or self.RotationRate
-	self.Velocity = math.max(-rate,math.min(rate,self.Velocity + motorForce*dT))
 	self.Position = self.Position + math.min(threshold*0.5,self.Velocity * dT)
 	
 	-- Limit motor from moving too far
