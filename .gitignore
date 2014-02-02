@@ -6,3 +6,9 @@ models/*
 resource/*
 sound/*
 docs/*
+
+#Ignore all gamemodes
+gamemodes/*
+
+#Except our special snowflake
+!gamemodes/metrostroi

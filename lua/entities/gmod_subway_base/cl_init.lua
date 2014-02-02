@@ -268,16 +268,18 @@ function ENT:Draw()
 					
 					--surface.SetDrawColor(255,255,255)
 					--surface.DrawRect(0,0,panel.width,panel.height)
-					for kb,button in pairs(panel.buttons) do
-						if not button.ID then
-							surface.SetDrawColor(25,40,180)
-						elseif button.state then
-							surface.SetDrawColor(255,0,0)
-						else
-							surface.SetDrawColor(0,255,0)
+					if panel.buttons then
+						for kb,button in pairs(panel.buttons) do
+							if not button.ID then
+								surface.SetDrawColor(25,40,180)
+							elseif button.state then
+								surface.SetDrawColor(255,0,0)
+							else
+								surface.SetDrawColor(0,255,0)
+							end
+							self:DrawCircle(button.x,button.y,button.radius or 10)
+							surface.DrawRect(button.x-8,button.y-8,16,16)
 						end
-						self:DrawCircle(button.x,button.y,button.radius or 10)
-						surface.DrawRect(button.x-8,button.y-8,16,16)
 					end
 				end)
 			end
@@ -553,7 +555,7 @@ local function findAimButton(ply)
 		for kp,panel in pairs(train.ButtonMap) do
 			
 			--If player is looking at this panel
-			if panel.aimedAt then
+			if panel.aimedAt and panel.buttons then
 				
 				--Loop trough every button on it
 				for kb,button in pairs(panel.buttons) do
@@ -648,10 +650,12 @@ end
 function ENT:ClearButtons()
 	if self.ButtonMap == nil then return end
 	for kp,panel in pairs(self.ButtonMap) do
-		for kb,button in pairs(panel.buttons) do
-			if button.state == true then
-				button.state = false
-				sendButtonMessage(button)
+		if panel.buttons then
+			for kb,button in pairs(panel.buttons) do
+				if button.state == true then
+					button.state = false
+					sendButtonMessage(button)
+				end
 			end
 		end
 	end
@@ -660,6 +664,7 @@ end
 
 -- Args are player, IN_ enum and bool for press/release
 local function handleKeyEvent(ply,key,pressed)
+	if not IsFirstTimePredicted() then return end
 	-- if !IsFirstTimePredicted() then return end
 	if key ~= IN_ATTACK then return end
 	if not IsValid(ply) then return end

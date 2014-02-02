@@ -934,9 +934,9 @@ local function HandleExitingPlayer(ply, vehicle)
 		-- Move exiting player
 		local seattype = vehicle:GetNWString("SeatType")
 		if (seattype == "driver") or (seattype == "instructor") then
-			ply:SetPos(vehicle:GetPos()+Vector(0,0,-20))
+			ply:SetPos(vehicle:GetPos()+Vector(0,0,-17))
 		elseif seattype == "passenger" then
-			ply:SetPos(vehicle:GetPos()+vehicle:GetForward()*40+Vector(0,0,-10))
+			ply:SetPos(vehicle:GetPos()+vehicle:GetForward()*40+Vector(0,0,-17))
 		end
 		ply:SetEyeAngles(vehicle:GetForward():Angle())
 		
