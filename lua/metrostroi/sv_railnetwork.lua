@@ -1,3 +1,6 @@
+
+
+
 --------------------------------------------------------------------------------
 -- Lists of picket signs
 --------------------------------------------------------------------------------
@@ -830,6 +833,9 @@ end
 -- Rerail tool
 -- Author: HunterNL
 --------------------------------------------------------------------------------
+-- Z Offset for rerailing bogeys
+local bogeyOffset = 31
+
 local function dirdebug(v1,v2)
 	debugoverlay.Line(v1,v1+v2*30,10,Color(255,0,0),true)
 end
@@ -984,7 +990,7 @@ concommand.Add("metrostroi_rerail",RerailConCMDHandler)
 
 Metrostroi.RerailBogey = function(bogey)
 	if timer.Exists("metrostroi_rerailer_solid_reset_"..bogey:EntIndex()) then return false end
-	local bogeyOffset = 42
+	
 	local trackData = getTrackDataBelowEnt(bogey)
 	if not trackData then return false end
 	
@@ -1010,7 +1016,6 @@ end
 
 --Rerails given train entity
 Metrostroi.RerailTrain = function(train)
-	local bogeyOffset = 34 --Z distance between bogey origin and top of track
 
 	--Safety checks
 	if not IsValid(train) or train.SubwayTrain == nil then return false end

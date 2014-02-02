@@ -31,7 +31,7 @@ ENT.ButtonMap["Front"] = {
 	buttons = {
 		{ID = "HeadLightsToggle",		x=400, y=75, radius=15, tooltip="Head lights TOGGLE"},
 		{ID = "CabinLightsToggle",		x=387, y=28, radius=15, tooltip="Cabin lights TOGGLE"},	
-		{x=234,y=33,tooltip="Speed"}
+		
 	}
 }
 
@@ -42,6 +42,13 @@ ENT.ButtonMap["ARS"] = {
 	width = 410*10,
 	height = 95*10,
 	scale = 0.0625/10,
+	
+	-- TODO: If you know what the lights mean, give them the right tooltips
+	buttons = {
+		{x=2048,y=411,tooltip="Speed",radius=110},
+		{x=2638,y=363,tooltip="I ERROR",radius=110},
+		{x=3000,y=363,tooltip="SOMETHING ERROR",radius=110},
+	}
 }
 
 -- Help panel
