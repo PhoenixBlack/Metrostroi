@@ -5,5 +5,8 @@ GM.Website = "N/A"
 
 function GM:Initialize()
 	self.BaseClass.Initialize( self )
-	print("metroistroi gm init")
 end 
+
+function GM:PlayerNoClip(ply)
+	return ply:IsAdmin()
+end
