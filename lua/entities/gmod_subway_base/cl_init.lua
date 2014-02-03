@@ -744,7 +744,7 @@ hook.Add( "HUDPaint", "metrostroi-draw-crosshair-tooltip", function()
 			local w = surface.GetTextSize(toolTipText)
 			surface.SetTextPos((scrX-w)/2,scrY/2+10)
 			surface.SetTextColor(255,255,255)
-			surface.DrawText(toolTipText)
+			surface.DrawText(Metrostroi.Lang.Get(toolTipText) or toolTipText)
 		end
 		
 		

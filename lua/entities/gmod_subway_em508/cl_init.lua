@@ -45,7 +45,8 @@ ENT.ButtonMap["ARS"] = {
 	scale = 0.0625/10,
 
 	buttons = {
-		{x=2045,y=406,tooltip="Индикатор скорости (Speed indicator)",radius=130},
+		--{x=2045,y=406,tooltip="Индикатор скорости (Speed indicator)",radius=130},
+		{x=2045,y=406,tooltip="Speed_indicator",radius=130},
 		{x=2610,y=363,tooltip="Красная лампа реле перегрузки (РП) (Red overload relay light)",radius=120},
 		{x=2982,y=363,tooltip="Красная лампа реле перегрузки (РП) (Red overload relay light)",radius=120},
 		{x=1070+320*0,y=780,tooltip="Лампа хода реостатного контроллера ЛхРК (Rheostat controller motion light)",radius=120},
