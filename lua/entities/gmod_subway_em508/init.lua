@@ -21,6 +21,8 @@ function ENT:Initialize()
 	self.DriverSeat = self:CreateSeat("driver",Vector(418,-45,-28))
 	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28))
 	
+	self.DriverSeat:SetRenderMode(RENDERMODE_NONE)
+	
 	-- Create bogeys
 	self.FrontBogey = self:CreateBogey(Vector( 325-10,0,-75),Angle(0,180,0),true)
 	self.RearBogey  = self:CreateBogey(Vector(-325-10,0,-75),Angle(0,0,0),false)

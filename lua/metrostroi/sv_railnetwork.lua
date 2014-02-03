@@ -1,3 +1,6 @@
+
+
+
 --------------------------------------------------------------------------------
 -- Lists of picket signs
 --------------------------------------------------------------------------------
@@ -830,6 +833,9 @@ end
 -- Rerail tool
 -- Author: HunterNL
 --------------------------------------------------------------------------------
+-- Z Offset for rerailing bogeys
+local bogeyOffset = 31
+
 local function dirdebug(v1,v2)
 	debugoverlay.Line(v1,v1+v2*30,10,Color(255,0,0),true)
 end
@@ -848,7 +854,7 @@ local function traceWorldOnly(pos,dir)
 		endpos = pos+dir,
 		mask = MASK_NPCWORLDSTATIC
 	})
-	if false then
+	if false then -- Shows all traces done by rerailer
 		debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
 		debugoverlay.Sphere(tr.StartPos,2,10,Color(0,255,255),true)
 	end
@@ -874,8 +880,8 @@ end
 --Elevates a position to track level
 --Requires a position in the center of the track
 local function ElevateToTrackLevel(pos,right,up)
-	local tr1 = traceWorldOnly(pos+up*200+right*41,-up*500)
-	local tr2 = traceWorldOnly(pos+up*200-right*41,-up*500)
+	local tr1 = traceWorldOnly(pos+up*200+right*42,-up*500)
+	local tr2 = traceWorldOnly(pos+up*200-right*42,-up*500)
 	if not tr1.Hit or not tr2.Hit then return false end
 	return (tr1.HitPos + tr2.HitPos)/2
 end
@@ -984,7 +990,7 @@ concommand.Add("metrostroi_rerail",RerailConCMDHandler)
 
 Metrostroi.RerailBogey = function(bogey)
 	if timer.Exists("metrostroi_rerailer_solid_reset_"..bogey:EntIndex()) then return false end
-	local bogeyOffset = 42
+	
 	local trackData = getTrackDataBelowEnt(bogey)
 	if not trackData then return false end
 	
@@ -1010,7 +1016,6 @@ end
 
 --Rerails given train entity
 Metrostroi.RerailTrain = function(train)
-	local bogeyOffset = 34 --Z distance between bogey origin and top of track
 
 	--Safety checks
 	if not IsValid(train) or train.SubwayTrain == nil then return false end
