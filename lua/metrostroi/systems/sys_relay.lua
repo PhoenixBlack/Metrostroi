@@ -5,14 +5,16 @@ Metrostroi.DefineSystem("Relay")
 
 local relay_types = {
 	["PK-162"] = {
-		power_supply 		= "Train line",
-		contactor			= true,
+		pneumatic		= true,
+		contactor		= true,
 	},
-	
 	["Switch"] = {
-		power_supply		= "Mechanical",
-		contactor			= true,
-	}
+		contactor		= true,
+	},
+	["GV_10ZH"] = {
+		contactor		= true,
+		normally_closed	= true,
+	},
 }
 
 function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
@@ -45,12 +47,6 @@ function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
 	parameters.contactor		= parameters.contactor or false
 	-- Should the relay be initialized in 'closed' state
 	parameters.normally_closed 	= parameters.normally_closed or false
-	-- Default power supply for the relay coils
-	parameters.power_supply 	= parameters.power_supply or "None"
-	-- Power supply to the Open coil
-	parameters.power_open 		= parameters.power_open or parameters.power_supply
-	-- Power supply to the Close coil
-	parameters.power_close 		= parameters.power_close or parameters.power_supply
 	-- Time in which relay will close (seconds)
 	parameters.close_time 		= parameters.close_time or 0.050
 	-- Time in which relay will open (seconds)
@@ -157,26 +153,9 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 	end
 end
 
-function TRAIN_SYSTEM:Think()
-	-- Get voltage and target voltage in coils
-	local open_voltage, open_target  = 1,0
-	local close_voltage,close_target = 1,0
-	--[[if self.PowerSupply == "80V" then
-		voltage = self.Train.BPSN.Power80V
-		target = 55.0
-	elseif self.PowerSupply == "AB" then
-		voltage = self.Train.Battery.Voltage
-		target = 55.0
-	elseif self.PowerSupply == "KPP" then -- KVP receives power from KPP
-		voltage = self.Train.BPSN.Power80V * self.Train.KPP
-		target = 55.0
-	elseif self.PowerSupply == "Train Line" then
-		voltage = self.Train.Pneumatic.TrainLinePressure
-		target = 1.0
-	end]]--
-	
+function TRAIN_SYSTEM:Think()	
 	-- Check if power dissapears and relay must return to its original state
-	if (open_voltage < open_target) or (close_voltage < close_target) then
+	--[[if (open_voltage < open_target) or (close_voltage < close_target) then
 		if self.returns then 
 			self.ChangeTime = nil
 			if self.normally_closed 
@@ -187,7 +166,7 @@ function TRAIN_SYSTEM:Think()
 			self:TriggerOutput("State",self.Value)
 			return
 		end
-	end
+	end]]--
 	
 	-- Short-circuited relay
 	if FailSim.Value(self,"ShortCircuit") > 0.5 then
@@ -213,7 +192,7 @@ function TRAIN_SYSTEM:Think()
 		FailSim.Age(self,1)
 
 		-- Electropneumatic relays make this sound
-		if (self.power_supply == "Train line") and (self.Value == 0.0) then
+		if self.pneumatic and (self.Value == 0.0) then
 			self.Train:PlayOnce("pneumo_switch",nil,0.6)
 		end
 	end

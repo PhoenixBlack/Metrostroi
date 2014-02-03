@@ -144,7 +144,7 @@ function ENT:TriggerInput(name, value)
 
 	-- Propagate inputs to relevant systems
 	for k,v in pairs(self.Systems) do
-		if v.Name then
+		if v.Name and (string.sub(name,1,#v.Name) == v.Name) then
 			v:TriggerInput(string.sub(name,#v.Name+1),value)
 		else
 			v:TriggerInput(name,value)
@@ -182,17 +182,21 @@ function ENT:WriteTrainWire(k,v)
 	local can_write = self:TrainWireCanWrite(k)
 	local wrote = false
 	
+	-- Writing rules for different wires
+	local allowed_write = v > 0
+	if k == 18 then allowed_write = v <= 0 end
+	
 	-- If value is write-able, write it right away and do nothing interesting
 	if can_write then
 		self.TrainWires[k] = v
 		wrote = true
-	elseif v > 0 then -- If trying to write positive value, overwrite value of the previous writer
+	elseif allowed_write then -- If trying to write positive value, overwrite value of the previous writer
 		self.TrainWires[k] = v
 		wrote = true
 	end
 	
 	-- Record us as last writer
-	if wrote and ((v > 0) or can_write) then
+	if wrote and (allowed_write or can_write) then
 		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
 		self.TrainWireWriters[k].ent = self
 		self.TrainWireWriters[k].time = CurTime()

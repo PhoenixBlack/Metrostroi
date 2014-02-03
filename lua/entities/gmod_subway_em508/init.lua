@@ -37,7 +37,7 @@ function ENT:Initialize()
 		[KEY_6] = "KVSetT1A",
 		[KEY_7] = "KVSetT2",
 		
-		[KEY_G] = "RPvozvratOpen",
+		[KEY_G] = "VozvratRPSet",
 		
 		[KEY_0] = "KVReverserUp",
 		[KEY_9] = "KVReverserDown",		
@@ -69,6 +69,9 @@ function ENT:Initialize()
 		{	Pos = Vector(-482, -30,-55),
 			Radius = 32,
 			ID = "RearTrainLineIsolationToggle" },
+		{	Pos = Vector(154,62.5,-65),
+			Radius = 32,
+			ID = "GVToggle" },
 	}
 
 	
@@ -103,7 +106,7 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:Think()
-	-- Enable lights
+	-- Headlights
 	self:SetLightPower(1, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
 	self:SetLightPower(2, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
 	self:SetLightPower(3, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
@@ -112,20 +115,22 @@ function ENT:Think()
 	self:SetLightPower(6, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
 	self:SetLightPower(7, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
 	
+	-- Reverser lights
 	self:SetLightPower(8, (self.RKR.Value * self:ReadTrainWire(10)) == 1.0)
 	self:SetLightPower(9, (self.RKR.Value * self:ReadTrainWire(10)) == 1.0)
 	
-	self:SetLightPower(10, self.Electric.Lights80V > 65.0)
-	self:SetLightPower(11, self.Electric.Lights80V > 65.0)
-	self:SetLightPower(12, self.Electric.Lights80V > 65.0)
-	self:SetLightPower(13, self.Electric.Lights80V > 65.0)
+	-- Interior/cabin lights
+	self:SetLightPower(10, self.PowerSupply.XT3[4] > 65.0)
+	self:SetLightPower(11, self.PowerSupply.XT3[4] > 65.0)
+	self:SetLightPower(12, self.PowerSupply.XT3[4] > 65.0)
+	self:SetLightPower(13, self.PowerSupply.XT3[4] > 65.0)
 	
-	-- Feed switch states
+	-- Switch and button states
 	self:SetPackedBool(0,self.HeadLights.Value == 1.0)
-	self:SetPackedBool(1,self.HeadLights.Value == 1.0)
-	--self:SetPackedBool(1,self.CabinLights.Value == 1.0)
+	self:SetPackedBool(1,self.VozvratRP.Value == 1.0)
 	self:SetPackedBool(2,self.DIPon.Value == 1.0)
-	self:SetPackedBool(3,self.DIPoff.Value == 1.0)	
+	self:SetPackedBool(3,self.DIPoff.Value == 1.0)
+	self:SetPackedBool(4,self.GV.Value == 1.0)
 	
 	-- DIP/power
 	self:SetPackedBool(32,self.Electric.Aux80V > 65.0)
@@ -133,12 +138,11 @@ function ENT:Think()
 	self:SetPackedBool(33,self.RheostatController.MotorCoilState ~= 0.0)
 	-- NR1
 	self:SetPackedBool(34,self.NR.Value == 1.0)
-	-- RP1
-	self:SetPackedBool(35,self.RPvozvrat.Value ~= 0.0)
-	-- RP2
-	self:SetPackedBool(36,self:ReadTrainWire("RP") ~= 0.0)
-	self:WriteTrainWire("RP",self.RPvozvrat.Value) -- TEMP HACK
-	
+	-- Red RP
+	self:SetPackedBool(35,self.Electric.HACK_2_7R_31 ~= 0.0)
+	-- Green RP
+	self:SetPackedBool(36,self.RPvozvrat.Value ~= 0.0)
+
 	-- Feed packed floats
 	local speed = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
 	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/5)
@@ -162,8 +166,12 @@ end
 function ENT:OnButtonPress(button)
 	if (button == "DIPonSet") or
 	   (button == "DIPoffSet") or
-	   (button == "HeadLightsToggle") then
+	   (button == "HeadLightsToggle") or
+	   (button == "VozvratRPSet") then
 		self:PlayOnce("switch","cabin")
+	end
+	if (button == "GVToggle") then
+		self:PlayOnce("switch4",nil,0.7)	
 	end
 end
 

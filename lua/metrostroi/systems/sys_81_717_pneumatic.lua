@@ -241,83 +241,19 @@ function TRAIN_SYSTEM:Think(dT)
 		self.BrakeCylinderValve = 0
 	end
 	if self.BrakeCylinderValve == 1 then
-		equalizePressure("BrakeCylinderPressure", targetPressure, 0.75)
+		equalizePressure("BrakeCylinderPressure", targetPressure, 0.75, 1.25)
 	end
 	
 	-- Valve #1
 	if self.Train.PneumaticNo1.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.30, 1.00)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.30, 1.00, 1.50)
 		--equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure * 0.70, 0.50)
 	end
 	-- Valve #2
 	if self.Train.PneumaticNo2.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.45, 1.00)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.45, 1.00, 1.50)
 	end
 	
-	
-	----------------------------------------------------------------------------
-	-- Get pressures (if isolation valves are open, this connects it to next wagon)
-	--[[self:GetPressures(Train)
-
-	-- Pressure at train line
-	self.TrainToBrakeValvePressure = self.TrainLinePressure*0.70
-	
-
-
-	-- Fill reservoir from train line, fill brake line from train line
-	if (self.DriverValvePosition == 1) then
-		equalizePressure("BrakeLinePressure", self.TrainToBrakeValvePressure, self.BrakeLineFillRate)
-		equalizePressure("ReservoirPressure", self.TrainToBrakeValvePressure, self.ReservoirFillRate)
-	end
-	-- Brake line, reservoir replenished from train line
-	if (self.DriverValvePosition == 2) then
-		equalizePressure("BrakeLinePressure", self.TrainToBrakeValvePressure, self.BrakeLineReplenishRate)
-		equalizePressure("ReservoirPressure", self.TrainToBrakeValvePressure, self.ReservoirReplenishRate)
-	end
-	-- Equalize pressure between reservoir and brake line
-	if self.DriverValvePosition == 3 then
-		equalizePressure("ReservoirPressure", self.BrakeLinePressure, self.ReservoirReleaseRate,self.ReservoirFillRate)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, self.BrakeLineReleaseRate,self.BrakeLineFillRate)
-	end
-	
-	if self.DriverValvePosition == 4 then
-		equalizePressure("ReservoirPressure", 0.0,					  self.ReservoirReleaseRate)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, self.BrakeLineReleaseRate)
-	end
-	-- Reservoir and brake line open to atmosphere
-	if self.DriverValvePosition == 5 then
-		equalizePressure("ReservoirPressure", 0.0, self.ReservoirReleaseRate)
-		equalizePressure("BrakeLinePressure", 0.0, self.BrakeLineEmergencyRate)
-	end
-	
-	-- Brake line leaks
-	equalizePressure("BrakeLinePressure", 0.0, self.BrakeLineLeakRate)
-	-- Reservoir leaks
-	equalizePressure("ReservoirPressure", 0.0, self.ReservoirLeakRate)
-	
-	-- Calculate brake line pressure as seen by cylinders
-	self.BrakeLineToCylinderValve = self.BrakeLinePressure
-	
-	-- Valve #1
-	if self.Train.PneumaticNo1.Value == 1.0 then
-		self.BrakeLineToCylinderValve = self.BrakeLineToCylinderValve * 0.70
-	end
-	-- Valve #2
-	if self.Train.PneumaticNo2.Value == 1.0 then
-		self.BrakeLineToCylinderValve = self.BrakeLineToCylinderValve * 0.00
-	end
-	
-	-- Fill cylinders
-	local targetPressure = self.TrainToBrakeValvePressure - self.BrakeLineToCylinderValve
-	if math.abs(self.BrakeCylinderPressure - targetPressure) > 0.6 then
-		self.BrakeCylinderValve = 1
-	end
-	if math.abs(self.BrakeCylinderPressure - targetPressure) < 0.01 then
-		self.BrakeCylinderValve = 0
-	end
-	if self.BrakeCylinderValve == 1 then
-		equalizePressure("BrakeCylinderPressure", targetPressure, self.BrakeLineFillRate)
-	end]]--
 
 	-- Apply brakes
 	self.PneumaticBrakeForce = 100000.0

@@ -14,6 +14,9 @@ function TRAIN_SYSTEM:Initialize()
 	}
 	self.WrapsAround = true
 	Metrostroi.BaseSystems["EKG"].Initialize(self)
+	
+	-- Реле РПУ
+	self.Train:LoadSystem("RPU","Relay","RPU-3")
 end
 
 function TRAIN_SYSTEM:Inputs(...)

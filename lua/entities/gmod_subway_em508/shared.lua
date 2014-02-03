@@ -14,7 +14,7 @@ ENT.AdminSpawnable  = false
 
 function ENT:InitializeSystems()
 	-- Главный выключатель
-	self:LoadSystem("GV","GV_10ZH")	
+	self:LoadSystem("GV","Relay","GV_10ZH")
 	
 	-- Токоприёмник
 	self:LoadSystem("TR","TR_3B")	

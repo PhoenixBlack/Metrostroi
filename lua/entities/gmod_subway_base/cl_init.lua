@@ -356,6 +356,18 @@ function ENT:Animate(clientProp, value, min, max, speed, damping, stickyness)
 	end
 end
 
+function ENT:ShowHide(clientProp, value)
+	if self.ClientEnts[clientProp] then
+		if value == true then
+			self.ClientEnts[clientProp]:SetRenderMode(RENDERMODE_NORMAL)
+			self.ClientEnts[clientProp]:SetColor(Color(255,255,255,255))
+		else
+			self.ClientEnts[clientProp]:SetRenderMode(RENDERMODE_NONE)
+			self.ClientEnts[clientProp]:SetColor(Color(0,0,0,0))
+		end		
+	end
+end
+
 
 
 
