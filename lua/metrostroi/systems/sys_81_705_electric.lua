@@ -220,11 +220,13 @@ function TRAIN_SYSTEM:Think(dT)
 		["KSB1"]		= function(V) Train.KSB1:TriggerInput("Set",V) KSH1 = KSH1 + V end,
 		["KSB2"]		= function(V) Train.KSB2:TriggerInput("Set",V) KSH2 = KSH2 + V end,
 		["RUP"]			= function(V) Train.RUP:TriggerInput("Set",V) end,
+		["RPU"]			= function(V) Train.RPU:TriggerInput("Set",V) end,
 
 		["RR"]			= function(V) Train.RR:TriggerInput("Set",V) end,
 		["SR1"]			= function(V) Train.SR1:TriggerInput("Set",V) end,
 		["RV1"]			= function(V) Train.RV1:TriggerInput("Set",V) end,
 		["Rper"]		= function(V) Train.Rper:TriggerInput("Set",V) end,
+		["RPvozvrat"]	= function(V) Train.RPvozvrat:TriggerInput("Open",V) end,
 		
 		["RRTuderzh"]	= function(V) Train.RRTuderzh = V end,
 		["RRTpod"]		= function(V) Train.RRTpod = V end,
@@ -257,7 +259,9 @@ function TRAIN_SYSTEM:Think(dT)
 	-- Calculate current flow out of the battery
 	--local totalCurrent = 5*A30 + 63*A24 + 16*A44 + 5*A39 + 10*A80
 	--local totalCurrent = 20 + 60*DIP
-
+	
+	-- FIXME hack
+	self.HACK_2_7R_31 = Train.KV["U2-10AS"] - Train:ReadTrainWire(18)
 end
 
 

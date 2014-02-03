@@ -28,13 +28,14 @@ end
 --------------------------------------------------------------------------------
 function ENT:InitializeSounds()
 	self.SoundNames = {}
-	self.SoundNames["switch"]	= "subway_trains/click_1.wav"
-	self.SoundNames["click1"]	= "subway_trains/click_1.wav"
-	self.SoundNames["click2"]	= "subway_trains/click_2.wav"
-	self.SoundNames["click3"]	= "subway_trains/click_3.wav"
-	self.SoundNames["click4"]	= "subway_trains/click_4.wav"
-	self.SoundNames["click5"]	= "subway_trains/click_5.wav"
-	
+	self.SoundNames["switch"]	= "subway_trains/switch_1.wav"
+	self.SoundNames["switch1"]	= "subway_trains/switch_1.wav"
+	self.SoundNames["switch2"]	= {
+		"subway_trains/switch_2.wav",
+		"subway_trains/switch_3.wav",
+	}
+	self.SoundNames["switch4"]	= "subway_trains/switch_4.wav"
+
 	self.SoundNames["bpsn1"] 	= "subway_trains/bpsn_1.wav"
 	self.SoundNames["bpsn2"] 	= "subway_trains/bpsn_2.wav"
 	
@@ -71,7 +72,6 @@ function ENT:InitializeSounds()
 	}
 	
 	self.SoundTimeout = {}
-	self.SoundTimeout["switch"] = 0.0
 end
 
 

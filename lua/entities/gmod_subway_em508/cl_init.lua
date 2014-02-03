@@ -15,8 +15,9 @@ ENT.ButtonMap["Main"] = {
 	scale = 0.0625,
 	
 	buttons = {		
-		{ID = "DIPonSet",	x=22,  y=19, radius=20, tooltip="Turn DIP and interior lights ON"},
-		{ID = "DIPoffSet",	x=66,  y=19, radius=20, tooltip="Turn DIP and interior lights OFF"},
+		{ID = "DIPonSet",		x=22,  y=19, radius=20, tooltip="Turn DIP and lights on"},
+		{ID = "DIPoffSet",		x=66,  y=19, radius=20, tooltip="Turn DIP and lights off"},
+		{ID = "VozvratRPSet",	x=192, y=80, radius=20, tooltip="Return overload relay"},
 	}
 }
 
@@ -29,25 +30,41 @@ ENT.ButtonMap["Front"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "HeadLightsToggle",		x=400, y=75, radius=15, tooltip="Head lights TOGGLE"},
-		{ID = "CabinLightsToggle",		x=387, y=28, radius=15, tooltip="Cabin lights TOGGLE"},	
-		
+		{ID = "HeadLightsToggle",		x=400, y=75, radius=15, tooltip="Ходовые фары (Head lights)"},
+		--{ID = "CabinLightsToggle",		x=387, y=28, radius=15, tooltip=""},	
+		{x=50,y=50,tooltip="Индикатор скорости (Speed indicator)",radius=35},
 	}
 }
 
 -- ARS/Speedometer panel
 ENT.ButtonMap["ARS"] = {
-	pos = Vector(448.7,-37.3,5.0),
-	ang = Angle(0,-97.9,74),
+	pos = Vector(449.1,-37.3,4.9),
+	ang = Angle(0,-97.9,69),
 	width = 410*10,
 	height = 95*10,
 	scale = 0.0625/10,
-	
-	-- TODO: If you know what the lights mean, give them the right tooltips
+
 	buttons = {
-		{x=2045,y=406,tooltip="Speed",radius=120},
-		{x=2610,y=363,tooltip="I ERROR",radius=110},
-		{x=2982,y=363,tooltip="SOMETHING ERROR",radius=110},
+		{x=2045,y=406,tooltip="Индикатор скорости (Speed indicator)",radius=130},
+		{x=2610,y=363,tooltip="Красная лампа реле перегрузки (РП) (Red overload relay light)",radius=120},
+		{x=2982,y=363,tooltip="Красная лампа реле перегрузки (РП) (Red overload relay light)",radius=120},
+		{x=1070+320*0,y=780,tooltip="Лампа хода реостатного контроллера ЛхРК (Rheostat controller motion light)",radius=120},
+		{x=1070+320*1,y=780,tooltip="Контроль тормоза (ARS braking indicator)",radius=120},
+		{x=1070+320*2,y=780,tooltip="Контроль выключения двигателей (ARS engine shutdown indicator)",radius=120},
+		{x=1070+320*3,y=780,tooltip="Нулевое реле (Zero relay state)",radius=120},
+		{x=1070+320*4,y=780,tooltip="",radius=120},
+		{x=1070+320*5,y=780,tooltip="Индикатор работы печи (Cabin heating indicator)",radius=120},
+		{x=1070+320*6,y=780,tooltip="",radius=120},
+		
+		{x=1070+380*0,y=570,tooltip="Отсутствие частоты АРС (No ARS frequency)",radius=120},
+		{x=1070+380*1,y=570,tooltip="Сигнал АРС остановки (ARS stop signal)",radius=120},
+		{x=1070+380*2,y=570,tooltip="Ограничение скорости 40 км/ч (speed limit 40 kph)",radius=120},
+		{x=1070+380*3,y=570,tooltip="Ограничение скорости 60 км/ч (speed limit 60 kph)",radius=120},
+		{x=1070+380*4,y=570,tooltip="Ограничение скорости 75 км/ч (speed limit 75 kph)",radius=120},
+		{x=1070+380*5,y=570,tooltip="Ограничение скорости 80 км/ч (speed limit 80 kph)",radius=120},
+		
+		{x=1080+380*0,y=363,tooltip="Сигнализация дверей (Door state light)",radius=120},
+		{x=1080+380*1,y=363,tooltip="Зелёная лампа реле перегрузки (РП) (Green overload relay light)",radius=120},
 	}
 }
 
@@ -64,7 +81,23 @@ ENT.ButtonMap["Help"] = {
 	}
 }
 
--- FIXME
+
+-- Pneumatic instrument panel
+ENT.ButtonMap["PneumaticPanels"] = {
+	pos = Vector(448,-30,16.0),
+	ang = Angle(0,-77,90),
+	width = 140,
+	height = 160,
+	scale = 0.0625,
+	
+	buttons = {
+		{x=60,y=45,tooltip="Brake cylinder pressure",radius=30},
+		{x=80,y=105,tooltip="Red: brake line pressure, black: train line pressure",radius=30},
+	}
+}
+
+
+-- Temporary panels (possibly temporary)
 ENT.ButtonMap["FrontPneumatic"] = {
 	pos = Vector(459.0,-45.0,-50.0),
 	ang = Angle(0,90,90),
@@ -90,7 +123,6 @@ ENT.ClientProps["brake"] = {
 	pos = Vector(431,-59.5,2.7),
 	ang = Angle(0,180,0)
 }
---Vector(431,-58,-8),
 ENT.ClientProps["controller"] = {
 	model = "models/metrostroi/81-717/controller.mdl",
 	pos = Vector(446,-25,2.0),
@@ -135,28 +167,6 @@ ENT.ClientProps["speedometer"] = {
 }
 
 
---[[ENT.ClientProps["b_1"] = {
-	model = "models/metrostroi/81-717/switch02.mdl",
-	pos = Vector(444,-36.7,-1.1),
-	ang = Angle(-20,0,0)
-}
-ENT.ClientProps["b_2"] = {
-	model = "models/metrostroi/81-717/switch02.mdl",
-	pos = Vector(443.7,-39.6,-1.1),
-	ang = Angle(-20,0,0)
-}]]--
-
---[[ENT.ClientProps["cabinlights"] = {
-	model = "models/metrostroi/81-717/switch04.mdl",
-	pos = Vector(439.9,-44.2,-2.5),
-	ang = Angle(-20,0,0)
-}
-ENT.ClientProps["headlights"] = {
-	model = "models/metrostroi/81-717/switch04.mdl",
-	pos = Vector(443.0,-42.4,-1.5),
-	ang = Angle(-20,0,0)
-}]]--
-
 ENT.ClientProps["headlights"] = {
 	model = "models/metrostroi/81-717/switch04.mdl",
 	pos = Vector(443.1,-60.0,0.5),
@@ -168,14 +178,31 @@ ENT.ClientProps["panellights"] = {
 	ang = Angle(-90,0,0)
 }
 ENT.ClientProps["dip_on"] = {
-	model = "models/metrostroi/81-717/switch02.mdl",
-	pos = Vector(444.3,-36.4,-1.4),
+	model = "models/metrostroi/81-717/button07.mdl",
+	pos = Vector(444.3,-36.4,-1.3),
 	ang = Angle(-20,0,0)
 }
 ENT.ClientProps["dip_off"] = {
-	model = "models/metrostroi/81-717/switch02.mdl",
-	pos = Vector(443.9,-39.2,-1.4),
+	model = "models/metrostroi/81-717/button10.mdl",
+	pos = Vector(443.9,-39.2,-1.3),
 	ang = Angle(-20,0,0)
+}
+ENT.ClientProps["rp_vozvrat"] = {
+	model = "models/metrostroi/81-717/button07.mdl",
+	pos = Vector(439.3,-46.6,-2.6),
+	ang = Angle(-20,0,0)
+}
+
+
+ENT.ClientProps["gv"] = {
+	model = "models/metrostroi/81-717/gv.mdl",
+	pos = Vector(154,62.5,-65),
+	ang = Angle(180,0,-90)
+}
+ENT.ClientProps["gv_wrench"] = {
+	model = "models/metrostroi/81-717/reverser.mdl",
+	pos = Vector(154,62.5,-65),
+	ang = Angle(-50,0,0)
 }
 
 
@@ -232,10 +259,6 @@ table.insert(ENT.ClientProps,{
 
 
 --------------------------------------------------------------------------------
---function ENT:Initialize()
-	--self.BaseClass.Initialize(self)
---end
-
 function ENT:Think()
 	self.BaseClass.Think(self)
 	if CurTime() - (self.ASD or 0) > 10 then
@@ -257,9 +280,18 @@ function ENT:Think()
 	self:Animate("ampermeter",		self:GetPackedRatio(12),			0.38, 0.63)
 	
 	self:Animate("headlights",		self:GetPackedBool(0) and 1 or 0, 	0,1, 8, false)
-	--self:Animate("panellights",		self:GetPackedBool(1) and 1 or 0, 	0,1, 8, false)
+	self:Animate("rp_vozvrat",		self:GetPackedBool(1) and 1 or 0, 	0,1, 16, false)
 	self:Animate("dip_on",			self:GetPackedBool(2) and 1 or 0, 	0,1, 16, false)
-	self:Animate("dip_off",			self:GetPackedBool(3) and 1 or 0, 	0,1, 16, false)
+	self:Animate("dip_off",			self:GetPackedBool(3) and 1 or 0, 	0,1, 16, false)	
+	
+	
+	-- Main switch
+	if self.LastValue ~= self:GetPackedBool(4) then
+		self.ResetTime = CurTime()+1.0
+		self.LastValue = self:GetPackedBool(4)
+	end	
+	self:Animate("gv_wrench",	1-(self:GetPackedBool(4) and 1 or 0), 	0,0.35, 32,  4,false)
+	self:ShowHide("gv_wrench",	CurTime() < self.ResetTime)
 	
 	-- DIP sound
 	--self:SetSoundState("bpsn2",self:GetPackedBool(32) and 1 or 0,1.0)
@@ -294,14 +326,18 @@ function ENT:Draw()
 		self:DrawDigit((196+10)*10,	35*10, d1, 0.75, 0.55)
 		
 		if self:GetPackedBool(35) then
-			surface.SetDrawColor(255,200,0)
+			surface.SetDrawColor(255,120,0)
 			surface.DrawRect(253*10,33*10,16*10,7*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",253*10+30,33*10-19,Color(0,0,0,255))
-		end
-		if self:GetPackedBool(36) then
-			surface.SetDrawColor(255,200,0)
+			surface.SetDrawColor(255,120,0)
 			surface.DrawRect(290*10,33*10,16*10,7*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",290*10+30,33*10-19,Color(0,0,0,255))
+		end
+		if self:GetPackedBool(36) then
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(140*10,33*10,16*10,7*10)
+			draw.DrawText("РП","MetrostroiSubway_LargeText",140*10+30,33*10-19,Color(0,0,0,255))
+		
 		end
 		
 		--[[if self:GetNWBool("LKT") then
@@ -315,7 +351,7 @@ function ENT:Draw()
 			draw.DrawText("КВД","MetrostroiSubway_LargeText",165*10,73*10-20,Color(0,0,0,255))
 		end]]--	
 		if self:GetPackedBool(33) then
-			surface.SetDrawColor(255,200,0)
+			surface.SetDrawColor(255,120,0)
 			surface.DrawRect(101*10,73*10,16*10,7*10)
 		end
 		if self:GetPackedBool(34) then
