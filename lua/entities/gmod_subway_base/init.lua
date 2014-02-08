@@ -172,10 +172,10 @@ function ENT:TrainWireCanWrite(k)
 	return true
 end
 
-local TRAIN_WIRE_TICKS = 0
-hook.Add("Think","metrostroi-trainwire_tick-think",function()
-	TRAIN_WIRE_TICKS = TRAIN_WIRE_TICKS + 1
-end)
+function ENT:IsTrainWireCrossConnected(k)
+	return self.TrainWireWriters[k] and IsValid(self.TrainWireWriters[k].ent) and 
+		(self.TrainWireWriters[k].ent.TrainCoupledIndex ~= self.TrainCoupledIndex)
+end
 
 function ENT:WriteTrainWire(k,v)
 	-- Check if line is write-able
@@ -185,6 +185,10 @@ function ENT:WriteTrainWire(k,v)
 	-- Writing rules for different wires
 	local allowed_write = v > 0
 	if k == 18 then allowed_write = v <= 0 end
+	if self:IsTrainWireCrossConnected(4) or self:IsTrainWireCrossConnected(5) then
+			if k == 4 then k = 5
+		elseif k == 5 then k = 4 end
+	end
 	
 	-- If value is write-able, write it right away and do nothing interesting
 	if can_write then
@@ -205,10 +209,9 @@ end
 
 function ENT:ReadTrainWire(k)
 	-- Cross-commutate some wires
-	if self.TrainWireWriters[k] and IsValid(self.TrainWireWriters[k].ent) and 
-		(self.TrainWireWriters[k].ent.TrainCoupledIndex ~= self.TrainCoupledIndex) then
-		if k == 4 then return self.TrainWires[5] or 0 end
-		if k == 5 then return self.TrainWires[4] or 0 end
+	if self:IsTrainWireCrossConnected(4) or self:IsTrainWireCrossConnected(5) then
+			if k == 4 then k = 5
+		elseif k == 5 then k = 4 end
 	end
 	return self.TrainWires[k] or 0
 end
@@ -404,6 +407,18 @@ function ENT:CreateSeat(type,offset,angle)
 	end
 end
 
+-- Returns if KV/reverser wrench is present in cabin
+function ENT:IsWrenchPresent()
+	for k,v in pairs(self.Seats) do
+		if IsValid(v.entity) and v.entity.GetPassenger and
+			((v.type == "driver") or (v.type == "instructor")) then
+			local player = self.DriverSeat:GetPassenger(0)
+			if player and player:IsValid() then return true end
+		end
+	end
+	return false
+end
+
 
 
 
@@ -558,11 +573,22 @@ function ENT:PlayOnce(soundid,location,range,pitch)
 	if not location then
 		self:EmitSound(sound, 100*(range or default_range), pitch or math.random(95,105))
 	elseif (location == true) or (location == "cabin") then
-		if self.DriverSeat and self.DriverSeat:IsValid() then
+		if IsValid(self.DriverSeat) then
 			self.DriverSeat:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
+		end
+	elseif location == "front_bogey" then
+		if IsValid(self.FrontBogey) then
+			self.FrontBogey:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
+		end
+	elseif location == "rear_bogey" then
+		if IsValid(self.RearBogey) then
+			self.RearBogey:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
 		end
 	end
 end
+
+
+
 
 --------------------------------------------------------------------------------
 -- Joystick input
@@ -620,7 +646,6 @@ function ENT:OnKeyEvent(key,state)
 	else
 		self:OnKeyRelease(key)
 	end
-	
 	
 	if self:HasModifier(key) then
 		--If we have a modifier
