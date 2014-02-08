@@ -920,11 +920,11 @@ end
 -- Process Cabin button and keyboard input
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
---	print("Pressed", button)
+
 end
 
 function ENT:OnButtonRelease(button)
---	print("Released",button)
+
 end
 
 -- Clears the serverside keybuffer and fires events
@@ -945,27 +945,34 @@ function ENT:ClearKeyBuffer()
 	self.KeyBuffer = {}
 end
 
+local function ShouldWriteToBuffer(buffer,state)
+	if state == nil then return false end
+	if state == false and buffer == nil then return false end
+	return true
+end
+
+local function ShouldFireEvents(buffer,state)
+	if state == nil then return true end
+	if buffer == nil and state == false then return false end
+	return (state ~= buffer) 
+end
+
 -- Checks a button with the buffer and calls 
 -- OnButtonPress/Release as well as TriggerInput
-function ENT:ButtonEvent(button,state)
-	if state == nil then
-		self:OnButtonPress(button)
-		self:TriggerInput(button,1.0)
-	elseif (self.ButtonBuffer[button] ~= state) then
-		
-		-- Dont generate events when the buffer is being filled with false states
-		-- Though this might go wrong if some button ever starts of enabled
-		if not (state == false and self.ButtonBuffer[button] == nil) then
-			if state then
-				self:OnButtonPress(button)
-				self:TriggerInput(button,1.0)
-			else
-				self:OnButtonRelease(button)
-				self:TriggerInput(button,0.0)
-			end
-		end
-		self.ButtonBuffer[button] = state
 
+function ENT:ButtonEvent(button,state)
+	if ShouldFireEvents(self.ButtonBuffer[button],state) then
+		if state == false then
+			self:TriggerInput(button,0.0)
+			self:OnButtonRelease(button)
+		else
+			self:TriggerInput(button,1.0)
+			self:OnButtonPress(button)
+		end
+	end
+	
+	if ShouldWriteToBuffer(self.ButtonBuffer[button],state) then
+		self.ButtonBuffer[button]=state
 	end
 end
 
