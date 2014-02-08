@@ -48,6 +48,8 @@ function TRAIN_SYSTEM:Think()
 	
 	-- Get high-voltage input
 	local XT1_2 = Train.Electric.Main750V
+	-- Get battery input
+	local XT3_1 = Train.Battery.Voltage
 	
 	-- Check if enable signal is present
 	if self.XR3[2] > 0 then self.Active = 1 end
@@ -57,12 +59,14 @@ function TRAIN_SYSTEM:Think()
 	if self.XR3[7] > 0 then self.LightsActive = 1 end
 	
 	-- Undervoltage/overvoltage
-	if XT1_2 < 550 then self.Active = 0 self.LightsActive = 0 end
-	if XT1_2 > 975 then self.Active = 0 self.LightsActive = 0 end
+	local voltage = XT3_1
+	if (XT1_2 > 550) and (XT1_2 < 975) then voltage = 75 end
+	if voltage < 55 then self.Active = 0 self.LightsActive = 0 end
+	if voltage < 55 then self.Active = 0 self.LightsActive = 0 end
 	
 	-- Generate output
-	self.XT3[1] = 75 * self.Active
-	self.XT3[4] = 75 * self.Active
+	self.XT3[1] = voltage * self.Active
+	self.XT3[4] = voltage * self.Active
 	
 	self:TriggerOutput("XT3.1", self.XT3[1])
 	self:TriggerOutput("XT3.4", self.XT3[4])
