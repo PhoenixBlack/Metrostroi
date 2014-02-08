@@ -45,6 +45,8 @@ function ENT:Initialize()
 		[KEY_S] = "KVControllerDown",
 		[KEY_F] = "PneumaticBrakeUp",
 		[KEY_R] = "PneumaticBrakeDown",
+		
+		[KEY_L] = "HeadLightsToggle",
 
 		[KEY_LSHIFT] = {
 			--[KEY_W] = "Shift W",
@@ -106,6 +108,9 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:Think()
+	-- Check if wrench was pulled out
+	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end
+
 	-- Headlights
 	self:SetLightPower(1, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
 	self:SetLightPower(2, (self.HeadLights.Value * self:ReadTrainWire(10)) == 1.0)
@@ -126,11 +131,12 @@ function ENT:Think()
 	self:SetLightPower(13, self.PowerSupply.XT3[4] > 65.0)
 	
 	-- Switch and button states
-	self:SetPackedBool(0,self.HeadLights.Value == 1.0)
-	self:SetPackedBool(1,self.VozvratRP.Value == 1.0)
-	self:SetPackedBool(2,self.DIPon.Value == 1.0)
-	self:SetPackedBool(3,self.DIPoff.Value == 1.0)
-	self:SetPackedBool(4,self.GV.Value == 1.0)
+	self:SetPackedBool(0,self:IsWrenchPresent())
+	self:SetPackedBool(1,self.HeadLights.Value == 1.0)
+	self:SetPackedBool(2,self.VozvratRP.Value == 1.0)
+	self:SetPackedBool(3,self.DIPon.Value == 1.0)
+	self:SetPackedBool(4,self.DIPoff.Value == 1.0)
+	self:SetPackedBool(5,self.GV.Value == 1.0)
 	
 	-- DIP/power
 	self:SetPackedBool(32,self.Electric.Aux80V > 65.0)
@@ -171,7 +177,7 @@ function ENT:OnButtonPress(button)
 		self:PlayOnce("switch","cabin")
 	end
 	if (button == "GVToggle") then
-		self:PlayOnce("switch4",nil,0.7)	
+		self:PlayOnce("switch4",nil,0.7)
 	end
 end
 

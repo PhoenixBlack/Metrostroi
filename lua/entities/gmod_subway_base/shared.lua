@@ -71,6 +71,14 @@ function ENT:InitializeSounds()
 		"subway_trains/kv3_3.wav",
 	}
 	
+	self.SoundNames["tr"] = {
+		"subway_trains/tr_1.wav",
+		"subway_trains/tr_2.wav",
+		"subway_trains/tr_3.wav",
+		"subway_trains/tr_4.wav",
+		"subway_trains/tr_5.wav",
+	}
+	
 	self.SoundTimeout = {}
 end
 
