@@ -217,7 +217,6 @@ ENT.ClientProps["book"] = {
 
 
 
-
 --------------------------------------------------------------------------------
 -- Add doors
 for i=0,3 do
@@ -272,6 +271,7 @@ function ENT:Think()
 	self:Animate("controller",		self:GetPackedRatio(1),				0.30, 0.70,  384,24)
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.20, 0.55,  4,false)
 	self:Animate("speedometer", 	self:GetPackedRatio(3),				0.38,0.64)
+	self:ShowHide("reverser",		self:GetPackedBool(0))
 
 	self:Animate("brake_line",		self:GetPackedRatio(8),				0.16, 0.84,  256,2,0.01)
 	self:Animate("train_line",		self:GetPackedRatio(9),				0.16, 0.84,  256,2,0.01)
@@ -279,18 +279,18 @@ function ENT:Think()
 	self:Animate("voltmeter",		self:GetPackedRatio(11),			0.38, 0.63)
 	self:Animate("ampermeter",		self:GetPackedRatio(12),			0.38, 0.63)
 	
-	self:Animate("headlights",		self:GetPackedBool(0) and 1 or 0, 	0,1, 8, false)
-	self:Animate("rp_vozvrat",		self:GetPackedBool(1) and 1 or 0, 	0,1, 16, false)
-	self:Animate("dip_on",			self:GetPackedBool(2) and 1 or 0, 	0,1, 16, false)
-	self:Animate("dip_off",			self:GetPackedBool(3) and 1 or 0, 	0,1, 16, false)	
+	self:Animate("headlights",		self:GetPackedBool(1) and 1 or 0, 	0,1, 8, false)
+	self:Animate("rp_vozvrat",		self:GetPackedBool(2) and 1 or 0, 	0,1, 16, false)
+	self:Animate("dip_on",			self:GetPackedBool(3) and 1 or 0, 	0,1, 16, false)
+	self:Animate("dip_off",			self:GetPackedBool(4) and 1 or 0, 	0,1, 16, false)	
 	
 	
 	-- Main switch
-	if self.LastValue ~= self:GetPackedBool(4) then
-		self.ResetTime = CurTime()+1.0
-		self.LastValue = self:GetPackedBool(4)
+	if self.LastValue ~= self:GetPackedBool(5) then
+		self.ResetTime = CurTime()+2.0
+		self.LastValue = self:GetPackedBool(5)
 	end	
-	self:Animate("gv_wrench",	1-(self:GetPackedBool(4) and 1 or 0), 	0,0.35, 32,  4,false)
+	self:Animate("gv_wrench",	1-(self:GetPackedBool(5) and 1 or 0), 	0,0.35, 32,  4,false)
 	self:ShowHide("gv_wrench",	CurTime() < self.ResetTime)
 	
 	-- DIP sound

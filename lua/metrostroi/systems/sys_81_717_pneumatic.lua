@@ -212,7 +212,7 @@ function TRAIN_SYSTEM:Think(dT)
 	if self.DriverValvePosition == 2 then
 		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.00)
 		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.00)
-		equalizePressure("ReservoirPressure", self.TrainToBrakeReducedPressure*1.05, 0.50)
+		equalizePressure("ReservoirPressure", self.TrainToBrakeReducedPressure*1.01, 2.00)
 	end
 	-- 3 Close all valves
 	if self.DriverValvePosition == 3 then
@@ -221,8 +221,8 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	-- 4 Reservoir open to atmosphere, brake line equalizes with reservoir
 	if self.DriverValvePosition == 4 then
-		equalizePressure("ReservoirPressure", 0.0,					  0.30)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 0.30)
+		equalizePressure("ReservoirPressure", 0.0,					  0.50)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.00)
 	end
 	-- 5 Reservoir and brake line open to atmosphere
 	if self.DriverValvePosition == 5 then
@@ -233,15 +233,16 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	----------------------------------------------------------------------------
 	-- Fill brake cylinders
-	local targetPressure = math.max(0,math.min(6.0,2*(self.TrainToBrakeReducedPressure - self.BrakeLinePressure)))
-	if math.abs(self.BrakeCylinderPressure - targetPressure) > 0.200 then
+	local targetPressure = math.max(0,math.min(4.5,
+		2*(self.TrainToBrakeReducedPressure - self.BrakeLinePressure)))
+	if math.abs(self.BrakeCylinderPressure - targetPressure) > 0.150 then
 		self.BrakeCylinderValve = 1
 	end
 	if math.abs(self.BrakeCylinderPressure - targetPressure) < 0.025 then
 		self.BrakeCylinderValve = 0
 	end
 	if self.BrakeCylinderValve == 1 then
-		equalizePressure("BrakeCylinderPressure", targetPressure, 0.75, 1.25)
+		equalizePressure("BrakeCylinderPressure", targetPressure, 1.00, 1.50) --0.75, 1.25)
 	end
 	
 	-- Valve #1

@@ -12,7 +12,9 @@ function TRAIN_SYSTEM:Initialize()
 	self.ElementCapacity 	= 80 -- A*hour
 	self.ElementCount 		= 56 -- 52 on 81-717
 	self.Capacity = self.ElementCapacity * self.ElementCount
+	self.Voltage = 75
 end
 
 function TRAIN_SYSTEM:Think()
+	self.Voltage = 75
 end
