@@ -151,8 +151,13 @@ local function Couple(ent1,ent2)
 	)) then
 		sound.Play("buttons/lever2.wav",(ent1:GetPos()+ent2:GetPos())/2)
 		
+		ent1:OnCouple(ent2)
+		ent2:OnCouple(ent1)
+		--[[
 		ent1.CoupledBogey = ent2
 		ent2.CoupledBogey = ent1
+		
+		
 		
 		local ent1parent = ent1:GetNWEntity("TrainEntity")
 		local ent2parent = ent2:GetNWEntity("TrainEntity")
@@ -164,6 +169,7 @@ local function Couple(ent1,ent2)
 			ent1parent:OnCouple(ent2parent,ent1forward)
 			ent2parent:OnCouple(ent1parent,ent2forward)
 		end
+		--]]
 		
 	end
 end
@@ -228,12 +234,31 @@ function ENT:Decouple()
 		self.CoupledBogey = nil
 	end
 	
-	-- Above this runs on initiator, below runs on both	
+	-- Above this runs on initiator, below runs on both
+	
+	self:OnDecouple()
+end
+
+
+function ENT:OnCouple(ent)
+	self.CoupledBogey = ent
+	
+	--Call OnCouple on our parent train as well
 	local parent = self:GetNWEntity("TrainEntity")
 	local isforward = self:GetNWBool("IsForwardBogey")
 	
 	if IsValid(parent) then
-		self:GetNWEntity("TrainEntity"):OnDecouple(isforward)
+		parent:OnCouple(ent,isforward)
+	end
+end
+
+function ENT:OnDecouple()
+	--Call OnDecouple on our parent train as well
+	local parent = self:GetNWEntity("TrainEntity")
+	local isforward = self:GetNWBool("IsForwardBogey")
+	
+	if IsValid(parent) then
+		parent:OnDecouple(isforward)
 	end
 end
 

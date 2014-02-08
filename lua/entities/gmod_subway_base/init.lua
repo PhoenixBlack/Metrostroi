@@ -152,10 +152,17 @@ function ENT:TriggerInput(name, value)
 	end
 end
 
+-- The debugger will call this
 function ENT:GetDebugVars()
 	return self.DebugVars 
 end
 
+--Debugging function, call via the console or something
+function ENT:ShowInteractionZones()
+	for k,v in pairs(self.InteractionZones) do
+		debugoverlay.Sphere(self:LocalToWorld(v.Pos),v.Radius,15,Color(255,185,0),true)
+	end
+end
 
 
 --------------------------------------------------------------------------------
@@ -293,12 +300,19 @@ function ENT:UpdateIndexes()
 	updateIndexes(self,{},0)
 end
 
-function ENT:OnCouple(train,isfront)
-	--print(self,"Coupled with ",train," at ",isfront)
-	if isfront 
-	then self.FrontTrain = train
-	else self.RearTrain = train
+function ENT:OnCouple(bogey,isfront)
+	--print(self,"Coupled with ",bogey," at ",isfront)
+	if isfront then
+		self.FrontCoupledBogey = bogey
+	else
+		self.RearCoupledBogey = bogey
 	end
+	
+	local train = bogey:GetNWEntity("TrainEntity")
+	if not IsValid(train) then return end
+	--Don't update train wires when there's no parent train 
+	
+	self:UpdateCoupledTrains()
 
 	if ((train.FrontTrain == self) or (train.RearTrain == self)) then
 		self:UpdateIndexes()
@@ -310,13 +324,29 @@ end
 
 function ENT:OnDecouple(isfront)
 	--print(self,"Decoupled from front?:" ,isfront)	
-	if isfront 
-	then self.FrontTrain = nil
-	else self.RearTrain = nil
+	if isfront then
+		self.FrontCoupledBogey = nil
+	else 
+		self.RearCoupledBogey = nil
 	end
 	
-	self:UpdateIndexes()	
+	self:UpdateCoupledTrains()
+	self:UpdateIndexes()
 	self:ResetTrainWires()
+end
+
+function ENT:UpdateCoupledTrains()
+	if self.FrontCoupledBogey then
+		self.FrontTrain = self.FrontCoupledBogey:GetNWEntity("TrainEntity")
+	else
+		self.FrontTrain = nil
+	end
+	
+	if self.RearCoupledBogey then
+		self.RearTrain = self.RearCoupledBogey:GetNWEntity("TrainEntity")
+	else
+		self.RearTrain = nil
+	end
 end
 
 
@@ -740,6 +770,28 @@ function ENT:Think()
 	
 	-- Get angular velocity
 	self:SetTrainAngularVelocity(math.pi*self:GetPhysicsObject():GetAngleVelocity()/180)
+	
+	-- Calculate turn information, unused right now
+	if self.FrontBogey and self.RearBogey then
+		self.BogeyDistance = self.BogeyDistance or self.FrontBogey:GetPos():Distance(self.RearBogey:GetPos())
+		local a = math.AngleDifference(self.FrontBogey:GetAngles().y,self.RearBogey:GetAngles().y+180)
+		self.TurnRadius = (self.BogeyDistance/2)/math.sin(math.rad(a/2))
+		
+		--If we're pretty much going straight, correct massive values
+		if math.abs(self.TurnRadius) > 1e4 then
+			self.TurnRadius = 0 
+		end
+		
+		 -- Debug output
+			local right = self:GetAngles():Right()
+			right.z = 0
+			right:Normalize()
+			debugoverlay.Line(self:GetPos(),self:GetPos()+right*-self.TurnRadius,1,Color(255,0,0),true)
+		
+		
+	end
+	
+	
 	
 	-- Handle player input
 	if IsValid(self.DriverSeat) then
