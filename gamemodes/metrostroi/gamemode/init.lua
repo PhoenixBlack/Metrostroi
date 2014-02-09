@@ -25,3 +25,15 @@ function GM:PlayerInitialSpawn(ply)
 	ply:ConCommand("metro_showmotd")
 end
 
+local function SetKeyState(ply,key,state)
+	ply.keystate = ply.keystate or {}
+	ply.keystate[key]=state
+end
+
+function GM:PlayerButtonDown(ply,key)
+	SetKeyState(ply,key,true)
+end
+
+function GM:PlayerButtonUp(ply,key)
+	SetKeyState(ply,key,nil)
+end

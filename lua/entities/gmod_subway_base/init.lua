@@ -671,7 +671,6 @@ function ENT:GetActiveModifiers(key)
 end
 
 function ENT:OnKeyEvent(key,state)
-	self.KeyBuffer[key]= state or nil
 	
 	if state then
 		self:OnKeyPress(key)
@@ -732,18 +731,32 @@ end
 local function HandleKeyHook(ply,k,state)
 	local train = ply:GetTrain()
 	if IsValid(train) then
-		train:OnKeyEvent(k,state)
+		train.KeyMap[k] = state or nil
 	end
 end
 
-hook.Add("PlayerButtonDown","metrostroi_cabin_input",function(ply,key)
-	HandleKeyHook(ply,key,true)
-end)
+function ENT:HandleKeyboardInput(ply)
+	if not self.KeyMods and self.KeyMap then
+		self:ProcessKeyMap()
+	end
 
-hook.Add("PlayerButtonUp","metrostroi_cabin_input",function(ply,key)
-	HandleKeyHook(ply,key,false)
-end)
+	-- Check for newly pressed keys
+	for k,v in pairs(ply.keystate) do
+		if self.KeyBuffer[k] == nil then
+			self.KeyBuffer[k] = true
+			self:OnKeyEvent(k,true)
+		end
+	end
 
+	-- Check for newly released keys
+	for k,v in pairs(self.KeyBuffer) do
+		if ply.keystate[k] == nil then
+			self.KeyBuffer[k] = nil
+			self:OnKeyEvent(k,false)
+		end
+	end
+
+end
 
 --------------------------------------------------------------------------------
 -- Process train logic
@@ -798,11 +811,18 @@ function ENT:Think()
 	if IsValid(self.DriverSeat) then
 		local ply = self.DriverSeat:GetPassenger(0) 
 		
-		if ply and IsValid(ply) then
+		if IsValid(ply) then
+		
+			if self.KeyMap then
+				self:HandleKeyboardInput(ply)
+			end
+		
 			if joystick then
 				self:HandleJoystickInput(ply)
 			end
 		end
+		
+		
 	end
 	
 	
@@ -832,12 +852,14 @@ function ENT:Think()
 		end
 	end
 	
+	
 	-- Simulate according to schedule
 	for i,s in ipairs(self.Schedule) do
 		for k,v in ipairs(s) do
 			v:Think(self.DeltaTime / (v.SubIterations or 1),i)
 		end
 	end
+	
 	
 	-- Add interesting debug variables
 	for i=1,32 do
