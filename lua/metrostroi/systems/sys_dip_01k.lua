@@ -16,6 +16,7 @@ function TRAIN_SYSTEM:Initialize()
 		[1] = 0, -- General (battery) output
 		[4] = 0, -- Output for passenger lights
 	}
+	self.XT3_1ext = 0 -- External
 	self.Active = 0
 	self.LightsActive = 0
 end
@@ -25,6 +26,7 @@ function TRAIN_SYSTEM:Inputs()
 	for k,v in pairs(self.XR3) do 
 		if k ~= 5 then table.insert(inputs,"XR3."..k) end
 	end
+	table.insert(inputs,"XT3.1")
 	return inputs
 end
 
@@ -34,11 +36,15 @@ end
 
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
-	local idx = tonumber(string.sub(name,5,6)) or 0
-	if self.XR3[idx] then
-		if value > 0.5 
-		then self.XR3[idx] = 1.0
-		else self.XR3[idx] = 0.0
+	if name == "XT3.1" then
+		self.XT3_1ext = value
+	else
+		local idx = tonumber(string.sub(name,5,6)) or 0
+		if self.XR3[idx] then
+			if value > 0.5 
+			then self.XR3[idx] = 1.0
+			else self.XR3[idx] = 0.0
+			end
 		end
 	end
 end
@@ -47,9 +53,9 @@ function TRAIN_SYSTEM:Think()
 	local Train = self.Train
 	
 	-- Get high-voltage input
-	local XT1_2 = Train.Electric.Main750V
+	local XT1_2 = Train.Electric.Aux750V * Train.KPP.Value * 1 -- P4
 	-- Get battery input
-	local XT3_1 = Train.Battery.Voltage
+	local XT3_1 = self.XT3_1ext
 	
 	-- Check if enable signal is present
 	if self.XR3[2] > 0 then self.Active = 1 end
@@ -59,14 +65,18 @@ function TRAIN_SYSTEM:Think()
 	if self.XR3[7] > 0 then self.LightsActive = 1 end
 	
 	-- Undervoltage/overvoltage
-	local voltage = XT3_1
+	local voltage_bat = XT3_1
+	if (XT1_2 > 550) and (XT1_2 < 975) then voltage_bat = 75 end
+	if voltage_bat < 55 then self.Active = 0 self.LightsActive = 0 end
+	if voltage_bat > 85 then self.Active = 0 self.LightsActive = 0 end
+	
+	local voltage = 0
 	if (XT1_2 > 550) and (XT1_2 < 975) then voltage = 75 end
-	if voltage < 55 then self.Active = 0 self.LightsActive = 0 end
-	if voltage < 55 then self.Active = 0 self.LightsActive = 0 end
 	
 	-- Generate output
 	self.XT3[1] = voltage * self.Active
 	self.XT3[4] = voltage * self.Active
+	Train.KPP:TriggerInput("Open",1.0 - self.Active)
 	
 	self:TriggerOutput("XT3.1", self.XT3[1])
 	self:TriggerOutput("XT3.4", self.XT3[4])

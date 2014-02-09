@@ -11,9 +11,9 @@ function TRAIN_SYSTEM:Initialize()
 	self.ReverserMatrix = {
 		{"D",		"D1"	},
 		{	1,	0,	1		},
-		{"10",		"C3"	},
+		{"10/4",	"C3"	},
 		{	0,	0,	1		},
-		{"10",		"F1"	},
+		{"10/4",	"F1"	},
 		{	1,	1,	0		},
 		{"D4",		"15"	},
 		{	1,	0,	1		},
@@ -43,9 +43,9 @@ function TRAIN_SYSTEM:Initialize()
 		{	0,	0,	0,	0,	0,	0,	1	},
 		{"0",						"0"	},
 		{	0,	0,	0,	1,	1,	1,	1	},
-		{"10AO",					"33"},
+		{"10AS",					"33"},
 		{	0,	0,	0,	0,	1,	1,	1	},
-		{"10AO",					"33D"},
+		{"10AS",					"33D"},
 		{	0,	0,	0,	1,	1,	1,	1	},
 		{"U2",						"33G"},
 		{	1,	1,	1,	0,	0,	0,	0	},
@@ -53,7 +53,7 @@ function TRAIN_SYSTEM:Initialize()
 		{	0,	0,	0,	0,	1,	1,	1	},
 		{"U2",						"25"},
 		{	0,	1,	0,	0,	0,	0,	0	},
-		{"10AC",					"U4"},
+		{"10AS",					"U4"},
 		{	0,	0,	0,	1,	0,	0,	0	},
 		{"15A",						"15B"},
 		{	1,	1,	1,	1,	0,	0,	0	},
@@ -171,38 +171,4 @@ function TRAIN_SYSTEM:Think()
 		local d = self.ControllerMatrix[i*2]
 		self[v[1].."-"..v[2]] = d[self.RealControllerPosition+4]
 	end
-	
-	-- FIXME: temporary commutation
-	Train:WriteTrainWire(1, self["10AO-33"])
-	Train:WriteTrainWire(33,self["10AO-33"])
-
-	Train:WriteTrainWire(2, self["10AK-2"])
-	Train:WriteTrainWire(3, self["U2-3"])
-	Train:WriteTrainWire(20,self["U2-20a"]+self["U2-20b"])
-	
-	Train:WriteTrainWire(25,self["U2-25"])
-	Train:WriteTrainWire(8, self["10-8"])
-	
-	Train:WriteTrainWire(4, self["10AK-4"])
-	Train:WriteTrainWire(5, self["10AK-5"])
-	Train:WriteTrainWire(6, self["U2-33G"])
-
-	-- Trigger train wires according to the controller value
-	--[[local W9 = Train:ReadTrainWire(9) * ((self.ReverserPosition ~= 0) and 1 or 0)
-	local X1 = (math.abs(self.ControllerPosition) == 1) and 1 or 0
-	local X2 = (math.abs(self.ControllerPosition) == 2) and 1 or 0
-	local X3 = (math.abs(self.ControllerPosition) == 3) and 1 or 0
-		
-	-- X1 X2 X3
-	Train:WriteTrainWire(1,W9 * (X1+X2+X3))
-	Train:WriteTrainWire(2,W9 * (X2+X3))
-	Train:WriteTrainWire(3,W9 * (X3))		
-	Train:WriteTrainWire(20,W9 * (X1 + X2 + X3))
-		
-	-- T1 T2 T3
-	Train:WriteTrainWire(6,W9 * ((self.ControllerPosition < 0) and 1 or 0))
-		
-	-- R1 R2
-	Train:WriteTrainWire(4,W9 * ((self.ReverserPosition == -1) and 1 or 0))
-	Train:WriteTrainWire(5,W9 * ((self.ReverserPosition ==  1) and 1 or 0))]]--
 end
