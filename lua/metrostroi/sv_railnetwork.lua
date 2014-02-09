@@ -825,8 +825,16 @@ end
 --------------------------------------------------------------------------------
 
 local Player = FindMetaTable("Player")
+
 function Player:CanDriveTrains()
 	return IsValid(self:GetWeapon("train_reverser_switch")) or self:IsAdmin()
+end
+
+function Player:GetTrain()
+	local seat = self:GetVehicle()
+	if seat then 
+		return seat:GetNWEntity("TrainEntity")
+	end
 end
 
 --------------------------------------------------------------------------------
