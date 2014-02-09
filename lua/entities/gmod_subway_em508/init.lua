@@ -142,7 +142,7 @@ function ENT:Think()
 	self:SetPackedBool(7,self.VB.Value == 1.0)
 	
 	-- DIP/power
-	self:SetPackedBool(32,self.Electric.Aux80V > 65.0)
+	self:SetPackedBool(32,self.Panel.Indications["V1"] > 0.5)
 	-- LxRK
 	self:SetPackedBool(33,self.RheostatController.MotorCoilState ~= 0.0)
 	-- NR1
