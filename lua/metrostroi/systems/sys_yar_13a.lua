@@ -31,7 +31,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- Реле времени РВ1
 	self.Train:LoadSystem("RV1","Relay","RM3100",{ open_time = 0.7 })
 	-- Реле времени РВ2 (задерживает отключение ЛК2)
-	self.Train:LoadSystem("RV2","Relay","RM3100",{ close_time = 0.7 })
+	self.Train:LoadSystem("RV2","Relay","RM3100",{ open_time = 0.7 })
 	
 	-- Реле ручного тормоза (РРТ)
 	self.Train:LoadSystem("RRT","Relay")
@@ -94,8 +94,8 @@ function TRAIN_SYSTEM:Think()
 		(Train.RZ_3.Value == 1.0))
 		
 	-- RV2 time relay for LK1, LK3, LK4
-	Train.LK1:TriggerInput("Open",Train.RV2.Value)
+	--[[Train.LK1:TriggerInput("Open",Train.RV2.Value)
 	Train.LK3:TriggerInput("Open",Train.RV2.Value)
 	Train.LK4:TriggerInput("Open",Train.RV2.Value)
-	Train.RV2:TriggerInput("Open",Train.RV2.Value)	
+	Train.RV2:TriggerInput("Open",Train.RV2.Value)]]--
 end

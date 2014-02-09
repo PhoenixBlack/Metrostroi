@@ -455,16 +455,20 @@ end
 --------------------------------------------------------------------------------
 -- Turn light on or off
 --------------------------------------------------------------------------------
-function ENT:SetLightPower(index,power)
+function ENT:SetLightPower(index,power,brightness)
 	local lightData = self.Lights[index]
 	self.GlowingLights = self.GlowingLights or {}
+	self.LightBrightness = self.LightBrightness or {}
+	brightness = brightness or 1
 
 	-- Check if light already glowing
-	if power and (self.GlowingLights[index]) then return end
+	if (power and (self.GlowingLights[index])) and 
+	   (brightness == self.LightBrightness[index]) then return end
 	
 	-- Turn off light
 	SafeRemoveEntity(self.GlowingLights[index])
 	self.GlowingLights[index] = nil
+	self.LightBrightness[index] = brightness
 	
 	-- Create light
 	if (lightData[1] == "headlight") and (power) then
@@ -480,7 +484,7 @@ function ENT:SetLightPower(index,power)
 		light:SetKeyValue("lightfov", lightData.fov or 120)
 
 		-- Set Brightness
-		local brightness = lightData.brightness or 1.25
+		local brightness = brightness * (lightData.brightness or 1.25)
 		light:SetKeyValue("lightcolor",
 			Format("%i %i %i 255",
 				lightData[4].r*brightness,
@@ -501,7 +505,7 @@ function ENT:SetLightPower(index,power)
 		light:SetLocalAngles(lightData[3])
 	
 		-- Set parameters
-		local brightness = lightData.brightness or 0.5
+		local brightness = brightness * (lightData.brightness or 0.5)
 		light:SetKeyValue("rendercolor",
 			Format("%i %i %i",
 				lightData[4].r*brightness,
@@ -527,7 +531,7 @@ function ENT:SetLightPower(index,power)
 		light:SetLocalAngles(lightData[3])
 	
 		-- Set parameters
-		local brightness = lightData.brightness or 0.5
+		local brightness = brightness * (lightData.brightness or 0.5)
 		light:SetKeyValue("rendercolor",
 			Format("%i %i %i",
 				lightData[4].r*brightness,
@@ -768,14 +772,14 @@ function ENT:Think()
 	self.PrevTime = CurTime()
 	
 	-- Calculate train acceleration
-	self.PreviousVelocity = self.PreviousVelocity or self:GetVelocity()
+	--[[self.PreviousVelocity = self.PreviousVelocity or self:GetVelocity()
 	local accelerationVector = 0.01905*(self:GetPhysicsObject():GetVelocity() - self.PreviousVelocity) / self.DeltaTime
 	accelerationVector:Rotate(self:GetAngles())
 	self:SetTrainAcceleration(accelerationVector)
-	self.PreviousVelocity = self:GetVelocity()
+	self.PreviousVelocity = self:GetVelocity()]]--
 	
 	-- Get angular velocity
-	self:SetTrainAngularVelocity(math.pi*self:GetPhysicsObject():GetAngleVelocity()/180)
+	--self:SetTrainAngularVelocity(math.pi*self:GetPhysicsObject():GetAngleVelocity()/180)
 	
 	-- Calculate turn information, unused right now
 	if self.FrontBogey and self.RearBogey then

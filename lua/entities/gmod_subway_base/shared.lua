@@ -39,9 +39,20 @@ function ENT:InitializeSounds()
 	self.SoundNames["bpsn1"] 	= "subway_trains/bpsn_1.wav"
 	self.SoundNames["bpsn2"] 	= "subway_trains/bpsn_2.wav"
 	
+	self.SoundNames["release1"]	= "subway_trains/release_1.wav"
+	self.SoundNames["release2"]	= "subway_trains/release_2.wav"
+	self.SoundNames["release3"]	= "subway_trains/release_3.wav"
+	
 	self.SoundNames["pneumo_switch"] = {
 		"subway_trains/pneumo_1.wav",
-		"subway_trains/pneumo_2.wav"
+		"subway_trains/pneumo_2.wav",
+	}
+	self.SoundNames["pneumo_disconnect1"] = {
+		"subway_trains/pneumo_3.wav",
+	}
+	self.SoundNames["pneumo_disconnect2"] = {
+		"subway_trains/pneumo_4.wav",
+		"subway_trains/pneumo_5.wav",
 	}
 	
 	self.SoundNames["kv1"] = {
@@ -122,19 +133,15 @@ end
 -- Setup datatables for faster, more optimized transmission
 --------------------------------------------------------------------------------
 function ENT:SetupDataTables()
-	-- Int0,Int1: packed floating point values
+	-- Int0,Int1,Int2,Int3: packet bit values
 	self:NetworkVar("Int", 0, "PackedInt0")
 	self:NetworkVar("Int", 1, "PackedInt1")
-	-- Int2,Int3: packed bit values
 	self:NetworkVar("Int", 2, "PackedInt2")
 	self:NetworkVar("Int", 3, "PackedInt3")
-	
-	-- Acceleration of the train as felt in the center of mass
-	self:NetworkVar("Vector", 0, "TrainAcceleration")
-	-- Angular velocity of the train
-	self:NetworkVar("Vector", 1, "TrainAngularVelocity")
-	
-	-- Vec2,Vec3: gauge values
+
+	-- Vec0,Vec1,Vec2,Vec3: floating point values
+	self:NetworkVar("Vector", 0, "PackedVec0")
+	self:NetworkVar("Vector", 1, "PackedVec1")
 	self:NetworkVar("Vector", 2, "PackedVec2")
 	self:NetworkVar("Vector", 3, "PackedVec3")
 end
@@ -142,69 +149,38 @@ end
 --------------------------------------------------------------------------------
 -- Set/get tightly packed float (for speed, pneumatic gauges, etc)
 --------------------------------------------------------------------------------
-function ENT:SetPackedRatio(idx,ratio)
-	if idx >= 8 then
-		local int = 2
-		local vecn = idx-8
-		if vecn >= 3 then int = 3 vecn = vecn-3 end
+function ENT:SetPackedRatio(vecn,ratio)
+	local int = 0
+	if vecn >= 3 then int = 1 vecn = vecn-3 end
+	if vecn >= 3 then int = 2 vecn = vecn-3 end
+	if vecn >= 3 then int = 3 vecn = vecn-3 end
 		
-		local vector = self["GetPackedVec"..int](self)
-		if vecn == 0 then vector.x = ratio/(max or 1) end
-		if vecn == 1 then vector.y = ratio/(max or 1) end
-		if vecn == 2 then vector.z = ratio/(max or 1) end
-		self["SetPackedVec"..int](self,vector)		
-	else
-		local int = 0
-		if idx >= 4 then int = 1 idx = idx-4 end
-		
-		-- Integer limit
-		local width = 8
-		local bitn = width*idx
-		local limit = (2^width)-1
-		-- Generate integer
-		local int_ratio = math.min(limit,math.max(0,math.floor(limit*(ratio/(max or 1))+0.5)))
-		-- Pack integer
-		local packed_value = bit.lshift(int_ratio,bitn)
-		local mask = bit.bnot(bit.lshift(limit,bitn))
-		
-		-- Create total packed integer
-		local new_int = bit.bor(bit.band(self["GetPackedInt"..int](self),mask),packed_value)
-		self["SetPackedInt"..int](self,new_int)
-	end
+	local vector = self["GetPackedVec"..int](self)
+	if vecn == 0 then vector.x = ratio/(max or 1) end
+	if vecn == 1 then vector.y = ratio/(max or 1) end
+	if vecn == 2 then vector.z = ratio/(max or 1) end
+	self["SetPackedVec"..int](self,vector)		
 end
 
-function ENT:GetPackedRatio(idx)	
-	if idx >= 8 then
-		local int = 2
-		local vecn = idx-8
-		if vecn >= 3 then int = 3 vecn = vecn-3 end
-
-		local vector = self["GetPackedVec"..int](self)
-		if vecn == 0 then return vector.x*(max or 1) end
-		if vecn == 1 then return vector.y*(max or 1) end
-		if vecn == 2 then return vector.z*(max or 1) end
-	else
-		local int = 0
-		if idx >= 4 then int = 1 idx = idx-4 end
-	
-		-- Integer limit
-		local width = 8
-		local bitn = width*idx
-		local limit = (2^width)-1
-		-- Unpack integer
-		local mask = bit.lshift(limit,bitn)
-		local packed_value = bit.rshift(bit.band(self["GetPackedInt"..int](self),mask),bitn)
+function ENT:GetPackedRatio(vecn)	
+	local int = 0
+	if vecn >= 3 then int = 1 vecn = vecn-3 end
+	if vecn >= 3 then int = 2 vecn = vecn-3 end
+	if vecn >= 3 then int = 3 vecn = vecn-3 end
 		
-		-- Generate ratio
-		return (packed_value/limit)*(max or 1)
-	end
+	local vector = self["GetPackedVec"..int](self)
+	if vecn == 0 then return vector.x*(max or 1) end
+	if vecn == 1 then return vector.y*(max or 1) end
+	if vecn == 2 then return vector.z*(max or 1) end
 end
 
 --------------------------------------------------------------------------------
 -- Set/get tightly packed boolean (for gauges, lights)
 --------------------------------------------------------------------------------
 function ENT:SetPackedBool(idx,value)
-	local int = 2
+	local int = 0
+	if idx >= 32 then int = 1 idx = idx-32 end
+	if idx >= 32 then int = 2 idx = idx-32 end
 	if idx >= 32 then int = 3 idx = idx-32 end
 	
 	-- Pack value
@@ -217,7 +193,9 @@ function ENT:SetPackedBool(idx,value)
 end
 
 function ENT:GetPackedBool(idx)
-	local int = 2
+	local int = 0
+	if idx >= 32 then int = 1 idx = idx-32 end
+	if idx >= 32 then int = 2 idx = idx-32 end
 	if idx >= 32 then int = 3 idx = idx-32 end
 	
 	local mask = bit.lshift(1,idx)
