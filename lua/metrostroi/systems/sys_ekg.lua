@@ -74,7 +74,7 @@ function TRAIN_SYSTEM:Think(dT)
 	if self.MotorState == -1.0 then self.Velocity = 0 end
 	
 	-- Move motor
-	local threshold = 0.10 -- Maximum single step of motor per frame
+	local threshold = 0.25 -- Maximum single step of motor per frame
 	self.Position = self.Position + math.min(threshold*0.5,self.Velocity * dT)
 	
 	-- Limit motor from moving too far
