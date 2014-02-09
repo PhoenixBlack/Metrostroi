@@ -15,6 +15,10 @@ local relay_types = {
 		contactor		= true,
 		normally_closed	= true,
 	},
+	["VA21-29"] = {
+		contactor		= true,
+		normally_closed	= true,	
+	},
 }
 
 function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)

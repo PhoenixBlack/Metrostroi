@@ -11,10 +11,18 @@ function TRAIN_SYSTEM:Initialize()
 	-- Battery parameters
 	self.ElementCapacity 	= 80 -- A*hour
 	self.ElementCount 		= 56 -- 52 on 81-717
-	self.Capacity = self.ElementCapacity * self.ElementCount
+	self.Capacity = self.ElementCapacity * self.ElementCount * 3600
+	self.Charge = self.Capacity
 	self.Voltage = 75
+	
+	-- Current through battery in amperes
+	self.Current = 0
 end
 
-function TRAIN_SYSTEM:Think()
+function TRAIN_SYSTEM:Think(dT)
+	-- Calculate discharge
+	self.Charge = self.Charge + self.Current * dT
+	
+	-- Calculate battery voltage
 	self.Voltage = 75
 end
