@@ -10,7 +10,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- 3 Closed
 	-- 4 Service application
 	-- 5 Emergency application
-	self.DriverValvePosition = 3
+	self.DriverValvePosition = 2
 	
 
 	-- Pressure in reservoir
@@ -21,37 +21,18 @@ function TRAIN_SYSTEM:Initialize()
 	self.BrakeLinePressure = 0.0 -- atm
 	-- Pressure in brake cylinder
 	self.BrakeCylinderPressure = 0.0 -- atm
-	
-	
 
 
-	-- Rate of brake line filling from train line
-	--[[self.BrakeLineFillRate			= 0.500 -- atm/sec
-	-- Rate of equalizing reservoir filling from train line
-	self.ReservoirFillRate			= 1.500 -- atm/sec
-	-- Replenish rate for brake line
-	self.BrakeLineReplenishRate 	= 0.100 -- atm/sec
-	-- Replenish rate for reservoir
-	self.ReservoirReplenishRate 	= 1.000 -- atm/sec
-	-- Release to atmosphere rate
-	self.ReservoirReleaseRate	 	= 1.500 -- atm/sec
-
-	-- Rate of pressure leak from reservoir
-	self.ReservoirLeakRate			= 1e-3	-- atm/sec
-	-- Rate of pressure leak from brake line
-	self.BrakeLineLeakRate			= 1e-4	-- atm/sec
-	-- Rate of release to reservoir
-	self.BrakeLineReleaseRate	 	= 0.350 -- atm/sec
-
-	-- Emergency release rate
-	self.BrakeLineEmergencyRate 	= 0.800 -- atm/sec]]--
-	
-	
 	-- Valve #1
 	self.Train:LoadSystem("PneumaticNo1","Relay")
 	-- Valve #2
 	self.Train:LoadSystem("PneumaticNo2","Relay")
-	
+	-- Автоматический выключатель торможения (АВТ)
+	self.Train:LoadSystem("AVT","Relay","AVT-325")
+	-- MOTOR-COMPRESSOR TRIGGER RELAY FIXME
+	self.Train:LoadSystem("AK","Relay")	
+	-- Разобщение клапана машиниста
+	self.Train:LoadSystem("DriverValveDisconnect","Relay","Switch")
 	
 	-- Isolation valves
 	self.Train:LoadSystem("FrontBrakeLineIsolation","Relay","Switch", { normally_closed = true })
@@ -204,28 +185,28 @@ function TRAIN_SYSTEM:Think(dT)
 	self.TrainToBrakeReducedPressure = self.TrainLinePressure * 0.70
 	
 	-- 1 Fill reservoir from train line, fill brake line from train line
-	if self.DriverValvePosition == 1 then
+	if (self.DriverValvePosition == 1) and (Train.DriverValveDisconnect.Value == 1.0) then
 		equalizePressure("BrakeLinePressure", self.TrainLinePressure, 1.00)
 		equalizePressure("ReservoirPressure", self.TrainLinePressure, 1.70)
 	end
 	-- 2 Brake line, reservoir replenished from brake line reductor
-	if self.DriverValvePosition == 2 then
+	if (self.DriverValvePosition == 2) and (Train.DriverValveDisconnect.Value == 1.0) then
 		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.00)
 		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.00)
 		equalizePressure("ReservoirPressure", self.TrainToBrakeReducedPressure*1.01, 2.00)
 	end
 	-- 3 Close all valves
-	if self.DriverValvePosition == 3 then
+	if (self.DriverValvePosition == 3) or (Train.DriverValveDisconnect.Value == 0.0) then
 		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 0.30)
 		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 0.30)
 	end
 	-- 4 Reservoir open to atmosphere, brake line equalizes with reservoir
-	if self.DriverValvePosition == 4 then
+	if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
 		equalizePressure("ReservoirPressure", 0.0,					  0.50)
 		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.00)
 	end
 	-- 5 Reservoir and brake line open to atmosphere
-	if self.DriverValvePosition == 5 then
+	if (self.DriverValvePosition == 5) and (Train.DriverValveDisconnect.Value == 1.0) then
 		equalizePressure("ReservoirPressure", 0.0, 1.70)
 		equalizePressure("BrakeLinePressure", 0.0, 1.00)
 	end
@@ -242,7 +223,7 @@ function TRAIN_SYSTEM:Think(dT)
 		self.BrakeCylinderValve = 0
 	end
 	if self.BrakeCylinderValve == 1 then
-		equalizePressure("BrakeCylinderPressure", targetPressure, 1.00, 1.50) --0.75, 1.25)
+		equalizePressure("BrakeCylinderPressure", targetPressure, 2.00, 2.50) --0.75, 1.25)
 	end
 	
 	-- Valve #1
@@ -254,6 +235,14 @@ function TRAIN_SYSTEM:Think(dT)
 	if self.Train.PneumaticNo2.Value == 1.0 then
 		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.45, 1.00, 1.50)
 	end
+		
+	
+	----------------------------------------------------------------------------
+	-- Pressure trigger
+	Train.AVT:TriggerInput("Open", self.BrakeCylinderPressure > 1.8) -- 1.8 - 2.0
+	Train.AVT:TriggerInput("Close",self.BrakeCylinderPressure < 1.2) -- 0.9 - 1.5
+	Train.AK:TriggerInput( "Open", self.TrainLinePressure < -10.0) -- 1.8 - 2.0
+	Train.AK:TriggerInput( "Close",self.TrainLinePressure < -10.0) -- 0.9 - 1.5
 	
 
 	-- Apply brakes

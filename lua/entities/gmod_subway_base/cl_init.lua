@@ -126,10 +126,12 @@ function ENT:Initialize()
 	-- Create sounds
 	self:InitializeSounds()
 	self.Sounds = {}
-	for k,v in pairs(self.SoundNames) do
-		if type(v) == "string" then
-			util.PrecacheSound(v)
-			self.Sounds[k] = CreateSound(self, Sound(v))
+	if self.SoundNames then
+		for k,v in pairs(self.SoundNames) do
+			if type(v) == "string" then
+				util.PrecacheSound(v)
+				self.Sounds[k] = CreateSound(self, Sound(v))
+			end
 		end
 	end
 end
@@ -151,6 +153,7 @@ end
 -- Sound functions (clientside)
 --------------------------------------------------------------------------------
 function ENT:SetSoundState(sound,volume,pitch)
+	if not self.Sounds[sound] then return end
 	if (volume <= 0) or (pitch <= 0) then
 		self.Sounds[sound]:Stop()
 		self.Sounds[sound]:ChangeVolume(0.0,0)
