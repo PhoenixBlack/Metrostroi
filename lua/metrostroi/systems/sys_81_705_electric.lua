@@ -12,10 +12,6 @@ function TRAIN_SYSTEM:Initialize()
 	self.Aux80V = 0.0
 	self.Lights80V = 0.0
 	
-	-- Specific output points
-	--self.B12 = 0
-	--self.B2 = 0
-	
 	-- Resistances
 	self.R1 = 1e9
 	self.R2 = 1e9
@@ -85,33 +81,96 @@ end
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:Think(dT)
 	local Train = self.Train
+
+	----------------------------------------------------------------------------
+	-- Voltages from the third rail
+	----------------------------------------------------------------------------
+	-- Напряжение в главных высоковольных цепях
+	self.Main750V = Train.TR.Main750V * Train.PNB_1250_1.Value
+	-- Напряжение в спомагательных высоковольных цепях
+	self.Aux750V  = Train.TR.Main750V * Train.PNB_1250_2.Value * Train.KVC.Value
+	-- Внешнее напряжение силовых цепей
+	self.Power750V = self.Main750V * Train.GV.Value
+	
 	
 	----------------------------------------------------------------------------
-	-- Вспомагательные цепи
-	self.Aux750V = 750--Train.TR.Main750V * self.Train.PNB_1250_1.Value * self.Train.PNB_1250_2.Value * Train.KVC.Value		
+	-- Information only
+	----------------------------------------------------------------------------
 	-- Питание вспомагательных цепей 80V
 	self.Aux80V = Train.PowerSupply.XT3[1]
 	-- Питание освещения 80V
 	self.Lights80V = Train.PowerSupply.XT3[4]
-	-- Вывод питания на вагоны
-	if self.Aux80V > 65.0 
-	then Train:WriteTrainWire(9,1)	Train:WriteTrainWire(10,1)
-	else Train:WriteTrainWire(9,0)	Train:WriteTrainWire(10,0)
-	end
-	
-	
-	
-	----------------------------------------------------------------------------
-	-- Главные электрические цепи
-	self.Main750V = Train.TR.Main750V * Train.PNB_1250_1.Value * Train.PNB_1250_2.Value
-	
-	
-	
 
-	----------------------------------------------------------------------------
-	-- Внешнее напряжение силовых цепей
-	self.Power750V = self.Main750V * Train.GV.Value
 	
+	----------------------------------------------------------------------------
+	-- Solve circuits
+	----------------------------------------------------------------------------
+	self:SolvePowerCircuits(Train,dT)
+	self:SolveInternalCircuits(Train,dT)
+	
+	-- Output interesting variables
+	self.outputs = self.outputs or self:Outputs()
+	for k,v in pairs(self.outputs) do
+		self:TriggerOutput(v,self[v])
+	end
+
+	
+	----------------------------------------------------------------------------
+	-- Calculate current flow out of the battery
+	----------------------------------------------------------------------------
+	--local totalCurrent = 5*A30 + 63*A24 + 16*A44 + 5*A39 + 10*A80
+	--local totalCurrent = 20 + 60*DIP
+end
+
+
+
+--------------------------------------------------------------------------------
+function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
+	local KSH1,KSH2 = 0,0
+	self.Triggers = { -- FIXME
+		["LK5"]			= function(V) end,
+		["KSH1"]		= function(V) KSH1 = KSH1 + V end,
+		["KSH2"]		= function(V) KSH2 = KSH2 + V end,
+		["KSB1"]		= function(V) Train.KSB1:TriggerInput("Set",V) KSH1 = KSH1 + V end,
+		["KSB2"]		= function(V) Train.KSB2:TriggerInput("Set",V) KSH2 = KSH2 + V end,
+		["KPP"]			= function(V) Train.KPP:TriggerInput("Close",V) end,
+
+		["RPvozvrat"]	= function(V) Train.RPvozvrat:TriggerInput("Open",V) end,
+		
+		["RRTuderzh"]	= function(V) Train.RRTuderzh = V end,
+		["RRTpod"]		= function(V) Train.RRTpod = V end,
+		["RUTpod"]		= function(V) Train.RUTpod = V end,
+		
+		["SDPP"]		= function(V) Train.PositionSwitch:TriggerInput("MotorState",-1.0 + 2.0*math.max(0,V)) end,
+		["SDRK_Coil"]	= function(V) Train.RheostatController:TriggerInput("MotorCoilState",V*(-1.0 + 2.0*Train.RR.Value)) end,
+		["SDRK"]		= function(V) Train.RheostatController:TriggerInput("MotorState",V) end,
+		
+		["XR3.2"]		= function(V) Train.PowerSupply:TriggerInput("XR3.2",V) end,
+		["XR3.3"]		= function(V) Train.PowerSupply:TriggerInput("XR3.3",V) end,
+		["XR3.4"]		= function(V) end, --Train.PowerSupply:TriggerInput("XR3.4",V) end,
+		["XR3.6"]		= function(V) end, --Train.PowerSupply:TriggerInput("XR3.6",V) end,
+		["XR3.7"]		= function(V) end, --Train.PowerSupply:TriggerInput("XR3.7",V) end,
+		["XT3.1"]		= function(V) Train.PowerSupply:TriggerInput("XT3.1",Train.Battery.Voltage*V) end,
+		
+		["ReverserForward"]		= function(V) Train.RKR:TriggerInput("Open",V) end,
+		["ReverserBackward"]	= function(V) Train.RKR:TriggerInput("Close",V) end,
+	}
+	local S = self.InternalCircuits.Solve(Train,self.Triggers)
+	--if true then
+	if false then
+		print("---------------------")
+		for k,v in SortedPairs(S) do 
+			print(k,v)
+		end
+	end
+	Train.KSH1:TriggerInput("Set",KSH1)
+	Train.KSH2:TriggerInput("Set",KSH2)
+end
+
+
+
+--------------------------------------------------------------------------------
+function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	-- Ослабление резистором Л1-Л2
 	self.ExtraResistance = (1-Train.LK2.Value) * Train.KF_47A["L2-L4"]
 	
@@ -157,8 +216,7 @@ function TRAIN_SYSTEM:Think(dT)
 		self:SolvePT(Train)
 	end
 	
-	
-	
+
 	
 	----------------------------------------------------------------------------
 	-- Calculate current through stator and shunt
@@ -192,77 +250,8 @@ function TRAIN_SYSTEM:Think(dT)
 	self.P2 = (self.IR2^2) * self.R2
 	self.T1 = self.T1 + self.P1 * 5e-4 * dT - (self.T1 - 25)*0.0001
 	self.T2 = self.T2 + self.P2 * 5e-4 * dT - (self.T2 - 25)*0.0001
-	
-	-- Output interesting variables
-	self.outputs = self.outputs or self:Outputs()
-	for k,v in pairs(self.outputs) do
-		self:TriggerOutput(v,self[v])
-	end
-	
-	
-	
-	
-	----------------------------------------------------------------------------
-	-- Calculate internal circuits
-	local KSH1,KSH2 = 0,0
-	self.Triggers = { -- FIXME
-		["LK1"] 		= function(V) Train.LK1:TriggerInput("Close",V) end,
-		["LK2"]			= function(V) Train.LK2:TriggerInput("Set",V) 
-									  Train.RV2:TriggerInput("Close",(1.0-V) * Train.LK2.Value) end,
-		["LK3"]			= function(V) Train.LK3:TriggerInput("Close",V) end,
-		["LK4"]			= function(V) Train.LK4:TriggerInput("Close",V) end,
-		["LK5"]			= function(V) end,
-		
-		["TR1"]			= function(V) Train.TR1:TriggerInput("Set",V) end,
-		["TR2"]			= function(V) Train.TR2:TriggerInput("Set",V) end,
-		["KSH1"]		= function(V) KSH1 = KSH1 + V end,
-		["KSH2"]		= function(V) KSH2 = KSH2 + V end,
-		["KSB1"]		= function(V) Train.KSB1:TriggerInput("Set",V) KSH1 = KSH1 + V end,
-		["KSB2"]		= function(V) Train.KSB2:TriggerInput("Set",V) KSH2 = KSH2 + V end,
-		["RUP"]			= function(V) Train.RUP:TriggerInput("Set",V) end,
-		["RPU"]			= function(V) Train.RPU:TriggerInput("Set",V) end,
-
-		["RR"]			= function(V) Train.RR:TriggerInput("Set",V) end,
-		["SR1"]			= function(V) Train.SR1:TriggerInput("Set",V) end,
-		["RV1"]			= function(V) Train.RV1:TriggerInput("Set",V) end,
-		["Rper"]		= function(V) Train.Rper:TriggerInput("Set",V) end,
-		["RPvozvrat"]	= function(V) Train.RPvozvrat:TriggerInput("Open",V) end,
-		
-		["RRTuderzh"]	= function(V) Train.RRTuderzh = V end,
-		["RRTpod"]		= function(V) Train.RRTpod = V end,
-		["RUTpod"]		= function(V) Train.RUTpod = V end,
-		
-		["SDPP"]		= function(V) Train.PositionSwitch:TriggerInput("MotorState",-1.0 + 2.0*math.max(0,V)) end,
-		["SDRK_Coil"]	= function(V) Train.RheostatController:TriggerInput("MotorCoilState",V*(-1.0 + 2.0*Train.RR.Value)) end,
-		["SDRK"]		= function(V) Train.RheostatController:TriggerInput("MotorState",V) end,
-		
-		["XR3.2"]		= function(V) Train.PowerSupply:TriggerInput("XR3.2",V) end,
-		["XR3.3"]		= function(V) Train.PowerSupply:TriggerInput("XR3.3",V) end,
-		
-		["ReverserForward"]		= function(V) Train.RKR:TriggerInput("Open",V) end,
-		["ReverserBackward"]	= function(V) Train.RKR:TriggerInput("Close",V) end,
-		["PneumaticNo1"]		= function(V) Train.PneumaticNo1:TriggerInput("Set",V) end,
-		["PneumaticNo2"]		= function(V) Train.PneumaticNo2:TriggerInput("Set",V) end,
-	}
-	local S = self.InternalCircuits.Solve(Train,self.Triggers)
-	--print("---------------------")
-	--for k,v in SortedPairs(S) do 
-		--print(k,v)
-	--end
-	Train.KSH1:TriggerInput("Set",KSH1)
-	Train.KSH2:TriggerInput("Set",KSH2)
-	
-	
-	
-	
-	----------------------------------------------------------------------------
-	-- Calculate current flow out of the battery
-	--local totalCurrent = 5*A30 + 63*A24 + 16*A44 + 5*A39 + 10*A80
-	--local totalCurrent = 20 + 60*DIP
-	
-	-- FIXME hack
-	self.HACK_2_7R_31 = Train.KV["U2-10AS"] - Train:ReadTrainWire(18)
 end
+
 
 
 
@@ -282,7 +271,6 @@ function TRAIN_SYSTEM:SolvePS(Train)
 	self.I13 = self.Itotal
 	self.I24 = self.Itotal
 end
-
 
 function TRAIN_SYSTEM:SolvePP(Train)
 	-- Calculate total resistance of each branch
