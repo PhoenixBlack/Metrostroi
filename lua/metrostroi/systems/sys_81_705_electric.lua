@@ -27,7 +27,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- Load resistor blocks
 	RESISTOR_BLOCKS = {}
 	if TURBOSTROI then
-		dofile("E:/garrysmod/addons/metrostroi/lua/metrostroi/systems/gen_resblocks.lua")
+		dofile("garrysmod/addons/metrostroi/lua/metrostroi/systems/gen_resblocks.lua")
 	else
 		include("metrostroi/systems/gen_resblocks.lua")
 	end
@@ -37,7 +37,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- Load internal circuits
 	INTERNAL_CIRCUITS = {}
 	if TURBOSTROI then
-		dofile("E:/garrysmod/addons/metrostroi/lua/metrostroi/systems/gen_int_81_705.lua")
+		dofile("garrysmod/addons/metrostroi/lua/metrostroi/systems/gen_int_81_705.lua")
 	else
 		include("metrostroi/systems/gen_int_81_705.lua")
 	end
