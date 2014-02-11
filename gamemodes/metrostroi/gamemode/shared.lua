@@ -1,5 +1,3 @@
-DeriveGamemode("sandbox")
-
 GM.Name = "Metrostroi"
 GM.Author = "HunterNL, Black Phoenix"
 GM.Email = "N/A"
