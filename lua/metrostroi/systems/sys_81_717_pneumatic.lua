@@ -40,6 +40,8 @@ function TRAIN_SYSTEM:Initialize()
 	-- Isolation valves
 	self.Train:LoadSystem("FrontBrakeLineIsolation","Relay","Switch", { normally_closed = true })
 	self.Train:LoadSystem("RearBrakeLineIsolation","Relay","Switch", { normally_closed = true })
+	--self.Train:LoadSystem("FrontTrainLineIsolation","Relay","Switch", { normally_closed = true })
+	--self.Train:LoadSystem("RearTrainLineIsolation","Relay","Switch", { normally_closed = true })
 
 	-- Brake cylinder atmospheric valve open
 	self.BrakeCylinderValve = 0
@@ -83,10 +85,12 @@ function TRAIN_SYSTEM:GetPressures(Train)
 	-- If open into atmosphere, relieve pressure
 	if frontBrakeOpen and (not Train.FrontTrain) then
 		self.BrakeLinePressure = 0
+		self.TrainLinePressure = 0
 		return
 	end
 	if rearBrakeOpen and (not Train.RearTrain) then
 		self.BrakeLinePressure = 0
+		self.TrainLinePressure = 0
 		return
 	end
 	
@@ -100,6 +104,10 @@ function TRAIN_SYSTEM:GetPressures(Train)
 	
 	-- Equalize pressure
 	if Train.FrontTrain and Train.RearTrain and	frontBrakeOpen and rearBrakeOpen then
+		self.TrainLinePressure = 
+			(Train.FrontTrain.Pneumatic.TrainLinePressure +
+			 Train.RearTrain.Pneumatic.TrainLinePressure) / 2
+			 
 		self.BrakeLinePressure = 
 			(Train.FrontTrain.Pneumatic.BrakeLinePressure +
 			 Train.RearTrain.Pneumatic.BrakeLinePressure) / 2
@@ -108,9 +116,11 @@ function TRAIN_SYSTEM:GetPressures(Train)
 			(Train.FrontTrain.Pneumatic.ReservoirPressure +
 			 Train.RearTrain.Pneumatic.ReservoirPressure) / 2
 	elseif Train.FrontTrain and	frontBrakeOpen then
+		self.TrainLinePressure = Train.FrontTrain.Pneumatic.TrainLinePressure
 		self.BrakeLinePressure = Train.FrontTrain.Pneumatic.BrakeLinePressure
 		self.ReservoirPressure = Train.FrontTrain.Pneumatic.ReservoirPressure
 	elseif Train.RearTrain and rearBrakeOpen then
+		self.TrainLinePressure = Train.RearTrain.Pneumatic.TrainLinePressure
 		self.BrakeLinePressure = Train.RearTrain.Pneumatic.BrakeLinePressure
 		self.ReservoirPressure = Train.RearTrain.Pneumatic.ReservoirPressure
 	end
@@ -138,14 +148,21 @@ function TRAIN_SYSTEM:SetPressures(Train)
 
 	-- Equalize pressure
 	if Train.FrontTrain and Train.RearTrain and frontBrakeOpen and rearBrakeOpen then
-		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
+		Train.FrontTrain.Pneumatic.TrainLinePressure = self.TrainLinePressure
+		Train.RearTrain.Pneumatic.TrainLinePressure = self.TrainLinePressure
+		
+		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure		
 		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
 		Train.FrontTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
 		Train.RearTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
 	elseif Train.FrontTrain and frontBrakeOpen then
+		Train.FrontTrain.Pneumatic.TrainLinePressure = self.TrainLinePressure
+		
 		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
 		Train.FrontTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
 	elseif Train.RearTrain and rearBrakeOpen then
+		Train.RearTrain.Pneumatic.TrainLinePressure = self.TrainLinePressure
+		
 		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
 		Train.RearTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
 	end
@@ -273,4 +290,5 @@ function TRAIN_SYSTEM:Think(dT)
 	-- FIXME
 	Train:SetNWBool("FI",Train.FrontBrakeLineIsolation.Value ~= 0)
 	Train:SetNWBool("RI",Train.RearBrakeLineIsolation.Value ~= 0)
+
 end

@@ -566,6 +566,7 @@ function ENT:Think()
 	
 	-- Compressor
 	local state = self:GetPackedBool(20)
+	self.PreviousCompressorState = self.PreviousCompressorState or false
 	if self.PreviousCompressorState ~= state then
 		self.PreviousCompressorState = state
 		if state then

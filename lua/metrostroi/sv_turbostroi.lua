@@ -14,9 +14,9 @@ end
 if not TURBOSTROI then
 	hook.Add("Think", "Turbostroi_Think", function()
 		if Turbostroi then 
+			Turbostroi.SetSimulationFPS(66)
 			if not Turbostroi.Initialized then
-				Turbostroi.SetSimulationTime(CurTime())
-				Turbostroi.SetSimulationFPS(33)
+				--Turbostroi.SetSimulationTime(CurTime())
 				Turbostroi.Initialized = true
 
 				Turbostroi.TriggerInput = function(train,system,name,value)
@@ -36,12 +36,22 @@ if not TURBOSTROI then
 					if v.DontAccelerateSimulation then
 						for k2,v2 in pairs(v.OutputsList) do
 							Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
-								"V\t"..k.."\t"..v2.."\t"..(v[v2] or 0).."\n"
+								"V\t"..k.."\t"..v2.."\t"..tostring(v[v2] or 0).."\n"
 						end
 					end
 				end
 			end
 			
+			-- Add all train wire values
+			for train,send_data in pairs(Turbostroi.TrainData) do
+				for i=1,32 do
+					Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
+						"TW\t"..i.."\t"..train:ReadTrainWire(i).."\n"
+		
+--					print(train,"TW",k,train:ReadTrainWire(k))
+				end
+			end
+
 			-- Exchange data between simulation and GMOD
 			for train,send_data in pairs(Turbostroi.TrainData) do
 				local data = Turbostroi.ExchangeData(train,send_data)
@@ -57,8 +67,91 @@ if not TURBOSTROI then
 							--print("train.Systems[",d[2],"][",d[3],"] = ",d[4])
 						end
 					end
-					if d[1] == "S" then						
+					if d[1] == "S" then
 						train:PlayOnce(d[2],d[3],tonumber(d[4]),tonumber(d[5]))
+					end
+					if d[1] == "TW" then
+
+train.TrainWireCanWrite = function(self,k)
+	local lastwrite = self.TrainWireWriters[k]
+	if lastwrite then
+		-- Check all last writers, make sure all of trains other than us wrote a while ago
+		--[[for writer,v in pairs(lastwrite) do
+			if tonumber(v) and (writer ~= self) and (CurTime() - v < 0.1) then
+				return false
+			end
+		end]]--
+
+		if (lastwrite.ent ~= self) and (CurTime() - lastwrite.time < 0.10) then
+			--Last write not us and recent, conflict!
+			return false
+		end
+	end
+	return true
+end
+
+train.WriteTrainWire = function(self,k,v)
+--[[	-- Clean wire (no-one has wrote to it in a while)
+	local wire_clean = self:TrainWireCanWrite(k)
+	local wrote = false
+
+	-- Writing rules for different wires
+	local allowed_write = v > 0
+	if k == 18 then allowed_write = v <= 0 end
+	if self:IsTrainWireCrossConnected(4) or self:IsTrainWireCrossConnected(5) then
+			if k == 4 then k = 5
+		elseif k == 5 then k = 4 end
+	end
+
+	if allowed_write or wire_clean then
+		self.TrainWires[k] = v
+		wrote = true
+	end
+
+	if wrote then
+		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
+		self.TrainWireWriters[k][self] = CurTime()
+	end]]--
+
+	-- Check if line is write-able
+	local can_write = self:TrainWireCanWrite(k)
+	local wrote = false
+	
+	-- Writing rules for different wires
+	local allowed_write = v > 0
+	if k == 18 then allowed_write = v <= 0 end
+	if self:IsTrainWireCrossConnected(4) or self:IsTrainWireCrossConnected(5) then
+			if k == 4 then k = 5
+		elseif k == 5 then k = 4 end
+	end
+	
+	-- If value is write-able, write it right away and do nothing interesting
+	if can_write then
+		self.TrainWires[k] = v
+		wrote = true
+	elseif allowed_write then -- If trying to write positive value, overwrite value of the previous writer
+		self.TrainWires[k] = v
+		wrote = true
+	end
+	
+	-- Record us as last writer
+	if wrote and (allowed_write or can_write) then
+--		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
+--		self.TrainWireWriters[k][self] = CurTime()
+
+--		if k == 1 then print(self,k,v,wrote,allowed_write,can_write) end
+		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
+		self.TrainWireWriters[k].ent = self
+		self.TrainWireWriters[k].time = CurTime()
+--		self.TrainWireWriters[k].writers = self.TrainWireWriters[k].writers or {}
+--		self.TrainWireWriters[k].writers[self] = CurTime()
+	end
+end
+
+						train:WriteTrainWire(tonumber(d[2]) or d[2],tonumber(d[3]) or 0)
+						--if tonumber(d[2]) == 23 then
+						--	print("TRAIN WIRE",train,d[2],d[3])
+						--end
 					end
 				end
 			end
@@ -86,6 +179,7 @@ LoadSystems = {} -- Systems that must be loaded/initialized
 GlobalTrain = {} -- Train emulator
 GlobalTrain.Systems = {} -- Train systems
 GlobalTrain.TrainWires = {}
+GlobalTrain.WriteTrainWires = {}
 
 ExtraData = ""
 
@@ -164,24 +258,27 @@ function GlobalTrain.ReadTrainWire(self,n)
 end
 
 function GlobalTrain.WriteTrainWire(self,n,v)
-	self.TrainWires[n] = v
+	self.WriteTrainWires[n] = v
+	--print(self.TrainWires,n,v)
+--	ExtraData = ExtraData.."TW\t"..n.."\t"..v.."\n"
 end
 
 
 --------------------------------------------------------------------------------
 -- Turbostroi lua code (this all runs outside of GMOD)
 --------------------------------------------------------------------------------
+function CurTime() return CurrentTime end
+
 print("[!] Train initialized!")
-Frame = 0
 function Think()
 	-- This is just blatant copy paste from init.lua of base train entity
 	local self = GlobalTrain
 	
 	----------------------------------------------------------------------------
-	Frame = Frame + 1
 	self.PrevTime = self.PrevTime or CurTime()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
+--	print("FRAME",1/self.DeltaTime)
 	
 	-- Is initialized?
 	if not self.Initialized then return end
@@ -233,8 +330,8 @@ end
 FirstPacketArrived = false
 DataCache = {}
 function DataExchange(data)
-	FirstPacketArrived = true
-
+	FirstPacketArrived = true	
+	
 	-- Get input
 	local packets = split(data,"\n")
 	for k,v in pairs(packets) do
@@ -254,8 +351,11 @@ function DataExchange(data)
 				--end
 			end
 		end
+		if data[1] == "TW" then
+			GlobalTrain.TrainWires[tonumber(data[2]) or data[2]] = tonumber(data[3]) or 0
+			--print("TW",tonumber(data[2]),tonumber(data[3]))
+		end
 	end
-	
 	
 	-- Create output
 	local str = ""
@@ -269,6 +369,10 @@ function DataExchange(data)
 				end
 			end
 		end
+	end
+	for k,v in pairs(GlobalTrain.WriteTrainWires) do
+		str = str.."TW\t"..k.."\t"..v.."\n"
+		GlobalTrain.WriteTrainWires[k] = nil
 	end
 	str = str..ExtraData
 	ExtraData = ""

@@ -35,7 +35,7 @@ end
 
 function TRAIN_SYSTEM:Think()
 	-- Require 80 volts
-	if self.Train.Electric and (self.Train.Electric.Aux80V < 70) then return end
+	--if self.Train.Electric and (self.Train.Electric.Aux80V < 70) then return end
 	
 	-- Check ARS signals
 	self.Timer = self.Timer or CurTime()
