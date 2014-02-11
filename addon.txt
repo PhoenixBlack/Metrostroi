@@ -4,6 +4,6 @@
 	"version"     "1"
 	"author_name" "Black Phoenix"
 	"author_url"  "http://brain.wireos.com/"
-	"info"        "yoba"
+	"info"        "Metrostroi"
 	"override"    "0"
 }
