@@ -29,6 +29,9 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Max position
 	self.MaxPosition = #self.Configuration
+	
+	-- Use more iterations to make sure rotation of the rotor passes through all positions
+	self.SubIterations = 4
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -98,12 +101,4 @@ function TRAIN_SYSTEM:Think(dT)
 	local f = self.Position - position
 	self.RKM = ((f < -0.30) or  (f > 0.30)) and 1 or 0
 	self.RKP = ((f > -0.10) and (f < 0.10)) and 1 or 0
-
-	-- Update outputs
-	self:TriggerOutput("Position",self.Position)
-	self:TriggerOutput("Velocity",self.Velocity)
-	self:TriggerOutput("MotorState",self.MotorState)
-	self:TriggerOutput("MotorCoilState",self.MotorCoilState)
-	self:TriggerOutput("RKM",self.RKM)
-	self:TriggerOutput("RKP",self.RKP)
 end

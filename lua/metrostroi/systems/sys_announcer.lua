@@ -1,4 +1,5 @@
 Metrostroi.DefineSystem("Announcer")
+TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 Metrostroi.Announcements = {
   [0001] = { 2.1 + 1.5, "subway_announcer/00_01.mp3" },

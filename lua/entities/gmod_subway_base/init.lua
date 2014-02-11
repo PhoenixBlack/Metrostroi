@@ -97,15 +97,26 @@ function ENT:Initialize()
 	
 	-- Is this train 'odd' or 'even' in coupled set
 	self.TrainCoupledIndex = 0
+	
+	-- Initialize train
+	if Turbostroi then
+		Turbostroi.InitializeTrain(self)
+	end
 end
 
 -- Remove entity
 function ENT:OnRemove()
+	-- Remove all linked objects
 	constraint.RemoveAll(self)
 	if self.TrainEntities then
 		for k,v in pairs(self.TrainEntities) do
 			SafeRemoveEntity(v)
 		end
+	end
+	
+	-- Deinitialize train
+	if Turbostroi then
+		Turbostroi.DeinitializeTrain(self)
 	end
 end
 
@@ -551,50 +562,6 @@ end
 
 
 --------------------------------------------------------------------------------
--- Play sound once emitting frmo the train
---------------------------------------------------------------------------------
-function ENT:CheckActionTimeout(action,timeout)
-	self.LastActionTime = self.LastActionTime or {}
-	self.LastActionTime[action] = self.LastActionTime[action] or (CurTime()-1000)
-	if CurTime() - self.LastActionTime[action] < timeout then return true end
-	self.LastActionTime[action] = CurTime()
-
-	return false
-end
-
-function ENT:PlayOnce(soundid,location,range,pitch)
-	if self:CheckActionTimeout(soundid,self.SoundTimeout[soundid] or 0.0) then return end
-
-	-- Pick wav file
-	local sound = self.SoundNames[soundid]
-	if type(sound) == "table" then sound = table.Random(sound) end
-
-	-- Setup range
-	local default_range = 0.80
-	if soundid == "switch" then default_range = 0.50 end
-
-	-- Emit sound from right location
-	if not location then
-		self:EmitSound(sound, 100*(range or default_range), pitch or math.random(95,105))
-	elseif (location == true) or (location == "cabin") then
-		if IsValid(self.DriverSeat) then
-			self.DriverSeat:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
-		end
-	elseif location == "front_bogey" then
-		if IsValid(self.FrontBogey) then
-			self.FrontBogey:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
-		end
-	elseif location == "rear_bogey" then
-		if IsValid(self.RearBogey) then
-			self.RearBogey:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
-		end
-	end
-end
-
-
-
-
---------------------------------------------------------------------------------
 -- Joystick input
 --------------------------------------------------------------------------------
 function ENT:HandleJoystickInput(ply)
@@ -761,36 +728,43 @@ function ENT:Think()
 		end
 	end
 	
-	-- Run iterations on systems simulation
-	local iterationsCount = 1
-	if (not self.Schedule) or (iterationsCount ~= self.Schedule.IterationsCount) then
-		self.Schedule = { IterationsCount = iterationsCount }
-		
-		-- Find max number of iterations
-		local maxIterations = 0
-		for k,v in pairs(self.Systems) do maxIterations = math.max(maxIterations,(v.SubIterations or 1)) end
-
-		-- Create a schedule of simulation
-		for iteration=1,maxIterations do self.Schedule[iteration] = {} end
-
-		-- Populate schedule
+	if Turbostroi then
+		-- Simulate systems which don't need to be simulated with turbostroi
 		for k,v in pairs(self.Systems) do
-			local simIterationsPerIteration = (v.SubIterations or 1) / maxIterations
-			local iterations = 0
-			for iteration=1,maxIterations do
-				iterations = iterations + simIterationsPerIteration
-				while iterations >= 1 do
-					table.insert(self.Schedule[iteration],v)
-					iterations = iterations - 1
+			if v.Think then v:Think(self.DeltaTime / (v.SubIterations or 1),i) end
+		end
+	else
+		-- Run iterations on systems simulation
+		local iterationsCount = 1
+		if (not self.Schedule) or (iterationsCount ~= self.Schedule.IterationsCount) then
+			self.Schedule = { IterationsCount = iterationsCount }
+			
+			-- Find max number of iterations
+			local maxIterations = 0
+			for k,v in pairs(self.Systems) do maxIterations = math.max(maxIterations,(v.SubIterations or 1)) end
+
+			-- Create a schedule of simulation
+			for iteration=1,maxIterations do self.Schedule[iteration] = {} end
+
+			-- Populate schedule
+			for k,v in pairs(self.Systems) do
+				local simIterationsPerIteration = (v.SubIterations or 1) / maxIterations
+				local iterations = 0
+				for iteration=1,maxIterations do
+					iterations = iterations + simIterationsPerIteration
+					while iterations >= 1 do
+						table.insert(self.Schedule[iteration],v)
+						iterations = iterations - 1
+					end
 				end
 			end
 		end
-	end
-	
-	-- Simulate according to schedule
-	for i,s in ipairs(self.Schedule) do
-		for k,v in ipairs(s) do
-			v:Think(self.DeltaTime / (v.SubIterations or 1),i)
+		
+		-- Simulate according to schedule
+		for i,s in ipairs(self.Schedule) do
+			for k,v in ipairs(s) do
+				v:Think(self.DeltaTime / (v.SubIterations or 1),i)
+			end
 		end
 	end
 	
@@ -798,7 +772,13 @@ function ENT:Think()
 	for i=1,32 do
 		self.DebugVars["TW"..i] = self:ReadTrainWire(i)
 	end
-	self:NextThink(CurTime())
+	for k,v in pairs(self.Systems) do
+		for _,output in pairs(v.OutputsList) do
+			self.DebugVars[(v.Name or "")..output] = v[output] or 0
+		end
+	end
+
+	self:NextThink(CurTime()+0.01)
 	return true
 end
 

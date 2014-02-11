@@ -97,9 +97,9 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 			
 			-- Play sounds
 			local dC = math.abs(prevControllerPosition - self.ControllerPosition)
-			if dC == 1 then self.Train:PlayOnce("kv1",true,0.8) end
-			if dC == 2 then self.Train:PlayOnce("kv2",true,0.8) end
-			if dC >= 3 then self.Train:PlayOnce("kv3",true,0.8) end
+			if dC == 1 then self.Train:PlayOnce("kv1","cabin",0.8) end
+			if dC == 2 then self.Train:PlayOnce("kv2","cabin",0.8) end
+			if dC >= 3 then self.Train:PlayOnce("kv3","cabin",0.8) end
 		end		
 		
 	elseif name == "ReverserSet" then
@@ -110,7 +110,7 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 			if self.ReverserPosition < -1 then self.ReverserPosition = -1 end
 			
 			if prevReverserPosition ~= self.ReverserPosition then
-				self.Train:PlayOnce("kv1",true,0.7,120.0)
+				self.Train:PlayOnce("kv1","cabin",0.7,120.0)
 			end
 		end
 	elseif (name == "ControllerUp") and (value > 0.5) then
@@ -141,12 +141,9 @@ end
 
 function TRAIN_SYSTEM:Think()
 	local Train = self.Train
-	self:TriggerOutput("ControllerPosition",self.ControllerPosition)
-	self:TriggerOutput("ReverserPosition",self.ReverserPosition)
-
 	if (self.ReverserPosition == 0) and (self.ControllerPosition ~= 0) then
 		self.ControllerPosition = 0
-		self.Train:PlayOnce("kv1",true,0.6)
+		self.Train:PlayOnce("kv1","cabin",0.6)
 	end
 	
 	-- Move controller
