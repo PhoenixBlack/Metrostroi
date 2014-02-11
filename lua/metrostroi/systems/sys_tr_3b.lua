@@ -2,6 +2,7 @@
 -- Токоприёмник контактного рельса (ТР-3Б)
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("TR_3B")
+TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
 	-- Output voltage from contact rail
@@ -13,7 +14,7 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { "750V" }
+	return { "Main750V" }
 end
 
 function TRAIN_SYSTEM:CheckContact(ent,pos,dir)
@@ -28,7 +29,7 @@ function TRAIN_SYSTEM:CheckContact(ent,pos,dir)
 	return result.Hit
 end
 
-function TRAIN_SYSTEM:Think()	
+function TRAIN_SYSTEM:Think()
 	-- Check contact states
 	self.PlayTime = self.PlayTime or { 0, 0, 0, 0 }
 	self.ContactStates = self.ContactStates or { false, false, false, false }
@@ -61,5 +62,4 @@ function TRAIN_SYSTEM:Think()
 	for i=1,4 do
 		if self.ContactStates[i] then self.Main750V = 750 end
 	end
-	self:TriggerOutput("750V",self.Main750V)
 end

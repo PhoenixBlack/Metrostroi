@@ -5,11 +5,11 @@ include("shared.lua")
 function ENT:ReinitializeSounds()
 	-- Bogey-related sounds
 	self.SoundNames = {}
-	self.SoundNames["engine"]	= "subway_trains/engine_1.wav"
-	self.SoundNames["run1"]		= "subway_trains/run_1.wav"
-	self.SoundNames["run2"]		= "subway_trains/run_2.wav"
-	self.SoundNames["run3"]		= "subway_trains/run_3.wav"
-	self.SoundNames["release"]	= "subway_trains/release_1.wav"
+	self.SoundNames["engine"]		= "subway_trains/engine_1.wav"
+	self.SoundNames["run1"]			= "subway_trains/run_1.wav"
+	self.SoundNames["run2"]			= "subway_trains/run_2.wav"
+	self.SoundNames["run3"]			= "subway_trains/run_3.wav"
+	self.SoundNames["release"]		= "subway_trains/release_1.wav"
 	
 	-- Remove old sounds
 	if self.Sounds then
@@ -69,9 +69,6 @@ function ENT:Think()
 	local dPdT = self:GetdPdT()
 	
 	-- Engine sound
-	--if (motorPower > 0) and (speed > 1.0) and (speed < 1.0) then
-		--self:SetSoundState("engine",0.2,0.2)
-	--else
 	if (speed > 1.0) and (math.abs(motorPower) > 0.0) then
 		local startVolRamp = 0.2 + 0.8*math.max(0.0,math.min(1.0,(speed - 1.0)*0.5))
 		local powerVolRamp = math.max(0.3,math.min(1.0,math.abs(motorPower)))
@@ -79,9 +76,11 @@ function ENT:Think()
 		local k,x = 1.0,math.max(0,math.min(1.1,(speed-1.0)/80))
 		local motorPchRamp = (k*x^3 - k*x^2 + x)
 		local motorPitch = 0.01+1.7*motorPchRamp
-
-		--print(startVolRamp*powerVolRamp,motorPitch,speed)
+		
 		self:SetSoundState("engine",startVolRamp*powerVolRamp,motorPitch)
+		
+		--local lowVolRamp = math.max(0.0,1.0 - (speed - 1.0) / 25.0)
+		--self:SetSoundState("engine_low",8*startVolRamp*powerVolRamp*lowVolRamp,2.0*motorPitch)
 	else
 		self:SetSoundState("engine",0,0)
 	end

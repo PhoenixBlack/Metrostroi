@@ -11,5 +11,5 @@ function TRAIN_SYSTEM:Initialize()
 	-- КУП (включение прогрева кабины машиниста)
 	self.Train:LoadSystem("KUP","Relay","KPP-110")
 	-- ТРК (защита мотор-компрессора от перегрузки)
-	self.Train:LoadSystem("TPK","Relay","TRTP-115")
+	self.Train:LoadSystem("TRK","Relay","TRTP-115")
 end

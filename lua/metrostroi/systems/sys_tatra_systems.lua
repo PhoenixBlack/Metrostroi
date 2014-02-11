@@ -2,7 +2,7 @@
 -- Placeholder for Tatra-T3 systems
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("Tatra_Systems")
-
+TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
 	self.Drive = 0

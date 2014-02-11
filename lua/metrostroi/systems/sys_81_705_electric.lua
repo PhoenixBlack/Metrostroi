@@ -26,13 +26,21 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Load resistor blocks
 	RESISTOR_BLOCKS = {}
-	include("metrostroi/systems/gen_resblocks.lua")
+	if TURBOSTROI then
+		dofile("E:/garrysmod/addons/metrostroi/lua/metrostroi/systems/gen_resblocks.lua")
+	else
+		include("metrostroi/systems/gen_resblocks.lua")
+	end
 	self.ResistorBlocks = RESISTOR_BLOCKS
 	RESISTOR_BLOCKS = nil
 	
 	-- Load internal circuits
 	INTERNAL_CIRCUITS = {}
-	include("metrostroi/systems/gen_int_81_705.lua")
+	if TURBOSTROI then
+		dofile("E:/garrysmod/addons/metrostroi/lua/metrostroi/systems/gen_int_81_705.lua")
+	else
+		include("metrostroi/systems/gen_int_81_705.lua")
+	end
 	self.InternalCircuits = INTERNAL_CIRCUITS
 	INTERNAL_CIRCUITS = nil
 	
@@ -58,6 +66,9 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Need many iterations for engine simulation to converge
 	self.SubIterations = 16
+	
+	-- Главный выключатель
+	self.Train:LoadSystem("GV","Relay","GV_10ZH")
 end
 
 
@@ -97,9 +108,9 @@ function TRAIN_SYSTEM:Think(dT)
 	-- Information only
 	----------------------------------------------------------------------------
 	-- Питание вспомагательных цепей 80V
-	self.Aux80V = Train.PowerSupply.XT3[1]
+	self.Aux80V = Train.PowerSupply.XT3_1
 	-- Питание освещения 80V
-	self.Lights80V = Train.PowerSupply.XT3[4]
+	self.Lights80V = Train.PowerSupply.XT3_4
 
 	
 	----------------------------------------------------------------------------
@@ -107,12 +118,6 @@ function TRAIN_SYSTEM:Think(dT)
 	----------------------------------------------------------------------------
 	self:SolvePowerCircuits(Train,dT)
 	self:SolveInternalCircuits(Train,dT)
-	
-	-- Output interesting variables
-	self.outputs = self.outputs or self:Outputs()
-	for k,v in pairs(self.outputs) do
-		self:TriggerOutput(v,self[v])
-	end
 
 	
 	----------------------------------------------------------------------------

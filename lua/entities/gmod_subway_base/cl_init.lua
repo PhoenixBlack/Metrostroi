@@ -150,26 +150,6 @@ end
 
 
 --------------------------------------------------------------------------------
--- Sound functions (clientside)
---------------------------------------------------------------------------------
-function ENT:SetSoundState(sound,volume,pitch)
-	if not self.Sounds[sound] then return end
-	if (volume <= 0) or (pitch <= 0) then
-		self.Sounds[sound]:Stop()
-		self.Sounds[sound]:ChangeVolume(0.0,0)
-		return
-	end
-
-	local pch = math.floor(math.max(0,math.min(255,100*pitch)) + math.random())
-	self.Sounds[sound]:Play()
-	self.Sounds[sound]:ChangeVolume(math.max(0,math.min(255,2.55*volume)) + (0.001/2.55) + (0.001/2.55)*math.random(),0)
-	self.Sounds[sound]:ChangePitch(pch+1,0)
-end
-
-
-
-
---------------------------------------------------------------------------------
 -- Default think function
 --------------------------------------------------------------------------------
 function ENT:Think()
@@ -314,49 +294,50 @@ end
 -- Animation function
 --------------------------------------------------------------------------------
 function ENT:Animate(clientProp, value, min, max, speed, damping, stickyness)
-	if self.ClientEnts[clientProp] then
-		local id = clientProp
-		if not self["_anim_"..id] then
-			self["_anim_"..id] = value
-			self["_anim_"..id.."V"] = 0.0
-		end
-		
-		-- Generate sticky value
-		if stickyness and damping then
-			self["_anim_"..id.."_stuck"] = self["_anim_"..id.."_stuck"] or false
-			self["_anim_"..id.."P"] = self["_anim_"..id.."P"] or value
-			if (math.abs(self["_anim_"..id.."P"] - value) < stickyness) and (self["_anim_"..id.."_stuck"]) then
-				value = self["_anim_"..id.."P"]
-				self["_anim_"..id.."_stuck"] = false
-			else
-				self["_anim_"..id.."P"] = value
-			end
-		end
-			
-		if damping == false then
-			local dX = speed * self.DeltaTime
-			if value > self["_anim_"..id] then
-				self["_anim_"..id] = self["_anim_"..id] + dX
-			end
-			if value < self["_anim_"..id] then
-				self["_anim_"..id] = self["_anim_"..id] - dX
-			end
-			if math.abs(value - self["_anim_"..id]) < dX then
-				self["_anim_"..id] = value
-			end
+	local id = clientProp
+	if not self["_anim_"..id] then
+		self["_anim_"..id] = value
+		self["_anim_"..id.."V"] = 0.0
+	end
+	
+	-- Generate sticky value
+	if stickyness and damping then
+		self["_anim_"..id.."_stuck"] = self["_anim_"..id.."_stuck"] or false
+		self["_anim_"..id.."P"] = self["_anim_"..id.."P"] or value
+		if (math.abs(self["_anim_"..id.."P"] - value) < stickyness) and (self["_anim_"..id.."_stuck"]) then
+			value = self["_anim_"..id.."P"]
+			self["_anim_"..id.."_stuck"] = false
 		else
-			local dX2dT = (speed or 128)*(value - self["_anim_"..id]) - self["_anim_"..id.."V"] * (damping or 8.0)
-			self["_anim_"..id.."V"] = self["_anim_"..id.."V"] + dX2dT * self.DeltaTime
-			self["_anim_"..id] = math.max(0,math.min(1,self["_anim_"..id] + self["_anim_"..id.."V"] * self.DeltaTime))
-			
-			-- Check if value got stuck
-			if (math.abs(dX2dT) < 0.001) and stickyness and (self.DeltaTime > 0) then
-				self["_anim_"..id.."_stuck"] = true
-			end
+			self["_anim_"..id.."P"] = value
 		end
+	end
 		
+	if damping == false then
+		local dX = speed * self.DeltaTime
+		if value > self["_anim_"..id] then
+			self["_anim_"..id] = self["_anim_"..id] + dX
+		end
+		if value < self["_anim_"..id] then
+			self["_anim_"..id] = self["_anim_"..id] - dX
+		end
+		if math.abs(value - self["_anim_"..id]) < dX then
+			self["_anim_"..id] = value
+		end
+	else
+		local dX2dT = (speed or 128)*(value - self["_anim_"..id]) - self["_anim_"..id.."V"] * (damping or 8.0)
+		self["_anim_"..id.."V"] = self["_anim_"..id.."V"] + dX2dT * self.DeltaTime
+		self["_anim_"..id] = math.max(0,math.min(1,self["_anim_"..id] + self["_anim_"..id.."V"] * self.DeltaTime))
+		
+		-- Check if value got stuck
+		if (math.abs(dX2dT) < 0.001) and stickyness and (self.DeltaTime > 0) then
+			self["_anim_"..id.."_stuck"] = true
+		end
+	end
+
+	if self.ClientEnts[clientProp] then
 		self.ClientEnts[clientProp]:SetPoseParameter("position",min + (max-min)*self["_anim_"..id])
 	end
+	return min + (max-min)*self["_anim_"..id]
 end
 
 function ENT:ShowHide(clientProp, value)
@@ -369,6 +350,51 @@ function ENT:ShowHide(clientProp, value)
 			self.ClientEnts[clientProp]:SetColor(Color(0,0,0,0))
 		end		
 	end
+end
+
+function Metrostroi.PositionFromPanel(panel,button_id_or_vec,z)
+	local self = ENT
+	local panel = self.ButtonMap[panel]
+	if not panel then return Vector(0,0,0) end
+	if not panel.buttons then return Vector(0,0,0) end
+	
+	-- Find button or read position
+	local vec
+	if type(button_id_or_vec) == "string" then
+		local button
+		for k,v in pairs(panel.buttons) do
+			if v.ID == button_id_or_vec then
+				button = v
+				break
+			end
+		end
+		vec = Vector(button.x,button.y,z or 0)
+	else
+		vec = button_id_or_vec
+	end
+
+	-- Convert to global coords
+	vec.y = -vec.y
+	vec:Rotate(panel.ang)
+	return panel.pos + vec * panel.scale
+end
+
+function Metrostroi.AngleFromPanel(panel,ang)
+	local self = ENT
+	local panel = self.ButtonMap[panel]
+	if not panel then return Vector(0,0,0) end
+	local true_ang = panel.ang + Angle(0,0,0)
+	true_ang:RotateAroundAxis(panel.ang:Up(),ang or -90)
+	return true_ang
+end
+
+function Metrostroi.ClientPropForButton(prop_name,config)
+	local self = ENT
+	self.ClientProps[prop_name] = {
+		model = config.model or "models/metrostroi/81-717/button07.mdl",
+		pos = Metrostroi.PositionFromPanel(config.panel,config.button or config.pos,(config.z or 0.2)),
+		ang = Metrostroi.AngleFromPanel(config.panel,config.ang)
+	}
 end
 
 
@@ -743,11 +769,17 @@ hook.Add( "HUDPaint", "metrostroi-draw-crosshair-tooltip", function()
 		end
 		
 		if toolTipText != nil then
+			local text1 = string.sub(toolTipText,1,string.find(toolTipText,"\n"))
+			local text2 = string.sub(toolTipText,string.find(toolTipText,"\n") or 1e9)
 			surface.SetFont("BudgetLabel")
-			local w = surface.GetTextSize(toolTipText)
-			surface.SetTextPos((scrX-w)/2,scrY/2+10)
+			local w1 = surface.GetTextSize(text1)
+			local w2 = surface.GetTextSize(text2)
+			
 			surface.SetTextColor(255,255,255)
-			surface.DrawText(toolTipText)
+			surface.SetTextPos((scrX-w1)/2,scrY/2+10)
+			surface.DrawText(text1)
+			surface.SetTextPos((scrX-w2)/2,scrY/2+30)
+			surface.DrawText(text2)
 		end
 		
 		

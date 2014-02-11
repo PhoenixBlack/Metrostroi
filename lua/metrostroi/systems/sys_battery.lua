@@ -5,8 +5,8 @@ Metrostroi.DefineSystem("Battery")
 
 function TRAIN_SYSTEM:Initialize()
 	-- Предохранители цепей (ПА1, ПА2)
-	self.Train:LoadSystem("PA1","Fuse","PP-28", { trigger_level = 31.5 }) -- A
-	self.Train:LoadSystem("PA2","Fuse","PP-28", { trigger_level = 31.5 }) -- A
+	self.Train:LoadSystem("PA1","Relay","PP-28", { trigger_level = 31.5 }) -- A
+	self.Train:LoadSystem("PA2","Relay","PP-28", { trigger_level = 31.5 }) -- A
 	
 	-- Battery parameters
 	self.ElementCapacity 	= 80 -- A*hour
@@ -17,6 +17,10 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Current through battery in amperes
 	self.Current = 0
+end
+
+function TRAIN_SYSTEM:Outputs()
+	return { "Capacity", "Charge", "Voltage" }
 end
 
 function TRAIN_SYSTEM:Think(dT)

@@ -2,6 +2,7 @@
 -- Пневматическая система 81-717
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("81_717_Pneumatic")
+TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
 	-- Position of the train drivers valve
@@ -29,8 +30,10 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("PneumaticNo2","Relay")
 	-- Автоматический выключатель торможения (АВТ)
 	self.Train:LoadSystem("AVT","Relay","AVT-325")
-	-- MOTOR-COMPRESSOR TRIGGER RELAY FIXME
-	self.Train:LoadSystem("AK","Relay")	
+	-- Регулятор давления (АК)
+	self.Train:LoadSystem("AK","Relay","AK-11B")	
+	-- Автоматический выключатель управления (АВУ)
+	self.Train:LoadSystem("AVU","Relay","AVU-045")
 	-- Разобщение клапана машиниста
 	self.Train:LoadSystem("DriverValveDisconnect","Relay","Switch")
 	
@@ -40,6 +43,10 @@ function TRAIN_SYSTEM:Initialize()
 
 	-- Brake cylinder atmospheric valve open
 	self.BrakeCylinderValve = 0
+	
+	-- Compressor simulation
+	self.Compressor = 0
+	--Simulate overheat with TRK FIXME
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -152,7 +159,7 @@ function TRAIN_SYSTEM:Think(dT)
 	local Train = self.Train
 	
 	-- Apply specific rate to equalize pressure
-	local function equalizePressure(pressure,target,rate,fill_rate)
+	local function equalizePressure(pressure,target,rate,fill_rate,no_limit)
 		if fill_rate and (target > self[pressure]) then rate = fill_rate end
 		
 		-- Calculate derivative
@@ -165,8 +172,10 @@ function TRAIN_SYSTEM:Think(dT)
 		self[pressure] = self[pressure] + dT * dPdT
 		self[pressure] = math.max(0.0,math.min(12.0,self[pressure]))
 		self[pressure.."_dPdT"] = (self[pressure.."_dPdT"] or 0) + dPdT
-		if self[pressure] == 0.0  then self[pressure.."_dPdT"] = 0 end
-		if self[pressure] == 12.0 then self[pressure.."_dPdT"] = 0 end
+		if no_limit ~= true then
+			if self[pressure] == 0.0  then self[pressure.."_dPdT"] = 0 end
+			if self[pressure] == 12.0 then self[pressure.."_dPdT"] = 0 end
+		end
 		return dPdT
 	end
 	
@@ -185,15 +194,18 @@ function TRAIN_SYSTEM:Think(dT)
 	self.TrainToBrakeReducedPressure = self.TrainLinePressure * 0.70
 	
 	-- 1 Fill reservoir from train line, fill brake line from train line
+	local trainLineConsumption_dPdT = 0.0
 	if (self.DriverValvePosition == 1) and (Train.DriverValveDisconnect.Value == 1.0) then
 		equalizePressure("BrakeLinePressure", self.TrainLinePressure, 1.00)
 		equalizePressure("ReservoirPressure", self.TrainLinePressure, 1.70)
+		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 	end
 	-- 2 Brake line, reservoir replenished from brake line reductor
 	if (self.DriverValvePosition == 2) and (Train.DriverValveDisconnect.Value == 1.0) then
 		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.00)
 		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.00)
 		equalizePressure("ReservoirPressure", self.TrainToBrakeReducedPressure*1.01, 2.00)
+		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 	end
 	-- 3 Close all valves
 	if (self.DriverValvePosition == 3) or (Train.DriverValveDisconnect.Value == 0.0) then
@@ -202,7 +214,7 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	-- 4 Reservoir open to atmosphere, brake line equalizes with reservoir
 	if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("ReservoirPressure", 0.0,					  0.50)
+		equalizePressure("ReservoirPressure", 0.0,				  	0.50, 0.50, true)
 		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.00)
 	end
 	-- 5 Reservoir and brake line open to atmosphere
@@ -230,37 +242,31 @@ function TRAIN_SYSTEM:Think(dT)
 	if self.Train.PneumaticNo1.Value == 1.0 then
 		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.30, 1.00, 1.50)
 		--equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure * 0.70, 0.50)
+		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
 	-- Valve #2
 	if self.Train.PneumaticNo2.Value == 1.0 then
 		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.45, 1.00, 1.50)
+		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
+	
+	
+	----------------------------------------------------------------------------
+	-- Simulate compressor operation and train line depletion
+	self.Compressor = Train.KK.Value
+	self.TrainLinePressure = self.TrainLinePressure - 0.05*trainLineConsumption_dPdT*dT
+	if self.Compressor == 1 then equalizePressure("TrainLinePressure", 10.0, 0.05) end
 		
 	
 	----------------------------------------------------------------------------
 	-- Pressure trigger
 	Train.AVT:TriggerInput("Open", self.BrakeCylinderPressure > 1.8) -- 1.8 - 2.0
 	Train.AVT:TriggerInput("Close",self.BrakeCylinderPressure < 1.2) -- 0.9 - 1.5
-	Train.AK:TriggerInput( "Open", self.TrainLinePressure < -10.0) -- 1.8 - 2.0
-	Train.AK:TriggerInput( "Close",self.TrainLinePressure < -10.0) -- 0.9 - 1.5
-	
+	Train.AK:TriggerInput( "Open", self.TrainLinePressure > 8.2)
+	Train.AK:TriggerInput( "Close",self.TrainLinePressure < 6.3)
+	Train.AVU:TriggerInput("Open", self.BrakeLinePressure < 2.7) -- 2.7 - 2.9
+	Train.AVU:TriggerInput("Close",self.BrakeLinePressure > 3.5) -- 3.5 - 3.7
 
-	-- Apply brakes
-	self.PneumaticBrakeForce = 100000.0
-	self.Train.FrontBogey.PneumaticBrakeForce = self.PneumaticBrakeForce 
-	self.Train.FrontBogey.BrakeCylinderPressure = self.BrakeCylinderPressure
-	self.Train.FrontBogey.BrakeCylinderPressure_dPdT = -self.BrakeCylinderPressure_dPdT ---self.BrakeCylinderPressure_dPdT
-	self.Train.RearBogey.PneumaticBrakeForce = self.PneumaticBrakeForce
-	self.Train.RearBogey.BrakeCylinderPressure = self.BrakeCylinderPressure
-	self.Train.RearBogey.BrakeCylinderPressure_dPdT = -self.BrakeCylinderPressure_dPdT ---self.BrakeCylinderPressure_dPdT
-	
-	-- Output
-	self:TriggerOutput("DriverValvePosition", 		self.DriverValvePosition)
-	self:TriggerOutput("BrakeLinePressure", 		self.BrakeLinePressure)
-	self:TriggerOutput("BrakeCylinderPressure",  	self.BrakeCylinderPressure)
-	self:TriggerOutput("ReservoirPressure", 		self.ReservoirPressure)
-	self:TriggerOutput("TrainLinePressure",			self.TrainLinePressure)
-	
 	-- Set pressures (if isolation valves are open, propagate pressure to next wagon)
 	self:SetPressures(Train)
 	
