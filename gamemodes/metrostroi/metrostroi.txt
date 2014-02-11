@@ -1,6 +1,6 @@
 "metrostroi"
 {
-	"base"		"sandbox"
+	"base"		"base"
 	"title"		"Metrostroi"
 	"maps" 		"^gm_metrostroi"
 	"menusystem"	"1"
