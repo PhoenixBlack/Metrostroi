@@ -53,11 +53,32 @@ end
 -- Load core files
 --------------------------------------------------------------------------------
 if SERVER then
+	DISABLE_TURBOSTROI = false
+	if not DISABLE_TURBOSTROI then
+		print("Metrostroi: Trying to load simulation acceleration DLL...")
+		
+		--TODO: OS specific check
+		if file.Exists("lua/bin/gmsv_turbostroi_win32.dll", "GAME") then
+			require("turbostroi")
+		else
+			print(".dll file not found. Did you install it correctly?")
+		end
+		
+		
+		
+	end
+	
+	if Turbostroi 
+	then print("Metrostroi: Simulation acceleration ENABLED!")
+	else print("Metrostroi: Simulation acceleration DISABLED")
+	end
+
 	include("metrostroi/sv_railnetwork.lua")
 	include("metrostroi/sv_saveload.lua")
 	include("metrostroi/sv_debug.lua")
 	include("metrostroi/sv_telemetry.lua")
 	include("metrostroi/sv_debugger.lua")
+	include("metrostroi/sv_turbostroi.lua")
 	AddCSLuaFile("metrostroi/cl_debugger.lua")
 	AddCSLuaFile("metrostroi/cl_lang.lua")
 	
@@ -101,11 +122,13 @@ local function LoadSystem(name)
 	AddCSLuaFile(filename)
 	if SERVER then
 		include(filename)
+		if Turbostroi then Turbostroi.RegisterSystem(name,filename) end
 	else
 		timer.Simple(0.05, function() include(filename) end)
 	end
 	
 	-- Load train systems
+	if TRAIN_SYSTEM then TRAIN_SYSTEM.FileName = filename end
 	Metrostroi.Systems["_"..name] = TRAIN_SYSTEM
 	Metrostroi.BaseSystems[name] = TRAIN_SYSTEM
 	Metrostroi.Systems[name] = function(train,...)
@@ -141,6 +164,7 @@ local function LoadSystem(name)
 		else
 			tbl:ClientInitialize(...)
 		end
+		tbl.OutputsList = tbl:Outputs()
 		return tbl
 	end
 end
@@ -155,7 +179,6 @@ end
 -- Load systems
 LoadSystem("Announcer")
 --LoadSystem("Controller")
-LoadSystem("Fuse")
 LoadSystem("Relay")
 
 LoadSystem("DURA")

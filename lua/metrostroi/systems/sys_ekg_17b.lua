@@ -26,14 +26,6 @@ function TRAIN_SYSTEM:Initialize()
 		[17] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
 		[18] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1 },
 	}
-	self.OverrideRate = {
-		[ 1] = 5,
-		[ 2] = 5,
-		[ 3] = 5,
-		[ 4] = 5,
-		[ 5] = 5,
-		[ 6] = 5,
-	}
 	Metrostroi.BaseSystems["EKG"].Initialize(self)
 end
 
