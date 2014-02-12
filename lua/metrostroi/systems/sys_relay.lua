@@ -129,12 +129,15 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { "State" }
+	return { "Value" }
 end
 
-function TRAIN_SYSTEM:TriggerInput(name,value)	
+function TRAIN_SYSTEM:TriggerInput(name,value)		
 	-- Boolean values accepted
 	if type(value) == "boolean" then value = value and 1 or 0 end
+	if type(value) == "string"  then 
+		if value == "true" then value = 1 else value = 0 end 
+	end
 	
 	-- Open/close coils of the relay
 	if (name == "Close") and (value > self.trigger_level) and (self.Value ~= 1.0) then
@@ -157,31 +160,16 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 	end
 end
 
-function TRAIN_SYSTEM:Think()	
-	-- Check if power dissapears and relay must return to its original state
-	--[[if (open_voltage < open_target) or (close_voltage < close_target) then
-		if self.returns then 
-			self.ChangeTime = nil
-			if self.normally_closed 
-			then self.Value = 1.0
-			else self.Value = 0.0
-			end
-			self.TargetValue = self.Value
-			self:TriggerOutput("State",self.Value)
-			return
-		end
-	end]]--
-	
+function TRAIN_SYSTEM:Think(dT)
 	-- Short-circuited relay
 	if FailSim.Value(self,"ShortCircuit") > 0.5 then
 		self.Value = 0.0
-		self:TriggerOutput("State",self.Value)
 		return
 	end
 	
 	-- Spurious trip
 	if FailSim.Value(self,"SpuriousTrip") > 0.5 then
-		self:TriggerOutput("Toggle",1.0)
+		self:TriggerInput("Toggle",1.0)
 		FailSim.ResetParameter(self,"SpuriousTrip",0.0)
 		FailSim.Age(self,1)
 	end
@@ -189,7 +177,6 @@ function TRAIN_SYSTEM:Think()
 	-- Switch relay
 	if self.ChangeTime and (CurTime() > self.ChangeTime) then		
 		self.Value = self.TargetValue
-		self:TriggerOutput("State",self.Value)
 		self.ChangeTime = nil
 
 		-- Age relay a little

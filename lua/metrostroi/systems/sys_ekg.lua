@@ -24,11 +24,15 @@ function TRAIN_SYSTEM:Initialize()
 	self.SelectedPosition = 1	-- Currently selected set of contactors
 	self.MotorState = 0			-- State of motor (1 go, -1 brake)
 	self.MotorCoilState = 1		-- State of the motor coil (selects direction)
-	self.RKM = 0				-- Intermediate position contactor
+	self.RKM1 = 0				-- Intermediate position contactor
+	self.RKM2 = 0				-- Intermediate position contactor
 	self.RKP = 0				-- Final position contactor
 	
 	-- Max position
 	self.MaxPosition = #self.Configuration
+	
+	-- Use more iterations to make sure rotation of the rotor passes through all positions
+	self.SubIterations = 4
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -74,7 +78,7 @@ function TRAIN_SYSTEM:Think(dT)
 	if self.MotorState == -1.0 then self.Velocity = 0 end
 	
 	-- Move motor
-	local threshold = 0.25 -- Maximum single step of motor per frame
+	local threshold = 0.20 -- Maximum single step of motor per frame
 	self.Position = self.Position + math.min(threshold*0.5,self.Velocity * dT)
 	
 	-- Limit motor from moving too far
@@ -96,14 +100,7 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	-- Update position contactors
 	local f = self.Position - position
-	self.RKM = ((f < -0.30) or  (f > 0.30)) and 1 or 0
-	self.RKP = ((f > -0.10) and (f < 0.10)) and 1 or 0
-
-	-- Update outputs
-	self:TriggerOutput("Position",self.Position)
-	self:TriggerOutput("Velocity",self.Velocity)
-	self:TriggerOutput("MotorState",self.MotorState)
-	self:TriggerOutput("MotorCoilState",self.MotorCoilState)
-	self:TriggerOutput("RKM",self.RKM)
-	self:TriggerOutput("RKP",self.RKP)
+	self.RKM1 = ((f < -0.30) or  (f > 0.30)) and 1 or 0
+	self.RKM2 = ((f < -0.40) or  (f > 0.40)) and 1 or 0
+	self.RKP  = ((f > -0.10) and (f < 0.10)) and 1 or 0
 end

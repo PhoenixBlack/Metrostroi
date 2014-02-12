@@ -13,15 +13,17 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("VozvratRP","Relay","Switch")
 	self.Train:LoadSystem("RezMK","Relay","Switch")
 	self.Train:LoadSystem("VMK","Relay","Switch")
-	self.Train:LoadSystem("VAH","Relay","Switch")
+	self.Train:LoadSystem("VAH","Relay","Switch",{ normally_closed = true })
 	self.Train:LoadSystem("VAD","Relay","Switch")
 	self.Train:LoadSystem("VUS","Relay","Switch")
-	--self.Train:LoadSystem("VUD1","Relay","Switch")
-	--self.Train:LoadSystem("VUD2","Relay","Switch")
+	self.Train:LoadSystem("VUD1","Relay","Switch")
+	self.Train:LoadSystem("VUD2","Relay","Switch",{ normally_closed = true }) -- Doors close
+	self.Train:LoadSystem("VDL","Relay","Switch") -- Doors left open
 	self.Train:LoadSystem("KDL","Relay","Switch")
 	self.Train:LoadSystem("KDP","Relay","Switch")
 	self.Train:LoadSystem("KRZD","Relay","Switch")
 	self.Train:LoadSystem("KSN","Relay","Switch")
+	self.Train:LoadSystem("OtklAVU","Relay","Switch")
 	
 	-- Автоматические выключатели (АВ)
 	self.Train:LoadSystem("A1","Relay","VA21-29")
@@ -74,13 +76,17 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Map of AV switches to indexes on panel
 	self:InitializeAVMap()
-	
-	-- Panel lights and indications
-	self.Indications = {}
 end
 
 function TRAIN_SYSTEM:ClientInitialize()
 	self:InitializeAVMap()
+end
+
+function TRAIN_SYSTEM:Outputs()
+	return { "CabinLight", "HeadLights1", "HeadLights2", "HeadLights3",
+			 "RedLightLeft", "RedLightRight", "EmergencyLight",
+			 "GreenRP", "RedRP", "KUP", "V1", "AVU", "Ring", "SD",
+			 "TrainBrakes", "TrainRP", "TrainDoors" }
 end
 
 function TRAIN_SYSTEM:InitializeAVMap()

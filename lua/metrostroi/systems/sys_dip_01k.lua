@@ -12,10 +12,10 @@ function TRAIN_SYSTEM:Initialize()
 		[6] = 0,
 		[7] = 0,
 	}
-	self.XT3 = {
-		[1] = 0, -- General (battery) output
-		[4] = 0, -- Output for passenger lights
-	}
+	self.XT3_1 = 0 -- General (battery) output
+	self.XT3_4 = 0 -- Output for passenger lights
+	self.XT1_2 = 0
+	
 	self.XT3_1ext = 0 -- External
 	self.Active = 0
 	self.LightsActive = 0
@@ -31,7 +31,7 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { "XT3.1", "XT3.4", "XT1.2" }
+	return { "XT3_1", "XT3_4", "XT1_2" }
 end
 
 
@@ -53,7 +53,7 @@ function TRAIN_SYSTEM:Think()
 	local Train = self.Train
 	
 	-- Get high-voltage input
-	local XT1_2 = Train.Electric.Aux750V * Train.KPP.Value * 1 -- P4
+	self.XT1_2 = Train.Electric.Aux750V * Train.KPP.Value * 1 -- P4
 	-- Get battery input
 	local XT3_1 = self.XT3_1ext
 	
@@ -66,19 +66,15 @@ function TRAIN_SYSTEM:Think()
 	
 	-- Undervoltage/overvoltage
 	local voltage_bat = XT3_1
-	if (XT1_2 > 550) and (XT1_2 < 975) then voltage_bat = 75 end
+	if (self.XT1_2 > 550) and (self.XT1_2 < 975) then voltage_bat = 75 end
 	if voltage_bat < 55 then self.Active = 0 self.LightsActive = 0 end
 	if voltage_bat > 85 then self.Active = 0 self.LightsActive = 0 end
 	
 	local voltage = 0
-	if (XT1_2 > 550) and (XT1_2 < 975) then voltage = 75 end
+	if (self.XT1_2 > 550) and (self.XT1_2 < 975) then voltage = 75 end
 	
 	-- Generate output
-	self.XT3[1] = voltage * self.Active
-	self.XT3[4] = voltage * self.Active
+	self.XT3_1 = voltage * self.Active
+	self.XT3_4 = voltage * self.Active
 	Train.KPP:TriggerInput("Open",1.0 - self.Active)
-	
-	self:TriggerOutput("XT3.1", self.XT3[1])
-	self:TriggerOutput("XT3.4", self.XT3[4])
-	self:TriggerOutput("XT1.2", XT1_2)
 end

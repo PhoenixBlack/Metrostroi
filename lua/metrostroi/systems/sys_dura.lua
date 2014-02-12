@@ -2,6 +2,7 @@
 -- ДУРА (Дополнительная Универсальная Радиоаппаратура)
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("DURA")
+TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
 	self.SelectAlternate = nil
@@ -34,7 +35,7 @@ end
 
 function TRAIN_SYSTEM:Think()
 	-- Require 80 volts
-	if self.Train.Electric and (self.Train.Electric.Aux80V < 70) then return end
+	--if self.Train.Electric and (self.Train.Electric.Aux80V < 70) then return end
 	
 	-- Check ARS signals
 	self.Timer = self.Timer or CurTime()
@@ -113,11 +114,11 @@ function TRAIN_SYSTEM:Think()
 	end
 	
 	-- Output
-	self:TriggerOutput("SwitchBlocked", 		self.SwitchBlocked and 1 or 0)
+	--[[self:TriggerOutput("SwitchBlocked", 		self.SwitchBlocked and 1 or 0)
 	self:TriggerOutput("SelectedAlternate", 	self.OntoAlternateTrack and 1 or 0)
 	self:TriggerOutput("SelectingAlternate", 	(self.SelectAlternate == true) and 1 or 0)
 	self:TriggerOutput("SelectingMain",			(self.SelectAlternate == false) and 1 or 0)
 	self:TriggerOutput("NextLightRed",			self.NextLightRed and 1 or 0)
 	self:TriggerOutput("NextLightYellow",		self.NextLightYellow and 1 or 0)
-	self:TriggerOutput("DistanceToLight",		self.DistanceToLight)
+	self:TriggerOutput("DistanceToLight",		self.DistanceToLight)]]--
 end

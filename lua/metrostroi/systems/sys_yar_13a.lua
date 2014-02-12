@@ -72,7 +72,7 @@ function TRAIN_SYSTEM:Think()
 	self.RUTCurrent = math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24)
 	self.RUTTarget = 260
 	-- HACK: increase RUT current on slopes
-	if math.abs(Train:GetAngles().pitch) > 2.5 then self.RUTTarget = self.RUTTarget + 75 end	
+	--if math.abs(Train:GetAngles().pitch) > 2.5 then self.RUTTarget = self.RUTTarget + 75 end	
 	if Train.PositionSwitch.SelectedPosition >= 3 then self.RUTTarget = 180 end
 	
 	if Train.RUTpod > 0.5 
@@ -83,7 +83,7 @@ function TRAIN_SYSTEM:Think()
 	-- RRT operation
 	Train.RRT:TriggerInput("Close",(Train.RRT.Value == 0.0) and (Train.RRTpod > 0.5) and (Train.RRTuderzh > 0.5))
 	Train.RRT:TriggerInput("Open",(Train.RRTuderzh < 0.5))
-	
+
 	-- RPvozvrat operation
 	Train.RPvozvrat:TriggerInput("Close",
 		(Train.RPL.Value == 1.0) or

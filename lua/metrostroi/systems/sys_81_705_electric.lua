@@ -26,13 +26,21 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Load resistor blocks
 	RESISTOR_BLOCKS = {}
-	include("metrostroi/systems/gen_resblocks.lua")
+	if TURBOSTROI then
+		dofile("garrysmod/addons/metrostroi/lua/metrostroi/systems/gen_resblocks.lua")
+	else
+		include("metrostroi/systems/gen_resblocks.lua")
+	end
 	self.ResistorBlocks = RESISTOR_BLOCKS
 	RESISTOR_BLOCKS = nil
 	
 	-- Load internal circuits
 	INTERNAL_CIRCUITS = {}
-	include("metrostroi/systems/gen_int_81_705.lua")
+	if TURBOSTROI then
+		dofile("garrysmod/addons/metrostroi/lua/metrostroi/systems/gen_int_81_705.lua")
+	else
+		include("metrostroi/systems/gen_int_81_705.lua")
+	end
 	self.InternalCircuits = INTERNAL_CIRCUITS
 	INTERNAL_CIRCUITS = nil
 	
@@ -58,6 +66,9 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Need many iterations for engine simulation to converge
 	self.SubIterations = 16
+	
+	-- Главный выключатель
+	self.Train:LoadSystem("GV","Relay","GV_10ZH")
 end
 
 
@@ -97,9 +108,9 @@ function TRAIN_SYSTEM:Think(dT)
 	-- Information only
 	----------------------------------------------------------------------------
 	-- Питание вспомагательных цепей 80V
-	self.Aux80V = Train.PowerSupply.XT3[1]
+	self.Aux80V = Train.PowerSupply.XT3_1
 	-- Питание освещения 80V
-	self.Lights80V = Train.PowerSupply.XT3[4]
+	self.Lights80V = Train.PowerSupply.XT3_4
 
 	
 	----------------------------------------------------------------------------
@@ -107,12 +118,6 @@ function TRAIN_SYSTEM:Think(dT)
 	----------------------------------------------------------------------------
 	self:SolvePowerCircuits(Train,dT)
 	self:SolveInternalCircuits(Train,dT)
-	
-	-- Output interesting variables
-	self.outputs = self.outputs or self:Outputs()
-	for k,v in pairs(self.outputs) do
-		self:TriggerOutput(v,self[v])
-	end
 
 	
 	----------------------------------------------------------------------------
@@ -127,6 +132,7 @@ end
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 	local KSH1,KSH2 = 0,0
+	local SDRK_Shunt = 1.0
 	self.Triggers = { -- FIXME
 		["LK5"]			= function(V) end,
 		["KSH1"]		= function(V) KSH1 = KSH1 + V end,
@@ -136,13 +142,13 @@ function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 		["KPP"]			= function(V) Train.KPP:TriggerInput("Close",V) end,
 
 		["RPvozvrat"]	= function(V) Train.RPvozvrat:TriggerInput("Open",V) end,
-		
 		["RRTuderzh"]	= function(V) Train.RRTuderzh = V end,
 		["RRTpod"]		= function(V) Train.RRTpod = V end,
 		["RUTpod"]		= function(V) Train.RUTpod = V end,
 		
 		["SDPP"]		= function(V) Train.PositionSwitch:TriggerInput("MotorState",-1.0 + 2.0*math.max(0,V)) end,
-		["SDRK_Coil"]	= function(V) Train.RheostatController:TriggerInput("MotorCoilState",V*(-1.0 + 2.0*Train.RR.Value)) end,
+		["SDRK_Shunt"]	= function(V) SDRK_Shunt = V end,
+		["SDRK_Coil"]	= function(V) Train.RheostatController:TriggerInput("MotorCoilState",SDRK_Shunt*math.min(1,math.max(0,V))*(-1.0 + 2.0*Train.RR.Value)) end,
 		["SDRK"]		= function(V) Train.RheostatController:TriggerInput("MotorState",V) end,
 		
 		["XR3.2"]		= function(V) Train.PowerSupply:TriggerInput("XR3.2",V) end,
@@ -157,6 +163,7 @@ function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 	}
 	local S = self.InternalCircuits.Solve(Train,self.Triggers)
 	--if true then
+	--print(S["31V"],S["D1"],S["D1-31V"])
 	if false then
 		print("---------------------")
 		for k,v in SortedPairs(S) do 

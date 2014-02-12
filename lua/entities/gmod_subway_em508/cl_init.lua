@@ -15,9 +15,38 @@ ENT.ButtonMap["Main"] = {
 	scale = 0.0625,
 	
 	buttons = {		
-		{ID = "DIPonSet",		x=22,  y=19, radius=20, tooltip="Turn DIP and lights on"},
-		{ID = "DIPoffSet",		x=66,  y=19, radius=20, tooltip="Turn DIP and lights off"},
-		{ID = "VozvratRPSet",	x=192, y=80, radius=20, tooltip="Return overload relay"},
+		{ID = "DIPonSet",		x=22,  y=19, radius=20, tooltip="Включение ДИП и освещения\nTurn DIP and interior lights on"},
+		{ID = "DIPoffSet",		x=66,  y=19, radius=20, tooltip="Выключение ДИП и освещения\nTurn DIP and interior lights off"},
+		{ID = "VozvratRPSet",	x=192, y=78, radius=20, tooltip="Возврат реле перегрузки\nReset overload relay"},
+		{ID = "VMKToggle",		x=22,  y=85, radius=20, tooltip="Включение мотор-компрессора\nTurn motor-compressor on"},
+		
+		{ID = "RezMKSet",		x=66,  y=80, radius=20, tooltip="Резервное включение мотор-компрессора\nEmergency motor-compressor startup"},
+		{ID = "VAHToggle",		x=187, y=19, radius=20, tooltip="ВАХ: Включение аварийного хода (неисправность реле педали безопасности)\nVAH: Emergency driving mode (failure of RPB relay)"},
+		{ID = "VADToggle",		x=226, y=19, radius=20, tooltip="ВАД: Включение аварийного закрытия дверей (неисправность реле контроля дверей)\nVAD: Emergency door close override (failure of KD relay)"},
+		
+		{ID = "",				x=187+77, y=19, radius=20, tooltip="Включение системы автоматического регулирования скорости"},
+		{ID = "",				x=226+77, y=19, radius=20, tooltip="Включение системы автоматической локомотивной сигнализации"},
+		
+		{ID = "OtklAVUToggle",	x=349, y=19, radius=20, tooltip="Отключение автоматического выключения управления (неисправность реле АВУ)\nTurn off automatic control disable relay (failure of AVU relay)"},
+		{ID = "KRZDSet",		x=393, y=19, radius=20, tooltip="КРЗД: Кнопка резервного закрытия дверей\nKRZD: Emergency door closing"},
+		{ID = "VUD1Toggle",		x=393, y=80, radius=20, tooltip="ВУД1: Выключатель управления дверьми\nVUD1: Door control toggle (close doors)"},
+		
+		{ID = "DoorSelectToggle",x=321, y=75, radius=20, tooltip="Выбор стороны открытия дверей\nSelect side on which doors will open"},
+		{ID = "KDLSet",			x=291, y=122, radius=20, tooltip="КДЛ: Кнопка левых дверей\nKDL: Left doors open"},
+		{ID = "KDPSet",			x=349, y=122, radius=20, tooltip="КДП: Кнопка правых дверей\nKDP: Right doors open"},
+		
+		{ID = "KVTSet",			x=240, y=122, radius=20, tooltip=""},
+		{ID = "KSNSet",			x=240, y=78, radius=20,  tooltip="КСН: Кнопка сигнализации неисправности\nKSN: Failure indication button"},
+		{ID = "KRPSet",			x=192, y=122, radius=20, tooltip="КРП: Кнопка резервного пуска"},
+		
+		{ID = "Program1Set",	x=112, y=127, radius=20, tooltip=""},
+		{ID = "Program2Set",	x=149, y=127, radius=20, tooltip=""},
+		
+		{ID = "",				x=112, y=30, radius=20, tooltip=""},
+		{ID = "",				x=149, y=30, radius=20, tooltip=""},
+		{ID = "",				x=112, y=80, radius=20, tooltip=""},
+		{ID = "",				x=149, y=80, radius=20, tooltip=""},
+		
 	}
 }
 
@@ -30,9 +59,9 @@ ENT.ButtonMap["Front"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "VUSToggle",		x=400, y=75, radius=15, tooltip="Ходовые фары (Head lights)"},
-		--{ID = "CabinLightsToggle",		x=387, y=28, radius=15, tooltip=""},	
-		{x=50,y=50,tooltip="Индикатор скорости (Speed indicator)",radius=35},
+		{ID = "VUSToggle",x=400, y=75, radius=15, tooltip="ВУС: Выключатель усиленого света ходовых фар\nVUS: Head lights bright/dim"},
+		--{ID = "CabinLightsToggle",		x=387, y=28, radius=15, tooltip=""},
+		{x=50,y=50,tooltip="Индикатор скорости\nSpeed indicator",radius=35},
 	}
 }
 
@@ -45,27 +74,26 @@ ENT.ButtonMap["ARS"] = {
 	scale = 0.0625/10,
 
 	buttons = {
-		--{x=2045,y=406,tooltip="Индикатор скорости (Speed indicator)",radius=130},
-		{x=2045,y=406,tooltip="Speed_indicator",radius=130},
-		{x=2610,y=363,tooltip="Красная лампа реле перегрузки (РП) (Red overload relay light)",radius=120},
-		{x=2982,y=363,tooltip="Красная лампа реле перегрузки (РП) (Red overload relay light)",radius=120},
-		{x=1070+320*0,y=780,tooltip="Лампа хода реостатного контроллера ЛхРК (Rheostat controller motion light)",radius=120},
-		{x=1070+320*1,y=780,tooltip="Контроль тормоза (ARS braking indicator)",radius=120},
-		{x=1070+320*2,y=780,tooltip="Контроль выключения двигателей (ARS engine shutdown indicator)",radius=120},
-		{x=1070+320*3,y=780,tooltip="Нулевое реле (Zero relay state)",radius=120},
-		{x=1070+320*4,y=780,tooltip="",radius=120},
-		{x=1070+320*5,y=780,tooltip="Индикатор работы печи (Cabin heating indicator)",radius=120},
-		{x=1070+320*6,y=780,tooltip="",radius=120},
+		{x=2045,y=406,tooltip="Индикатор скорости\nSpeed indicator",radius=130},
+		{x=2610,y=363,tooltip="РП: Красная лампа реле перегрузки\nRP: Red overload relay light (power circuits failed to assemble)",radius=120},
+		{x=2982,y=363,tooltip="РП: Красная лампа реле перегрузки\nRP: Red overload relay light (power circuits failed to assemble)",radius=120},
+		{x=1070+320*0,y=780,tooltip="ЛхРК: Лампа хода реостатного контроллера\nLhRK: Rheostat controller motion light",radius=120},
+		{x=1070+320*1,y=780,tooltip="КТ: Контроль тормоза\nKT: ARS braking indicator",radius=120},
+		{x=1070+320*2,y=780,tooltip="КВД: Контроль выключения двигателей\nKVD: ARS engine shutdown indicator",radius=120},
+		{x=1070+320*3,y=780,tooltip="НР1: Нулевое реле\nNR1: Zero relay state (high voltage enabled)",radius=120},
+		{x=1070+320*4,y=780,tooltip="ВПР: Контроль включения поездной радиосвязи\nVPR: Train radio equipment enabled",radius=120},
+		{x=1070+320*5,y=780,tooltip="ПЕЧЬ: Индикатор работы печи\nPECH: Cabin heating indicator",radius=120},
+		{x=1070+320*6,y=780,tooltip="АВУ: Автоматический выключатель управления\nAVU: Automatic control disabler active",radius=120},
 		
-		{x=1070+380*0,y=570,tooltip="Отсутствие частоты АРС (No ARS frequency)",radius=120},
-		{x=1070+380*1,y=570,tooltip="Сигнал АРС остановки (ARS stop signal)",radius=120},
-		{x=1070+380*2,y=570,tooltip="Ограничение скорости 40 км/ч (speed limit 40 kph)",radius=120},
-		{x=1070+380*3,y=570,tooltip="Ограничение скорости 60 км/ч (speed limit 60 kph)",radius=120},
-		{x=1070+380*4,y=570,tooltip="Ограничение скорости 75 км/ч (speed limit 75 kph)",radius=120},
-		{x=1070+380*5,y=570,tooltip="Ограничение скорости 80 км/ч (speed limit 80 kph)",radius=120},
+		{x=1070+380*0,y=570,tooltip="ОЧ: Отсутствие частоты АРС\nOCh: No ARS frequency",radius=120},
+		{x=1070+380*1,y=570,tooltip="0: Сигнал АРС остановки\n0: ARS stop signal",radius=120},
+		{x=1070+380*2,y=570,tooltip="40: Ограничение скорости 40 км/ч\nSpeed limit 40 kph",radius=120},
+		{x=1070+380*3,y=570,tooltip="60: Ограничение скорости 60 км/ч\nSpeed limit 60 kph",radius=120},
+		{x=1070+380*4,y=570,tooltip="75: Ограничение скорости 75 км/ч\nSpeed limit 75 kph",radius=120},
+		{x=1070+380*5,y=570,tooltip="80: Ограничение скорости 80 км/ч\nSpeed limit 80 kph",radius=120},
 		
-		{x=1080+380*0,y=363,tooltip="Сигнализация дверей (Door state light)",radius=120},
-		{x=1080+380*1,y=363,tooltip="Зелёная лампа реле перегрузки (РП) (Green overload relay light)",radius=120},
+		{x=1080+380*0,y=363,tooltip="СД: Сигнализация дверей\nSD: Door state light (doors are open)",radius=120},
+		{x=1080+380*1,y=363,tooltip="РП: Зелёная лампа реле перегрузки\nRP: Green overload relay light (overload relay open on current train)",radius=120},
 	}
 }
 
@@ -78,9 +106,9 @@ ENT.ButtonMap["AV"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "A61Toggle", x=16+44*0,  y=110+129*0, radius=30, tooltip="A61 Train wire 6 control"},
-		{ID = "A55Toggle", x=16+44*1,  y=110+129*0, radius=30, tooltip="A55 Train wire 10AS control"},
-		{ID = "A54Toggle", x=16+44*2,  y=110+129*0, radius=30, tooltip="A54 Train wire 10AK control"},
+		{ID = "A61Toggle", x=16+44*0,  y=110+129*0, radius=30, tooltip="A61 Управление 6ым поездным проводом\nTrain wire 6 control"},
+		{ID = "A55Toggle", x=16+44*1,  y=110+129*0, radius=30, tooltip="A55 Управление проводом 10АС\nTrain wire 10AS control"},
+		{ID = "A54Toggle", x=16+44*2,  y=110+129*0, radius=30, tooltip="A54 Управление проводом 10АК\nTrain wire 10AK control"},
 		{ID = "A56Toggle", x=16+44*3,  y=110+129*0, radius=30, tooltip="A56"},
 		{ID = "A27Toggle", x=16+44*4,  y=110+129*0, radius=30, tooltip="A27 Turn on DIP and lighting"},
 		{ID = "A21Toggle", x=16+44*5,  y=110+129*0, radius=30, tooltip="A21 Door control"},
@@ -141,9 +169,9 @@ ENT.ButtonMap["Battery"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "VBToggle", x=110+70*0, y=130, radius=120, tooltip="Battery on/off"},
-		{ID = "VBToggle", x=110+70*1, y=130, radius=120, tooltip="Battery on/off"},
-		{ID = "VBToggle", x=110+70*2, y=130, radius=120, tooltip="Battery on/off"},
+		{ID = "VBToggle", x=110+70*0, y=130, radius=120, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
+		{ID = "VBToggle", x=110+70*1, y=130, radius=120, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
+		{ID = "VBToggle", x=110+70*2, y=130, radius=120, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
 	}
 }
 
@@ -169,8 +197,8 @@ ENT.ButtonMap["PneumaticPanels"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{x=60,y=45,tooltip="Brake cylinder pressure",radius=30},
-		{x=80,y=105,tooltip="Red: brake line pressure, black: train line pressure",radius=30},
+		{x=60,y=45,radius=30,tooltip="Давление в тормозных цилиндрах (ТЦ)\nBrake cylinder pressure"},
+		{x=80,y=105,radius=30,tooltip="Давление в магистралях (красная: тормозной, чёрная: напорной)\nPressure in pneumatic lines (red: brake line, black: train line)"},
 	}
 }
 ENT.ButtonMap["DriverValveDisconnect"] = {
@@ -181,9 +209,9 @@ ENT.ButtonMap["DriverValveDisconnect"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "DriverValveDisconnectToggle", x=50, y=45, radius=50, tooltip="Driver valve disconnect valve"},
-		{ID = "DriverValveDisconnectToggle", x=100, y=45, radius=50, tooltip="Driver valve disconnect valve"},
-		{ID = "DriverValveDisconnectToggle", x=150, y=45, radius=50, tooltip="Driver valve disconnect valve"},
+		{ID = "DriverValveDisconnectToggle", x=50, y=45, radius=50, tooltip="Клапан разобщения\nDriver valve disconnect valve"},
+		{ID = "DriverValveDisconnectToggle", x=100, y=45, radius=50, tooltip="Клапан разобщения\nDriver valve disconnect valve"},
+		{ID = "DriverValveDisconnectToggle", x=150, y=45, radius=50, tooltip="Клапан разобщения\nDriver valve disconnect valve"},
 	}
 }
 
@@ -229,8 +257,7 @@ ENT.ClientProps["brake_disconnect"] = {
 	pos = Vector(429.5,-61.0,-25),
 	ang = Angle(-30,0,0)
 }
-
-
+--------------------------------------------------------------------------------
 ENT.ClientProps["train_line"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
 	pos = Vector(449.20,-35.00,9.45),
@@ -246,8 +273,7 @@ ENT.ClientProps["brake_cylinder"] = {
 	pos = Vector(450.5,-32.9,13.4),
 	ang = Angle(90,0,180-18)
 }
-
-
+--------------------------------------------------------------------------------
 ENT.ClientProps["ampermeter"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
 	pos = Vector(445.5,-59.5,23.3),
@@ -258,18 +284,21 @@ ENT.ClientProps["voltmeter"] = {
 	pos = Vector(448.1,-55.7,23.3),
 	ang = Angle(90,0,-45+180+80)
 }
-ENT.ClientProps["speedometer"] = {
+ENT.ClientProps["volt1"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
 	pos = Vector(447.10,-38.15,0.4),
 	ang = Angle(90-18,180,7)
 }
-ENT.ClientProps["volt1"] = {
+ENT.ClientProps["volt2"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
 	pos = Vector(452.3,-19.4,18.2),
 	ang = Angle(90,0,180)
 }
 
 
+
+
+--------------------------------------------------------------------------------
 ENT.ClientProps["headlights"] = {
 	model = "models/metrostroi/81-717/switch04.mdl",
 	pos = Vector(443.1,-60.0,0.5),
@@ -280,23 +309,104 @@ ENT.ClientProps["panellights"] = {
 	pos = Vector(444.1,-59.3,3.3),
 	ang = Angle(-90,0,0)
 }
-ENT.ClientProps["dip_on"] = {
+--------------------------------------------------------------------------------
+Metrostroi.ClientPropForButton("DIPon",{
+	panel = "Main",
+	button = "DIPonSet",	
 	model = "models/metrostroi/81-717/button07.mdl",
-	pos = Vector(444.3,-36.4,-1.3),
-	ang = Angle(-20,0,0)
-}
-ENT.ClientProps["dip_off"] = {
+})
+Metrostroi.ClientPropForButton("DIPoff",{
+	panel = "Main",
+	button = "DIPoffSet",	
 	model = "models/metrostroi/81-717/button10.mdl",
-	pos = Vector(443.9,-39.2,-1.3),
-	ang = Angle(-20,0,0)
-}
-ENT.ClientProps["rp_vozvrat"] = {
+})
+Metrostroi.ClientPropForButton("VozvratRP",{
+	panel = "Main",
+	button = "VozvratRPSet",	
 	model = "models/metrostroi/81-717/button07.mdl",
-	pos = Vector(439.3,-46.6,-2.6),
-	ang = Angle(-20,0,0)
-}
+})
+Metrostroi.ClientPropForButton("VMK",{
+	panel = "Main",
+	button = "VMKToggle",	
+	model = "models/metrostroi/81-717/switch01.mdl",
+	z = -9.8,
+})
+Metrostroi.ClientPropForButton("RezMK",{
+	panel = "Main",
+	button = "RezMKSet",	
+	model = "models/metrostroi/81-717/button07.mdl",
+})
+Metrostroi.ClientPropForButton("VAH",{
+	panel = "Main",
+	button = "VAHToggle",	
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("VAD",{
+	panel = "Main",
+	button = "VADToggle",	
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("OtklAVU",{
+	panel = "Main",
+	button = "OtklAVUToggle",	
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("KRZD",{
+	panel = "Main",
+	button = "KRZDSet",	
+	model = "models/metrostroi/81-717/button07.mdl",
+})
+Metrostroi.ClientPropForButton("VUD1",{
+	panel = "Main",
+	button = "VUD1Toggle",	
+	model = "models/metrostroi/81-717/switch01.mdl",
+	z = -9.8,
+})
+Metrostroi.ClientPropForButton("DoorSelect",{
+	panel = "Main",
+	button = "DoorSelectToggle",	
+	model = "models/metrostroi/81-717/switch04.mdl",
+	ang = 0
+})
+Metrostroi.ClientPropForButton("KDL",{
+	panel = "Main",
+	button = "KDLSet",	
+	model = "models/metrostroi/81-717/button08.mdl",
+})
+Metrostroi.ClientPropForButton("KDP",{
+	panel = "Main",
+	button = "KDPSet",	
+	model = "models/metrostroi/81-717/button08.mdl",
+})
+Metrostroi.ClientPropForButton("KVT",{
+	panel = "Main",
+	button = "KVTSet",	
+	model = "models/metrostroi/81-717/button07.mdl",
+})
+Metrostroi.ClientPropForButton("KSN",{
+	panel = "Main",
+	button = "KSNSet",	
+	model = "models/metrostroi/81-717/button10.mdl",
+})
+Metrostroi.ClientPropForButton("KRP",{
+	panel = "Main",
+	button = "KRPSet",	
+	model = "models/metrostroi/81-717/button07.mdl",
+})
+Metrostroi.ClientPropForButton("Program1",{
+	panel = "Main",
+	button = "Program1Set",	
+	model = "models/metrostroi/81-717/button08.mdl",
+})
+Metrostroi.ClientPropForButton("Program2",{
+	panel = "Main",
+	button = "Program2Set",	
+	model = "models/metrostroi/81-717/button08.mdl",
+})
 
 
+
+--------------------------------------------------------------------------------
 ENT.ClientProps["gv"] = {
 	model = "models/metrostroi/81-717/gv.mdl",
 	pos = Vector(154,62.5,-65),
@@ -307,7 +417,7 @@ ENT.ClientProps["gv_wrench"] = {
 	pos = Vector(154,62.5,-65),
 	ang = Angle(-50,0,0)
 }
-
+--------------------------------------------------------------------------------
 for x=0,11 do
 	for y=0,3 do
 		ENT.ClientProps["a"..(x+12*y)] = {
@@ -332,10 +442,7 @@ ENT.ClientProps["bat3"] = {
 	pos = Vector(393.6,26.0+4.6*2,24.9),
 	ang = Angle(90,0,0)
 }
-
-
-
-
+--------------------------------------------------------------------------------
 ENT.ClientProps["book"] = {
 	model = "models/props_lab/binderredlabel.mdl",
 	pos = Vector(449.0,-40.0,45.0),
@@ -347,18 +454,24 @@ ENT.ClientProps["book"] = {
 
 --------------------------------------------------------------------------------
 -- Add doors
+local function GetDoorPosition(i,k,j)
+	if j == 0 
+	then return Vector(353.0 - 35*k     - 231*i,-65*(1-2*k),-1.8)
+	else return Vector(353.0 - 35*(1-k) - 231*i,-65*(1-2*k),-1.8)
+	end
+end
 for i=0,3 do
 	for k=0,1 do
-		table.insert(ENT.ClientProps,{
+		ENT.ClientProps["door"..i.."x"..k.."a"] = {
 			model = "models/metrostroi/e/em508_door1.mdl",
-			pos = Vector(353.0 - 35*k - 231*i,-65*(1-2*k),-1.8),
+			pos = GetDoorPosition(i,k,0),
 			ang = Angle(0,180*k,0)
-		})
-		table.insert(ENT.ClientProps,{
+		}
+		ENT.ClientProps["door"..i.."x"..k.."b"] = {
 			model = "models/metrostroi/e/em508_door2.mdl",
-			pos = Vector(353.0 - 35*(1-k) - 231*i,-65*(1-2*k),-1.8),
+			pos = GetDoorPosition(i,k,1),
 			ang = Angle(0,180*k,0)
-		})
+		}
 	end
 end
 table.insert(ENT.ClientProps,{
@@ -388,17 +501,12 @@ table.insert(ENT.ClientProps,{
 --------------------------------------------------------------------------------
 function ENT:Think()
 	self.BaseClass.Think(self)
-	if CurTime() - (self.ASD or 0) > 10 then
-		self.ASD = CurTime()
-		self:RemoveCSEnts()
-		self:CreateCSEnts()
-	end
-	
+
 	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
 	self:Animate("controller",		self:GetPackedRatio(1),				0.30, 0.70,  384,24)
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.20, 0.55,  4,false)
-	self:Animate("speedometer", 	self:GetPackedRatio(3),				0.38,0.64)
+	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38,0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
 
 	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
@@ -406,17 +514,34 @@ function ENT:Think()
 	self:Animate("brake_cylinder",	self:GetPackedRatio(6),	 			0.17, 0.86,  256,2,0.03)
 	self:Animate("voltmeter",		self:GetPackedRatio(7),				0.38, 0.63)
 	self:Animate("ampermeter",		self:GetPackedRatio(8),				0.38, 0.63)
-	self:Animate("volt1",			self:GetPackedRatio(10), 			0.38, 0.63)
+	self:Animate("volt2",			0, 									0.38, 0.63)
 	
 	self:Animate("headlights",		self:GetPackedBool(1) and 1 or 0, 	0,1, 8, false)
-	self:Animate("rp_vozvrat",		self:GetPackedBool(2) and 1 or 0, 	0,1, 16, false)
-	self:Animate("dip_on",			self:GetPackedBool(3) and 1 or 0, 	0,1, 16, false)
-	self:Animate("dip_off",			self:GetPackedBool(4) and 1 or 0, 	0,1, 16, false)	
-	self:Animate("brake_disconnect",self:GetPackedBool(6) and 1 or 0, 	0,0.7, 3, false)	
+	self:Animate("VozvratRP",		self:GetPackedBool(2) and 1 or 0, 	0,1, 16, false)
+	self:Animate("DIPon",			self:GetPackedBool(3) and 1 or 0, 	0,1, 16, false)
+	self:Animate("DIPoff",			self:GetPackedBool(4) and 1 or 0, 	0,1, 16, false)	
+	self:Animate("brake_disconnect",self:GetPackedBool(6) and 1 or 0, 	0,0.7, 3, false)
 	self:Animate("bat1",			self:GetPackedBool(7) and 1 or 0, 	0,1, 16, false)
 	self:Animate("bat2",			self:GetPackedBool(7) and 1 or 0, 	0,1, 16, false)
 	self:Animate("bat3",			self:GetPackedBool(7) and 1 or 0, 	0,1, 16, false)
+	self:Animate("RezMK",			self:GetPackedBool(8) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VMK",				self:GetPackedBool(9) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VAH",				self:GetPackedBool(10) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VAD",				self:GetPackedBool(11) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VUD1",			self:GetPackedBool(12) and 1 or 0, 	0,1, 16, false)
+	--self:Animate("VUD2",			self:GetPackedBool(13) and 1 or 0, 	0,1, 16, false)
+	--self:Animate("VDL",				self:GetPackedBool(14) and 1 or 0, 	0,1, 16, false)
+	self:Animate("KDL",				self:GetPackedBool(15) and 1 or 0, 	0,1, 16, false)
+	self:Animate("KDP",				self:GetPackedBool(16) and 1 or 0, 	0,1, 16, false)
+	self:Animate("KRZD",			self:GetPackedBool(17) and 1 or 0, 	0,1, 16, false)
+	self:Animate("KSN",				self:GetPackedBool(18) and 1 or 0, 	0,1, 16, false)
+	self:Animate("OtklAVU",			self:GetPackedBool(19) and 1 or 0, 	0,1, 16, false)
 	
+	-- Animate AV switches
+	for i,v in ipairs(self.Panel.AVMap) do
+		local value = self:GetPackedBool(64+(i-1)) and 1 or 0
+		self:Animate("a"..(i-1),value,0,1,8,false)
+	end	
 	
 	-- Main switch
 	if self.LastValue ~= self:GetPackedBool(5) then
@@ -426,21 +551,60 @@ function ENT:Think()
 	self:Animate("gv_wrench",	1-(self:GetPackedBool(5) and 1 or 0), 	0,0.35, 32,  4,false)
 	self:ShowHide("gv_wrench",	CurTime() < self.ResetTime)
 	
+	-- Animate doors
+	for i=0,3 do
+		for k=0,1 do
+			local n_l = "door"..i.."x"..k.."a"
+			local n_r = "door"..i.."x"..k.."b"
+			local animation = self:Animate(n_l,self:GetPackedBool(21+i+4-k*4) and 1 or 0,0,1, 0.8,0)
+			local offset_l = Vector(math.abs(31*animation),0,0)
+			local offset_r = Vector(math.abs(32*animation),0,0)
+			if self.ClientEnts[n_l] then
+				self.ClientEnts[n_l]:SetPos(self:LocalToWorld(self.ClientProps[n_l].pos + (1.0 - 2.0*k)*offset_l))
+			end
+			if self.ClientEnts[n_r] then
+				self.ClientEnts[n_r]:SetPos(self:LocalToWorld(self.ClientProps[n_r].pos - (1.0 - 2.0*k)*offset_r))
+			end
+		end
+	end
+
 	
 	-- Brake-related sounds
 	local brakeLinedPdT = self:GetPackedRatio(9)
-	if brakeLinedPdT > -0.001 
+	if (brakeLinedPdT > -0.001)
 	then self:SetSoundState("release2",0,0)
-	else self:SetSoundState("release2",-1.0*brakeLinedPdT,1.0)
+	else self:SetSoundState("release2",-0.3*brakeLinedPdT,1.0)
+	end
+	if (brakeLinedPdT < 0.001)
+	then self:SetSoundState("release3",0,0)
+	else self:SetSoundState("release3",0.02*brakeLinedPdT,1.0)
+	end
+
+	-- Compressor
+	local state = self:GetPackedBool(20)
+	self.PreviousCompressorState = self.PreviousCompressorState or false
+	if self.PreviousCompressorState ~= state then
+		self.PreviousCompressorState = state
+		if state then
+			self:SetSoundState("compressor",1,1)
+		else
+			self:SetSoundState("compressor",0,0)
+			self:PlayOnce("compressor_end",nil,0.75)		
+		end
 	end
 	
-	
-	-- Animate AV switches
-	for i,v in ipairs(self.Panel.AVMap) do
-		local value = self:GetPackedBool(64+(i-1)) and 1 or 0
-		self:Animate("a"..(i-1),value,0,1,8,false)
+	-- ARS/ringer alert
+	local state = self:GetPackedBool(39)
+	self.PreviousAlertState = self.PreviousAlertState or false
+	if self.PreviousAlertState ~= state then
+		self.PreviousAlertState = state
+		if state then
+			self:SetSoundState("ring",0.30,1)
+		else
+			self:SetSoundState("ring",0,0)
+			self:PlayOnce("ring_end","cabin",0.55)		
+		end
 	end
-	
 	
 	-- DIP sound
 	--self:SetSoundState("bpsn2",self:GetPackedBool(32) and 1 or 0,1.0)
@@ -490,44 +654,76 @@ function ENT:Draw()
 		self:DrawDigit((196+0) *10,	35*10, d2, 0.75, 0.55)
 		self:DrawDigit((196+10)*10,	35*10, d1, 0.75, 0.55)
 		
-		if self:GetPackedBool(35) then
+		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,50,0)
-			surface.DrawRect(253*10,33*10,16*10,7*10)
+			surface.DrawRect(253*10,33*10,16*10,8*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",253*10+30,33*10-19,Color(0,0,0,255))
 			surface.SetDrawColor(255,50,0)
-			surface.DrawRect(290*10,33*10,16*10,7*10)
+			surface.DrawRect(290*10,33*10,16*10,8*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",290*10+30,33*10-19,Color(0,0,0,255))
 		end
-		if self:GetPackedBool(36) then
+		
+		b = self:Animate("light_gRP",self:GetPackedBool(36) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
-			surface.DrawRect(140*10,33*10,16*10,7*10)
+			surface.DrawRect(140*10,33*10,16*10,8*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",140*10+30,33*10-19,Color(0,0,0,255))
 		end
 		
 		--[[if self:GetNWBool("LKT") then
 			surface.SetDrawColor(50,255,50)
-			surface.DrawRect(133*10,73*10,16*10,7*10)
+			surface.DrawRect(133*10,73*10,16*10,8*10)
 			draw.DrawText("КТ","MetrostroiSubway_LargeText",133*10+30,73*10-20,Color(0,0,0,255))
 		end			
 		if self:GetNWBool("KVD") then
 			surface.SetDrawColor(50,255,50)
-			surface.DrawRect(165*10,73*10,16*10,7*10)
+			surface.DrawRect(165*10,73*10,16*10,8*10)
 			draw.DrawText("КВД","MetrostroiSubway_LargeText",165*10,73*10-20,Color(0,0,0,255))
 		end]]--	
-		if self:GetPackedBool(33) then
+		
+		b = self:Animate("light_LhRK",self:GetPackedBool(33) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,50,0)
-			surface.DrawRect(101*10,73*10,16*10,7*10)
+			surface.DrawRect(101*10,73*10,16*10,8*10)
 		end
-		if self:GetPackedBool(34) then
+		
+		b = self:Animate("light_NR1",self:GetPackedBool(34) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
-			surface.DrawRect(196*10,73*10,16*10,7*10)
+			surface.DrawRect(196*10,73*10,16*10,8*10)
 			draw.DrawText("НР1","MetrostroiSubway_LargeText",196*10,73*10-20,Color(0,0,0,255))
 		end
-		if self:GetPackedBool(37) then
+		
+		b = self:Animate("light_PECH",self:GetPackedBool(37) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,50,0)
-			surface.DrawRect(260*10,73*10,16*10,7*10)
+			surface.DrawRect(260*10,73*10,16*10,8*10)
 			draw.DrawText("ПЕЧЬ","MetrostroiSubway_SmallText",260*10,73*10-5,Color(0,0,0,255))
 		end
+		
+		b = self:Animate("light_AVU",self:GetPackedBool(38) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(295*10,73*10,16*10,8*10)
+			draw.DrawText("АВУ","MetrostroiSubway_LargeText",295*10,73*10-20,Color(0,0,0,255))
+		end
+		
+		b = self:Animate("light_SD",self:GetPackedBool(40) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(102*10,33*10,16*10,8*10)
+			draw.DrawText("СД","MetrostroiSubway_LargeText",102*10+30,33*10-20,Color(0,0,0,255))
+		end
+		
+		surface.SetAlphaMultiplier(1.0)
 	end)
 	
 	self:DrawOnPanel("FrontPneumatic",function()
