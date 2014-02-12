@@ -1,4 +1,4 @@
-local TALK_RANGE = 1024
+local TALK_RANGE = 1024 ^ 2
 local COMMAND_PREFIX = "/"
 
 -------------------------------------------------------------------------
@@ -10,7 +10,7 @@ local function HasPrefix(str)
 end
 
 local function StripPrefix(str)
-	return string.Right(str,string.len(str)-PREFIX_LENGTH)
+	return string.sub(str, PREFIX_LENGTH + 1, -1)
 end
 
 local function GetCommand(str)
@@ -20,7 +20,7 @@ end
 
 local function AreInTalkRange(listener,speaker)
 	return 
-	(listener:GetShootPos():Distance(speaker:GetShootPos()) < TALK_RANGE)
+	(listener:GetShootPos():DistToSqr(speaker:GetShootPos()) < TALK_RANGE)
 		or
 	(listener:IsAdmin() and listener:GetInfoNum("metro_admin_listentoall",0) > 0)
 	
