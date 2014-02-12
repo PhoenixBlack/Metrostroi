@@ -44,30 +44,30 @@ Debugger.DisplayGroups["Train State"] = {
 
 Debugger.DisplayGroups["Power Relays"] = {
 	Data = {
-		{"RKRState","%.0f","0-fwd/1-rev"},
+		{"RKRValue","%.0f","0-fwd/1-rev"},
 
-		{"LK1State","%.0f","on/off"},
-		{"LK2State","%.0f","on/off"},
-		{"LK3State","%.0f","on/off"},
-		{"LK4State","%.0f","on/off"},
-		{"KSH1State","%.0f","on/off"},
-		{"KSH2State","%.0f","on/off"},
-		{"TR1State","%.0f","on/off"},
-		{"TR2State","%.0f","on/off"},
+		{"LK1Value","%.0f","on/off"},
+		{"LK2Value","%.0f","on/off"},
+		{"LK3Value","%.0f","on/off"},
+		{"LK4Value","%.0f","on/off"},
+		{"KSH1Value","%.0f","on/off"},
+		{"KSH2Value","%.0f","on/off"},
+		{"TR1Value","%.0f","on/off"},
+		{"TR2Value","%.0f","on/off"},
 		
-		{"RKTTState","%.0f","on/off"},
-		{"RUTState","%.0f","on/off"},
-		{"DR1State","%.0f","on/off"},
-		{"DR2State","%.0f","on/off"},
+		{"RKTTValue","%.0f","on/off"},
+		{"RUTValue","%.0f","on/off"},
+		{"DR1Value","%.0f","on/off"},
+		{"DR2Value","%.0f","on/off"},
 		
-		{"RPLState","%.0f","on/off"},
-		{"RP1_3State","%.0f","on/off"},
-		{"RP2_4State","%.0f","on/off"},
-		{"RPvozvratState","%.0f","on/off"},
+		{"RPLValue","%.0f","on/off"},
+		{"RP1_3Value","%.0f","on/off"},
+		{"RP2_4Value","%.0f","on/off"},
+		{"RPvozvratValue","%.0f","on/off"},
 		
-		{"RZ_1State","%.0f","on/off"},
-		{"RZ_2State","%.0f","on/off"},
-		{"RZ_3State","%.0f","on/off"},
+		{"RZ_1Value","%.0f","on/off"},
+		{"RZ_2Value","%.0f","on/off"},
+		{"RZ_3Value","%.0f","on/off"},
 	},
 	Settings = {
 		Ents = {"#gmod_subway_base"}
@@ -76,29 +76,29 @@ Debugger.DisplayGroups["Power Relays"] = {
 
 Debugger.DisplayGroups["Control Relays"] = {
 	Data = {
-		{"RDState","%.0f","on/off"},
-		{"RVOState","%.0f","on/off"},
-		{"RVZState","%.0f","on/off"},
-		{"RT2State","%.0f","on/off"},
-		{"RRState","%.0f","on/off"},
+		{"RDValue","%.0f","on/off"},
+		{"RVOValue","%.0f","on/off"},
+		{"RVZValue","%.0f","on/off"},
+		{"RT2Value","%.0f","on/off"},
+		{"RRValue","%.0f","on/off"},
 		
-		{"NRState","%.0f","on/off"},
-		{"RSUState","%.0f","on/off"},
+		{"NRValue","%.0f","on/off"},
+		{"RSUValue","%.0f","on/off"},
 		
-		{"RPLState","%.0f","on/off"},
-		{"RP1_3State","%.0f","on/off"},
-		{"RP2_4State","%.0f","on/off"},
-		{"RPvozvratState","%.0f","on/off"},
+		{"RPLValue","%.0f","on/off"},
+		{"RP1_3Value","%.0f","on/off"},
+		{"RP2_4Value","%.0f","on/off"},
+		{"RPvozvratValue","%.0f","on/off"},
 		
-		{"RV1State","%.0f","on/off"},
-		{"RV2State","%.0f","on/off"},
+		{"RV1Value","%.0f","on/off"},
+		{"RV2Value","%.0f","on/off"},
 		
-		{"RRTState","%.0f","on/off"},
-		{"RRP1State","%.0f","on/off"},
-		{"SR1State","%.0f","on/off"},
-		{"RKRState","%.0f","on/off"},
+		{"RRTValue","%.0f","on/off"},
+		{"RRP1Value","%.0f","on/off"},
+		{"SR1Value","%.0f","on/off"},
+		{"RKRValue","%.0f","on/off"},
 		
-		{"RperState","%.0f","on/off"},
+		{"RperValue","%.0f","on/off"},
 	},
 	Settings = {
 		Ents = {"#gmod_subway_base"}
@@ -153,8 +153,8 @@ Debugger.DisplayGroups["Pneumatic System"] = {
 		{"PneumaticBrakeCylinderPressure",	"%.3f", "atm"},
 		{"PneumaticReservoirPressure",		"%.3f", "atm"},
 		{"PneumaticTrainLinePressure",		"%.3f", "atm"},
-		{"PneumaticNo1State","%.0f","on/off"},
-		{"PneumaticNo2State","%.0f","on/off"},
+		{"PneumaticNo1Value","%.0f","on/off"},
+		{"PneumaticNo2Value","%.0f","on/off"},
 	},
 	
 	Settings = {
@@ -244,7 +244,8 @@ Debugger.DisplayGroups["Rheostat Controller"] = {
 		{"RheostatControllerPosition","%.2f","position"},
 		{"RheostatControllerVelocity","%.2f","1/sec"},
 		
-		{"RheostatControllerRKM","%.1f","state"},
+		{"RheostatControllerRKM1","%.1f","state"},
+		{"RheostatControllerRKM2","%.1f","state"},
 		{"RheostatControllerRKP","%.1f","state"},
 	},
 	
@@ -264,7 +265,8 @@ Debugger.DisplayGroups["Position Switch"] = {
 		{"PositionSwitchPosition","%.2f","position"},
 		{"PositionSwitchVelocity","%.2f","1/sec"},
 
-		{"PositionSwitchRKM","%.1f","state"},
+		{"PositionSwitchRKM1","%.1f","state"},
+		{"PositionSwitchRKM2","%.1f","state"},
 		{"PositionSwitchRKP","%.1f","state"},
 	},
 	

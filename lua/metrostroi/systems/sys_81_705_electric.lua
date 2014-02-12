@@ -132,6 +132,7 @@ end
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 	local KSH1,KSH2 = 0,0
+	local SDRK_Shunt = 1.0
 	self.Triggers = { -- FIXME
 		["LK5"]			= function(V) end,
 		["KSH1"]		= function(V) KSH1 = KSH1 + V end,
@@ -141,13 +142,13 @@ function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 		["KPP"]			= function(V) Train.KPP:TriggerInput("Close",V) end,
 
 		["RPvozvrat"]	= function(V) Train.RPvozvrat:TriggerInput("Open",V) end,
-		
 		["RRTuderzh"]	= function(V) Train.RRTuderzh = V end,
 		["RRTpod"]		= function(V) Train.RRTpod = V end,
 		["RUTpod"]		= function(V) Train.RUTpod = V end,
 		
 		["SDPP"]		= function(V) Train.PositionSwitch:TriggerInput("MotorState",-1.0 + 2.0*math.max(0,V)) end,
-		["SDRK_Coil"]	= function(V) Train.RheostatController:TriggerInput("MotorCoilState",V*(-1.0 + 2.0*Train.RR.Value)) end,
+		["SDRK_Shunt"]	= function(V) SDRK_Shunt = V end,
+		["SDRK_Coil"]	= function(V) Train.RheostatController:TriggerInput("MotorCoilState",SDRK_Shunt*math.min(1,math.max(0,V))*(-1.0 + 2.0*Train.RR.Value)) end,
 		["SDRK"]		= function(V) Train.RheostatController:TriggerInput("MotorState",V) end,
 		
 		["XR3.2"]		= function(V) Train.PowerSupply:TriggerInput("XR3.2",V) end,
@@ -162,6 +163,7 @@ function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 	}
 	local S = self.InternalCircuits.Solve(Train,self.Triggers)
 	--if true then
+	--print(S["31V"],S["D1"],S["D1-31V"])
 	if false then
 		print("---------------------")
 		for k,v in SortedPairs(S) do 

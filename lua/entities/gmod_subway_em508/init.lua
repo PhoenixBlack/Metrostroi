@@ -46,6 +46,9 @@ function ENT:Initialize()
 		[KEY_F] = "PneumaticBrakeUp",
 		[KEY_R] = "PneumaticBrakeDown",
 		
+		[KEY_A] = "KDLSet",
+		[KEY_D] = "KDPSet",
+		[KEY_V] = "VUD1Set",
 		[KEY_L] = "HeadLightsToggle",
 
 		[KEY_LSHIFT] = {
@@ -156,19 +159,33 @@ function ENT:Think()
 	self:SetPackedBool(18,self.KSN.Value == 1.0)
 	self:SetPackedBool(19,self.OtklAVU.Value == 1.0)
 	self:SetPackedBool(20,self.Pneumatic.Compressor == 1.0)
+	self:SetPackedBool(21,self.Pneumatic.LeftDoorState[1] > 0.5)
+	self:SetPackedBool(22,self.Pneumatic.LeftDoorState[2] > 0.5)
+	self:SetPackedBool(23,self.Pneumatic.LeftDoorState[3] > 0.5)
+	self:SetPackedBool(24,self.Pneumatic.LeftDoorState[4] > 0.5)
+	self:SetPackedBool(25,self.Pneumatic.RightDoorState[1] > 0.5)
+	self:SetPackedBool(26,self.Pneumatic.RightDoorState[2] > 0.5)
+	self:SetPackedBool(27,self.Pneumatic.RightDoorState[3] > 0.5)
+	self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
 	
 	-- DIP/power
 	self:SetPackedBool(32,self.Panel["V1"] > 0.5)
 	-- LxRK
 	self:SetPackedBool(33,self.RheostatController.MotorCoilState ~= 0.0)
 	-- NR1
-	self:SetPackedBool(34,self.NR.Value == 1.0)
+	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP
 	self:SetPackedBool(35,self.Panel["RedRP"] > 0.5)
 	-- Green RP
 	self:SetPackedBool(36,self.Panel["GreenRP"] > 0.5)
-	-- Cabin heading
+	-- Cabin heating
 	self:SetPackedBool(37,self.Panel["KUP"] > 0.5)	
+	-- AVU
+	self:SetPackedBool(38,self.Panel["AVU"] > 0.5)	
+	-- Ring
+	self:SetPackedBool(39,self.Panel["Ring"] > 0.5)
+	-- SD
+	self:SetPackedBool(40,self.Panel["SD"] > 0.5)
 	
 	-- AV states
 	for i,v in ipairs(self.Panel.AVMap) do

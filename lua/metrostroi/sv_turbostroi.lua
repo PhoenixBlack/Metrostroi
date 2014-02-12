@@ -45,10 +45,11 @@ if not TURBOSTROI then
 			-- Add all train wire values
 			for train,send_data in pairs(Turbostroi.TrainData) do
 				for i=1,32 do
+				--for i,_ in pairs(train.TrainWires) do
 					Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
 						"TW\t"..i.."\t"..train:ReadTrainWire(i).."\n"
 		
---					print(train,"TW",k,train:ReadTrainWire(k))
+					--print(train,"TW",k,train:ReadTrainWire(k))
 				end
 			end
 
@@ -71,83 +72,6 @@ if not TURBOSTROI then
 						train:PlayOnce(d[2],d[3],tonumber(d[4]),tonumber(d[5]))
 					end
 					if d[1] == "TW" then
-
-train.TrainWireCanWrite = function(self,k)
-	local lastwrite = self.TrainWireWriters[k]
-	if lastwrite then
-		-- Check all last writers, make sure all of trains other than us wrote a while ago
-		--[[for writer,v in pairs(lastwrite) do
-			if tonumber(v) and (writer ~= self) and (CurTime() - v < 0.1) then
-				return false
-			end
-		end]]--
-
-		if (lastwrite.ent ~= self) and (CurTime() - lastwrite.time < 0.10) then
-			--Last write not us and recent, conflict!
-			return false
-		end
-	end
-	return true
-end
-
-train.WriteTrainWire = function(self,k,v)
---[[	-- Clean wire (no-one has wrote to it in a while)
-	local wire_clean = self:TrainWireCanWrite(k)
-	local wrote = false
-
-	-- Writing rules for different wires
-	local allowed_write = v > 0
-	if k == 18 then allowed_write = v <= 0 end
-	if self:IsTrainWireCrossConnected(4) or self:IsTrainWireCrossConnected(5) then
-			if k == 4 then k = 5
-		elseif k == 5 then k = 4 end
-	end
-
-	if allowed_write or wire_clean then
-		self.TrainWires[k] = v
-		wrote = true
-	end
-
-	if wrote then
-		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
-		self.TrainWireWriters[k][self] = CurTime()
-	end]]--
-
-	-- Check if line is write-able
-	local can_write = self:TrainWireCanWrite(k)
-	local wrote = false
-	
-	-- Writing rules for different wires
-	local allowed_write = v > 0
-	if k == 18 then allowed_write = v <= 0 end
-	if self:IsTrainWireCrossConnected(4) or self:IsTrainWireCrossConnected(5) then
-			if k == 4 then k = 5
-		elseif k == 5 then k = 4 end
-	end
-	
-	-- If value is write-able, write it right away and do nothing interesting
-	if can_write then
-		self.TrainWires[k] = v
-		wrote = true
-	elseif allowed_write then -- If trying to write positive value, overwrite value of the previous writer
-		self.TrainWires[k] = v
-		wrote = true
-	end
-	
-	-- Record us as last writer
-	if wrote and (allowed_write or can_write) then
---		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
---		self.TrainWireWriters[k][self] = CurTime()
-
---		if k == 1 then print(self,k,v,wrote,allowed_write,can_write) end
-		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
-		self.TrainWireWriters[k].ent = self
-		self.TrainWireWriters[k].time = CurTime()
---		self.TrainWireWriters[k].writers = self.TrainWireWriters[k].writers or {}
---		self.TrainWireWriters[k].writers[self] = CurTime()
-	end
-end
-
 						train:WriteTrainWire(tonumber(d[2]) or d[2],tonumber(d[3]) or 0)
 						--if tonumber(d[2]) == 23 then
 						--	print("TRAIN WIRE",train,d[2],d[3])

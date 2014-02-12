@@ -29,6 +29,7 @@ end)
 
 
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- Buttons layout
 --------------------------------------------------------------------------------
 --ENT.ButtonMap = {} Leave nil if unused
@@ -126,14 +127,6 @@ function ENT:Initialize()
 	-- Create sounds
 	self:InitializeSounds()
 	self.Sounds = {}
-	if self.SoundNames then
-		for k,v in pairs(self.SoundNames) do
-			if type(v) == "string" then
-				util.PrecacheSound(v)
-				self.Sounds[k] = CreateSound(self, Sound(v))
-			end
-		end
-	end
 end
 
 function ENT:OnRemove()
@@ -161,6 +154,16 @@ function ENT:Think()
 		for k,v in pairs(self.Systems) do
 			v:ClientThink()
 		end
+	end
+	
+	-- Reset CS ents
+	if CurTime() - (self.ClientEntsResetTimer or 0) > 10.0 then
+		self.ClientEntsResetTimer = CurTime()
+		self:RemoveCSEnts()
+		self:CreateCSEnts()
+		--[[for k,v in pairs(self.ClientEnts) do
+			v:SetParent(self)
+		end]]--
 	end
 	
 	-- Update CSEnts
@@ -324,8 +327,20 @@ function ENT:Animate(clientProp, value, min, max, speed, damping, stickyness)
 			self["_anim_"..id] = value
 		end
 	else
+		-- Prepare speed limiting
+		local delta = math.abs(value - self["_anim_"..id])
+		local max_speed = 1.5*delta / self.DeltaTime
+		local max_accel = 0.5 / self.DeltaTime
+
+		-- Simulate
 		local dX2dT = (speed or 128)*(value - self["_anim_"..id]) - self["_anim_"..id.."V"] * (damping or 8.0)
+		if dX2dT >  max_accel then dX2dT =  max_accel end
+		if dX2dT < -max_accel then dX2dT = -max_accel end
+		
 		self["_anim_"..id.."V"] = self["_anim_"..id.."V"] + dX2dT * self.DeltaTime
+		if self["_anim_"..id.."V"] >  max_speed then self["_anim_"..id.."V"] =  max_speed end
+		if self["_anim_"..id.."V"] < -max_speed then self["_anim_"..id.."V"] = -max_speed end
+		
 		self["_anim_"..id] = math.max(0,math.min(1,self["_anim_"..id] + self["_anim_"..id.."V"] * self.DeltaTime))
 		
 		-- Check if value got stuck

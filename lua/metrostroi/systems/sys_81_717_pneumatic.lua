@@ -22,6 +22,8 @@ function TRAIN_SYSTEM:Initialize()
 	self.BrakeLinePressure = 0.0 -- atm
 	-- Pressure in brake cylinder
 	self.BrakeCylinderPressure = 0.0 -- atm
+	-- Pressure in the door line
+	self.DoorLinePressure = 0.0 -- atm
 
 
 	-- Valve #1
@@ -34,9 +36,18 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("AK","Relay","AK-11B")	
 	-- Автоматический выключатель управления (АВУ)
 	self.Train:LoadSystem("AVU","Relay","AVU-045")
+	-- Блокировка тормозов
+	self.Train:LoadSystem("BPT","Relay","")
+	-- Блокировка дверей
+	self.Train:LoadSystem("BD","Relay","")
+	-- Вентили дверного воздухораспределителя (ВДОЛ, ВДОП, ВДЗ)
+	self.Train:LoadSystem("VDOL","Relay","")
+	self.Train:LoadSystem("VDOP","Relay","")
+	self.Train:LoadSystem("VDZ","Relay","")
+	
+	
 	-- Разобщение клапана машиниста
 	self.Train:LoadSystem("DriverValveDisconnect","Relay","Switch")
-	
 	-- Isolation valves
 	self.Train:LoadSystem("FrontBrakeLineIsolation","Relay","Switch", { normally_closed = true })
 	self.Train:LoadSystem("RearBrakeLineIsolation","Relay","Switch", { normally_closed = true })
@@ -47,8 +58,11 @@ function TRAIN_SYSTEM:Initialize()
 	self.BrakeCylinderValve = 0
 	
 	-- Compressor simulation
-	self.Compressor = 0
-	--Simulate overheat with TRK FIXME
+	self.Compressor = 0 --Simulate overheat with TRK FIXME
+	
+	-- Doors state
+	self.LeftDoorState = { 0,0,0,0 }
+	self.RightDoorState = { 0,0,0,0 }
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -57,7 +71,7 @@ end
 
 function TRAIN_SYSTEM:Outputs()
 	return { "BrakeLinePressure", "BrakeCylinderPressure", "DriverValvePosition", 
-			 "ReservoirPressure", "TrainLinePressure" }
+			 "ReservoirPressure", "TrainLinePressure", "DoorLinePressure" }
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
@@ -103,27 +117,36 @@ function TRAIN_SYSTEM:GetPressures(Train)
 	end
 	
 	-- Equalize pressure
+	--print(self,"BEFORE",self.BrakeLinePressure)
 	if Train.FrontTrain and Train.RearTrain and	frontBrakeOpen and rearBrakeOpen then
 		self.TrainLinePressure = 
 			(Train.FrontTrain.Pneumatic.TrainLinePressure +
 			 Train.RearTrain.Pneumatic.TrainLinePressure) / 2
 			 
 		self.BrakeLinePressure = 
-			(Train.FrontTrain.Pneumatic.BrakeLinePressure +
-			 Train.RearTrain.Pneumatic.BrakeLinePressure) / 2
+			(self.BrakeLinePressure*1.50 +
+			 0.75*Train.FrontTrain.Pneumatic.BrakeLinePressure +
+			 0.75*Train.RearTrain.Pneumatic.BrakeLinePressure) / 3
+			 
 		-- Not realistic to share this, but helps pneumatic system to react faster
 		self.ReservoirPressure = 
-			(Train.FrontTrain.Pneumatic.ReservoirPressure +
-			 Train.RearTrain.Pneumatic.ReservoirPressure) / 2
+			(self.ReservoirPressure*1.50 +
+			 0.75*Train.FrontTrain.Pneumatic.ReservoirPressure +
+			 0.75*Train.RearTrain.Pneumatic.ReservoirPressure) / 2
 	elseif Train.FrontTrain and	frontBrakeOpen then
 		self.TrainLinePressure = Train.FrontTrain.Pneumatic.TrainLinePressure
-		self.BrakeLinePressure = Train.FrontTrain.Pneumatic.BrakeLinePressure
-		self.ReservoirPressure = Train.FrontTrain.Pneumatic.ReservoirPressure
+		self.BrakeLinePressure = 
+			(self.BrakeLinePressure*1.50 + 0.50*Train.FrontTrain.Pneumatic.BrakeLinePressure) / 2
+		self.ReservoirPressure = 
+			(self.ReservoirPressure*1.50 + 0.50*Train.FrontTrain.Pneumatic.ReservoirPressure) / 2
 	elseif Train.RearTrain and rearBrakeOpen then
 		self.TrainLinePressure = Train.RearTrain.Pneumatic.TrainLinePressure
-		self.BrakeLinePressure = Train.RearTrain.Pneumatic.BrakeLinePressure
-		self.ReservoirPressure = Train.RearTrain.Pneumatic.ReservoirPressure
+		self.BrakeLinePressure = 
+			(self.BrakeLinePressure*1.50 + 0.50*Train.RearTrain.Pneumatic.BrakeLinePressure) / 2
+		self.ReservoirPressure = 
+			(self.ReservoirPressure*1.50 + 0.50*Train.RearTrain.Pneumatic.ReservoirPressure) / 2
 	end
+	--print(self,"AFTER",self.BrakeLinePressure)
 end
 
 function TRAIN_SYSTEM:SetPressures(Train)
@@ -208,7 +231,9 @@ function TRAIN_SYSTEM:Think(dT)
 	self.BrakeCylinderPressure_dPdT = 0.0
 	
 	-- Reduce pressure for brake line
-	self.TrainToBrakeReducedPressure = self.TrainLinePressure * 0.70
+	self.TrainToBrakeReducedPressure = self.TrainLinePressure * 0.725
+	-- Feed pressure to door line
+	self.DoorLinePressure = self.TrainToBrakeReducedPressure * 0.90
 	
 	-- 1 Fill reservoir from train line, fill brake line from train line
 	local trainLineConsumption_dPdT = 0.0
@@ -243,7 +268,7 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	----------------------------------------------------------------------------
 	-- Fill brake cylinders
-	local targetPressure = math.max(0,math.min(4.5,
+	local targetPressure = math.max(0,math.min(5.2,
 		2*(self.TrainToBrakeReducedPressure - self.BrakeLinePressure)))
 	if math.abs(self.BrakeCylinderPressure - targetPressure) > 0.150 then
 		self.BrakeCylinderValve = 1
@@ -273,17 +298,81 @@ function TRAIN_SYSTEM:Think(dT)
 	self.Compressor = Train.KK.Value
 	self.TrainLinePressure = self.TrainLinePressure - 0.05*trainLineConsumption_dPdT*dT
 	if self.Compressor == 1 then equalizePressure("TrainLinePressure", 10.0, 0.05) end
-		
 	
 	----------------------------------------------------------------------------
-	-- Pressure trigger
+	-- Pressure triggered relays
 	Train.AVT:TriggerInput("Open", self.BrakeCylinderPressure > 1.8) -- 1.8 - 2.0
 	Train.AVT:TriggerInput("Close",self.BrakeCylinderPressure < 1.2) -- 0.9 - 1.5
 	Train.AK:TriggerInput( "Open", self.TrainLinePressure > 8.2)
 	Train.AK:TriggerInput( "Close",self.TrainLinePressure < 6.3)
 	Train.AVU:TriggerInput("Open", self.BrakeLinePressure < 2.7) -- 2.7 - 2.9
 	Train.AVU:TriggerInput("Close",self.BrakeLinePressure > 3.5) -- 3.5 - 3.7
+	Train.BPT:TriggerInput("Set",  self.BrakeCylinderPressure > 0.4)
+	
+	----------------------------------------------------------------------------
+	-- Simulate doors opening, closing
+	if self.DoorLinePressure > 3.5 then
+		if (Train.VDOL.Value == 1.0) and (Train.VDOP.Value == 0.0) then
+			if (self.LeftDoorState[1] == 0) or
+			   (self.LeftDoorState[2] == 0) or
+			   (self.LeftDoorState[3] == 0) or
+			   (self.LeftDoorState[4] == 0) then
+				Train:PlayOnce("door_open1")
+			end
+			   
+			self.LeftDoorState[1] = 1
+			self.LeftDoorState[2] = 1
+			self.LeftDoorState[3] = 1
+			self.LeftDoorState[4] = 1
+		end
+		if (Train.VDOL.Value == 0.0) and (Train.VDOP.Value == 1.0) then
+			if (self.RightDoorState[1] == 0) or
+			   (self.RightDoorState[2] == 0) or
+			   (self.RightDoorState[3] == 0) or
+			   (self.RightDoorState[4] == 0) then
+				Train:PlayOnce("door_open1")
+			end
 
+			self.RightDoorState[1] = 1
+			self.RightDoorState[2] = 1
+			self.RightDoorState[3] = 1
+			self.RightDoorState[4] = 1
+		end
+		if (Train.VDZ.Value == 1.0) or
+		   ((Train.VDOL.Value == 1.0) and (Train.VDOP.Value == 1.0)) then
+			if (self.LeftDoorState[1] == 1) or
+			   (self.LeftDoorState[2] == 1) or
+			   (self.LeftDoorState[3] == 1) or
+			   (self.LeftDoorState[4] == 1) or
+			   (self.RightDoorState[1] == 1) or
+			   (self.RightDoorState[2] == 1) or
+			   (self.RightDoorState[3] == 1) or
+			   (self.RightDoorState[4] == 1) then
+				Train:PlayOnce("door_close1")
+			end
+			
+			self.LeftDoorState[1] = 0
+			self.LeftDoorState[2] = 0
+			self.LeftDoorState[3] = 0
+			self.LeftDoorState[4] = 0
+			
+			self.RightDoorState[1] = 0
+			self.RightDoorState[2] = 0
+			self.RightDoorState[3] = 0
+			self.RightDoorState[4] = 0
+		end
+	end
+	Train.BD:TriggerInput("Set",
+		(self.LeftDoorState[1] == 0) and
+		(self.LeftDoorState[2] == 0) and
+		(self.LeftDoorState[3] == 0) and
+		(self.LeftDoorState[4] == 0) and
+		(self.RightDoorState[1] == 0) and
+		(self.RightDoorState[2] == 0) and
+		(self.RightDoorState[3] == 0) and
+		(self.RightDoorState[4] == 0))
+
+	----------------------------------------------------------------------------
 	-- Set pressures (if isolation valves are open, propagate pressure to next wagon)
 	self:SetPressures(Train)
 	

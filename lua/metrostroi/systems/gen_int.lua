@@ -53,7 +53,10 @@ function ParseName(str)
 	
 	-- See if rheostat is specified
 	if str == "RKM1" then
-		return "Train.RheostatController.RKM"
+		return "Train.RheostatController.RKM1"
+	end	
+	if str == "RKM2" then
+		return "Train.RheostatController.RKM2"
 	end	
 	if (string.sub(str,1,2) == "RK") and not string.find(str,"RKR") then
 
@@ -556,7 +559,7 @@ Network = {
 	
 	{	"10/4",		"U0",		"A27" },
 	{	"U0",		"U0a",		"1" },
-	{	"U0a",		"0",		"#I[GreenRP]" }, -- Simulate 10AH wire properly (see addtonodes)
+	{	"U0a",		"0",		"#I[GreenRP]" }, -- Simulate 10AN wire properly (see addtonodes)
 
 	{	"U0",		"s3",		"DIPon" },
 	{	"U0",		"s10",		"DIPoff" },
@@ -573,9 +576,9 @@ Network = {
 	
 	{	"10/4",		"F1",		"KV70[10/4-F1]" },
 	
-	--{	"10/4",		"D4",		"A13" },
-	--{	"D4",		"15",		"KV70[D4-15]" }, -- FIXME
-	--{	"15",		"0",		"#TW[15]" },
+	{	"10/4",		"D4",		"A13" },
+	{	"D4",		"15",		"KV70[D4-15]" },
+	{	"D4",		"D4/3",		"1" },
 	
 	{	"10AK",		"4",		"KV70[10AK-4]" },
 	{	"4",		"0",		"#TW[4]" },
@@ -602,6 +605,7 @@ Network = {
 	{	"24",		"0",		"#TW[24]" },
 	{	"U2",		"2-7R-21",	"1" },
 	{	"2-7R-21",	"0",		"#I[RedRP]" },
+	{	"2-7R-21",	"0",		"#I[TrainRP]" },
 	
 	{	"10AK",		"2",		"KV70[10AK-2]" },
 	{	"2",		"0",		"#TW[2]" },
@@ -610,10 +614,9 @@ Network = {
 	{	"3",		"0",		"#TW[3]" },
 	
 	{	"10AS",		"33",		"KV70[10AS-33]" },
-	{	"33",		"33Aa",		"KD" },
-	{	"33",		"33Aa",		"1" }, -- FIXME: KD bypass
-	{	"33",		"33Aa",		"VAD" },
-	{	"33Aa",		"0",		"#RV2" },
+	{	"33",		"33Aa",		"KD" }, 	-- Must be a mistake in schematic,
+	{	"33",		"33Aa",		"VAD" }, 	-- this is marked as KD, but KD is 
+	{	"33Aa",		"0",		"#RV2" }, 	-- always OPEN when doors are CLOSED
 	
 	{	"10AS",		"33D",		"KV70[10AS-33D]" },
 	{	"33D",		"1",		"R1_5" },
@@ -662,9 +665,14 @@ Network = {
 	{	"10AL",		"Sh1-43",	"A45" }, -- FIXME: this should lead to ARS
 	{	"10AL",		"10AS",		"A55" },
 	{	"10AL",		"10AK",		"A54" },
-	{	"10AL",		"10ALb",	"A61" },
-	{	"10ALb",	"6",		"RVT" },
+	{	"10AL",		"6P",		"A61" },
+	{	"6P",		"6",		"RVT" },
 	{	"6",		"0",		"#TW[6]" },
+	
+	{	"6P",		"2-7R-24",	"!AVU" },
+	{	"2-7R-24",	"29",		"!OtklAVU" },
+	{	"29",		"0",		"#TW[29]" },
+	{	"2-7R-24",	"0",		"#I[AVU]" },
 	
 	{	"10AK",		"VAH1",		"VAH" },
 	{	"10AK",		"VAH1",		"RPB" },
@@ -676,7 +684,7 @@ Network = {
 
 	
 	----------------------------------------------------------------------------
-	-- Lighting circuits
+	-- Lighting/aux circuits
 	{	"F1",		"F2a",		"A7" },
 	{	"F1",		"F1a",		"A9" },
 	{	"F2a",		"0",		"#I[RedLightRight]" },
@@ -688,11 +696,26 @@ Network = {
 	{	"F13",		"0",		"#I[HeadLights2]" },
 	{	"F13",		"0",		"#I[HeadLights3]" },
 	
+	{	"C3",		"11B",		"!NR" },
+	{	"11B",		"0",		"#I[Ring]" },
+	{	"27A",		"11B",		"1" },
+	
 	{	"TW[23]",	"23A",		"A23" },
 	{	"23A",		"22A",		"1" },
 	{	"TW[22]",	"22A",		"A22" },
 	{	"22A",		"22V",		"!TRK" },
 	{	"22V",		"0",		"#KK" },
+	
+	{	"D4/3",		"ST/1+ST/2","BPT" },
+	{	"ST/1+ST/2","0",		"#I[TrainBrakes]" },
+	
+	{	"D4/3",		"16V/1+16V/2","!RD" },
+	{	"16V/1+16V/2","0",		"#I[TrainDoors]" },
+	
+	{	"D4/3",		"D6/1",		"BD" },
+	{	"D6/1",		"0",		"#RD" },
+	
+	--{	"ST/1+ST/2","0",		"#I[TrainBrake]" },
 
 
 	----------------------------------------------------------------------------
@@ -803,6 +826,45 @@ Network = {
 	
 	
 	----------------------------------------------------------------------------
+	-- Train wire 11
+	{	"B2",		"11A",	"!RD" }, 		-- This simulates series connection
+	{	"11A",		"0",	"#TW[11]" },	-- of RD contacts in all wagons.
+											-- The value of train wire 11 will be 1.0
+											-- if at least one RD is active
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 12
+	{	"TW[12]",	"12A",	"A12" },
+	{	"12A",		"31A",	"1" },
+	{	"12A",		"32A",	"1" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 15
+	{	"15",		"0",		"#TW[15]" },
+	{	"15",		"15A",		"1" },
+	
+	{	"TW[15]",	"D8",		"1" }, -- KRU FIXME
+	{	"D8",		"15A",		"KV70[D8-15A]" },	
+	{	"15A",		"15B",		"KV70[15A-15B]" },
+	{	"15A",		"15B",		"KD" },
+	{	"15B",		"0",		"#KD" },
+	{	"15B",		"0",		"#I[SD]" },
+	--{	"15A",		"0",		"#TW[15]" },
+	
+	--{	"TW[15]",	"15A",	"1" },
+	--
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 16
+	{	"TW[16]",	"16A",	"A16" },
+	{	"16A",		"16V",	"!RD" },
+	{	"16V",		"0",	"#VDZ" },
+	
+	
+	----------------------------------------------------------------------------
 	-- Train wire 17
 	{	"TW[17]",	"17A",	"A17" },
 	{	"17A",		"0",	"#RPvozvrat" },
@@ -818,7 +880,7 @@ Network = {
 	{	"B2",		"18s3",	"!RP" },
 	{	"18s3",		"18Aa",	"A14" },
 	--{	"18Aa",		"0",	"#TW[10AH]" },
-	{	"18Aa",		"10AH",	"1" },
+	{	"18Aa",		"10AN",	"1" },
 	
 	
 	----------------------------------------------------------------------------
@@ -848,10 +910,28 @@ Network = {
 	{	"27A",		"0",	"#RPU" },
 	{	"27A",		"0",	"#KPP" },
 	
+	
 	----------------------------------------------------------------------------
 	-- Train wire 28
 	{	"TW[28]",	"28A",	"A51" },
 	{	"28A",		"0",	"#XR3.3" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 29
+	{	"TW[29]",	"8Zh",	"1" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 31
+	{	"TW[31]",	"31A",	"A31" },
+	{	"31A",		"0",	"#VDOL" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 32
+	{	"TW[32]",	"32A",	"A32" },
+	{	"32A",		"0",	"#VDOP" },
 	
 	
 	----------------------------------------------------------------------------
@@ -891,9 +971,9 @@ Network = {
 	{	"10AE",		"10B",		"RV1" },
 	{	"10AE",		"10B",		"RV1" },
 	{	"10B",		"0",		"#SDRK_Coil" },
-	{	"10AE",		"10Zh",		"1" }, -- Temp[2] blocks circuit when it's grounded
+	{	"10AE",		"10Zh",		"1" },
 	
-	{	"10AE",		"10I",		"RKM1" }, -- Marked as RKM2 on schematics...
+	{	"10AE",		"10I",		"RKM2" }, -- Marked as RKM2 on schematics...
 	{	"10I",		"10AH",		"!LK1" },
 	{	"10AH",		"0",		"#RRTpod" },
 	{	"10I",		"10H",		"LK4" },
@@ -904,21 +984,27 @@ Network = {
 	{	"10M",		"10MA",		"!RRT" },
 	{	"10MA",		"10N",		"!RUT" },
 	{	"10Zh",		"10N",		"RKM1" },
-
+	
 	{	"10N",		"0",		"#SDRK" },
 }
 Sources = { "B" }
 Drains = { "0" }
 AddToNodes = {
 	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
-	{ "U0a", "(-10*S[\"10AH\"])" },
+	{ "U0a", "(-10*S[\"10AN\"])" },
 	{ "2-7R-21", "(-10*Train:ReadTrainWire(18))" },
 	{ "10AH", "0" },
+	{ "15", "(-10*Train:ReadTrainWire(11))" },--+Train:ReadTrainWire(15))"},
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
 	{ "10AV", "2Ye" },
 	{ "TW4", "5V" },
+	{ "TW29", "8Zh" },
+	{ "27A", "11B" },
+	{ "12A", "31A" },
+	{ "12A", "32A" },
+	{ "D8", "15A" },
 }
 SpecialTriggers = {
 	"LK5",
@@ -945,6 +1031,7 @@ SpecialTriggers = {
 }
 ExtraStatements = {
 [[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],
+[[Triggers["SDRK_Shunt"]( 1.0 - 0.25*C((RK >= 2) and (RK <= 7))*C(P == 1)*Train.LK2.Value )]]
 }
 
 Simplify()

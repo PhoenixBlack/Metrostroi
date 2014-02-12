@@ -85,7 +85,8 @@ end
 function TRAIN_SYSTEM:Outputs()
 	return { "CabinLight", "HeadLights1", "HeadLights2", "HeadLights3",
 			 "RedLightLeft", "RedLightRight", "EmergencyLight",
-			 "GreenRP", "RedRP", "KUP", "V1" }
+			 "GreenRP", "RedRP", "KUP", "V1", "AVU", "Ring", "SD",
+			 "TrainBrakes", "TrainRP", "TrainDoors" }
 end
 
 function TRAIN_SYSTEM:InitializeAVMap()
