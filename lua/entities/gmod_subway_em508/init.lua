@@ -2,7 +2,7 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
-
+ENT.BogeyDistance = 650 --Needed for gm trainspawner
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
