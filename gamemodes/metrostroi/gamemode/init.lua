@@ -3,11 +3,12 @@ AddCSLuaFile( "shared.lua" )
 
 include( "shared.lua" )
 include( "chat.lua" )
+include( "trainspawner.lua" )
 
 CreateConVar("metro_motd_overrideurl","",{FCVAR_ARCHIVE,FCVAR_REPLICATED},"Override URL for MOTD, set to number to completely disable")
 
 
-
+-- Uses some odd sandbox code to spawn this as you would with the spawnmenu
 local function AdminSpawnCMD(ply,cmd,args,fullstring)
 	local entname = "gmod_subway_em508"
 	local sent = scripted_ents.GetStored( entname ).t
