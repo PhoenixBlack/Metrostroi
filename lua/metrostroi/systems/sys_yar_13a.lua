@@ -83,7 +83,7 @@ function TRAIN_SYSTEM:Think()
 	-- RRT operation
 	Train.RRT:TriggerInput("Close",(Train.RRT.Value == 0.0) and (Train.RRTpod > 0.5) and (Train.RRTuderzh > 0.5))
 	Train.RRT:TriggerInput("Open",(Train.RRTuderzh < 0.5))
-	
+
 	-- RPvozvrat operation
 	Train.RPvozvrat:TriggerInput("Close",
 		(Train.RPL.Value == 1.0) or

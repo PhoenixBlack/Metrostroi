@@ -27,6 +27,7 @@ end
 -- Load/define basic sounds
 --------------------------------------------------------------------------------
 function ENT:InitializeSounds()
+	self.SoundPositions = {} -- Positions (used clientside)
 	self.SoundNames = {}
 	self.SoundNames["switch"]	= "subway_trains/switch_1.wav"
 	self.SoundNames["switch1"]	= "subway_trains/switch_1.wav"
@@ -39,14 +40,21 @@ function ENT:InitializeSounds()
 		"subway_trains/switch_6.wav",
 		"subway_trains/switch_7.wav",
 	}
-	self.SoundNames["switch4"]	= "subway_trains/switch_4.wav"
+	self.SoundNames["switch4"]		= "subway_trains/switch_4.wav"
 
-	self.SoundNames["bpsn1"] 	= "subway_trains/bpsn_1.wav"
-	self.SoundNames["bpsn2"] 	= "subway_trains/bpsn_2.wav"
+	self.SoundNames["bpsn1"] 		= "subway_trains/bpsn_1.wav"
+	self.SoundNames["bpsn2"] 		= "subway_trains/bpsn_2.wav"
 	
-	self.SoundNames["release1"]	= "subway_trains/release_1.wav"
-	self.SoundNames["release2"]	= "subway_trains/release_2.wav"
-	self.SoundNames["release3"]	= "subway_trains/release_3.wav"
+	self.SoundNames["release1"]		= "subway_trains/release_1.wav"
+	self.SoundNames["release2"]		= "subway_trains/release_2.wav"
+	self.SoundNames["release3"]		= "subway_trains/release_3.wav"
+	self.SoundPositions["release2"] = "cabin"
+	self.SoundPositions["release3"] = "cabin"
+	
+	self.SoundNames["ring"]			= "subway_trains/ring_1.wav"
+	self.SoundNames["ring_end"]		= "subway_trains/ring_2.wav"
+	self.SoundPositions["ring"] 	= "cabin"
+	self.SoundPositions["ring_end"] = "cabin"
 	
 	self.SoundNames["pneumo_switch"] = {
 		"subway_trains/pneumo_1.wav",
@@ -118,7 +126,26 @@ end
 -- Sound functions
 --------------------------------------------------------------------------------
 function ENT:SetSoundState(sound,volume,pitch)
-	if not self.Sounds[sound] then return end
+	if not self.Sounds[sound] then 
+		if self.SoundNames and self.SoundNames[sound] then
+			local name = self.SoundNames[sound]
+			if self.SoundPositions[sound] then
+				local ent_nwID
+				if self.SoundPositions[sound] == "cabin" then ent_nwID = "seat_driver" end
+				
+				local ent = self:GetNWEntity(ent_nwID)
+				if IsValid(ent) then
+					self.Sounds[sound] = CreateSound(ent, Sound(name))
+				else
+					return
+				end
+			else
+				self.Sounds[sound] = CreateSound(self, Sound(name))
+			end
+		else
+			return 
+		end
+	end
 	if (volume <= 0) or (pitch <= 0) then
 		self.Sounds[sound]:Stop()
 		self.Sounds[sound]:ChangeVolume(0.0,0)
@@ -155,6 +182,7 @@ function ENT:PlayOnce(soundid,location,range,pitch)
 	if not location then
 		self:EmitSound(sound, 100*(range or default_range), pitch or math.random(95,105))
 	elseif (location == true) or (location == "cabin") then
+		if CLIENT then self.DriverSeat = self:GetNWEntity("seat_driver") end				
 		if IsValid(self.DriverSeat) then
 			self.DriverSeat:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
 		end

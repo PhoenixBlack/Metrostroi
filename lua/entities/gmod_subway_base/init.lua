@@ -386,6 +386,7 @@ function ENT:CreateSeatEntity(seat_info)
 	--end
 
 	-- Set some shared information about the seat
+	self:SetNWEntity("seat_"..seat_info.type,seat)
 	seat:SetNWString("SeatType", seat_info.type)
 	seat:SetNWEntity("TrainEntity", self)
 	seat_info.entity = seat

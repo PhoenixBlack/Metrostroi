@@ -284,12 +284,12 @@ ENT.ClientProps["voltmeter"] = {
 	pos = Vector(448.1,-55.7,23.3),
 	ang = Angle(90,0,-45+180+80)
 }
-ENT.ClientProps["speedometer"] = {
+ENT.ClientProps["volt1"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
 	pos = Vector(447.10,-38.15,0.4),
 	ang = Angle(90-18,180,7)
 }
-ENT.ClientProps["volt1"] = {
+ENT.ClientProps["volt2"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
 	pos = Vector(452.3,-19.4,18.2),
 	ang = Angle(90,0,180)
@@ -454,18 +454,24 @@ ENT.ClientProps["book"] = {
 
 --------------------------------------------------------------------------------
 -- Add doors
+local function GetDoorPosition(i,k,j)
+	if j == 0 
+	then return Vector(353.0 - 35*k     - 231*i,-65*(1-2*k),-1.8)
+	else return Vector(353.0 - 35*(1-k) - 231*i,-65*(1-2*k),-1.8)
+	end
+end
 for i=0,3 do
 	for k=0,1 do
-		table.insert(ENT.ClientProps,{
+		ENT.ClientProps["door"..i.."x"..k.."a"] = {
 			model = "models/metrostroi/e/em508_door1.mdl",
-			pos = Vector(353.0 - 35*k - 231*i,-65*(1-2*k),-1.8),
+			pos = GetDoorPosition(i,k,0),
 			ang = Angle(0,180*k,0)
-		})
-		table.insert(ENT.ClientProps,{
+		}
+		ENT.ClientProps["door"..i.."x"..k.."b"] = {
 			model = "models/metrostroi/e/em508_door2.mdl",
-			pos = Vector(353.0 - 35*(1-k) - 231*i,-65*(1-2*k),-1.8),
+			pos = GetDoorPosition(i,k,1),
 			ang = Angle(0,180*k,0)
-		})
+		}
 	end
 end
 table.insert(ENT.ClientProps,{
@@ -495,17 +501,12 @@ table.insert(ENT.ClientProps,{
 --------------------------------------------------------------------------------
 function ENT:Think()
 	self.BaseClass.Think(self)
-	if CurTime() - (self.ASD or 0) > 10 then
-		self.ASD = CurTime()
-		self:RemoveCSEnts()
-		self:CreateCSEnts()
-	end
-	
+
 	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
 	self:Animate("controller",		self:GetPackedRatio(1),				0.30, 0.70,  384,24)
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.20, 0.55,  4,false)
-	self:Animate("speedometer", 	self:GetPackedRatio(3),				0.38,0.64)
+	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38,0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
 
 	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
@@ -513,7 +514,7 @@ function ENT:Think()
 	self:Animate("brake_cylinder",	self:GetPackedRatio(6),	 			0.17, 0.86,  256,2,0.03)
 	self:Animate("voltmeter",		self:GetPackedRatio(7),				0.38, 0.63)
 	self:Animate("ampermeter",		self:GetPackedRatio(8),				0.38, 0.63)
-	self:Animate("volt1",			self:GetPackedRatio(10), 			0.38, 0.63)
+	self:Animate("volt2",			0, 									0.38, 0.63)
 	
 	self:Animate("headlights",		self:GetPackedBool(1) and 1 or 0, 	0,1, 8, false)
 	self:Animate("VozvratRP",		self:GetPackedBool(2) and 1 or 0, 	0,1, 16, false)
@@ -536,6 +537,11 @@ function ENT:Think()
 	self:Animate("KSN",				self:GetPackedBool(18) and 1 or 0, 	0,1, 16, false)
 	self:Animate("OtklAVU",			self:GetPackedBool(19) and 1 or 0, 	0,1, 16, false)
 	
+	-- Animate AV switches
+	for i,v in ipairs(self.Panel.AVMap) do
+		local value = self:GetPackedBool(64+(i-1)) and 1 or 0
+		self:Animate("a"..(i-1),value,0,1,8,false)
+	end	
 	
 	-- Main switch
 	if self.LastValue ~= self:GetPackedBool(5) then
@@ -545,25 +551,35 @@ function ENT:Think()
 	self:Animate("gv_wrench",	1-(self:GetPackedBool(5) and 1 or 0), 	0,0.35, 32,  4,false)
 	self:ShowHide("gv_wrench",	CurTime() < self.ResetTime)
 	
+	-- Animate doors
+	for i=0,3 do
+		for k=0,1 do
+			local n_l = "door"..i.."x"..k.."a"
+			local n_r = "door"..i.."x"..k.."b"
+			local animation = self:Animate(n_l,self:GetPackedBool(21+i+4-k*4) and 1 or 0,0,1, 0.8,0)
+			local offset_l = Vector(math.abs(31*animation),0,0)
+			local offset_r = Vector(math.abs(32*animation),0,0)
+			if self.ClientEnts[n_l] then
+				self.ClientEnts[n_l]:SetPos(self:LocalToWorld(self.ClientProps[n_l].pos + (1.0 - 2.0*k)*offset_l))
+			end
+			if self.ClientEnts[n_r] then
+				self.ClientEnts[n_r]:SetPos(self:LocalToWorld(self.ClientProps[n_r].pos - (1.0 - 2.0*k)*offset_r))
+			end
+		end
+	end
+
 	
 	-- Brake-related sounds
 	local brakeLinedPdT = self:GetPackedRatio(9)
 	if (brakeLinedPdT > -0.001)
 	then self:SetSoundState("release2",0,0)
-	else self:SetSoundState("release2",-1.0*brakeLinedPdT,1.0)
+	else self:SetSoundState("release2",-0.3*brakeLinedPdT,1.0)
 	end
 	if (brakeLinedPdT < 0.001)
 	then self:SetSoundState("release3",0,0)
-	else self:SetSoundState("release3",0.1*brakeLinedPdT,1.0)
+	else self:SetSoundState("release3",0.02*brakeLinedPdT,1.0)
 	end
-	
-	
-	-- Animate AV switches
-	for i,v in ipairs(self.Panel.AVMap) do
-		local value = self:GetPackedBool(64+(i-1)) and 1 or 0
-		self:Animate("a"..(i-1),value,0,1,8,false)
-	end
-	
+
 	-- Compressor
 	local state = self:GetPackedBool(20)
 	self.PreviousCompressorState = self.PreviousCompressorState or false
@@ -574,6 +590,19 @@ function ENT:Think()
 		else
 			self:SetSoundState("compressor",0,0)
 			self:PlayOnce("compressor_end",nil,0.75)		
+		end
+	end
+	
+	-- ARS/ringer alert
+	local state = self:GetPackedBool(39)
+	self.PreviousAlertState = self.PreviousAlertState or false
+	if self.PreviousAlertState ~= state then
+		self.PreviousAlertState = state
+		if state then
+			self:SetSoundState("ring",0.30,1)
+		else
+			self:SetSoundState("ring",0,0)
+			self:PlayOnce("ring_end","cabin",0.55)		
 		end
 	end
 	
@@ -625,44 +654,76 @@ function ENT:Draw()
 		self:DrawDigit((196+0) *10,	35*10, d2, 0.75, 0.55)
 		self:DrawDigit((196+10)*10,	35*10, d1, 0.75, 0.55)
 		
-		if self:GetPackedBool(35) then
+		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,50,0)
-			surface.DrawRect(253*10,33*10,16*10,7*10)
+			surface.DrawRect(253*10,33*10,16*10,8*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",253*10+30,33*10-19,Color(0,0,0,255))
 			surface.SetDrawColor(255,50,0)
-			surface.DrawRect(290*10,33*10,16*10,7*10)
+			surface.DrawRect(290*10,33*10,16*10,8*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",290*10+30,33*10-19,Color(0,0,0,255))
 		end
-		if self:GetPackedBool(36) then
+		
+		b = self:Animate("light_gRP",self:GetPackedBool(36) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
-			surface.DrawRect(140*10,33*10,16*10,7*10)
+			surface.DrawRect(140*10,33*10,16*10,8*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",140*10+30,33*10-19,Color(0,0,0,255))
 		end
 		
 		--[[if self:GetNWBool("LKT") then
 			surface.SetDrawColor(50,255,50)
-			surface.DrawRect(133*10,73*10,16*10,7*10)
+			surface.DrawRect(133*10,73*10,16*10,8*10)
 			draw.DrawText("КТ","MetrostroiSubway_LargeText",133*10+30,73*10-20,Color(0,0,0,255))
 		end			
 		if self:GetNWBool("KVD") then
 			surface.SetDrawColor(50,255,50)
-			surface.DrawRect(165*10,73*10,16*10,7*10)
+			surface.DrawRect(165*10,73*10,16*10,8*10)
 			draw.DrawText("КВД","MetrostroiSubway_LargeText",165*10,73*10-20,Color(0,0,0,255))
 		end]]--	
-		if self:GetPackedBool(33) then
+		
+		b = self:Animate("light_LhRK",self:GetPackedBool(33) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,50,0)
-			surface.DrawRect(101*10,73*10,16*10,7*10)
+			surface.DrawRect(101*10,73*10,16*10,8*10)
 		end
-		if self:GetPackedBool(34) then
+		
+		b = self:Animate("light_NR1",self:GetPackedBool(34) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
-			surface.DrawRect(196*10,73*10,16*10,7*10)
+			surface.DrawRect(196*10,73*10,16*10,8*10)
 			draw.DrawText("НР1","MetrostroiSubway_LargeText",196*10,73*10-20,Color(0,0,0,255))
 		end
-		if self:GetPackedBool(37) then
+		
+		b = self:Animate("light_PECH",self:GetPackedBool(37) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,50,0)
-			surface.DrawRect(260*10,73*10,16*10,7*10)
+			surface.DrawRect(260*10,73*10,16*10,8*10)
 			draw.DrawText("ПЕЧЬ","MetrostroiSubway_SmallText",260*10,73*10-5,Color(0,0,0,255))
 		end
+		
+		b = self:Animate("light_AVU",self:GetPackedBool(38) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(295*10,73*10,16*10,8*10)
+			draw.DrawText("АВУ","MetrostroiSubway_LargeText",295*10,73*10-20,Color(0,0,0,255))
+		end
+		
+		b = self:Animate("light_SD",self:GetPackedBool(40) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(102*10,33*10,16*10,8*10)
+			draw.DrawText("СД","MetrostroiSubway_LargeText",102*10+30,33*10-20,Color(0,0,0,255))
+		end
+		
+		surface.SetAlphaMultiplier(1.0)
 	end)
 	
 	self:DrawOnPanel("FrontPneumatic",function()
