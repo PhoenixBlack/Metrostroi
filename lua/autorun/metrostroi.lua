@@ -18,7 +18,7 @@ if SERVER then
 	
 	resource_AddDir("materials/metrostroi/props")
 	resource_AddDir("materials/models/metrostroi_train")
-	resource_AddDir("materials/myproject")
+	--resource_AddDir("materials/myproject")
 	
 	resource_AddDir("models/metrostroi/props_models")
 	resource_AddDir("models/metrostroi/props")
@@ -26,13 +26,10 @@ if SERVER then
 	resource_AddDir("models/metrostroi/e")
 	resource_AddDir("models/metrostroi/metro")
 	resource_AddDir("models/metrostroi/tatra_t3")
-	resource_AddDir("models/myproject")
+	--resource_AddDir("models/myproject")
 	
 	resource_AddDir("sound/subway_trains")
-	resource_AddDir("sound/subway_announcer")
-	
-	-- Add content for gm_metrostroi map beta
-	--resource.AddWorkshop("198132871")
+	--resource_AddDir("sound/subway_announcer")
 end
 
 
@@ -176,20 +173,10 @@ end
 
 -- Load systems
 LoadSystem("Announcer")
---LoadSystem("Controller")
 LoadSystem("Relay")
-
 LoadSystem("DURA")
-
---LoadSystem("81_717_Electric")
---LoadSystem("AK_63B_Relays")
---LoadSystem("BPSN_5U2M")
-
---LoadSystem("NK_80")
-
 LoadSystem("EKG")
 
--- 81-717, Ezh
 LoadSystem("81_717_Pneumatic")
 LoadSystem("81_705_Electric")
 LoadSystem("81_705_Panel")
@@ -209,9 +196,11 @@ LoadSystem("YAK_37E")
 LoadSystem("YAS_44V")
 LoadSystem("YARD_2")
 LoadSystem("PR_14X_Panels")
-
 LoadSystem("Battery")
 LoadSystem("DIP_01K")
+
+LoadSystem("Gen_Int")
+LoadSystem("Gen_Res")
 
 -- Tatra T3
 LoadSystem("Tatra_Systems")
