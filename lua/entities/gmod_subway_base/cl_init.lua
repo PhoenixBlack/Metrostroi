@@ -730,9 +730,9 @@ end
 
 -- Args are player, IN_ enum and bool for press/release
 local function handleKeyEvent(ply,key,pressed)
-	if not IsFirstTimePredicted() then return end
-	-- if !IsFirstTimePredicted() then return end
 	if key ~= IN_ATTACK then return end
+	if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
+	
 	if not IsValid(ply) then return end
 	local train = isValidTrainDriver(ply)
 	if not IsValid(train) then return end

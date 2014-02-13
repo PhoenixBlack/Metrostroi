@@ -28,7 +28,7 @@ local function advancecolor()
 end
 
 
---group.Settings.Ents is a list of entities to show the group for, # is baseclass prefix
+--group.Ents is a list of entities to show the group for, # is baseclass prefix
 Debugger.DisplayGroups["Train State"] = {
 	Data = {
 		{"Speed","%.1f","km/h"},
@@ -37,9 +37,9 @@ Debugger.DisplayGroups["Train State"] = {
 		{"KVControllerPosition","%.0f","X/T"},
 		{"KVReverserPosition",  "%.0f","fwd/rev"},
 	},
-	Settings = {
-		Ents = {"#gmod_subway_base"}
-	}
+	
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["Power Relays"] = {
@@ -69,9 +69,9 @@ Debugger.DisplayGroups["Power Relays"] = {
 		{"RZ_2Value","%.0f","on/off"},
 		{"RZ_3Value","%.0f","on/off"},
 	},
-	Settings = {
-		Ents = {"#gmod_subway_base"}
-	}
+
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["Control Relays"] = {
@@ -100,9 +100,8 @@ Debugger.DisplayGroups["Control Relays"] = {
 		
 		{"RperValue","%.0f","on/off"},
 	},
-	Settings = {
-		Ents = {"#gmod_subway_base"}
-	}
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["Train Wires"] = {
@@ -141,9 +140,9 @@ Debugger.DisplayGroups["Train Wires"] = {
 		{"TW31", "%d", "level"},
 		{"TW32", "%d", "level"},
 	},
-	Settings = {
-		Ents = {"#gmod_subway_base"}
-	}
+	
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["Pneumatic System"] = {
@@ -157,10 +156,10 @@ Debugger.DisplayGroups["Pneumatic System"] = {
 		{"PneumaticNo2Value","%.0f","on/off"},
 	},
 	
-	Settings = {
-		ignore_prefix = "Pneumatic",
-		Ents = {"#gmod_subway_base"}
-	}
+	
+	ignore_prefix = "Pneumatic",
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["Electric System"] = {
@@ -194,10 +193,10 @@ Debugger.DisplayGroups["Electric System"] = {
 		{"ElectricT2","%.2f","degC"},
 	},
 	
-	Settings = {
-		ignore_prefix = "Electric",
-		Ents = {"#gmod_subway_base"}
-	}
+	
+	ignore_prefix = "Electric",
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["DIP-01K"] = {
@@ -208,10 +207,10 @@ Debugger.DisplayGroups["DIP-01K"] = {
 		{"PowerSupplyXT3.4","%.2f","V"},
 		{"PowerSupplyXT1.2","%.2f","V"},
 	},
-	Settings = {
-		ignore_prefix = "PowerSupply",
-		Ents = {"#gmod_subway_base"}
-	}
+	
+	ignore_prefix = "PowerSupply",
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["Engines"] = {
@@ -228,10 +227,10 @@ Debugger.DisplayGroups["Engines"] = {
 		{"EnginesFieldReduction24","%.2f","%"},		
 	},
 	
-	Settings = {
-		ignore_prefix = "Engines",
-		Ents = {"#gmod_subway_base"}
-	}
+	
+	ignore_prefix = "Engines",
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["Rheostat Controller"] = {
@@ -249,10 +248,10 @@ Debugger.DisplayGroups["Rheostat Controller"] = {
 		{"RheostatControllerRKP","%.1f","state"},
 	},
 	
-	Settings = {
-		ignore_prefix = "RheostatController",
-		Ents = {"#gmod_subway_base"}
-	}
+	
+	ignore_prefix = "RheostatController",
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["Position Switch"] = {
@@ -270,10 +269,10 @@ Debugger.DisplayGroups["Position Switch"] = {
 		{"PositionSwitchRKP","%.1f","state"},
 	},
 	
-	Settings = {
-		ignore_prefix = "PositionSwitch",
-		Ents = {"#gmod_subway_base"}
-	}
+	
+	ignore_prefix = "PositionSwitch",
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["DURA"] = {
@@ -288,10 +287,10 @@ Debugger.DisplayGroups["DURA"] = {
 		{"DURADistanceToLight","%.1f","m"},
 	},
 	
-	Settings = {
-		ignore_prefix = "DURA",
-		Ents = {"#gmod_subway_base"}
-	}
+	
+	ignore_prefix = "DURA",
+	Ents = {"#gmod_subway_base"}
+	
 }
 
 Debugger.DisplayGroups["Bogey"] = {
@@ -300,18 +299,15 @@ Debugger.DisplayGroups["Bogey"] = {
 		{"Acceleration","%6.2f","","m/s2"},
 	},
 	
-	Settings = {
-		Ents = {"gmod_train_bogey"}
-	}
+	
+	Ents = {"gmod_train_bogey"}
+	
 }
 
 local function ProccessGroup(group)
-	if not group.Settings then
-		group.Settings = {}
-	end
-	group.Settings.Enabled = true
+	group.Enabled = true
 	
-	local prefix = group.Settings.ignore_prefix
+	local prefix = group.ignore_prefix
 	for k,v in pairs(group.Data) do
 		if not v[4] and prefix then
 			v[4] = string.Right(v[1],string.len(v[1])-string.len(prefix))
@@ -333,7 +329,7 @@ local function GetEntVar(entid,varname)
 end
 
 local function EnableGroup(group,bool)
-	group.Settings.Enabled = bool
+	group.Enabled = bool
 end
 
 
@@ -360,7 +356,7 @@ local function OpenConfigWindow()
 	for k,v in pairs(Debugger.DisplayGroups) do
 		local Box = vgui.Create("DCheckBoxLabel")
 		Box:SetText(k)
-		if v.Settings.Enabled then
+		if v.Enabled then
 			Box:SetValue(1)
 		else
 			Box:SetValue(0)
@@ -531,10 +527,10 @@ end
 
 --Checks if we should draw a group according to group settings and entity state
 local function ShouldDrawGroup(group,id)
-	if not group.Settings.Enabled then return false end
+	if not group.Enabled then return false end
 	local ent = ents.GetByIndex(id)
 	if not IsValid(ent) then return false end
-	for k,v in pairs(group.Settings.Ents) do
+	for k,v in pairs(group.Ents) do
 		if v[1]=="#" then
 			if string.Right(v,string.len(v)-1) == ent.Base then return true end
 		else

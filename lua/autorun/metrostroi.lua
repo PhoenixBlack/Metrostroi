@@ -56,7 +56,16 @@ if SERVER then
 	DISABLE_TURBOSTROI = false
 	if not DISABLE_TURBOSTROI then
 		print("Metrostroi: Trying to load simulation acceleration DLL...")
-		require("turbostroi")
+		
+		--TODO: OS specific check
+		if file.Exists("lua/bin/gmsv_turbostroi_win32.dll", "GAME") then
+			require("turbostroi")
+		else
+			print(".dll file not found. Did you install it correctly?")
+		end
+		
+		
+		
 	end
 	
 	if Turbostroi 

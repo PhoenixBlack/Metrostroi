@@ -163,10 +163,17 @@ function ENT:TriggerInput(name, value)
 	end
 end
 
+-- The debugger will call this
 function ENT:GetDebugVars()
 	return self.DebugVars 
 end
 
+--Debugging function, call via the console or something
+function ENT:ShowInteractionZones()
+	for k,v in pairs(self.InteractionZones) do
+		debugoverlay.Sphere(self:LocalToWorld(v.Pos),v.Radius,15,Color(255,185,0),true)
+	end
+end
 
 
 --------------------------------------------------------------------------------
@@ -304,12 +311,19 @@ function ENT:UpdateIndexes()
 	updateIndexes(self,{},0)
 end
 
-function ENT:OnCouple(train,isfront)
-	--print(self,"Coupled with ",train," at ",isfront)
-	if isfront 
-	then self.FrontTrain = train
-	else self.RearTrain = train
+function ENT:OnCouple(bogey,isfront)
+	--print(self,"Coupled with ",bogey," at ",isfront)
+	if isfront then
+		self.FrontCoupledBogey = bogey
+	else
+		self.RearCoupledBogey = bogey
 	end
+	
+	local train = bogey:GetNWEntity("TrainEntity")
+	if not IsValid(train) then return end
+	--Don't update train wires when there's no parent train 
+	
+	self:UpdateCoupledTrains()
 
 	if ((train.FrontTrain == self) or (train.RearTrain == self)) then
 		self:UpdateIndexes()
@@ -321,13 +335,29 @@ end
 
 function ENT:OnDecouple(isfront)
 	--print(self,"Decoupled from front?:" ,isfront)	
-	if isfront 
-	then self.FrontTrain = nil
-	else self.RearTrain = nil
+	if isfront then
+		self.FrontCoupledBogey = nil
+	else 
+		self.RearCoupledBogey = nil
 	end
 	
-	self:UpdateIndexes()	
+	self:UpdateCoupledTrains()
+	self:UpdateIndexes()
 	self:ResetTrainWires()
+end
+
+function ENT:UpdateCoupledTrains()
+	if self.FrontCoupledBogey then
+		self.FrontTrain = self.FrontCoupledBogey:GetNWEntity("TrainEntity")
+	else
+		self.FrontTrain = nil
+	end
+	
+	if self.RearCoupledBogey then
+		self.RearTrain = self.RearCoupledBogey:GetNWEntity("TrainEntity")
+	else
+		self.RearTrain = nil
+	end
 end
 
 
@@ -613,6 +643,7 @@ function ENT:GetActiveModifiers(key)
 end
 
 function ENT:OnKeyEvent(key,state)
+	
 	if state then
 		self:OnKeyPress(key)
 	else
@@ -668,11 +699,19 @@ function ENT:ProcessKeyMap()
 	end
 end
 
+
+local function HandleKeyHook(ply,k,state)
+	local train = ply:GetTrain()
+	if IsValid(train) then
+		train.KeyMap[k] = state or nil
+	end
+end
+
 function ENT:HandleKeyboardInput(ply)
 	if not self.KeyMods and self.KeyMap then
 		self:ProcessKeyMap()
 	end
-	
+
 	-- Check for newly pressed keys
 	for k,v in pairs(ply.keystate) do
 		if self.KeyBuffer[k] == nil then
@@ -680,7 +719,7 @@ function ENT:HandleKeyboardInput(ply)
 			self:OnKeyEvent(k,true)
 		end
 	end
-	
+
 	-- Check for newly released keys
 	for k,v in pairs(self.KeyBuffer) do
 		if ply.keystate[k] == nil then
@@ -688,11 +727,8 @@ function ENT:HandleKeyboardInput(ply)
 			self:OnKeyEvent(k,false)
 		end
 	end
-	
+
 end
-
-
-
 
 --------------------------------------------------------------------------------
 -- Process train logic
@@ -713,20 +749,52 @@ function ENT:Think()
 	-- Get angular velocity
 	--self:SetTrainAngularVelocity(math.pi*self:GetPhysicsObject():GetAngleVelocity()/180)
 	
-	-- Handle player input
+	-- Calculate turn information, unused right now
+	if self.FrontBogey and self.RearBogey then
+		self.BogeyDistance = self.BogeyDistance or self.FrontBogey:GetPos():Distance(self.RearBogey:GetPos())
+		local a = math.AngleDifference(self.FrontBogey:GetAngles().y,self.RearBogey:GetAngles().y+180)
+		self.TurnRadius = (self.BogeyDistance/2)/math.sin(math.rad(a/2))
+		
+		--If we're pretty much going straight, correct massive values
+		if math.abs(self.TurnRadius) > 1e4 then
+			self.TurnRadius = 0 
+		end
+		
+		--[[ -- Debug output
+			local right = self:GetAngles():Right()
+			right.z = 0
+			right:Normalize()
+			debugoverlay.Line(self:GetPos(),self:GetPos()+right*-self.TurnRadius,1,Color(255,0,0),true)
+		--]]
+		
+	end
+	
+	
+	
+	-- Process the keymap for modifiers 
+	-- TODO: Need a neat way of calling this once after self.KeyMap is populated
+	if not self.KeyMods and self.KeyMap then
+		self:ProcessKeyMap()
+	end
+	
+	-- Keyboard input is done via PlayerButtonDown/Up hooks that call ENT:OnKeyEvent
+	
+	-- Joystick input
 	if IsValid(self.DriverSeat) then
 		local ply = self.DriverSeat:GetPassenger(0) 
 		
-		if ply and IsValid(ply) then
+		if IsValid(ply) then
+		
 			if self.KeyMap then
 				self:HandleKeyboardInput(ply)
 			end
-			
-			-- Joystick
+		
 			if joystick then
 				self:HandleJoystickInput(ply)
 			end
 		end
+		
+		
 	end
 	
 	if Turbostroi then
@@ -768,6 +836,7 @@ function ENT:Think()
 			end
 		end
 	end
+	
 	
 	-- Add interesting debug variables
 	for i=1,32 do
@@ -853,11 +922,11 @@ end
 -- Process Cabin button and keyboard input
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
---	print("Pressed", button)
+
 end
 
 function ENT:OnButtonRelease(button)
---	print("Released",button)
+
 end
 
 -- Clears the serverside keybuffer and fires events
@@ -878,27 +947,34 @@ function ENT:ClearKeyBuffer()
 	self.KeyBuffer = {}
 end
 
+local function ShouldWriteToBuffer(buffer,state)
+	if state == nil then return false end
+	if state == false and buffer == nil then return false end
+	return true
+end
+
+local function ShouldFireEvents(buffer,state)
+	if state == nil then return true end
+	if buffer == nil and state == false then return false end
+	return (state ~= buffer) 
+end
+
 -- Checks a button with the buffer and calls 
 -- OnButtonPress/Release as well as TriggerInput
-function ENT:ButtonEvent(button,state)
-	if state == nil then
-		self:OnButtonPress(button)
-		self:TriggerInput(button,1.0)
-	elseif (self.ButtonBuffer[button] ~= state) then
-		
-		-- Dont generate events when the buffer is being filled with false states
-		-- Though this might go wrong if some button ever starts of enabled
-		if not (state == false and self.ButtonBuffer[button] == nil) then
-			if state then
-				self:OnButtonPress(button)
-				self:TriggerInput(button,1.0)
-			else
-				self:OnButtonRelease(button)
-				self:TriggerInput(button,0.0)
-			end
-		end
-		self.ButtonBuffer[button] = state
 
+function ENT:ButtonEvent(button,state)
+	if ShouldFireEvents(self.ButtonBuffer[button],state) then
+		if state == false then
+			self:TriggerInput(button,0.0)
+			self:OnButtonRelease(button)
+		else
+			self:TriggerInput(button,1.0)
+			self:OnButtonPress(button)
+		end
+	end
+	
+	if ShouldWriteToBuffer(self.ButtonBuffer[button],state) then
+		self.ButtonBuffer[button]=state
 	end
 end
 
