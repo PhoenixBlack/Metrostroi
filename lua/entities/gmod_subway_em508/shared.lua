@@ -57,6 +57,4 @@ function ENT:InitializeSystems()
 	self:LoadSystem("PowerSupply","DIP_01K")
 	
 	self:LoadSystem("DURA","DURA")
-	
-	self:LoadSystem("TRACKGEN")
 end
