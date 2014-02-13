@@ -80,7 +80,6 @@ if SERVER then
 	include("metrostroi/sv_debugger.lua")
 	include("metrostroi/sv_turbostroi.lua")
 	AddCSLuaFile("metrostroi/cl_debugger.lua")
-	AddCSLuaFile("metrostroi/cl_lang.lua")
 	
 	-- Alpha tester stuff
 	hook.Add("PlayerInitialSpawn", "Metrostroi_PlayerConnect", function(ply)
@@ -97,7 +96,6 @@ if SERVER then
 	end)
 else
 	include("metrostroi/cl_debugger.lua")
-	include("metrostroi/cl_lang.lua")
 end
 
 
