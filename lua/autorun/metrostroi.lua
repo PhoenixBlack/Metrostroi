@@ -100,10 +100,15 @@ end
 -- Load shared files
 --------------------------------------------------------------------------------
 AddCSLuaFile("metrostroi/sh_failsim.lua")
+AddCSLuaFile("metrostroi/sh_trackeditor.lua")
 if SERVER then
 	include("metrostroi/sh_failsim.lua")
+	include("metrostroi/sh_trackeditor.lua")
 else
-	timer.Simple(0.05, function() include("metrostroi/sh_failsim.lua") end)
+	timer.Simple(0.05, function() 
+		include("metrostroi/sh_failsim.lua") 
+		include("metrostroi/sh_trackeditor.lua") 
+	end)
 end
 
 
