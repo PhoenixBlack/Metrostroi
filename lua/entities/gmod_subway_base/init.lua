@@ -91,6 +91,9 @@ function ENT:Initialize()
 	self.Seats = {}
 	-- List of headlights, dynamic lights, sprite lights
 	self.Lights = {}
+	
+	-- Cross-connections in train wires
+	self.TrainWireCrossConnections = {}
 
 	-- Load sounds
 	self:InitializeSounds()
@@ -196,9 +199,11 @@ function ENT:WriteTrainWire(k,v)
 	-- Writing rules for different wires
 	local allowed_write = v > 0
 	if k == 18 then allowed_write = v <= 0 end
-	if self:IsTrainWireCrossConnected(4) or self:IsTrainWireCrossConnected(5) then
-			if k == 4 then k = 5
-		elseif k == 5 then k = 4 end
+	for a,b in pairs(self.TrainWireCrossConnections) do
+		if self:IsTrainWireCrossConnected(a) or self:IsTrainWireCrossConnected(b) then
+			    if k == a then k = b
+			elseif k == b then k = a end
+		end
 	end
 	
 	-- If value is write-able, write it right away and do nothing interesting
@@ -220,9 +225,11 @@ end
 
 function ENT:ReadTrainWire(k)
 	-- Cross-commutate some wires
-	if self:IsTrainWireCrossConnected(4) or self:IsTrainWireCrossConnected(5) then
-			if k == 4 then k = 5
-		elseif k == 5 then k = 4 end
+	for a,b in pairs(self.TrainWireCrossConnections) do
+		if self:IsTrainWireCrossConnected(a) or self:IsTrainWireCrossConnected(b) then
+			    if k == a then k = b
+			elseif k == b then k = a end
+		end
 	end
 	return self.TrainWires[k] or 0
 end
