@@ -105,6 +105,12 @@ function ENT:Initialize()
 		[12] = { "dynamiclight",	Vector(   0, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 150 },
 		[13] = { "dynamiclight",	Vector(-250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
 	}
+	
+	-- Cross connections in train wires
+	self.TrainWireCrossConnections = {
+		[5] = 4, -- Reverser F<->B
+		[31] = 32, -- Doors L<->R
+	}
 end
 
 

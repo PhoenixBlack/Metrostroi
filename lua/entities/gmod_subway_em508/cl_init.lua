@@ -92,7 +92,7 @@ ENT.ButtonMap["ARS"] = {
 		{x=1070+380*4,y=570,tooltip="75: Ограничение скорости 75 км/ч\nSpeed limit 75 kph",radius=120},
 		{x=1070+380*5,y=570,tooltip="80: Ограничение скорости 80 км/ч\nSpeed limit 80 kph",radius=120},
 		
-		{x=1080+380*0,y=363,tooltip="СД: Сигнализация дверей\nSD: Door state light (doors are open)",radius=120},
+		{x=1080+380*0,y=363,tooltip="СД: Сигнализация дверей\nSD: Door state light (doors are closed/door circuits are OK)",radius=120},
 		{x=1080+380*1,y=363,tooltip="РП: Зелёная лампа реле перегрузки\nRP: Green overload relay light (overload relay open on current train)",radius=120},
 	}
 }
@@ -556,7 +556,7 @@ function ENT:Think()
 		for k=0,1 do
 			local n_l = "door"..i.."x"..k.."a"
 			local n_r = "door"..i.."x"..k.."b"
-			local animation = self:Animate(n_l,self:GetPackedBool(21+i+4-k*4) and 1 or 0,0,1, 0.8,0)
+			local animation = self:Animate(n_l,self:GetPackedBool(21+i+4-k*4) and 1 or 0,0,1, 0.8 + (-0.2+0.4*math.random()),0)
 			local offset_l = Vector(math.abs(31*animation),0,0)
 			local offset_r = Vector(math.abs(32*animation),0,0)
 			if self.ClientEnts[n_l] then
