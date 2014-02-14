@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+		<meta name="viewport" content="width=device-width, user-scalable=false;"/>
+		<link href="style.css" type="text/css" rel="stylesheet"/>
+		<script src="jquery-1.11.0.min.js"/></script>
+		<script src="script.js"/></script>
+		
+		<title>
+			Driving Manual
+		</title>
+	</head>
+	<body>
+		<div id="container">
+			<div class="pagebg">
+				<div id="page1">
+					<h2>2. Train Driving Basics</h2>
+
+						<p>Typically a train consists of 5 wagons, which can total up to over 167,000 kg in mass. Keep
+						the train length and in mass when driving it. A train possesses considerable
+						inertia even when empty.</p>
+
+						<p>The subway driver must pay attention and act according to track signals, track
+						signs and dispatcher instructions to ensure efficient and safe operation of the
+						train.</p>
+
+						<p>The trains use rheostat control for starting and braking (Em, Ema508), thyristor control
+						for braking (81-717, Ema509). It takes some time for rheostat to spin into the right position.
+						Try to get a good feeling of this delay.</a>
+
+						<div><p>To avoid damage to the engines and discomfort of the passengers, the current through
+						engines is limited. Effective acceleration and braking of train is <b>1.5 m/s2</b>.</p></div>
+
+				</div>
+				<div id="page2">
+					page2 content
+				</div>
+				<div id="page3">
+					page3 content
+				</div>
+				<div id="page4">
+					page4 content
+				</div>
+				
+				<div id="controller">
+					<div id="right"><span>1</span></div>
+					<div id="middle"><a id="goleft" onclick="prevpage()" href="javascript:void()">3</a>    <a id="goright" onclick="nextpage()" href="javascript:void()">4</a></div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

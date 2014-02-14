@@ -1,0 +1,134 @@
+body {
+	text-align: center;
+	margin:0;
+	font-family: sans-serif;
+	color:#222;
+	
+	background: #F7F7F7 url('noise.png');
+}
+
+a:link, a:visited, a:hover, a:active
+{
+	text-decoration: none;
+}
+
+#container
+{
+	width:800px;
+	margin:0 auto 0 auto;
+}
+
+.pagebg
+{
+	width:800px;
+	height:800px;
+	
+	padding-left:61px;
+	
+	background-image:url("bookcover.png");
+	background-repeat:no-repeat;
+	background-color:#DDD;
+}
+
+/*
+Bottom controller
+*/
+#controller
+{
+	width:100%;
+	height:30px;
+	
+	font-size:30px;
+	font-family:Arial;
+}
+#middle
+{
+	position:absolute;
+	width:800px;
+	
+	font-family:Marlett;
+}
+#middle > a
+{
+	color:#222;
+}
+#right
+{
+	position:absolute;
+	width:800px;
+	text-align:right;
+}
+#right > span
+{
+	display:block;
+	padding-right:5px;
+	padding-bottom:5px;
+}
+
+/*
+Pages
+*/
+/* Matches any ID starting with 'page' */
+div[id*='page']
+{
+	text-align:left;
+	width:790px;
+	height:790px;
+	
+	padding:5px;
+	margin-bottom:-40px;
+}
+
+div[id*='page'] > div {
+	border-radius: 2px;
+	border: 1px dashed black;
+	background-color: #b5bc46;
+	width: 720px;
+	margin-left: 35px;
+	padding:3px;
+}
+
+p {
+  margin: 20px 10px;
+}
+
+
+h1 {
+	display: block;
+	margin: 0 0 10px 0;
+	padding: 10px 0 12px 0;
+
+	border-bottom: 3px solid #333;
+	color: #222;
+	background: #E0E0E0 url('noise.png');
+}
+
+h2 {
+	display: block;
+  margin: 0;
+	padding: 40px 0 6px 16px;
+
+	border-bottom: 2px solid #999;
+  color: #222;
+}
+
+h3 {
+  margin: 0;
+	padding: 10px 0 0 8px;
+  color: #222;
+}
+
+ul {
+  margin: 8px;
+	padding: 0 0 0 32px;
+}
+
+table {
+  padding-left: 32px;
+}
+
+table td {
+  border-radius: 4px;
+	border: 1px solid #AAA;
+}
+
