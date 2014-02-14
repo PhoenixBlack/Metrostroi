@@ -32,11 +32,13 @@ if not TURBOSTROI then
 			
 			-- Add outputs of all systems
 			for train,send_data in pairs(Turbostroi.TrainData) do
-				for k,v in pairs(train.Systems) do
-					if v.DontAccelerateSimulation then
-						for k2,v2 in pairs(v.OutputsList) do
-							Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
-								"V\t"..k.."\t"..v2.."\t"..tostring(v[v2] or 0).."\n"
+				if IsValid(train) and train.Systems then
+					for k,v in pairs(train.Systems) do
+						if v.DontAccelerateSimulation then
+							for k2,v2 in pairs(v.OutputsList) do
+								Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
+									"V\t"..k.."\t"..v2.."\t"..tostring(v[v2] or 0).."\n"
+							end
 						end
 					end
 				end
@@ -44,38 +46,42 @@ if not TURBOSTROI then
 			
 			-- Add all train wire values
 			for train,send_data in pairs(Turbostroi.TrainData) do
-				for i=1,32 do
-				--for i,_ in pairs(train.TrainWires) do
-					Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
-						"TW\t"..i.."\t"..train:ReadTrainWire(i).."\n"
-		
-					--print(train,"TW",k,train:ReadTrainWire(k))
+				if IsValid(train) then
+					for i=1,32 do
+					--for i,_ in pairs(train.TrainWires) do
+						Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
+							"TW\t"..i.."\t"..train:ReadTrainWire(i).."\n"
+			
+						--print(train,"TW",k,train:ReadTrainWire(k))
+					end
 				end
 			end
 
 			-- Exchange data between simulation and GMOD
 			for train,send_data in pairs(Turbostroi.TrainData) do
-				local data = Turbostroi.ExchangeData(train,send_data)
-				Turbostroi.TrainData[train] = ""
-				--print("Incoming "..(#data).." bytes")
-				
-				local packets = split(data,"\n")
-				for k,v in pairs(packets) do
-					local d = split(v,"\t")
-					if d[1] == "V" then
-						if train.Systems[d[2] ] then
-							train.Systems[d[2] ][d[3] ] = tonumber(d[4]) or d[4]
-							--print("train.Systems[",d[2],"][",d[3],"] = ",d[4])
+				if IsValid(train) then
+					local data = Turbostroi.ExchangeData(train,send_data)
+					Turbostroi.TrainData[train] = ""
+					--print("Incoming "..(#data).." bytes")
+					
+					local packets = split(data,"\n")
+					for k,v in pairs(packets) do
+						local d = split(v,"\t")
+						if d[1] == "V" then
+							if train.Systems[d[2] ] then
+								train.Systems[d[2] ][d[3] ] = tonumber(d[4]) or d[4]
+								--print("train.Systems[",d[2],"][",d[3],"] = ",d[4])
+							end
 						end
-					end
-					if d[1] == "S" then
-						train:PlayOnce(d[2],d[3],tonumber(d[4]),tonumber(d[5]))
-					end
-					if d[1] == "TW" then
-						train:WriteTrainWire(tonumber(d[2]) or d[2],tonumber(d[3]) or 0)
-						--if tonumber(d[2]) == 23 then
-						--	print("TRAIN WIRE",train,d[2],d[3])
-						--end
+						if d[1] == "S" then
+							train:PlayOnce(d[2],d[3],tonumber(d[4]),tonumber(d[5]))
+						end
+						if d[1] == "TW" then
+							train:WriteTrainWire(tonumber(d[2]) or d[2],tonumber(d[3]) or 0)
+							--if tonumber(d[2]) == 23 then
+							--	print("TRAIN WIRE",train,d[2],d[3])
+							--end
+						end
 					end
 				end
 			end
