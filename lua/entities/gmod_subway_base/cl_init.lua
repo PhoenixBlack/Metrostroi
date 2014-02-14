@@ -237,6 +237,12 @@ function ENT:Draw()
 	-- Draw model
 	self:DrawModel()
 	
+	if self.Systems then
+		for k,v in pairs(self.Systems) do
+			v:ClientDraw()
+		end
+	end
+	
 	-- Debug draw for buttons
 	if (GetConVarNumber("metrostroi_drawdebug") > 0) and (self.ButtonMap ~= nil) then
 		for kp,panel in pairs(self.ButtonMap) do

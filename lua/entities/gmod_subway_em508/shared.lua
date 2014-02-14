@@ -53,6 +53,7 @@ function ENT:InitializeSystems()
 	self:LoadSystem("Panel","81_705_Panel")
 	
 	self:LoadSystem("Battery")
+	
 	self:LoadSystem("PowerSupply","DIP_01K")
 	
 	self:LoadSystem("DURA","DURA")
