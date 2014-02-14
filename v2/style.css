@@ -18,12 +18,24 @@ a:link, a:visited, a:hover, a:active
 	margin:0 auto 0 auto;
 }
 
-.pagebg
+#background
 {
 	width:800px;
 	height:800px;
 	
 	padding-left:61px;
+	
+	background-image:url("paper.png");
+	background-repeat:repeat;
+	background-color:#DDD;
+}
+
+#cover
+{
+	position:absolute;
+	
+	height:800px;
+	width:61px;
 	
 	background-image:url("bookcover.png");
 	background-repeat:no-repeat;

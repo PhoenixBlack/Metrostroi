@@ -1,9 +1,13 @@
 
 var curpage = 1;
-var pages = 4;
+var pages = 0;
 
 function updatearrows()
 {
+	//Update page number
+	$("#right > span").html(curpage);
+	
+	//Update arrow visibility
 	if(curpage == 1)
 	{
 		$("#goleft").html(" ");
@@ -29,7 +33,6 @@ function nextpage()
 	$("#page" + curpage).hide();
 	curpage = curpage + 1;
 	$("#page" + curpage).show();
-	$("#right > span").html(curpage);
 	updatearrows();
 }
 
@@ -41,11 +44,16 @@ function prevpage()
 	$("#page" + curpage).hide();
 	curpage = curpage - 1;
 	$("#page" + curpage).show();
-	$("#right > span").html(curpage);
 	updatearrows();
 }
 
 $(document).ready(function(){
+	//Count pages
+	$("div[id*='page']").each(function() {
+		pages++;
+	})
+	
+	//Hide pages except first
 	for(var i=2;i<=pages;i++)
 	{
 		$("#page"+i).hide();
