@@ -174,6 +174,18 @@ function ENT:Think()
 	self:SetPackedBool(27,self.Pneumatic.RightDoorState[3] > 0.5)
 	self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
 	
+	-- Signal if doors are open or no to platform simulation
+	self.LeftDoorsOpen = 
+		(self.Pneumatic.LeftDoorState[1] > 0.5) or
+		(self.Pneumatic.LeftDoorState[2] > 0.5) or
+		(self.Pneumatic.LeftDoorState[3] > 0.5) or
+		(self.Pneumatic.LeftDoorState[4] > 0.5)
+	self.RightDoorsOpen = 
+		(self.Pneumatic.RightDoorState[1] > 0.5) or
+		(self.Pneumatic.RightDoorState[2] > 0.5) or
+		(self.Pneumatic.RightDoorState[3] > 0.5) or
+		(self.Pneumatic.RightDoorState[4] > 0.5)
+	
 	-- DIP/power
 	self:SetPackedBool(32,self.Panel["V1"] > 0.5)
 	-- LxRK

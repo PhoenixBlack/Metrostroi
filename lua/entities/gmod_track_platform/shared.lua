@@ -1,11 +1,13 @@
-ENT.Type            = "point"
-ENT.Base            = "base_gmodentity"
+ENT.Type			= "point"
+ENT.Base			= "base_gmodentity"
+ENT.PrintName		= "Train Platform"
+ENT.Spawnable		= false
+ENT.AdminSpawnable	= false
 
-ENT.PrintName       = "Subway Platform"
-ENT.Author          = ""
-ENT.Contact         = ""
-ENT.Purpose         = ""
-ENT.Instructions    = ""
+function ENT:PoolSize()
+	return 2048
+end
 
-ENT.Spawnable       = false
-ENT.AdminSpawnable  = false
+function ENT:Seed()
+	return self:EntIndex()
+end
