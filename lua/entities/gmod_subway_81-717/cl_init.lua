@@ -681,7 +681,7 @@ concommand.Add("train_show_manual", function(ply, _, args)
   browser:SetPos(10, 25)
   browser:SetSize(w - 20, h - 35)
 
-  browser:OpenURL("http://foxworks.wireos.com/metrostroi/manual.html")
+  browser:OpenURL("http://phoenixblack.github.io/Metrostroi/manual.html")
 end)
 
 
