@@ -315,26 +315,31 @@
 		Try to get a good feeling of this delay.
 		</p></aside>
 	</section>
-
-	<p>
-
 </article>
 
 <article>
-	<h2><a id="technical" href="#technical">4. Technical details</a></h2>
+	<h2><a id="signalling" href="#signalling">4. Signalling, track signs, train dispatching</a></h2>
+
+	<section>
+
+	</section>
+</article>
+
+<article>
+	<h2><a id="technical" href="#technical">5. Technical details</a></h2>
 
 	<section>
 		<h3>Electric System</h3>
 		<p>
 		The train electric circuits are divided into <em>auxiliary</em> circuits, <em>power</em> circuits and <em>control</em> circuits.
-		There are four electric engines, two engines in each bogie - connected in series (engines #1 and #3, engines #2 and #4).
+		There are four electric engines, two engines in each bogie - with pairs connected in series (engines #1 and #3, engines #2 and #4) so both bogeys always produce power.
 		The two pairs of engines can be in turn connected in series or in parallel.
 		</p>
 
 		<p>
 		Each engine consists of an anchor (a rotor) and a stator.
 		All subway trains described in this manual use series excitation of engine.
-		This means that current flows through anchor, then flows through stator.
+		This means that current flows through anchor, then flows through stator, as they are both connected in series.
 		</p>
 
 		<p>
@@ -373,32 +378,36 @@
 		<h3>Pneumatic System</h3>
 
 		<p>
-		Pressure in brake cylinders is defined by difference of pressure between brake line and train line/reservoir.
-		To increase pressure in brake cylinder, brake line pressure must be released.
+		Pressure in brake cylinders is defined by difference of pressure between brake line and train line.
+		To increase pressure in brake cylinder, pressure from brake line must be released.
 		</p>
 
 		<p>
-		The pneumatic system is shared across all of the trains wagons.
+		The pneumatic system is meant to be shared across all of the trains wagons.
 		This is controlled by the <strong>isolation valves</strong>.
 		These valves allow connection of brake line and train line through the coupling.
-		The isolation valves on both ends of the train should be closed, while all the isolation valves between wagons should be open.
+		The isolation valves on both uncoupled ends of the train should be closed, while all the isolation valves between wagons should be all open.
 		Closed valves along the train will prevent operation of the pneumatic system across the entire train and will decreased braking efficiency.
 		</p>
 	</section>
 </article>
 
 <article>
-	<h2><a id="troubleshooting" href="#troubleshooting">5. Troubleshooting for Dummies</a></h2>
+	<h2><a id="troubleshooting" href="#troubleshooting">6. Troubleshooting for Dummies</a></h2>
 
 	<section>
-		<h3>Train refuses to move</h3>
+		<h3>Train refuses to move (power circuits fail to assemble)</h3>
 		<ol>
-			<li>Is one RP light glowing? Check every wagon until you find one with two RP lights glowing.</li>
-			<li>Are two RP lights glowing? Press G to return overload relay.</li>
-			<li>Are pneumatic brakes engaged? Release brakes by pressing R</li>
+			<li>Make sure reverser is in <var>forward</var> position.</li>
+			<li>Move controller to <var>X1</var>. Are red RP lights glowing? The circuits are failing to assemble.</li>
+			<li>Move controller to <var>0</var> position.</li>
+			<li>Are doors closed? Close doors. Make sure reverser is set to forward when doing this.</li>
+			<li>Is a single green RP light glowing? Press G to reset overload relay.</li>
+			<li>Check brake cylinder pressure. Are pneumatic brakes engaged? Press R a few times to move drivers valve to position 2, open drivers valve disconnect valve.</li>
+			<li>Check brake line and train line pressure. Do you have enough pressure in both? Turn on motor-compressor.</li>			
 			<li>Is reverser set to neutral in all wagons? Reset reverser to neutral position in all wagons.</li>
-			<li>Try cycling reverser between forward and backward position</li>
-			<li>Try cycling controller between X1 and 0 positions <em>with pneumatic brakes engaged</em></li>
+			<li>Is battery turned on in all wagons? Check battery state in every wagon. It must be on in all trains.</li>
+			<li>Do not lose hope and go to 'Advanced train failure troubleshooting' instruction.</li>
 		</ol>
 	</section>
 
@@ -415,8 +424,7 @@
 		<h3>Electric brakes don't work or are not efficient</h3>
 		<ol>
 			<li>Use pneumatic brakes.</li>
-			<li>Set controller to 0. Try to assemble brake circuit. Repeat a couple times.</li>
-			<li>Cycle reverser between forward and reverse position a couple times</li>
+			<li>Set controller to <var>0</var>. Try to assemble brake circuit by moving it to <var>T1</var>. Are red RP lights glowing? Execute steps in 'Train refuses to move (power circuits fail to assemble)' instruction.</li>
 		</ol>
 	</section>
 
@@ -424,7 +432,7 @@
 		<h3>Train feels sluggish or slow, cannot climb hills</h3>
 		<ol>
 			<li>Make an emergency stop and engage pneumatic brakes</li>
-			<li>Do all things listed under 'Train refuses to move' problem</li>
+			<li>Execute steps in 'Train refuses to move (power circuits fail to assemble)' instruction.</li>
 			<li>Check all wheels and bogies to make sure there is no derail</li>
 		</ol>
 	</section>
@@ -432,7 +440,7 @@
 </article>
 
 <article>
-	<h2><a id="glossary" href="#glossary">6. Glossary</a></h2>
+	<h2><a id="glossary" href="#glossary">7. Glossary</a></h2>
 
 	<p>Navigating the trains and subway system is a lot easier when you know some key Russian vocabulary:</p>
 
