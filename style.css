@@ -109,6 +109,10 @@ a:hover {
 	color: #36A7CC;
 }
 
+dt:target, dt:target + dd {
+	background-color: #FFF7E6;
+}
+
 ul {
 	margin: 8px;
 	padding: 0 0 0 32px;
