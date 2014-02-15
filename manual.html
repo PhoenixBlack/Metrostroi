@@ -1,237 +1,378 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=false;">
-  <link href="style.css" type="text/css" rel="stylesheet">
-  <title>
-  Driving Manual
-  </title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=false;">
+	<link rel="stylesheet" href="style.css">
+	<title>Driving Manual</title>
 </head>
 <body>
-  <div style="text-align:center; display: block; width: 490px">
-    <img style="width: 480px" src="driving_manual.jpg">
+<main>
+<header>
+	<figure>
+		<img src="driving_manual.jpg" alt="Вожденчие метропоезда для Чайников" />
+		<figcaption>Following the driving manual is required for safe and efficient operation of the
+		subway network.</figcaption>
+	</figure>
+</header>
 
-    <p><b>Following the driving manual is required for safe and efficient operation of the
-    subway network.</b></p>
-  </div>
-  <div>
-    <h2>1. General Information</h2>
+<article>
+	<h2><a href="#cheat-sheet" id="cheat-sheet">0. Cheat Sheet</a></h2>
 
-    <h3>Basic controls (all trains):</h3>
-    <table>
-    <tr><td>W</td><td>Controller notch up</td></tr>
-    <tr><td>S</td><td>Controller notch down</td></tr>
-    <tr><td>1</td><td>Controller to X1 (manuvering)</td></tr>
-    <tr><td>2</td><td>Controller to X2 (series)</td></tr>
-    <tr><td>3</td><td>Controller to X3 (parallel)</td></tr>
-    <tr><td>4</td><td>Controller to 0</td></tr>
-    <tr><td>5</td><td>Controller to T1 (manual brake)</td></tr>
-    <tr><td>6</td><td>Controller to T1A</td></tr>
-    <tr><td>7</td><td>Controller to T2 (automatic brake)</td></tr>
-    <tr><td>9</td><td>Reverser notch down</td></tr>
-    <tr><td>0</td><td>Reverser notch up</td></tr>
-    <tr><td>R</td><td>Drivers valve notch down (release)</td></tr>
-    <tr><td>F</td><td>Drivers valve notch up (fill)</td></tr>
-    <tr><td>G</td><td>Return overload relay</td></tr>
-    <tr><td>SHIFT+A</td><td>DURA select alternate track</td></tr>
-    <tr><td>SHIFT+D</td><td>DURA Select main track</td></tr>
-    </table>
+	<h3>Basic controls (all trains):</h3>
+	<table>
+	<tr><td><kbd>W</kbd></td><td>Controller notch up</td></tr>
+	<tr><td><kbd>S</kbd></td><td>Controller notch down</td></tr>
+	<tr><td><kbd>1</kbd></td><td>Controller to <var>X1</var> (manuvering)</td></tr>
+	<tr><td><kbd>2</kbd></td><td>Controller to <var>X2</var> (series)</td></tr>
+	<tr><td><kbd>3</kbd></td><td>Controller to <var>X3</var> (parallel)</td></tr>
+	<tr><td><kbd>4</kbd></td><td>Controller to <var>0</var></td></tr>
+	<tr><td><kbd>5</kbd></td><td>Controller to <var>T1</var> (manual brake)</td></tr>
+	<tr><td><kbd>6</kbd></td><td>Controller to <var>T1A</var></td></tr>
+	<tr><td><kbd>7</kbd></td><td>Controller to <var>T2</var> (automatic brake)</td></tr>
+	<tr><td><kbd>9</kbd></td><td>Reverser notch down</td></tr>
+	<tr><td><kbd>0</kbd></td><td>Reverser notch up</td></tr>
+	<tr><td><kbd>R</kbd></td><td>Drivers valve notch down (release)</td></tr>
+	<tr><td><kbd>F</kbd></td><td>Drivers valve notch up (fill)</td></tr>
+	<tr><td><kbd>G</kbd></td><td>Return overload relay</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>DURA select alternate track</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>D</kbd></td><td>DURA Select main track</td></tr>
+	</table>
 
-    <br />
-    <h3>Operational parameters:</h3>
-    <table>
-    <tr><td>Maximum allowed speed</td><td>90 km/h</td></tr>
-    <tr><td>Mass (81-717)</td><td>34,000 kg</td></tr>
-    <tr><td>Mass (81-714)</td><td>33,000 kg</td></tr>
-    <tr><td>Capacity (81-717)</td><td>48 people</td></tr>
-    <tr><td>Capacity (81-714)</td><td>52 people</td></tr>
-    <tr><td>Power supply</td><td>750 Vdc or 825 Vdc</td></tr>
-    </table>
+	<h3>Driver's valve positions:</h3>
+	<table>
+	<tr><td><var>1</var></td><td>Charge (fast release)</td><td>Brake line is filled from train line</td></tr>
+	<tr><td><var>2</var></td><td>Driving (brake release)</td><td>Brake line and reservoir filled from train line</td></tr>
+	<tr><td><var>3</var></td><td>Closed</td><td>All valves are closed, drivers valve is disabled (no flow)</td></tr>
+	<tr><td><var>4</var></td><td>Service application</td><td>Brake line is released to atmosphere, brake cylinders fed from train line</td></tr>
+	<tr><td><var>5</var></td><td>Emergency application</td><td>Fast application of brakes</td></tr>
+	</table>
 
-    <h2>2. Train Driving Basics</h2>
+	<h3>Reverser positions:</h3>
+	<table>
+	<tr><td><var>forward</var></td><td>Driver's cabin has control, train will move forwards</td></tr>
+	<tr><td><var>0</var></td><td>Another driver's cabin has control</td></tr>
+	<tr><td><var>backward</var></td><td>Driver's cabin has control, train will move backwards</td></tr>
+	</table>
 
-    <p>Typically a train consists of 5 wagons, which can total up to over 167,000 kg in mass. Keep
-    the train length and in mass when driving it. A train possesses considerable
-    inertia even when empty.</p>
+	<h3>Operational parameters:</h3>
+	<table>
+	<tr><td>Maximum allowed speed</td><td>90 km/h</td></tr>
+	<tr><td>Mass (81-717)</td><td>34,000 kg</td></tr>
+	<tr><td>Mass (81-714)</td><td>33,000 kg</td></tr>
+	<tr><td>Capacity (81-717)</td><td>48 people</td></tr>
+	<tr><td>Capacity (81-714)</td><td>52 people</td></tr>
+	<tr><td>Power supply</td><td>750 Vdc or 825 Vdc</td></tr>
+	</table>
+</article>
 
-    <p>The subway driver must pay attention and act according to track signals, track
-    signs and dispatcher instructions to ensure efficient and safe operation of the
-    train.</p>
+<article>
+	<h2><a id="introduction" href="#introduction">1. Introduction to Your Train</a></h2>
 
-    <p>The trains use rheostat control for starting and braking (Em, Ema508), thyristor control
-    for braking (81-717, Ema509). It takes some time for rheostat to spin into the right position.
-    Try to get a good feeling of this delay.</a>
+	<p>
+	You are in control of a state-of-the-art subway train.
+	It features electric engines as well as pneumatic and electric braking systems.
+	Internally, the electrical systems are controlled by opening and closing relays in order to reconfigure the train's circuitry.
+	For example, the motors can be connected in either series or parallel depending on the required speed.
+	</p>
 
-    <div><p>To avoid damage to the engines and discomfort of the passengers, the current through
-    engines is limited. Effective acceleration and braking of train is <b>1.5 m/s2</b>.</p></div>
+	<p>
+	In normal usage, there are few controls that the driver needs to use. These are:
+	</p>
 
+	<h3>The Controller</h3>
 
-    <h3>Electric System</h3>
+	<p>
+	Control of the electric systems is primarily through the <em>controller</em> - by setting the
+	controller to one of seven different modes, the motors can be disengaged or configured to run at
+	three different speeds, and the electric brakes can be set to the desired strength.
+	</p>
 
-    <p>The train electric circuits are divided into <i>auxiliary</i> circuits, <i>power</i> circuits and
-    <i>control</i> circuits. There are four electric engines, two engines in each bogey - connected in
-    series (engines #1 and #3, engines #2 and #4). The two pairs of engines can be in turn connected
-    in series or in parallel.</p>
+	<h3>The Driver's Valve</h3>
 
-    <p>Each engine consists of an anchor (a rotor) and a stator. All subway trains described in
-    this manual use series excitation of engine. This means that current flows through anchor,
-    then flows through stator.</p>
+	<p>
+	The pneumatic braking system is controlled with the <em>driver's valve</em>.
+	It has five modes, which allow the brake cylinder to be filled or drained of air.
+	</p>
 
-    <p>Current through stator will create a magnetic field, in which the anchor will rotate.
-    The rotation of anchor generates current in opposite of current which accelerates it.
-    When current that flows through the engine equals counter-current generated by the engines,
-    train stops accelerating. This is known as <b>automatic mode</b>.</p>
+	<aside class="info"><p>
+	Unlike the controller, the driver's valve cannot be immediately set to a
+	position, and must be stepped through manually to reach the desired mode.
+	</p></aside>
 
-    <p>During the initial start of the train, there is no magnetic field available and so
-    no counter-current is generated. If engines would be connected in series to the 750 volts
-    power source, the total current flowing through them would be
-    <b>(750 volts) / (4 * 0.0691 ohm) = 2710 A</b>. Such current would destroy the engines.</p>
+	<h3>The Reverser</h3>
 
-    <p>To limit the current flowing through engines during startup a rheostat is used. It
-    adds additional resistance to the power circuits, limiting the current to <b>240-260 A</b>
-    for an empty train, and up to <b>310-340 A</b> on slopes and under load</p>
+	<p>
+	Trains have a head at each end to allow them to move in either direction along the track.
+	The	<em>reverser</em> controls the direction of movement.
+	The reverser can be in three positions: <var>forward</var>, <var>0</var>, and <var>backward</var>.
+	</p>
+</article>
 
-    <p>Acceleration of the train depends on current through the anchor. Rotation rate is
-    dependant on current through the stator (which is usually equal to current through the anchor).</p>
+<article>
+	<h2><a id="driving" href="#driving">2. Train Driving Basics</a></h2>
 
+	<section>
+		<h3>Moving</h3>
 
-    <h3>Control System</h3>
-    <p>When trains are coupled together mechanically, the electric ports located on the coupling
-    are connected too. Each of the pins creates a <b>train wire</b>, single conductor which is shared
-    by all the wagons of the train.</p>
-    
-    <p>Train wires are used to transmit control signals to all of the wagons of the train.</p>
-    
-    <p><b>Sbor</b> - assembly of the power circuits, all the relays close and create a specific
-    circuit for braking or acceleration. <b>Razbor</b> - opposite process, circuits are disconnected
-    and disassembled by opening relays and contactors.</p>
+		<p>
+		To control the movement of the train, there are four relevant modes on the controller: <var>X1</var>, <var>X2</var>, <var>X3</var> and <var>0</var>.
+		<var>X2</var> configures the engines to be connected in series and is the mode that train is typically in when moving normally.
+		<var>X3</var> connects the engines in parallel for extra power.
+		It is faster and is	useful for long straight sections or climbing steep	inclines.
+		<var>X1</var> is a lower-powered mode used for maneuvering.
+		<var>0</var> disengages the engines and lets the train roll on the tracks.
+		</p>
 
+		<aside class="warning"><p>
+		<var>X1</var> mode causes the resistors to heat up.
+		To avoid overheating, do not operate in <var>X1</var> for more than 3 minutes.
+		</p></aside>
 
+		<aside class="info"><p>
+		The circuitry cannot be directly switched from <var>X3</var> to <var>X1</var> or <var>X2</var> -
+		when the controller is in is in <var>X3</var> position, you must switch	to <var>0</var> first.
+		</p></aside>
+	</section>
 
-    <h3>Pneumatic System</h3>
-    <p>Pressure in brake cylinders is defined by difference of pressure between brake line
-    and train line/reservoir. To increase pressure in brake cylinder, brake line pressure
-    must be released.</p>
+	<section>
+		<h3>Electric Brakes</h3>
 
-    <p>The pneumatic system is shared across all of the trains wagons. This is controlled
-    by the <b>isolation valves</b>. These valves allow connection of brake line and train line
-    through the coupling.</p>
+		<p>
+		The electric brakes are controller by three controller modes: <var>T1</var>, <var>T1A</var> and <var>T2</var>.
+		The electric brakes are engaged in all of these modes.
+		The brakes can be varied in strength - switching from <var>T1</var> to <var>T1A</var> adds an extra level of brake strength.
+		<var>T2</var> mode will attempt to keep a constant braking force by automatically adding levels of brake strength,
+		which keeps the deceleration roughly	constant throughout the entire braking.
+		</p>
+	</section>
 
-    <div><p>Make sure that isolation valves on both ends of the train are <b>CLOSED</b>, while
-    all the isolation valves between wagons are <b>OPEN</b>. Closed valves will prevent
-    operation of the pneumatic system across entire train and will decrease braking efficiency.</p></div>
+	<section>
+		<h3>Pneumatic Brakes</h3>
 
+		<p>
+		The pneumatic braking system is controlled by the driver's valve.
+		The pressure in the brake cylinders is controlled by the pressure difference between two lines -
+		the <em>train line</em>, which has a large reservoir and a compressor motor attached, 
+		and the <em>brake line</em>, which can be filled from the train line
+		or released into the atmosphere as necessary to control the brakes.
+		</p>
 
+		<p>
+		In typical use, the driver's valve is set to position <var>2</var>.
+		This fills the brake line from the train line, which causes the pressure to equalize, and so disengages the brakes.
+		Mode <var>4</var> releases the pressure from the brake line into the atmosphere which causes
+		the brake cylinders to fill from the train line, thus engaging the brakes.
+		In mode <var>3</var>, all the valves are closed, which keeps the brake pressure as it is.
+		<var>1</var> is similar to <var>2</var> and <var>5</var> is similar to <var>4</var>,
+		except they take effect quicker, and the driver's valve must be held in that position.
+		</p>
 
-    <h3>Train Controls</h3>
+		<aside class="warning"><p>
+		The brake line can become overcharged if the driver's valve is held at position	<var>1</var> for too long.
+		</p></aside>
 
-    <p>The main instrument of a driver is the controller handle. It controls the way in which
-    electric circuits of the train will be connected. The second instrument is the drivers valve,
-    which allows contorol over the pneumatic system of the train.</p>
+		<p>
+		When the electric brakes reach position #18, the pneumatic brakes will be automatically activated.
+		When using <var>T2</var> mode, this typically happens at roughly 5-10 km/h.
+		</p>
+	</section>
 
-    <p>Direction of train movement is selected by the reverser. Reverser is an additional
-    rotor which coincides with the controller and has three positions: forward, <b>0</b>, backward.</p>
+	<section>
+		<h3>Reversing direction</h3>
 
-    <div><p>Only one wagon in the train can have reverser set to forward. Right now you have
-    to pay extra attention to make sure of that.</p></div>
+		<p>
+		Each head has a <em>reverser</em>, which reverses direction that the train moves in.
+		The	reverser has three positions - <var>forward</var>, <var>0</var> and <var>backward</var>.
+		The	wagon that you wish to be the front of the train should have its reverser set to <var>forward</var>, all others must be set to <var>backward</var>.
+		</p>
+	</section>
+</article>
 
-    <p>The controller occupies one of the following seven positions:</p>
+<article>
+	<h2><a id="operations" href="#operations">3. Standard operation</a></h2>
 
-    <table>
-    <tr><td>X3</td><td> Engines connected in parallel</td></tr>
-    <tr><td>X2</td><td> Engines connected in series</td></tr>
-    <tr><td>X1</td><td> Manuvering mode</td></tr>
-    <tr><td><b>0</b></td> <td>All engines disconnected</td></tr>
-    <tr><td>T1</td><td> Manual braking (electric brakes engaged)</td></tr>
-    <tr><td>T1A</td><td>Manual braking (removes a step of resistance from the rheostat)</td></tr>
-    <tr><td>T2</td><td> Automatic braking/full stop mode</td></tr>
-    </table>
+	<section>
+		<h3>Starting a train from cold:</h3>
+		<ol>
+			<li>Enable the battery banks in each wagon (typically on a switch on the rear wall).</li>
+			<li>In the front driver's cabin, set the reverser to <var>forward</var> by pressing <kbd>0</kbd>.</li>
+			<li>Engage the driver's valve by pressing <kbd>Shift</kbd>+<kbd>L</kbd>.</li>
+			<li>Disengage the hydraulic brakes by pressing <kbd>R</kbd> until the driver's valve in position 2.</li>
+			<li>Wait for brake cylinder pressure to reach 0.</li>
+			<li>Start moving by moving the controller to position <var>X2</var> by pressing <kbd>2</kbd>.</li>
+		</ol>
+	</section>
 
-    <br>
+	<section>
+		<h3>Braking to stop:</h3>
+		<ol>
+			<li>Enable electric brakes by moving the controller to position <var>T1</var> by pressing <kbd>5</kbd>.</li>
+			<li>Gradually increase the braking resistance by switching between <var>T1A</var> (<kbd>6</kbd>) and <var>T1</var> (<kbd>5</kbd>).</li>
+			<li>When the train's speed is at roughly 20km/h, switch to <var>T2</var> by pressing <kbd>7</kbd>.</li>
+			<li>When the train's speed is at roughly 5-10km/h, the hydraulic brakes should automatically engage.</li>
+		</ol>
 
-    <p>The drivers valve controls pneumatic system state and has five different positions:</P>
-    <table>
-    <tr><td>1</td><td>Charge (fast release) </td><td>Brake line is filled from train line</td></tr>
-    <tr><td>2</td><td>Driving (brake release)</td><td>Brake line and reservoir filled from train line</td></tr>
-    <tr><td>3</td><td>Closed                 </td><td>All valves are closed, drivers valve is disabled (no flow)</td></tr>
-    <tr><td>4</td><td>Service application    </td><td>Brake line is released to atmosphere, brake cylinders fed from train line</td></tr>
-    <tr><td>5</td><td>Emergency application  </td><td>Fast application of brakes</td></tr>
-    </table>
-    
-    <p>Normal pneumatic braking involves moving drivers valve from position 2 to
-    position 4 until desired pressure in brake line is reached. Full application
-    of brakes equals to 3 atm of pressure in brake line. Releasing brakes is
-    done by moving the valve to position 2 (driving).</p>
-    
-    <p>The head train must have pneumatic valve in position 2 for normal driving
-    to avoid overcharging. Intermediate and rear trains must all have driver
-    valve disabled by setting it to position 3.</p>
-    
-    <div><p>Do not leave drivers valve in the position 1 (charge) for
-    longer than needed to avoid overcharging of the brake line.</p></div>
+		<p>
+		To avoid damage to the engines and discomfort of the passengers, the current through engines is limited.
+		The effective acceleration and braking of train is 1.5 m/s<sup>2</sup>.
+		</p>
 
+		<aside class="info"><p>
+		The trains use rheostat control for starting and braking (Em, Ema508), thyristor control for braking (81-717, Ema509).
+		It takes some time for rheostat to spin into the right position.
+		Try to get a good feeling of this delay.
+		</p></aside>
+	</section>
 
-    <h2>3. Train Controller Modes</h2>
+	<p>
 
-    <h3>X1 (Manuvering)</h3>
-    <div><p>To avoid overheating of the resistors, limit duration of operating in
-    the X1 mode to no more than 3 minutes.</p></div>
+</article>
 
-    <h3>X2 (Series)</h3>
-    <h3>X3 (Parallel)</h3>
-    <div><p>Once X3 mode is engaged, the train will stay in it even if controller
-    is moved to X2 or X1.</p></div>
+<article>
+	<h2><a id="technical" href="#technical">4. Technical details</a></h2>
 
-    <h3>T1 (Manual brake)</h3>
-    <h3>T1A (Manual brake, next rheostat position)</h3>
-    <div><p>To remove a single position from rheostat and increase strength of brakes by
-    one step, cycle controller between T1 and T1A. Repeat until desired braking efficiency
-    is reached.</p></div>
-    
-    <p>Typically you would brake to 20 kph by alternating between T1 and T1A, then engage T2 for full stop.</p>
+	<section>
+		<h3>Electric System</h3>
+		<p>
+		The train electric circuits are divided into <em>auxiliary</em> circuits, <em>power</em> circuits and <em>control</em> circuits.
+		There are four electric engines, two engines in each bogie - connected in series (engines #1 and #3, engines #2 and #4).
+		The two pairs of engines can be in turn connected in series or in parallel.
+		</p>
 
-    <h3>T2 (Automatic brake)</h3>
-    <div><p>When rheostat reaches position 17, pneumatic valve #1 will be open and
-    pneumatic brakes will be applied.</p></div>
+		<p>
+		Each engine consists of an anchor (a rotor) and a stator.
+		All subway trains described in this manual use series excitation of engine.
+		This means that current flows through anchor, then flows through stator.
+		</p>
 
-    <div><p>In the T2 mode, if electric brakes do not gain enough efficiency, they will be
-    replaced by pneumatic braking.</p></div>
+		<p>
+		Current through stator will create a magnetic field, in which the anchor will rotate.
+		The rotation of anchor generates current in opposite of current which accelerates it.
+		When current that flows through the engine equals counter-current generated by the engines, the train stops accelerating.
+		This is known as <strong>automatic mode</strong>.
+		</p>
 
+		<p>
+		During the initial start of the train, there is no magnetic field available and so no counter-current is generated.
+		If the engines would be connected in series to the 750 V power source, the total current flowing through them would be (750 V) / (4 * 0.0691 Ω) = 2710 A.
+		Such a current would destroy the engines.
+		To limit the current flowing through engines during startup a rheostat is used.
+		It adds additional resistance to the power circuits, limiting the current to 240-260 A for an empty train,
+		and up to 310-340 A on slopes and under load.
+		</p>
 
-    <h2>4. Troubleshooting for Dummies</h2>
-    <h3>Train refuses to move</h3>
-    <ol>
-      <li>Is one RP light glowing? Check every wagon until you find one with two RP lights glowing.</li>
-      <li>Are two RP lights glowing? Press G to return overload relay.</li>
-      <li>Are pneumatic brakes engaged? Release brakes by pressing R</li>
-      <li>Is reverser set to neutral in all wagons? Reset reverser to neutral position in all wagons.</li>
-      <li>Try cycling reverser between forward and backward position</li>
-      <li>Try cycling controller between X1 and 0 positions <i>with pneumatic brakes engaged</i></li>
-    </ol>
+		<p>
+		Acceleration of the train depends on current through the anchor.
+		Rotation rate is dependant on current through the stator (which is usually equal to current through the anchor).
+		</p>
+	</section>
 
-    <h3>Pneumatic brakes do not engage or do not release</h3>
-    <ol>
-      <li>Check all isolation valves.</li>
-      <li>Make sure isolation valves on train ends are <b>CLOSED</b></li>
-      <li><b>OPEN</b> isolation valves between trains. Make sure to open them on both ends of the coupling.</li>
-    </ol>
+	<section>
+		<h3>Control System</h3>
 
-    <h3>Electric brakes don't work or are not efficient</h3>
-    <ol>
-      <li>Use pneumatic brakes</li>
-      <li>Set controller to 0. Try to assemble brake circuit. Repeat a couple times.</li>
-      <li>Cycle reverser between forward and reverse position a couple times</li>
-    </ol>
+		<p>
+		When trains are coupled together mechanically, the electric ports located on the coupling are connected too.
+		Each of the pins creates a <strong>train wire</strong>, single conductor which is shared by all the wagons of the train.
+		Train wires are used to transmit control signals to all of the wagons of the train.
+		</p>
+	</section>
 
-    <h3>Train feels sluggish or slow, cannot climb hills</h3>
-    <ol>
-      <li>Make an emergency stop and engage pneumatic brakes</li>
-      <li>Do all things listed under 'Train refuses to move' problem</li>
-      <li>Check all wheels and bogeys to make sure there is no derail</li>
-    </ol>
+	<section>
+		<h3>Pneumatic System</h3>
 
-  </div>
+		<p>
+		Pressure in brake cylinders is defined by difference of pressure between brake line and train line/reservoir.
+		To increase pressure in brake cylinder, brake line pressure must be released.
+		</p>
+
+		<p>
+		The pneumatic system is shared across all of the trains wagons.
+		This is controlled by the <strong>isolation valves</strong>.
+		These valves allow connection of brake line and train line through the coupling.
+		The isolation valves on both ends of the train should be closed, while all the isolation valves between wagons should be open.
+		Closed valves along the train will prevent operation of the pneumatic system across the entire train and will decreased braking efficiency.
+		</p>
+	</section>
+</article>
+
+<article>
+	<h2><a id="troubleshooting" href="#troubleshooting">5. Troubleshooting for Dummies</a></h2>
+
+	<section>
+		<h3>Train refuses to move</h3>
+		<ol>
+			<li>Is one RP light glowing? Check every wagon until you find one with two RP lights glowing.</li>
+			<li>Are two RP lights glowing? Press G to return overload relay.</li>
+			<li>Are pneumatic brakes engaged? Release brakes by pressing R</li>
+			<li>Is reverser set to neutral in all wagons? Reset reverser to neutral position in all wagons.</li>
+			<li>Try cycling reverser between forward and backward position</li>
+			<li>Try cycling controller between X1 and 0 positions <em>with pneumatic brakes engaged</em></li>
+		</ol>
+	</section>
+
+	<section>
+		<h3>Pneumatic brakes do not engage or do not release</h3>
+		<ol>
+			<li>Check all isolation valves.</li>
+			<li>Make sure isolation valves on train ends are closed.</li>
+			<li>Open isolation valves between trains. Make sure to open them on both ends of the coupling.</li>
+		</ol>
+	</section>
+
+	<section>
+		<h3>Electric brakes don't work or are not efficient</h3>
+		<ol>
+			<li>Use pneumatic brakes.</li>
+			<li>Set controller to 0. Try to assemble brake circuit. Repeat a couple times.</li>
+			<li>Cycle reverser between forward and reverse position a couple times</li>
+		</ol>
+	</section>
+
+	<section>
+		<h3>Train feels sluggish or slow, cannot climb hills</h3>
+		<ol>
+			<li>Make an emergency stop and engage pneumatic brakes</li>
+			<li>Do all things listed under 'Train refuses to move' problem</li>
+			<li>Check all wheels and bogies to make sure there is no derail</li>
+		</ol>
+	</section>
+
+</article>
+
+<article>
+	<h2><a id="glossary" href="#glossary">6. Glossary</a></h2>
+
+	<p>Navigating the trains and subway system is a lot easier when you know some key Russian vocabulary:</p>
+
+	<dl>
+		<dt id="define-xod"><ruby><rb>Ход</rb><rt><rp> (</rp>xod<rp>)</rp></rt></ruby></dt>
+		<dd>
+		<em>travel, motion, run.</em>
+		Used to refer to the controller modes in which the engines are powered, <var>X1</var>-<var>X3</var>.
+		</dd>
+		<dt id="define-tormoz"><ruby><rb>Тормоз</rb><rt><rp> (</rp>tormoz<rp>)</rp></rt></ruby></dt>
+		<dd>
+		<em>brake.</em>
+		Refers to modes <var>T1</var>-<var>T2</var>.
+		</dd>
+		<dt id="define-sbor"><ruby><rb>Сбор</rb><rt><rp> (</rp>sbor<rp>)</rp></rt></ruby></dt>
+		<dd>
+		<em>assembly.</em>
+		This is the term for when the controller is moved from away from position <var>0</var> to either an <var>X</var> or <var>T</var> position.
+		When this happens, the circuit is assembled into a configuration to either power the engines or to brake with them.
+		</dd>
+		<dt id="define-razbor"><ruby><rb>Разбор</rb><rt><rp> (</rp>razbor<rp>)</rp></rt></ruby></dt>
+		<dd>
+		<em>disassembly, dissection.</em>
+		The opposite of <em>sbor</em>. This is when the controller is switched to position <var>0</var>, and the train's circuits are disassembled.
+		The disassembly occurs in a specific order, which will cause the engines to gradually become less efficient.
+		</dd>
+	</dl>
+</article>
+</main>
+<footer>
+	<p><a href="https://github.com/PhoenixBlack/Metrostroi/tree/gh-pages">Contribute to this documentation</a></p>
+</footer>
 </body>
 </html>
-
