@@ -2,7 +2,7 @@ include( "shared.lua" )
 
 CreateClientConVar( "metro_admin_listentoall", 0 , true, true )
 
-DEFAULT_MOTD = "http://foxworks.wireos.com/metrostroi/manual.html"
+DEFAULT_MOTD = "http://phoenixblack.github.io/Metrostroi/manual.html"
 
 
 --MOTD
