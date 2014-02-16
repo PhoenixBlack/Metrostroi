@@ -72,12 +72,13 @@ h3 {
 	margin-top: 1.2em;
 }
 
-aside {
-	margin: 1.5em 0 1.5em 0;
-	padding: 0;
+aside, .infobox {
+	margin: 0.5em 0;
+	padding: 0.5em;
+	overflow: hidden;
 
-	border: 1px solid #333;
-	background: #DEDEDE;
+	border: 1px solid #AAA;
+	background: #FFF;
 	border-radius: 5px;
 }
 
@@ -91,8 +92,33 @@ aside.info {
 	border-color: #CC6;
 }
 
-aside p {
-	margin: 0.75em;
+aside p, .infobox p, .infobox figcaption {
+	margin: 0;
+}
+
+figure.infobox dfn {
+	font-weight: bold;
+	font-style: normal;
+}
+
+figure.infobox img {
+	margin: 0;
+
+	border-radius: 0.5em;
+}
+
+figure.leftimg img {
+	margin-right: 0.5em;
+	float: left;
+}
+
+figure.rightimg img {
+	margin-left: 0.5em;
+	float: right;
+}
+
+figure.rightimg figcaption {
+	display: inline;
 }
 
 p {
