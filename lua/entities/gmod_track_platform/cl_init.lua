@@ -46,6 +46,7 @@ local rareModels = { -- Less common special models
 
 function ENT:Initialize()
 	self.ClientModels = {}
+	self.CleanupModels = {}
 end
 
 
@@ -114,7 +115,7 @@ function ENT:PopulatePlatform(platformStart,platformEnd,stationCenter)
 		while iterations <= 16 do
 			-- Generate random constants
 			local a = -1
-			while (a < 0) or (a > 1) do a = gauss_random(0.0,0.25) end
+			while (a < 0) or (a > 1) do a = gauss_random(self:GetNWFloat("X0"),self:GetNWFloat("Sigma")) end
 			local b = math.abs(gauss_random(0.00,0.20))
 		
 			-- Create random position
@@ -142,12 +143,18 @@ end
 -- Think loop that manages clientside models
 --------------------------------------------------------------------------------
 function ENT:Think()
+	self.PrevTime = self.PrevTime or CurTime()
+	self.DeltaTime = (CurTime() - self.PrevTime)
+	self.PrevTime = CurTime()
+	
+	-- Platform parameters
 	local platformStart = self:GetNWVector("PlatformStart")
 	local platformEnd = self:GetNWVector("PlatformEnd")
 	local stationCenter = self:GetNWVector("StationCenter")
 	
 	-- If platform is defined and pool is not
 	--print(entStart,entEnd,self.Pool)
+	local dataReady = (self:GetNWFloat("X0",-1) >= 0) and (self:GetNWFloat("Sigma",-1) > 0)
 	local poolReady = (self.Pool) and (#self.Pool == self:PoolSize())
 	if (not poolReady) and (stationCenter:Length() > 0.0) then
 		self:PopulatePlatform(platformStart,platformEnd,stationCenter)
@@ -175,10 +182,61 @@ function ENT:Think()
 			else
 				-- Model found that is not in window
 				if self.ClientModels[i] then
-					self.ClientModels[i]:Remove()
+					-- Get nearest door
+					local count = self:GetNWInt("TrainDoorCount",0)
+					local distance = 1e9
+					local target = Vector(0,0,0)
+					for j=1,count do
+						local vec = self:GetNWVector("TrainDoor"..j,Vector(0,0,0))
+						local d = vec:Distance(self.ClientModels[i]:GetPos())
+						if d < distance then
+							target = vec
+							distance = d
+						end
+					end
+				
+					-- Add to list of cleanups
+					table.insert(self.CleanupModels,{
+						ent = self.ClientModels[i],
+						target = target,
+					})
 					self.ClientModels[i] = nil
 				end
 			end
+		end
+	end
+	
+	-- Animate models for cleanup
+	for k,v in pairs(self.CleanupModels) do
+		-- Get pos and target in XY plane
+		local pos = v.ent:GetPos()
+		local target = v.target
+		pos.z = 0
+		target.z = 0
+		
+		-- Find direction in which pedestrians must walk
+		local targetDir = (target - pos):GetNormalized()
+		
+		-- Make it go along the platform if too far
+		local distance = pos:Distance(target) 
+		if distance > 192 then
+			local platformDir = (platformEnd-platformStart):GetNormalized()
+			local projection = targetDir:Dot(platformDir)
+			if math.abs(projection) > 0.1 then
+				targetDir = (platformDir * projection):GetNormalized()
+			end
+		end		
+		
+		-- Move pedestrian
+		local threshold = 4
+		v.ent:SetPos(v.ent:GetPos() + targetDir*math.min(threshold,64*self.DeltaTime))
+		-- Rotate pedestrian
+		v.ent:SetAngles(targetDir:Angle() + Angle(0,180,0))
+		
+		-- Delete if reached the target point
+		if distance < 2*threshold then
+			v.ent:Remove()
+			self.CleanupModels[k] = nil
 		end
 	end
 end

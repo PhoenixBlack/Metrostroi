@@ -687,33 +687,7 @@ end)
 
 
 hook.Add("CalcView", "Metrostroi_ThirdPersonMirrorView", function(ply,pos,ang,fov,nearz,farz)
-  local seat = ply:GetVehicle()
-  if (not seat) or (not seat:IsValid()) then return end
-  local train = seat:GetNWEntity("TrainEntity")
-  if (not train) or (not train:IsValid()) then return end
-  
-  if seat:GetThirdPersonMode() then
-    local trainAng = ang - train:GetAngles()
-    if trainAng.y >  180 then trainAng.y = trainAng.y - 360 end
-    if trainAng.y < -180 then trainAng.y = trainAng.y + 360 end
-    if trainAng.y > 0 then
-      return {
-        origin = train:LocalToWorld(Vector(-471,70,34)),
-        angles = train:GetAngles() + Angle(2,5,0),
-        fov = 20,
-        znear = znear,
-        zfar = zfar
-      }
-    else --if trainAng.y < 0 then
-      return {
-        origin = train:LocalToWorld(Vector(-471,-70,34)),
-        angles = train:GetAngles() + Angle(2,-5,0),
-        fov = 20,
-        znear = znear,
-        zfar = zfar
-      }
-    end
-  end
+
 end)
 
 //Thanks old gmod wiki!

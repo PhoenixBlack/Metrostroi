@@ -11,6 +11,13 @@ ENT.Category		= "Metrostroi"
 ENT.Spawnable       = true
 ENT.AdminSpawnable  = false
 
+function ENT:PassengerCapacity()
+	return 300
+end
+
+function ENT:GetStandingArea()
+	return Vector(-450,-30,-45),Vector(380,30,-45)
+end
 
 function ENT:InitializeSystems()	
 	-- Токоприёмник
