@@ -105,6 +105,18 @@ function ENT:Initialize()
 	if Turbostroi then
 		Turbostroi.InitializeTrain(self)
 	end
+	
+	-- Passenger related data (must be set by derived trains to allow boarding)
+	self.LeftDoorsOpen = false
+	self.LeftDoorsBlocked = false
+	self.LeftDoorPositions = { Vector(0,0,0) }
+	self.RightDoorsOpen = false
+	self.RightDoorsBlocked = false
+	self.RightDoorPositions = { Vector(0,0,0) }
+	self:SetPassengerCount(0)
+	
+	-- Get default train mass
+	self.NormalMass = self:GetPhysicsObject():GetMass()
 end
 
 -- Remove entity
@@ -755,6 +767,9 @@ function ENT:Think()
 	
 	-- Get angular velocity
 	--self:SetTrainAngularVelocity(math.pi*self:GetPhysicsObject():GetAngleVelocity()/180)
+	
+	-- Apply mass of passengers
+	self:GetPhysicsObject():SetMass(self.NormalMass + 80*self:GetPassengerCount())
 	
 	-- Calculate turn information, unused right now
 	if self.FrontBogey and self.RearBogey then

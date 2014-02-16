@@ -111,6 +111,14 @@ function ENT:Initialize()
 		[5] = 4, -- Reverser F<->B
 		[31] = 32, -- Doors L<->R
 	}
+	
+	-- Setup door positions
+	self.LeftDoorPositions = {}
+	self.RightDoorPositions = {}
+	for i=0,3 do
+		table.insert(self.LeftDoorPositions,Vector(353.0 - 35*0.5 - 231*i,65,-1.8))
+		table.insert(self.RightDoorPositions,Vector(353.0 - 35*0.5 - 231*i,-65,-1.8))
+	end
 end
 
 
@@ -234,6 +242,11 @@ function ENT:Think()
 	end
 	self.DebugVars["Speed"] = speed
 	self.DebugVars["Acceleration"] = acceleration
+	
+	-- RUT test
+	local weight = math.max(0,math.min(1,(self:GetPassengerCount()/300)))
+	if math.abs(self:GetAngles().pitch) > 2.5 then weight = 1 end
+	self.RUTtest = 75 * weight
 	
 	-- Exchange some parameters between engines, pneumatic system, and real world
 	self.Engines:TriggerInput("Speed",speed)

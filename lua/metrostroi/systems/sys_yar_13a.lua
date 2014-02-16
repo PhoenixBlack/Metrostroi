@@ -52,6 +52,7 @@ function TRAIN_SYSTEM:Initialize()
 	
 	
 	-- Extra coils for some relays
+	self.Train.RUTtest = 0
 	self.Train.RUTpod = 0
 	self.Train.RRTuderzh = 0
 	self.Train.RRTpod = 0
@@ -70,7 +71,7 @@ function TRAIN_SYSTEM:Think()
 	
 	-- RUT operation
 	self.RUTCurrent = math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24)
-	self.RUTTarget = 260
+	self.RUTTarget = 260 + self.Train.RUTtest
 	-- HACK: increase RUT current on slopes
 	--if math.abs(Train:GetAngles().pitch) > 2.5 then self.RUTTarget = self.RUTTarget + 75 end	
 	if Train.PositionSwitch.SelectedPosition >= 3 then self.RUTTarget = 180 end

@@ -118,6 +118,9 @@ function ENT:Initialize()
 	if self.RenderClientEnts then
 		self:CreateCSEnts()
 	end
+	-- Passenger models
+	self.PassengerEnts = {}
+	self.PassengerPositions = {}
 	
 	-- Systems defined in the train
 	self.Systems = {}
@@ -136,6 +139,9 @@ function ENT:OnRemove()
 	
 	for k,v in pairs(self.Sounds) do
 		v:Stop()
+	end
+	for k,v in pairs(self.PassengerEnts) do
+		v:Remove()
 	end
 end
 
@@ -161,9 +167,13 @@ function ENT:Think()
 		self.ClientEntsResetTimer = CurTime()
 		self:RemoveCSEnts()
 		self:CreateCSEnts()
-		--[[for k,v in pairs(self.ClientEnts) do
+		
+		for k,v in pairs(self.PassengerEnts) do
+			local min,max = self:GetStandingArea()			
+			v:SetParent(nil)
+			v:SetPos(self:LocalToWorld(self.PassengerPositions[k]))
 			v:SetParent(self)
-		end]]--
+		end
 	end
 	
 	-- Update CSEnts
@@ -205,6 +215,44 @@ function ENT:Think()
 			v:SetPoseParameter("position",math.sin(CurTime()*4)/2+0.5)
 		end
 	end]]--
+	
+	-- Update passengers
+	if #self.PassengerEnts ~= self:GetPassengerCount() then
+		-- FIXME put this into global table
+		local passengerModels = {
+			"models/metrostroi/passengers/f1.mdl",
+			"models/metrostroi/passengers/f2.mdl",
+			"models/metrostroi/passengers/f3.mdl",
+			"models/metrostroi/passengers/f4.mdl",
+			"models/metrostroi/passengers/m1.mdl",
+			"models/metrostroi/passengers/m2.mdl",
+			"models/metrostroi/passengers/m4.mdl",
+			"models/metrostroi/passengers/m5.mdl",
+		}
+
+		-- Passengers go out
+		while #self.PassengerEnts > self:GetPassengerCount() do
+			local ent = self.PassengerEnts[#self.PassengerEnts]
+			table.remove(self.PassengerPositions,#self.PassengerPositions)
+			table.remove(self.PassengerEnts,#self.PassengerEnts)
+			ent:Remove()			
+		end
+		
+		-- Passengers go in
+		while #self.PassengerEnts < self:GetPassengerCount() do
+			local min,max = self:GetStandingArea()
+			local pos = min + Vector((max.x-min.x)*math.random(),(max.y-min.y)*math.random(),(max.z-min.z)*math.random())
+			
+			local ent = ClientsideModel(table.Random(passengerModels),RENDERGROUP_OPAQUE)
+			ent:SetPos(self:LocalToWorld(pos))
+			ent:SetAngles(Angle(0,math.random(0,360),0))
+			ent:SetSkin(math.floor(ent:SkinCount()*math.random()))
+			ent:SetModelScale(0.98 + (-0.02+0.04*math.random()),0)
+			ent:SetParent(self)
+			table.insert(self.PassengerPositions,pos)
+			table.insert(self.PassengerEnts,ent)
+		end
+	end
 end
 
 
@@ -552,28 +600,28 @@ hook.Add("CalcView", "Metrostroi_TrainView", function(ply,pos,ang,fov,znear,zfar
 	}]]--
 	
 	
-	--[[if seat:GetThirdPersonMode() then
+	if seat:GetThirdPersonMode() then
 		local trainAng = ang - train:GetAngles()
 		if trainAng.y >  180 then trainAng.y = trainAng.y - 360 end
 		if trainAng.y < -180 then trainAng.y = trainAng.y + 360 end
 		if trainAng.y > 0 then
 			return {
-				origin = train:LocalToWorld(Vector(-471,70,34)),
-				angles = train:GetAngles() + Angle(2,5,0),
+				origin = train:LocalToWorld(Vector(441,70,34)),
+				angles = train:GetAngles() + Angle(2,-5,0) + Angle(0,180,0),
 				fov = 20,
 				znear = znear,
 				zfar = zfar
 			}
-		else --if trainAng.y < 0 then
+		else
 			return {
-				origin = train:LocalToWorld(Vector(-471,-70,34)),
-				angles = train:GetAngles() + Angle(2,-5,0),
+				origin = train:LocalToWorld(Vector(441,-70,34)),
+				angles = train:GetAngles() + Angle(2,5,0) + Angle(0,180,0),
 				fov = 20,
 				znear = znear,
 				zfar = zfar
 			}
 		end
-	end]]--
+	end
 end)
 
 

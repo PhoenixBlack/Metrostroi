@@ -21,6 +21,14 @@ function ENT:InitializeSystems()
 	self:LoadSystem("DURA","DURA")
 end
 
+function ENT:PassengerCapacity()
+	return 100
+end
+
+function ENT:GetStandingArea()
+	return Vector(-64,-64,0),Vector(64,64,0)
+end
+
 
 
 --------------------------------------------------------------------------------
@@ -276,6 +284,9 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Vector", 1, "PackedVec1")
 	self:NetworkVar("Vector", 2, "PackedVec2")
 	self:NetworkVar("Vector", 3, "PackedVec3")
+	
+	-- Other variables
+	self:NetworkVar("Float", 0, "PassengerCount")
 end
 
 --------------------------------------------------------------------------------
