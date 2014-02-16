@@ -284,24 +284,68 @@
 	<h2><a href="#operations">3. Standard operation</a></h2>
 
 	<section>
-		<h3>Starting a train from cold:</h3>
+		<h3>Starting the train from cold:</h3>
 		<ol>
-			<li>Enable the battery banks in each wagon (typically on a switch on the rear wall).</li>
+			<li>Starting from the rear wagon of the train, and moving towards the head wagon of the train, in every wagon:
+			<ol>
+				<li>Turn battery on.
+				<ul>
+					<li><var>Ezh3</var>: switch on the rear wall above instructors seat.</li>
+					<li><var>81-717</var>: switch on the dashboard to the left-top.</li>
+					<li><var>81-714/Ema508</var>: switch at the wagon head underneath the gauges).</li>
+				</ul></li>
+				<li>Verify circuit breaker positions. All circuit breakers must be turned on, except for:
+				<ul>	
+					<li><var>Ezh3</var>: A75 (cabin heating) is off</li>
+				</ul></li>
+			</ol></li>
+			<li>Leave train and get on the right side of it.</li>
+			<li>Walking from the front wagon to rear wagon, turn every master switch on (it is a red switch at the trains side, approximately in the middle of it by length. Simply press <kbd>E</kbd> on it).</li>
+			<li>Repeat when walking from the rear wagon to the first wagon - turning on master switches on both sides. Verify that red rear lights glow on every wagon equipped with them.</li>
 			<li>In the front driver's cabin, set the reverser to <var>forward</var> by pressing <kbd>0</kbd>.</li>
-			<li>Engage the driver's valve by pressing <kbd>Shift</kbd>+<kbd>L</kbd>.</li>
+			<li>Push <var>DIP on</var> button (or press <kbd>Shift</kbd>+<kbd>1</kbd>).</li>
+			<li>Turn on the motor-compressor and wait until sufficient pressure (6-8 atmospheres) builds up in the train line. Verify this by the black arrow on pneumatic pressure gauge.</li>
+			<li><var>Ezh3:</var> Verify that only СД (SD), НР1 (NR1) lights are glowing on the main panel.</li>
+			<li>Open left doors (<kbd>A</kbd>). Doors must open.</li>
+			<li><var>Ezh3:</var> СД (SD) light must stop glowing.</li>
+			<li>Open right doors (<kbd>D</kbd>). Doors must open.</li>
+			<li>Close doors (<kbd>V</kbd>). Doors must close.</li>
+			<li><var>Ezh3:</var> СД (SD) light must stop glowing.</li>			
+			<li>Connect the driver's valve to pneumatic system by turning off the driver's valve disconnect valve (or pressing <kbd>Shift</kbd>+<kbd>L</kbd>).</li>
 			<li>Disengage the hydraulic brakes by pressing <kbd>R</kbd> until the driver's valve in position 2.</li>
 			<li>Wait for brake cylinder pressure to reach 0.</li>
-			<li>Start moving by moving the controller to position <var>X2</var> by pressing <kbd>2</kbd>.</li>
+			<li>Leave the depot/holding dead end by starting motion of the train by moving the controller to position <var>X1</var> by pressing <kbd>1</kbd>.</li>
+		</ol>
+	</section>
+	
+	<section>
+		<h3>Changing cabins (previously FRONT head procedure):</h3>
+		<ol>
+			<li>Close the driver's valve disconnect value (<kbd>Shift</kbd>+<kbd>L</kbd>)</li>
+			<li>Move reverser to position <var>0</var> (press <kbd>9</kbd> once).</li>
+			<li>Signal to the driver in the other head about completing this procedure by pressing and holding <var>DIP on</var> button for some time (<kbd>Shift</kbd>+<kbd>1</kbd>).< </li>
+		</ol>
+	</section>
+	
+	<section>
+		<h3>Changing cabins (previously REAR head procedure):</h3>
+		<ol>
+			<li>Wait until alarm is sounded by the driver in front cabin.</li>
+			<li>Open the driver's valve disconnect value (<kbd>Shift</kbd>+<kbd>L</kbd>)</li>
+			<li>Move reverser to position <var>forward</var> (press <kbd>0</kbd> once).</li>
+			<li>Leave the holding dead end by starting motion of the train by moving the controller to position <var>X1</var> by pressing <kbd>1</kbd>.</li>
 		</ol>
 	</section>
 
 	<section>
-		<h3>Braking to stop:</h3>
+		<h3>Braking to stop at station:</h3>
 		<ol>
-			<li>Enable electric brakes by moving the controller to position <var>T1</var> by pressing <kbd>5</kbd>.</li>
-			<li>Gradually increase the braking resistance by switching between <var>T1A</var> (<kbd>6</kbd>) and <var>T1</var> (<kbd>5</kbd>).</li>
-			<li>When the train's speed is at roughly 20km/h, switch to <var>T2</var> by pressing <kbd>7</kbd>.</li>
-			<li>When the train's speed is at roughly 5-10km/h, the hydraulic brakes should automatically engage.</li>
+			<li><strong>Always plan your braking ahead!</strong></li>
+			<li>Engage electric brakes by moving the controller to position <var>T1</var> by pressing <kbd>5</kbd>.</li>
+			<li>Gradually increase the braking resistance by switching between <var>T1A</var> (<kbd>6</kbd>) and <var>T1</var> (<kbd>5</kbd>) as the train slows down.</li>
+			<li>Control braking by the value of main ampermeter (efficient electric braking is when about 200-300 amperes are indicated).</li>
+			<li>When the train's speed is at roughly 15-20km/h, switch to <var>T2</var> by pressing <kbd>7</kbd>.</li>
+			<li>When the train's speed is at roughly 5-10km/h, the hydraulic brakes will automatically engage (via pneumatic valve #1).</li>
 		</ol>
 
 		<p>
@@ -315,6 +359,19 @@
 		Try to get a good feeling of this delay.
 		</p></aside>
 	</section>
+	
+	<section>
+		<h3>Pneumatic braking:</h3>
+		<ol>
+			<li><strong>Always plan your braking ahead!</strong></li>
+			<li>Prepare the pneumatic brake by moving it into position 3 (press <kbd>F</kbd> once).</li>
+			<li>Open brake line for 1-3 seconds by pressing <kbd>F</kbd> to move to position 4.</li>
+			<li>Verify pressure drop by the red arrow on the pressure gauge. It must be no less than 0.2 atmospheres.</li>
+			<li>Close driver's valve by pressing <kbd>R</kbd>.</li>
+			<li>To release brakes, move driver's valve into position 2 by pressing <kbd>R</kbd> again.</li>
+		</ol>
+
+	</section>
 </article>
 
 <article id="signalling">
@@ -322,8 +379,16 @@
 
 	<p>
 	In the subway, there are many signals and signs that you must recognise for safe and efficient operation.
-	Failure to respect them could result in delays or a serious accident.
+	Failure to respect them could result in delays and inconvencies to the passengers.
+	Ultimately, there are safeguard devices which prevent most serious accidents from happening for
+	all possible combination of failures.
 	</p>
+	
+	<aside class="warning"><p>
+	Any red traffic light requires ultimate stop of train and will trigger emergency brakes in the train
+	mechanically upon passing it. Disabling the relevant safety mechanisms is strictly forbidden and
+	will result in unconditional termination of the drivers license.
+	</p></aside>
 
 	<section>
 	<h3>Signalling</h3>
@@ -345,16 +410,16 @@
 		<figcaption>
 			<dfn>One flashing red light, "ДОП"</dfn>: "ДОП" (добавочный опасность/dobavochnyy opasnost) means "additional danger".
 			This indicates that there is a temporary change to the track configuration which should be treated as a dead end.
-			For example, if a track switch is in the wrong position as you approach a join, it would derail the train when passing over it.
+			For example, if a track switch is in the wrong position as you approach a merging junction, as it would derail the train when passing over it.
 		</figcaption>
 	</figure>
 	<figure class="infobox rightimg" id="define-signal-red-flashwhite">
 		<img src="images/signals/red-flashwhite.jpg" alt="" />
-		<figcaption><dfn>One red light, one flashing white light</dfn>: Train is invited to proceed through the red light, no faster than 20 km/h. Train must stop at the next obstacle.</figcaption>
+		<figcaption><dfn>One red light, one flashing white light</dfn>: Train is invited to proceed through the red light, no faster than 20 km/h. Train must stop at the next obstacle. The dispatcher must be notified before train starts moving and after it passes the white light.</figcaption>
 	</figure>
 	<figure class="infobox rightimg" id="define-signal-green">
 		<img src="images/signals/green.jpg" alt="" />
-		<figcaption><dfn>One green light</dfn>: Driving is permitted with the defined speed limit.</figcaption>
+		<figcaption><dfn>One green light</dfn>: Driving is permitted with the current speed limit.</figcaption>
 	</figure>
 	<figure class="infobox rightimg" id="define-signal-yellow">
 		<img src="images/signals/yellow.jpg" alt="" />
@@ -458,7 +523,7 @@
 			<li>Move controller to <var>0</var> position.</li>
 			<li>Are doors closed? Close doors. Make sure reverser is set to forward when doing this.</li>
 			<li>Is a single green RP light glowing? Press G to reset overload relay.</li>
-			<li>Check brake cylinder pressure. Are pneumatic brakes engaged? Press R a few times to move drivers valve to position 2, open drivers valve disconnect valve.</li>
+			<li>Check brake cylinder pressure. Are pneumatic brakes engaged? Press <kbd>R</kbd> a few times to move drivers valve to position 2, open drivers valve disconnect valve.</li>
 			<li>Check brake line and train line pressure. Do you have enough pressure in both? Turn on motor-compressor.</li>			
 			<li>Is reverser set to neutral in all wagons? Reset reverser to neutral position in all wagons.</li>
 			<li>Is battery turned on in all wagons? Check battery state in every wagon. It must be on in all trains.</li>
