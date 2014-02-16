@@ -1,25 +1,39 @@
+/* high-level layout */
+
 body {
 	margin: 0;
 	padding: 0;
 
-	background: #F7F7F7 url('noise.png');
+	background: #F7F7F7;
 
 	font-family: sans-serif;
 	font-size: 16px;
-	line-height: 24px;
+	line-height: 1.5em;
 	color: #222;
-
 }
 
-header, article, footer, figure {
-	max-width: 50em;
+header, article, footer, main > header figure {
+	max-width: 51em;
 	margin: 1em auto;
-	padding: 1em;
+	padding: 0 0.5em;
 }
+
+article, main > header figure {
+	background: #F0F0F0;
+	border: 1px solid #AAA;
+	border-radius: 1.5em;
+}
+
+/* header */
 
 main > header figure {
 	max-width: 512px; /* 480px + 16px * 2 */
+	padding: 0.5em;
+
+	border-radius: 3.5em 3.5em 1.5em 1.5em;
+
 	text-align: center;
+	font-weight: bold;
 }
 
 main > header img {
@@ -33,23 +47,20 @@ main > header img {
 	line-height: 1em;
 }
 
-main > header figcaption {
-	/*font-size: 1.25em;*/
-	font-weight: bold;
-}
+/* footer */
 
 footer {
 	text-align: center;
 }
 
-article, header > figure {
-	background: #F0F0F0 url('noise.png');
-	border: 1px dashed #AAA;
-	border-radius: 1em;
+/* content */
+
+p {
+	margin: 0 0.5em 1.5em 0.5em;
 }
 
 h2 {
-	margin: 0 -0.5em 0 -0.5em;
+	margin: 0.5em -0.25em;
 	padding-left: 1em;
 
 	border-bottom: 2px solid #999;
@@ -65,7 +76,7 @@ h2 a {
 }
 
 h3 {
-	margin: 0;
+	margin: 0 0.5em 0.5em 0.5em;
 
 	font-size: 1.25em;
 	line-height: 1.2em;
@@ -75,11 +86,11 @@ h3 {
 aside, .infobox {
 	margin: 0.5em 0;
 	padding: 0.5em;
-	overflow: hidden;
 
 	border: 1px solid #AAA;
 	background: #FFF;
-	border-radius: 5px;
+	border-radius: 1em;
+	overflow: hidden;
 }
 
 aside.warning {
@@ -122,7 +133,6 @@ figure.rightimg figcaption {
 }
 
 p {
-	font-size: 1em;
 	margin-bottom: 1.5em;
 }
 
@@ -135,7 +145,7 @@ a:hover {
 	color: #36A7CC;
 }
 
-dt:target, dt:target + dd {
+dt:target, dt:target + dd, figure:target {
 	background-color: #FFF7E6;
 }
 
@@ -170,6 +180,14 @@ kbd {
 
 	font-weight: bold;
 	line-height: 1em;
+}
+
+samp {
+	font-weight: bold;
+}
+
+dl {
+	margin: 0.5em;
 }
 
 dt {
