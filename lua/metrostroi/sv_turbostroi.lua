@@ -39,7 +39,7 @@ if not TURBOSTROI then
 						train.Systems[system]:TriggerInput(name,value)
 					end
 				end
-				
+
 				if not id then break end
 			end
 		end
@@ -75,15 +75,15 @@ if not TURBOSTROI then
 	
 	hook.Add("Think", "Turbostroi_Think", function()
 		if Turbostroi then 			
-			-- Update all types of trains
-			for k,v in pairs(Metrostroi.TrainClasses) do
-				updateTrains(ents.FindByClass(v))
-			end
-			
 			-- Proceed with the think loop
 			Turbostroi.SetSimulationFPS(33)
 			Turbostroi.SetTargetTime(CurTime())
 			Turbostroi.Think()
+			
+			-- Update all types of trains
+			for k,v in pairs(Metrostroi.TrainClasses) do
+				updateTrains(ents.FindByClass(v))
+			end
 			
 			-- HACK
 			GLOBAL_SKIP_TRAIN_SYSTEMS = nil
@@ -281,7 +281,6 @@ function DataExchange()
 					DataCache[sys_name..name] = value
 					
 					SendMessage(1,sys_name,name,0,tonumber(value) or 0)
-					--print("SEND",1,sys_name,name,0,tonumber(value) or 0)
 				end
 			end
 		end
