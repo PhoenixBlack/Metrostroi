@@ -418,7 +418,7 @@ function Metrostroi.UpdateEntityPositions()
 		"gmod_subway_81-717",
 		"gmod_subway_81-714",
 		"gmod_subway_base",
-		"gmod_subway_em508"
+		"gmod_subway_ezh3"
 	}
 
 	for _,class in pairs(classes) do

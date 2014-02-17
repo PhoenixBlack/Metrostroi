@@ -201,11 +201,13 @@ function ENT:TrainWireCanWrite(k)
 	local lastwrite = self.TrainWireWriters[k]
 	if lastwrite ~= nil then
 		-- Check if someone else wrote recently
-		for writer,v in pairs(lastwrite) do
+		--for writer,v in pairs(lastwrite) do
+		local writer = lastwrite.e
+		local v = lastwrite.t or 0
 			if (writer ~= self) and (CurTime() - v < 0.25) then
 				return false
 			end
-		end
+		--end
 	end
 	return true
 end
@@ -215,18 +217,24 @@ function ENT:IsTrainWireCrossConnected(k)
 	local lastTime = 0
 	local ent = nil
 	if lastwrite then
-		for writer,v in pairs(lastwrite) do
+		--for writer,v in pairs(lastwrite) do
+		local writer = lastwrite.e
+		local v = lastwrite.t or 0
 			if v > lastTime then
 				lastTime = v
 				ent = writer
 			end
-		end
+		--end
 	end
 
 	return ent and (ent.TrainCoupledIndex ~= self.TrainCoupledIndex)
 end
 
 function ENT:WriteTrainWire(k,v)
+	-- Check if line is write-able
+	local can_write = self:TrainWireCanWrite(k)
+	local wrote = false
+	
 	-- Writing rules for different wires
 	local allowed_write = v > 0 -- Normally positive values override others
 	if k == 18 then allowed_write = v <= 0 end -- For wire 18, zero values override others
@@ -236,10 +244,6 @@ function ENT:WriteTrainWire(k,v)
 			elseif k == b then k = a end
 		end
 	end
-
-	-- Check if line is write-able
-	local can_write = self:TrainWireCanWrite(k)
-	local wrote = false
 	
 	-- Write only if can write (no-one else occupies it) or allowed to write (legal value)
 	if can_write then
@@ -251,9 +255,10 @@ function ENT:WriteTrainWire(k,v)
 	end
 	
 	-- Record us as last writer
-	if wrote and (allowed_write or can_write) then --self.TrainWireWriters[k] or 
-		self.TrainWireWriters[k] = {}
-		self.TrainWireWriters[k][self] = CurTime()
+	if wrote and (allowed_write or can_write) then
+		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
+		self.TrainWireWriters[k].t = CurTime()
+		self.TrainWireWriters[k].e = self
 	end
 end
 
