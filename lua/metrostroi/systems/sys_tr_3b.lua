@@ -52,7 +52,6 @@ function TRAIN_SYSTEM:Think()
 				local volume = 0.60
 				if dt < 1.0 then volume = 0.50 end
 				self.Train:PlayOnce("tr","front_bogey",volume,math.random(90,120))
-				--print("PLAY",i,volume)
 			end
 		end
 	end

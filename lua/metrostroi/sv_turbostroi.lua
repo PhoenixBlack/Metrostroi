@@ -12,81 +12,76 @@ local function split(inputstr, sep)
 end
 
 if not TURBOSTROI then
+	local dataCache = {}
+	local inputCache = {}
+	local function updateTrains(trains)
+		-- Get data packets from simulation
+		for _,train in pairs(trains) do
+			local id,system,name,index,value
+			while true do
+				id,system,name,index,value = Turbostroi.RecvMessage(train)
+				if id == 1 then
+					if train.Systems[system] then
+						train.Systems[system][name] = value
+					end
+				end
+				if id == 2 then
+					if name == "" then name = nil end
+					if index == 0 then index = nil end
+					if value == 0 then value = nil end
+					train:PlayOnce(system,name,index,value)
+				end
+				if id == 3 then
+					train:WriteTrainWire(index,value)
+				end
+				if id == 4 then
+					if train.Systems[system] then
+						train.Systems[system]:TriggerInput(name,value)
+					end
+				end
+				
+				if not id then break end
+			end
+		end
+		
+		-- Send train wire values
+		for _,train in pairs(trains) do
+			for i=1,32 do
+				Turbostroi.SendMessage(train,3,"","",i,train:ReadTrainWire(i))
+			end
+		end
+		
+		-- Output all system values
+		for _,train in pairs(trains) do
+			for sys_name,system in pairs(train.Systems) do
+				if system.OutputsList and system.DontAccelerateSimulation then
+					for _,name in pairs(system.OutputsList) do
+						local value = (system[name] or 0)
+						if dataCache[tostring(train)..sys_name..name] ~= value then
+							dataCache[tostring(train)..sys_name..name] = value
+							Turbostroi.SendMessage(train,1,sys_name,name,0,tonumber(value) or 0)
+						end
+					end
+				end
+			end
+		end
+	end
+
+	function Turbostroi.TriggerInput(train,system,name,value)
+		local v = value or 0
+		if type(value) == "boolean" then v = value and 1 or 0 end
+		Turbostroi.SendMessage(train,4,system,name,0,v)
+	end
+	
 	hook.Add("Think", "Turbostroi_Think", function()
-		if Turbostroi then 
-			Turbostroi.SetSimulationFPS(66)
-			if not Turbostroi.Initialized then
-				--Turbostroi.SetSimulationTime(CurTime())
-				Turbostroi.Initialized = true
-
-				Turbostroi.TriggerInput = function(train,system,name,value)
-					local v = value
-					if type(v) == "boolean" then
-						if v then v = "true" else v = "false" end
-					end
-					v = tostring(v) or "0"
-					Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
-						"T\t"..system.."\t"..name.."\t"..v.."\n"
-				end
-			end
-			
-			-- Add outputs of all systems
-			for train,send_data in pairs(Turbostroi.TrainData) do
-				if IsValid(train) and train.Systems then
-					for k,v in pairs(train.Systems) do
-						if v.DontAccelerateSimulation then
-							for k2,v2 in pairs(v.OutputsList) do
-								Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
-									"V\t"..k.."\t"..v2.."\t"..tostring(v[v2] or 0).."\n"
-							end
-						end
-					end
-				end
-			end
-			
-			-- Add all train wire values
-			for train,send_data in pairs(Turbostroi.TrainData) do
-				if IsValid(train) then
-					for i=1,32 do
-					--for i,_ in pairs(train.TrainWires) do
-						Turbostroi.TrainData[train] = Turbostroi.TrainData[train]..
-							"TW\t"..i.."\t"..train:ReadTrainWire(i).."\n"
-			
-						--print(train,"TW",k,train:ReadTrainWire(k))
-					end
-				end
-			end
-
-			-- Exchange data between simulation and GMOD
-			for train,send_data in pairs(Turbostroi.TrainData) do
-				if IsValid(train) then
-					local data = Turbostroi.ExchangeData(train,send_data)
-					Turbostroi.TrainData[train] = ""
-					--print("Incoming "..(#data).." bytes")
-					
-					local packets = split(data,"\n")
-					for k,v in pairs(packets) do
-						local d = split(v,"\t")
-						if d[1] == "V" then
-							if train.Systems[d[2] ] then
-								train.Systems[d[2] ][d[3] ] = tonumber(d[4]) or d[4]
-								--print("train.Systems[",d[2],"][",d[3],"] = ",d[4])
-							end
-						end
-						if d[1] == "S" then
-							train:PlayOnce(d[2],d[3],tonumber(d[4]),tonumber(d[5]))
-						end
-						if d[1] == "TW" then
-							train:WriteTrainWire(tonumber(d[2]) or d[2],tonumber(d[3]) or 0)
-							--if tonumber(d[2]) == 23 then
-							--	print("TRAIN WIRE",train,d[2],d[3])
-							--end
-						end
-					end
-				end
+		if Turbostroi then 			
+			-- Update all types of trains
+			for k,v in pairs(Metrostroi.TrainClasses) do
+				updateTrains(ents.FindByClass(v))
 			end
 			
 			-- Proceed with the think loop
+			Turbostroi.SetSimulationFPS(33)
 			Turbostroi.SetTargetTime(CurTime())
 			Turbostroi.Think()
 			
@@ -110,8 +105,6 @@ GlobalTrain = {} -- Train emulator
 GlobalTrain.Systems = {} -- Train systems
 GlobalTrain.TrainWires = {}
 GlobalTrain.WriteTrainWires = {}
-
-ExtraData = ""
 
 function Metrostroi.DefineSystem(name)
 	TRAIN_SYSTEM = {}
@@ -145,6 +138,9 @@ function Metrostroi.DefineSystem(name)
 		tbl.Train = train
 		tbl:Initialize(...)
 		tbl.OutputsList = tbl:Outputs()
+		tbl.InputsList = tbl:Inputs()
+		tbl.IsInput = {}
+		for k,v in pairs(tbl.InputsList) do tbl.IsInput[v] = true end		
 		return tbl
 	end
 end
@@ -176,11 +172,7 @@ function GlobalTrain.LoadSystem(self,a,b,...)
 end
 
 function GlobalTrain.PlayOnce(self,soundid,location,range,pitch)
-	ExtraData = ExtraData.."S\t"..
-		(soundid or "nil").."\t"..
-		(location or "nil").."\t"..
-		(range or "nil").."\t"..
-		(pitch or "nil").."\n"
+	SendMessage(2,soundid or "",location or "",range or 0,pitch or 0)
 end
 
 function GlobalTrain.ReadTrainWire(self,n)
@@ -204,11 +196,13 @@ function Think()
 	-- This is just blatant copy paste from init.lua of base train entity
 	local self = GlobalTrain
 	
+	-- Perform data exchange
+	DataExchange()
+	
 	----------------------------------------------------------------------------
 	self.PrevTime = self.PrevTime or CurTime()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
---	print("FRAME",1/self.DeltaTime)
 	
 	-- Is initialized?
 	if not self.Initialized then return end
@@ -240,11 +234,9 @@ function Think()
 	end
 	
 	-- Simulate according to schedule
-	if FirstPacketArrived then
-		for i,s in ipairs(self.Schedule) do
-			for k,v in ipairs(s) do
-				v:Think(self.DeltaTime / (v.SubIterations or 1),i)
-			end
+	for i,s in ipairs(self.Schedule) do
+		for k,v in ipairs(s) do
+			v:Think(self.DeltaTime / (v.SubIterations or 1),i)
 		end
 	end
 end
@@ -257,54 +249,47 @@ function Initialize()
 	GlobalTrain.Initialized = true
 end
 
-FirstPacketArrived = false
 DataCache = {}
-function DataExchange(data)
-	FirstPacketArrived = true	
-	
-	-- Get input
-	local packets = split(data,"\n")
-	for k,v in pairs(packets) do
-		local data = split(v,"\t")
-		if data[1] == "T" then
-			if GlobalTrain.Systems[data[2]] then
-				GlobalTrain.Systems[data[2]]:TriggerInput(data[3],tonumber(data[4]) or data[4])
-				--print("TRIGGER",data[2],data[3],data[4])
+function DataExchange()
+	-- Get data packets
+	local id,system,name,index,value
+	while true do
+		id,system,name,index,value = RecvMessage()
+		if id == 1 then
+			if GlobalTrain.Systems[system] then
+				GlobalTrain.Systems[system][name] = value
 			end
 		end
-		if data[1] == "V" then
-			if GlobalTrain.Systems[data[2]] then
-				GlobalTrain.Systems[data[2]][data[3]] = tonumber(data[4]) or data[4]
-				--if data[2] == "TR" then
-					--print(GlobalTrain.Systems.TR.Main750V,"VOLTAGE")
-					--print("TVALUE",data[2],data[3],lobalTrain.Systems[data[2]][data[3]],type(lobalTrain.Systems[data[2]][data[3]]))
-				--end
+		if id == 3 then
+			GlobalTrain.TrainWires[index] = value
+		end
+		if id == 4 then
+			if GlobalTrain.Systems[system] then
+				GlobalTrain.Systems[system]:TriggerInput(name,value)
 			end
 		end
-		if data[1] == "TW" then
-			GlobalTrain.TrainWires[tonumber(data[2]) or data[2]] = tonumber(data[3]) or 0
-			--print("TW",tonumber(data[2]),tonumber(data[3]))
-		end
+		
+		if not id then break end
 	end
-	
-	-- Create output
-	local str = ""
-	for k1,v1 in pairs(GlobalTrain.Systems) do
-		if v1.OutputsList and (not v1.DontAccelerateSimulation) then
-			for k2,v2 in pairs(v1.OutputsList) do
-				local value = (v1[v2] or 0)
-				if DataCache[k1..k2] ~= value then
-					DataCache[k1..k2] = value				
-					str = str.."V\t"..k1.."\t"..v2.."\t"..value.."\n"
+			
+	-- Output all variable values
+	for sys_name,system in pairs(GlobalTrain.Systems) do
+		if system.OutputsList and (not system.DontAccelerateSimulation) then
+			for _,name in pairs(system.OutputsList) do
+				local value = (system[name] or 0)
+				if DataCache[sys_name..name] ~= value then
+					DataCache[sys_name..name] = value
+					
+					SendMessage(1,sys_name,name,0,tonumber(value) or 0)
+					--print("SEND",1,sys_name,name,0,tonumber(value) or 0)
 				end
 			end
 		end
 	end
-	for k,v in pairs(GlobalTrain.WriteTrainWires) do
-		str = str.."TW\t"..k.."\t"..v.."\n"
-		GlobalTrain.WriteTrainWires[k] = nil
+	
+	-- Output train wire writes
+	for twID,value in pairs(GlobalTrain.WriteTrainWires) do	
+		SendMessage(3,"","",tonumber(twID) or 0,tonumber(value) or 0)
+		GlobalTrain.WriteTrainWires[twID] = nil
 	end
-	str = str..ExtraData
-	ExtraData = ""
-	return str
 end

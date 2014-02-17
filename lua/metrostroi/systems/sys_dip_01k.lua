@@ -22,12 +22,7 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Inputs()
-	local inputs = {}
-	for k,v in pairs(self.XR3) do 
-		if k ~= 5 then table.insert(inputs,"XR3."..k) end
-	end
-	table.insert(inputs,"XT3.1")
-	return inputs
+	return { "XR3.2", "XR3.3", "XR3.4", "XR3.5", "XR3.6", "XR3.7", "XT3.1" }
 end
 
 function TRAIN_SYSTEM:Outputs()

@@ -170,9 +170,11 @@ function ENT:Think()
 		
 		for k,v in pairs(self.PassengerEnts) do
 			local min,max = self:GetStandingArea()			
-			v:SetParent(nil)
-			v:SetPos(self:LocalToWorld(self.PassengerPositions[k]))
-			v:SetParent(self)
+			if IsValid(v) then
+				v:SetParent(nil)
+				v:SetPos(self:LocalToWorld(self.PassengerPositions[k]))
+				v:SetParent(self)
+			end
 		end
 	end
 	

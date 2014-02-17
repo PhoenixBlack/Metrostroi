@@ -1,21 +1,25 @@
 ENT.Type            = "anim"
 ENT.Base            = "gmod_subway_base"
 
-ENT.PrintName       = "Em-509"
+ENT.PrintName       = "Ezh3"
 ENT.Author          = ""
 ENT.Contact         = ""
 ENT.Purpose         = ""
 ENT.Instructions    = ""
-ENT.Category		= "Metrostroi"
+ENT.Category		= "Metrostroi (trains)"
 
 ENT.Spawnable       = true
 ENT.AdminSpawnable  = false
 
+function ENT:PassengerCapacity()
+	return 300
+end
 
-function ENT:InitializeSystems()
-	-- Главный выключатель
-	self:LoadSystem("GV","GV_10ZH")	
-	
+function ENT:GetStandingArea()
+	return Vector(-450,-30,-45),Vector(380,30,-45)
+end
+
+function ENT:InitializeSystems()	
 	-- Токоприёмник
 	self:LoadSystem("TR","TR_3B")	
 	-- Электротяговые двигатели
@@ -42,9 +46,11 @@ function ENT:InitializeSystems()
 	self:LoadSystem("LK_755A")
 	self:LoadSystem("YAR_13A")
 	self:LoadSystem("YAR_27")
+	self:LoadSystem("YAK_36")
 	self:LoadSystem("YAK_37E")
 	self:LoadSystem("YAS_44V")
 	self:LoadSystem("YARD_2")
+	self:LoadSystem("PR_14X_Panels")	
 	
 	-- Электросистема 81-705
 	self:LoadSystem("Electric","81_705_Electric")
@@ -54,6 +60,7 @@ function ENT:InitializeSystems()
 	self:LoadSystem("Panel","81_705_Panel")
 	
 	self:LoadSystem("Battery")
+	
 	self:LoadSystem("PowerSupply","DIP_01K")
 	
 	self:LoadSystem("DURA","DURA")

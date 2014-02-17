@@ -171,8 +171,11 @@ function ENT:TriggerInput(name, value)
 	-- Propagate inputs to relevant systems
 	for k,v in pairs(self.Systems) do
 		if v.Name and (string.sub(name,1,#v.Name) == v.Name) then
-			v:TriggerInput(string.sub(name,#v.Name+1),value)
-		else
+			local subname = string.sub(name,#v.Name+1)
+			if v.IsInput[subname] then
+				v:TriggerInput(subname,value)
+			end
+		elseif v.IsInput[name] then
 			v:TriggerInput(name,value)
 		end
 	end
@@ -197,48 +200,60 @@ end
 function ENT:TrainWireCanWrite(k)
 	local lastwrite = self.TrainWireWriters[k]
 	if lastwrite ~= nil then
-		if (lastwrite.ent ~= self) and (CurTime() - lastwrite.time < 0.1) then
-			--Last write not us and recent, conflict!
-			return false
+		-- Check if someone else wrote recently
+		for writer,v in pairs(lastwrite) do
+			if (writer ~= self) and (CurTime() - v < 0.25) then
+				return false
+			end
 		end
 	end
 	return true
 end
 
 function ENT:IsTrainWireCrossConnected(k)
-	return self.TrainWireWriters[k] and IsValid(self.TrainWireWriters[k].ent) and 
-		(self.TrainWireWriters[k].ent.TrainCoupledIndex ~= self.TrainCoupledIndex)
+	local lastwrite = self.TrainWireWriters[k]
+	local lastTime = 0
+	local ent = nil
+	if lastwrite then
+		for writer,v in pairs(lastwrite) do
+			if v > lastTime then
+				lastTime = v
+				ent = writer
+			end
+		end
+	end
+
+	return ent and (ent.TrainCoupledIndex ~= self.TrainCoupledIndex)
 end
 
 function ENT:WriteTrainWire(k,v)
-	-- Check if line is write-able
-	local can_write = self:TrainWireCanWrite(k)
-	local wrote = false
-	
 	-- Writing rules for different wires
-	local allowed_write = v > 0
-	if k == 18 then allowed_write = v <= 0 end
+	local allowed_write = v > 0 -- Normally positive values override others
+	if k == 18 then allowed_write = v <= 0 end -- For wire 18, zero values override others
 	for a,b in pairs(self.TrainWireCrossConnections) do
 		if self:IsTrainWireCrossConnected(a) or self:IsTrainWireCrossConnected(b) then
 			    if k == a then k = b
 			elseif k == b then k = a end
 		end
 	end
+
+	-- Check if line is write-able
+	local can_write = self:TrainWireCanWrite(k)
+	local wrote = false
 	
-	-- If value is write-able, write it right away and do nothing interesting
+	-- Write only if can write (no-one else occupies it) or allowed to write (legal value)
 	if can_write then
 		self.TrainWires[k] = v
 		wrote = true
-	elseif allowed_write then -- If trying to write positive value, overwrite value of the previous writer
+	elseif allowed_write then
 		self.TrainWires[k] = v
 		wrote = true
 	end
 	
 	-- Record us as last writer
-	if wrote and (allowed_write or can_write) then
-		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
-		self.TrainWireWriters[k].ent = self
-		self.TrainWireWriters[k].time = CurTime()
+	if wrote and (allowed_write or can_write) then --self.TrainWireWriters[k] or 
+		self.TrainWireWriters[k] = {}
+		self.TrainWireWriters[k][self] = CurTime()
 	end
 end
 
@@ -264,6 +279,9 @@ function ENT:ResetTrainWires()
 	-- Create new train wires
 	self.TrainWires = {}
 	self.TrainWireWriters = {}
+	
+	-- Initialize train wires to zero values
+	for i=1,128 do self.TrainWires[i] = 0 end
 	
 	-- Update train wires in all connected trains
 	local function updateWires(train,checked)
@@ -787,12 +805,9 @@ function ENT:Think()
 			right.z = 0
 			right:Normalize()
 			debugoverlay.Line(self:GetPos(),self:GetPos()+right*-self.TurnRadius,1,Color(255,0,0),true)
-		--]]
-		
+		--]]		
 	end
-	
-	
-	
+
 	-- Process the keymap for modifiers 
 	-- TODO: Need a neat way of calling this once after self.KeyMap is populated
 	if not self.KeyMods and self.KeyMap then
@@ -806,17 +821,9 @@ function ENT:Think()
 		local ply = self.DriverSeat:GetPassenger(0) 
 		
 		if IsValid(ply) then
-		
-			if self.KeyMap then
-				self:HandleKeyboardInput(ply)
-			end
-		
-			if joystick then
-				self:HandleJoystickInput(ply)
-			end
+			if self.KeyMap then self:HandleKeyboardInput(ply) end
+			if joystick then self:HandleJoystickInput(ply) end
 		end
-		
-		
 	end
 	
 	if Turbostroi then

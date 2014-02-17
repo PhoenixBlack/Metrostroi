@@ -99,9 +99,9 @@ local function merge(t1,t2) for k,v in pairs(t2) do t1[k] = v end end
 function ENT:Think()
 	-- Find all potential trains
 	local trains = {}
-	merge(trains,ents.FindByClass("gmod_subway_em508")) 
-	merge(trains,ents.FindByClass("gmod_subway_em509"))
-	merge(trains,ents.FindByClass("gmod_subway_ema"))
+	for k,v in pairs(Metrostroi.TrainClasses) do
+		merge(trains,ents.FindByClass(v)) 
+	end
 	
 	-- Update window
 	self.TotalCount = self.WindowEnd - self.WindowStart
@@ -144,13 +144,13 @@ function ENT:Think()
 			if not left_side then door_count = #v.RightDoorPositions end
 			
 			-- Get maximum boarding rate for normal russian subway train doors
-			local max_boarding_rate = 5 * door_count
+			local max_boarding_rate = 2.5 * door_count
 			-- Get boarding rate based on passenger density
 			local boarding_rate = math.min(max_boarding_rate,passenger_count)
 			if self.PlatformLast then boarding_rate = 0 end
 			-- Get rate of leaving
 			local leaving_rate = 0
-			if self.PlatformLast then leaving_rate = max_boarding_rate end
+			if self.PlatformLast then leaving_rate = 2*max_boarding_rate end
 			
 			-- Board these passengers into train
 			local passenger_delta = 
@@ -177,13 +177,13 @@ function ENT:Think()
 	if (not self.PlatformLast) and (#boardingDoorList == 0) then
 		local target = 300
 		if self.StationIndex == 111 then target = 100 end
-		if self.StationIndex == 112 then target = 100 end
-		if self.StationIndex == 113 then target = 300 end
+		if self.StationIndex == 112 then target = 150 end
+		if self.StationIndex == 113 then target = 150 end
 		if self.StationIndex == 114 then target = 50 end
 		if self.StationIndex == 115 then target = 0 end
 		if self.StationIndex == 116 then target = 200 end
 		
-		local growthDelta = math.max(0,(target-self.TotalCount)*0.001)
+		local growthDelta = math.max(0,(target-self.TotalCount)*0.005)
 		if growthDelta < 1.0 then
 			self.Accum = (self.Accum or 0) + growthDelta
 			if self.Accum > 1.0 then
