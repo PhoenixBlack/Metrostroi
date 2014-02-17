@@ -18,6 +18,7 @@ if SERVER then
 	
 	resource_AddDir("materials/metrostroi/props")
 	resource_AddDir("materials/models/metrostroi_train")
+	resource_AddDir("materials/models/metrostroi_passengers")
 	--resource_AddDir("materials/myproject")
 	
 	resource_AddDir("models/metrostroi/props_models")
@@ -26,6 +27,7 @@ if SERVER then
 	resource_AddDir("models/metrostroi/e")
 	resource_AddDir("models/metrostroi/metro")
 	resource_AddDir("models/metrostroi/tatra_t3")
+	resource_AddDir("models/metrostroi/passengers")
 	--resource_AddDir("models/myproject")
 	
 	resource_AddDir("sound/subway_trains")
@@ -39,6 +41,13 @@ end
 if not Metrostroi then
 	-- Subway manager
 	Metrostroi = {}
+	
+	-- Supported train classes
+	Metrostroi.TrainClasses = {
+		"gmod_subway_ezh3",
+		"gmod_subway_ema",
+		"gmod_subway_em508t",		
+	}
 	
 	-- List of all systems
 	Metrostroi.Systems = {}
@@ -165,6 +174,9 @@ local function LoadSystem(name)
 			tbl:ClientInitialize(...)
 		end
 		tbl.OutputsList = tbl:Outputs()
+		tbl.InputsList = tbl:Inputs()
+		tbl.IsInput = {}
+		for k,v in pairs(tbl.InputsList) do tbl.IsInput[v] = true end
 		return tbl
 	end
 end

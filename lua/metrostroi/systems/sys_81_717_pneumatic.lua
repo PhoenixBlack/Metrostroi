@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+﻿--------------------------------------------------------------------------------
 -- Пневматическая система 81-717
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("81_717_Pneumatic")
@@ -143,13 +143,13 @@ function TRAIN_SYSTEM:GetPressures(Train)
 			 0.75*Train.RearTrain.Pneumatic.ReservoirPressure) / 2
 	elseif Train.FrontTrain and	frontBrakeOpen then
 		self.TrainLinePressure = Train.FrontTrain.Pneumatic.TrainLinePressure
-		self.BrakeLinePressure = 
+		self.BrakeLinePressure =
 			(self.BrakeLinePressure*1.50 + 0.50*Train.FrontTrain.Pneumatic.BrakeLinePressure) / 2
 		self.ReservoirPressure = 
 			(self.ReservoirPressure*1.50 + 0.50*Train.FrontTrain.Pneumatic.ReservoirPressure) / 2
 	elseif Train.RearTrain and rearBrakeOpen then
 		self.TrainLinePressure = Train.RearTrain.Pneumatic.TrainLinePressure
-		self.BrakeLinePressure = 
+		self.BrakeLinePressure =
 			(self.BrakeLinePressure*1.50 + 0.50*Train.RearTrain.Pneumatic.BrakeLinePressure) / 2
 		self.ReservoirPressure = 
 			(self.ReservoirPressure*1.50 + 0.50*Train.RearTrain.Pneumatic.ReservoirPressure) / 2
@@ -218,11 +218,11 @@ function TRAIN_SYSTEM:Think(dT)
 
 		-- Update pressure
 		self[pressure] = self[pressure] + dT * dPdT
-		self[pressure] = math.max(0.0,math.min(12.0,self[pressure]))
+		self[pressure] = math.max(0.0,math.min(16.0,self[pressure]))
 		self[pressure.."_dPdT"] = (self[pressure.."_dPdT"] or 0) + dPdT
 		if no_limit ~= true then
 			if self[pressure] == 0.0  then self[pressure.."_dPdT"] = 0 end
-			if self[pressure] == 12.0 then self[pressure.."_dPdT"] = 0 end
+			if self[pressure] == 16.0 then self[pressure.."_dPdT"] = 0 end
 		end
 		return dPdT
 	end

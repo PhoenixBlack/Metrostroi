@@ -160,6 +160,7 @@ function ENT:Draw()
   -- Quit drawing pickets that aren't nice
   if GetConVarNumber("metrostroi_drawdebug") == 0 then
     if graphic == "picket" then
+      if true then return end
       local d1 = tonumber(var[1]) or 0
       local d2 = tonumber(var[2]) or 1000
 --      if math.abs(d2-d1) < 25 then return end

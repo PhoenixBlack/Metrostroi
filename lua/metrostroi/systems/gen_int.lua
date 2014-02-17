@@ -287,7 +287,12 @@ function Simplify(name)
 		end
 		return t2
 	end
-	Network = copy(BaseNetwork)	
+	Network = copy(BaseNetwork)
+	
+	-- Remove items which are not of this train type
+	for k,v in pairs(Network) do
+		if v[4] and (v[4] ~= name) then Network[k] = nil end
+	end
 	
 	-- List of final statements
 	Statements = {}
@@ -564,8 +569,9 @@ BaseNetwork = {
 	
 	{	"B12",		"B16",		"VB" },
 	{	"B16",		"10/4",		"A56" },
-	{	"10/4",		"0",		"#TW[10]" },
-	{	"10/4",		"0",		"#TW[9]" },
+	{	"10/4",		"10/4a",	"VB" }, -- Simulate connection to TW10 in such way that there is no feedback loop
+	{	"10/4a",	"0",		"#TW[10]" },	
+	{	"10/4a",	"0",		"#TW[9]" },
 	{	"TW[10]",	"10",		"1" },
 	
 	{	"B12",		"B13",		"A24" },
@@ -1020,6 +1026,7 @@ Drains = { "0" }
 AddToNodes = {
 	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
 	{ "U0a", "(-10*S[\"10AN\"])" },
+	{ "10/4", "(1-Train.VB.Value)*Train:ReadTrainWire(10)" },
 	{ "2-7R-21", "(-10*Train:ReadTrainWire(18))" },
 	{ "10AH", "0" },
 	{ "15", "(-10*Train:ReadTrainWire(11))" },--+Train:ReadTrainWire(15))"},
@@ -1063,7 +1070,7 @@ ExtraStatements = {
 }
 
 GenerateSourceHeader()
-Simplify("Em508")
+Simplify("Ezh3")
 
 --------------------------------------------------------------------------------
 --print("Result:\n"..SRC)

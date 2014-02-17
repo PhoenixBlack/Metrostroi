@@ -2,14 +2,14 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
-ENT.BogeyDistance = 650 --Needed for gm trainspawner
+ENT.BogeyDistance = 650 -- Needed for gm trainspawner
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
 	-- Defined train information
 	self.SubwayTrain = {
 		Type = "E",
-		Name = "Em508",
+		Name = "Ezh3",
 	}
 
 	-- Set model and initialize
@@ -130,9 +130,9 @@ function ENT:Think()
 	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end
 
 	-- Headlights
-	local brightness = (math.min(1,self.Panel["HeadLights1"] or 0) + 
-						math.min(1,self.Panel["HeadLights2"] or 0) + 
-						math.min(1,self.Panel["HeadLights3"] or 0))/3
+	local brightness = (math.min(1,self.Panel["HeadLights1"]) + 
+						math.min(1,self.Panel["HeadLights2"]) + 
+						math.min(1,self.Panel["HeadLights3"]))/3
 	self:SetLightPower(1, self.Panel["HeadLights3"] > 0.5,brightness)
 	self:SetLightPower(2, self.Panel["HeadLights3"] > 0.5)
 	self:SetLightPower(3, self.Panel["HeadLights3"] > 0.5)
@@ -277,9 +277,9 @@ function ENT:OnButtonPress(button)
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
 	if button == "DriverValveDisconnectToggle" then
 		if self.DriverValveDisconnect.Value == 1.0 then
-			self:PlayOnce("pneumo_disconnect1","cabin",0.9)
-		else
 			self:PlayOnce("pneumo_disconnect2","cabin",0.9)
+		else
+			self:PlayOnce("pneumo_disconnect1","cabin",0.9)
 		end
 	end
 	if string.find(button,"KV") then return end
@@ -309,4 +309,66 @@ function ENT:OnCouple(train,isfront)
 	then self.FrontBrakeLineIsolation:TriggerInput("Open",1.0)
 	else self.RearBrakeLineIsolation:TriggerInput("Open",1.0)
 	end
+end
+
+
+
+function ENT:IsTrainWireCrossConnected(k)
+	local lastwrite = self.TrainWireWriters[k]
+	local lastTime = 0
+	local ent = nil
+	if lastwrite then
+		for writer,v in pairs(lastwrite) do
+			if v > lastTime then
+				lastTime = v
+				ent = writer
+			end
+		end
+	end
+
+	return ent and (ent.TrainCoupledIndex ~= self.TrainCoupledIndex)
+end
+
+
+function ENT:WriteTrainWire(k,v)
+	-- Writing rules for different wires
+	local allowed_write = v > 0 -- Normally positive values override others
+	if k == 18 then allowed_write = v <= 0 end -- For wire 18, zero values override others
+	for a,b in pairs(self.TrainWireCrossConnections) do
+		if self:IsTrainWireCrossConnected(a) or self:IsTrainWireCrossConnected(b) then
+			    if k == a then k = b
+			elseif k == b then k = a end
+		end
+	end
+--	if k == 31 then print("WRITE",self,k,v) end
+
+	-- Check if line is write-able
+	local can_write = self:TrainWireCanWrite(k)
+	local wrote = false
+	
+	-- Write only if can write (no-one else occupies it) or allowed to write (legal value)
+	if can_write then
+		self.TrainWires[k] = v
+		wrote = true
+	elseif allowed_write then
+		self.TrainWires[k] = v
+		wrote = true
+	end
+	
+	-- Record us as last writer
+	if wrote and (allowed_write or can_write) then --self.TrainWireWriters[k] or 
+		self.TrainWireWriters[k] = {}
+		self.TrainWireWriters[k][self] = CurTime()
+	end
+end
+
+function ENT:ReadTrainWire(k)
+	-- Cross-commutate some wires
+	for a,b in pairs(self.TrainWireCrossConnections) do
+		if self:IsTrainWireCrossConnected(a) or self:IsTrainWireCrossConnected(b) then
+			    if k == a then k = b
+			elseif k == b then k = a end
+		end
+	end
+	return self.TrainWires[k] or 0
 end

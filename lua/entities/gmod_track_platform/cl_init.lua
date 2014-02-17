@@ -229,7 +229,9 @@ function ENT:Think()
 		
 		-- Move pedestrian
 		local threshold = 4
-		v.ent:SetPos(v.ent:GetPos() + targetDir*math.min(threshold,64*self.DeltaTime))
+		local speed = 64
+		if distance > 1024 then speed = 96 end
+		v.ent:SetPos(v.ent:GetPos() + targetDir*math.min(threshold,speed*self.DeltaTime))
 		-- Rotate pedestrian
 		v.ent:SetAngles(targetDir:Angle() + Angle(0,180,0))
 		
@@ -238,5 +240,24 @@ function ENT:Think()
 			v.ent:Remove()
 			self.CleanupModels[k] = nil
 		end
+		
+		
+		-- Check if door can be reached at all (it still exists)
+		local count = self:GetNWInt("TrainDoorCount",0)
+		local distance = 1e9
+		local new_target = target
+		for j=1,count do
+			local vec = self:GetNWVector("TrainDoor"..j,Vector(0,0,0))
+			local d = vec:Distance(v.target)
+			if d < distance then
+				new_target = vec
+				distance = d 
+			end
+		end
+
+		--if distance > 32 
+		--then v.target = self:GetPos()
+		--else v.target = new_target
+		--end
 	end
 end

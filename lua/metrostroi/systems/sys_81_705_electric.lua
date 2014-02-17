@@ -146,7 +146,7 @@ function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 		["ReverserForward"]		= function(V) Train.RKR:TriggerInput("Open",V) end,
 		["ReverserBackward"]	= function(V) Train.RKR:TriggerInput("Close",V) end,
 	}
-	local S = Train.InternalCircuits.SolveEm508(Train,self.Triggers)
+	local S = Train.InternalCircuits.SolveEzh3(Train,self.Triggers)
 	Train.KSH1:TriggerInput("Set",KSH1)
 	Train.KSH2:TriggerInput("Set",KSH2)
 	

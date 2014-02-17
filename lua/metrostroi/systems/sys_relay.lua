@@ -135,9 +135,6 @@ end
 function TRAIN_SYSTEM:TriggerInput(name,value)		
 	-- Boolean values accepted
 	if type(value) == "boolean" then value = value and 1 or 0 end
-	if type(value) == "string"  then 
-		if value == "true" then value = 1 else value = 0 end 
-	end
 	
 	-- Open/close coils of the relay
 	if (name == "Close") and (value > self.trigger_level) and (self.Value ~= 1.0) then

@@ -466,7 +466,7 @@ function ENT:ToggleTrackSwitch()
 end
 
 function ENT:IsTrackSwitchBlocked(caller)
-
+--[[
 --  print("C",self.Index,caller)
   local foundIndex,foundType,foundEnt = Metrostroi.FindTrainOrLight(self,Metrostroi.SectionOffset[self.Index],self.Index,{},false)
 --  print("1",foundIndex,foundType,foundEnt)
@@ -487,9 +487,9 @@ function ENT:IsTrackSwitchBlocked(caller)
 --  print("4",foundIndex,foundType,foundEnt)
   if (foundType == "train") and (foundEnt ~= caller) and
      not(foundEnt.MasterTrain and (foundEnt.MasterTrain == caller)) then return true end
-  
+  ]]--
   -- Do final ultimate check: make sure no train wagons around the track switches
-  local switches = ents.FindByName(self.TrackSwitchName)
+--[[  local switches = ents.FindByName(self.TrackSwitchName)
   for k,v in pairs(switches) do
     local trains = ents.FindInSphere(v:GetPos(),512)
     for k2,v2 in pairs(trains) do
@@ -499,7 +499,7 @@ function ENT:IsTrackSwitchBlocked(caller)
         return true
       end
     end
-  end
+  end]]--
 
 --  print("NOT BLOCKED")
   return false
@@ -524,7 +524,7 @@ function ENT:TrackSwitchAutoClose()
   end
 
   if self:IsTrackSwitchBlocked() then
-    timer.Create("Picket"..self.Index.."_CloseTrackSwitch",10.0,1,function()
+    timer.Create("Picket"..self.Index.."_CloseTrackSwitch",50.0,1,function()
       self:TrackSwitchAutoClose()
     end)
   else
@@ -548,7 +548,7 @@ function ENT:SetTrackSwitchState(value,caller)
     end
     self.TrackSwitchState = true
     
-    timer.Create("Picket"..self.Index.."_CloseTrackSwitch",10.0,1,function()
+    timer.Create("Picket"..self.Index.."_CloseTrackSwitch",50.0,1,function()
       self:TrackSwitchAutoClose()
     end)
   else
