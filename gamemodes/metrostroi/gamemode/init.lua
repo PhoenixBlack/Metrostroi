@@ -1,8 +1,14 @@
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
+AddCSLuaFile( "sh_sandbox.lua" )
+AddCSLuaFile( "sh_ranks.lua" )
 
 include( "shared.lua" )
 include( "chat.lua" )
+include( "sh_ranks.lua" )
+include( "sv_ranks.lua" )
+include( "sh_sandbox.lua" )
+include( "sv_sandbox.lua" )
 include( "trainspawner.lua" )
 
 CreateConVar("metro_motd_overrideurl","",{FCVAR_ARCHIVE,FCVAR_REPLICATED},"Override URL for MOTD, set to number to completely disable")
