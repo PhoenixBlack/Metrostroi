@@ -67,11 +67,8 @@ if SERVER then
 		if file.Exists("lua/bin/gmsv_turbostroi_win32.dll", "GAME") then
 			require("turbostroi")
 		else
-			print(".dll file not found. Did you install it correctly?")
+			print("Metrostroi: Turbostroi DLL not not found")
 		end
-		
-		
-		
 	end
 	
 	if Turbostroi 
