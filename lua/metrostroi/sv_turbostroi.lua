@@ -67,28 +67,28 @@ if not TURBOSTROI then
 		end
 	end
 
-	function Turbostroi.TriggerInput(train,system,name,value)
-		local v = value or 0
-		if type(value) == "boolean" then v = value and 1 or 0 end
-		Turbostroi.SendMessage(train,4,system,name,0,v)
-	end
+	if Turbostroi then
+		function Turbostroi.TriggerInput(train,system,name,value)
+			local v = value or 0
+			if type(value) == "boolean" then v = value and 1 or 0 end
+			Turbostroi.SendMessage(train,4,system,name,0,v)
+		end
 	
-	hook.Add("Think", "Turbostroi_Think", function()
-		if Turbostroi then 			
+		hook.Add("Think", "Turbostroi_Think", function()
 			-- Proceed with the think loop
 			Turbostroi.SetSimulationFPS(33)
 			Turbostroi.SetTargetTime(CurTime())
 			Turbostroi.Think()
-			
+				
 			-- Update all types of trains
 			for k,v in pairs(Metrostroi.TrainClasses) do
 				updateTrains(ents.FindByClass(v))
 			end
-			
+				
 			-- HACK
 			GLOBAL_SKIP_TRAIN_SYSTEMS = nil
-		end
-	end)
+		end)
+	end
 	return
 end
 
