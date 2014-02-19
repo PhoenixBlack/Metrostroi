@@ -1,5 +1,4 @@
 ENT.Type            = "anim"
-ENT.Base            = "base_gmodentity"
 
 ENT.PrintName       = "Subway Clock"
 ENT.Author          = ""
