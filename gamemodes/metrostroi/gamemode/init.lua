@@ -19,13 +19,10 @@ local function AdminSpawnCMD(ply,cmd,args,fullstring)
 	if ( !SpawnFunction ) then return end
 	entity = SpawnFunction( sent, ply, ply:GetEyeTrace(), entname )
 end
-
-
 concommand.Add("metro_admin_spawntrain",AdminSpawnCMD,nil,"Spawn a 508")
 -------------------------------------------------------------------------
 
 function GM:PlayerInitialSpawn(ply)
-	ply:SetTeam( TEAM_UNASSIGNED ) --Not used by GM atm, other scripts might use it
 	ply:ConCommand("metro_showmotd")
 end
 
