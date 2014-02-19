@@ -1,5 +1,4 @@
 ENT.Type            = "anim"
-ENT.Base            = "base_gmodentity"
 
 ENT.PrintName       = "Train Bogey"
 ENT.Author          = ""

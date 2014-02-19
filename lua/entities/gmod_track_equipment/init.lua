@@ -891,6 +891,7 @@ function MakeSubwayTrackEquipment(player, pos, ang,
   trackSlope,brakeZone,dangerZone,picketSign,trafficLight)
 
   local ent = ents.Create("gmod_track_equipment")
+  //Ignore error below, this ent is deprecated anyway
   ent:SetPlayer(player)
   ent:SetPos(pos)
   ent:SetAngles(ang)
