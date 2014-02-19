@@ -54,8 +54,8 @@ hook.Add("PlayerInitialSpawn", "LoadSQL", function(ply)
 	else -- We do have a record already!
 		SQLQuery("UPDATE `metroplayerdata` SET `nick` = %s WHERE `steamid` = '%s'", nick, sid) -- Update our stored nickname
 		
-		ply:SetTeam(ret.rank)
-		ply.playtime = ret.playtime
+		ply:SetTeam(ret[1].rank)
+		ply.playtime = ret[1].playtime
 		
 		hook.Run("PlayerDataReceived", ply)
 	end
