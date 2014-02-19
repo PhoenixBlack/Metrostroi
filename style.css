@@ -203,7 +203,6 @@ article#cheat-sheet table td {
 /* breaker chart */
 
 article#breakers {
-	max-width: 60em;
 	border-bottom-left-radius: 0.5em;
 	border-bottom-right-radius: 0.5em;
 }
@@ -212,27 +211,28 @@ table#breakertable {
 	border-collapse: separate;
 	border-spacing: 0;
 
-	border: 0.25em solid black;
+	border: 0.20em solid black;
 	background: transparent url("images/noise.png");
 }
 
 #breakertable td {
 	width: 4.5em;
 
-	border: 0.25em solid black;
+	border: 0.20em solid black;
 
+	font-size: 0.9em;
 	vertical-align: top;
 	text-align: center;
-	line-height: 1em;
+	line-height: 0.9em;
 	color: black;
 }
 
 #breakertable td > dfn {
 	display: block;
 	height: 1em;
-	margin: 0.5em 0 -0.25em 0;
+	margin: 0.5em 0 -0.35em 0;
 
-	font-size: 3em;
+	font-size: 2.7em;
 	font-style: normal;
 	font-weight: bold;
 }
@@ -243,6 +243,10 @@ table#breakertable {
 
 .breaker-white {
 	background: white url("images/noise.png");
+}
+
+.breaker-gray {
+	background: #eee url("images/noise.png");
 }
 
 .breaker-red {
