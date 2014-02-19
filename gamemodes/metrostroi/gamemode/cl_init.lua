@@ -1,8 +1,4 @@
-
 include( "shared.lua" )
-include( "cl_spawnmenu.lua" )
-include( "sh_ranks.lua" )
-include( "sh_sandbox.lua" )
 
 CreateClientConVar( "metro_admin_listentoall", 0 , true, true )
 
