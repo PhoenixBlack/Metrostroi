@@ -5,6 +5,7 @@ function SQLQuery( str, ... )
 	local ret = sql.Query(str)
 	if ret == false then
 		MsgN("[SQL Error] "..sql.LastError())
+		debug.Trace()
 	end
 	
 	return ret
