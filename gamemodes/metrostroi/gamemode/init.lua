@@ -15,7 +15,7 @@ CreateConVar("metro_motd_overrideurl","",{FCVAR_ARCHIVE,FCVAR_REPLICATED},"Overr
 
 -- Uses some odd sandbox code to spawn this as you would with the spawnmenu
 local function AdminSpawnCMD(ply,cmd,args,fullstring)
-	local entname = "gmod_subway_em508"
+	local entname = "gmod_subway_ezh3"
 	local sent = scripted_ents.GetStored( entname ).t
 	local SpawnFunction = scripted_ents.GetMember( entname, "SpawnFunction" )
 	if ( !SpawnFunction ) then return end
