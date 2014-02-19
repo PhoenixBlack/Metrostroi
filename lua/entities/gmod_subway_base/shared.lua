@@ -22,11 +22,15 @@ function ENT:InitializeSystems()
 end
 
 function ENT:PassengerCapacity()
-	return 100
+	return 0
 end
 
 function ENT:GetStandingArea()
 	return Vector(-64,-64,0),Vector(64,64,0)
+end
+
+function ENT:BoardPassengers(delta)
+	self:SetPassengerCount(math.max(0,math.min(self:PassengerCapacity(),self:GetPassengerCount() + delta)))
 end
 
 

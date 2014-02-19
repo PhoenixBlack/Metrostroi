@@ -206,6 +206,42 @@ function ENT:Think()
 		end
 	end
 	
+	-- Add models for cleanup of people who left trains
+	self.PassengersLeft = self.PassengersLeft or 0
+	while self.PassengersLeft < self:GetNWInt("PassengersLeft") do
+		-- Get random door
+		local count = self:GetNWInt("TrainDoorCount",0)
+		local i = math.max(1,math.min(count,1+math.floor((count-1)*math.random() + 0.5)))
+		local pos = self:GetNWVector("TrainDoor"..i,Vector(0,0,0))
+		pos.z = self:GetPos().z
+		
+		-- Create clientside model
+		local i = math.max(1,math.min(self:PoolSize(),1+math.floor(math.random()*self:PoolSize() + 0.5)))
+		local ent = ClientsideModel(self.Pool[i].model,RENDERGROUP_OPAQUE)
+		ent:SetPos(pos)
+		ent:SetSkin(math.floor(ent:SkinCount()*self.Pool[i].skin))
+		ent:SetModelScale(self.Pool[i].scale,0)
+		
+		-- Generate target pos
+		local platformDir   = platformEnd-platformStart
+		local platformN		= (platformDir:Angle()+Angle(0,90,0)):Forward()
+		local platformD		= platformDir:GetNormalized()
+		local platformWidth = ((platformStart-stationCenter) - ((platformStart-stationCenter):Dot(platformD))*platformD):Length()
+		local target = pos + platformN*platformWidth
+		pos = pos - platformN * 4.0 * math.random()
+		pos = pos + platformD * 16.0 * math.random()
+		target = target + platformD * 128.0 * math.random()
+
+		-- Add to list of cleanups
+		table.insert(self.CleanupModels,{
+			ent = ent,
+			target = target,
+		})
+		
+		-- Add passenger
+		self.PassengersLeft = self.PassengersLeft + 1
+	end
+	
 	-- Animate models for cleanup
 	for k,v in pairs(self.CleanupModels) do
 		-- Get pos and target in XY plane

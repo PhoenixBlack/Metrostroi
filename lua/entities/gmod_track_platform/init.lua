@@ -17,6 +17,13 @@ function ENT:Initialize()
 	self.PlatformX0			= self.VMF.PlatformX0 or 0.80
 	self.PlatformSigma		= self.VMF.PlatformSigma or 0.25
 	
+	if self.StationIndex == 111 then self.PopularityIndex = 1.0 end
+	if self.StationIndex == 112 then self.PopularityIndex = 1.5 end
+	if self.StationIndex == 113 then self.PopularityIndex = 1.5 end
+	if self.StationIndex == 114 then self.PopularityIndex = 0.5 end
+	if self.StationIndex == 115 then self.PopularityIndex = 0.0 end
+	if self.StationIndex == 116 then self.PopularityIndex = 2.0 end
+	
 	if not self.PlatformStart then
 		self.VMF.PlatformStart 	= "station"..self.StationIndex.."_"..(self.VMF.PlatformStart or "")
 		self.PlatformStart		= ents.FindByName(self.VMF.PlatformStart or "")[1]
@@ -46,12 +53,14 @@ function ENT:Initialize()
 	-- Initial platform pool configuration
 	self.WindowStart = 0  -- Increases when people board train
 	self.WindowEnd = 0 -- Increases naturally over time
+	self.PassengersLeft = 0 -- Number of passengers that left trains
 	
 	-- Send things to client
 	self:SetNWFloat("X0",self.PlatformX0)
 	self:SetNWFloat("Sigma",self.PlatformSigma)
 	self:SetNWInt("WindowStart",self.WindowStart)
 	self:SetNWInt("WindowEnd",self.WindowEnd)
+	self:SetNWInt("PassengersLeft",self.PassengersLeft)
 	self:SetNWVector("PlatformStart",self.PlatformStart)
 	self:SetNWVector("PlatformEnd",self.PlatformEnd)
 	self:SetNWVector("StationCenter",self:GetPos())
@@ -97,6 +106,9 @@ local function CDF(x,x0,sigma) return 0.5 * (1 + erf((x - x0)/math.sqrt(2*sigma^
 local function merge(t1,t2) for k,v in pairs(t2) do t1[k] = v end end
 
 function ENT:Think()
+	-- Rate of boarding
+	local dT = 0.25
+	
 	-- Find all potential trains
 	local trains = {}
 	for k,v in pairs(Metrostroi.TrainClasses) do
@@ -109,6 +121,7 @@ function ENT:Think()
 	-- Send update to client
 	self:SetNWInt("WindowStart",self.WindowStart)
 	self:SetNWInt("WindowEnd",self.WindowEnd)
+	self:SetNWInt("PassengersLeft",self.PassengersLeft)
 	
 	-- Check if any trains are at the platform
 	local platformStart	= self.PlatformStart
@@ -133,7 +146,17 @@ function ENT:Think()
 			train_end = math.max(0,math.min(1,train_end))
 		
 			-- Check if this was the last stop
-			if v.LastPlatform ~= self then v.LastPlatform = self end
+			if (v.LastPlatform ~= self) then
+				v.LastPlatform = self
+
+				-- How many passengers must leave on this station
+				local proportion = math.random() * math.max(0,1.0 + math.log(self.PopularityIndex))
+				if self.PlatformLast then proportion = 1 end
+				-- Total count
+				v.PassengersToLeave = math.floor(proportion * v:GetPassengerCount() + 0.5)
+				
+				print("SETUP LEAVE",proportion,v.PassengersToLeave)
+			end
 			
 			-- Calculate number of passengers near the train
 			local passenger_density = math.abs(CDF(train_start,self.PlatformX0,self.PlatformSigma) - CDF(train_end,self.PlatformX0,self.PlatformSigma))
@@ -144,29 +167,34 @@ function ENT:Think()
 			if not left_side then door_count = #v.RightDoorPositions end
 			
 			-- Get maximum boarding rate for normal russian subway train doors
-			local max_boarding_rate = 2.5 * door_count
+			local max_boarding_rate = 3.0 * door_count * dT
 			-- Get boarding rate based on passenger density
 			local boarding_rate = math.min(max_boarding_rate,passenger_count)
 			if self.PlatformLast then boarding_rate = 0 end
 			-- Get rate of leaving
-			local leaving_rate = 0
-			if self.PlatformLast then leaving_rate = 2*max_boarding_rate end
+			local leaving_rate = 3.0 * door_count * dT
+			if v.PassengersToLeave == 0 then leaving_rate = 0 end
 			
 			-- Board these passengers into train
-			local passenger_delta = 
-				math.min(math.max(1,math.floor(boarding_rate+0.5)),self.TotalCount) - 
-				math.min(math.max(1,math.floor(leaving_rate+0.5)),v:GetPassengerCount())				
-			if v:GetPassengerCount() < v:PassengerCapacity() then
-				v:SetPassengerCount(v:GetPassengerCount() + passenger_delta)
+			local boarded	= math.min(math.max(1,math.floor(boarding_rate+0.5)),self.TotalCount)
+			local left		= math.min(math.max(1,math.floor(leaving_rate +0.5)),v.PassengersToLeave)
+			local passenger_delta = boarded - left
+			-- People board from platform
+			if boarded > 0 then
+				self.WindowStart = (self.WindowStart + boarded) % self:PoolSize()
 			end
-			if passenger_delta > 0 then
-				self.WindowStart = (self.WindowStart + passenger_delta) % self:PoolSize()
+			-- People leave to platform
+			if left > 0 then
+				v.PassengersToLeave = v.PassengersToLeave - left
+				self.PassengersLeft = self.PassengersLeft + left
 			end
+			-- Change number of people in train
+			v:BoardPassengers(passenger_delta)
 			
-			if left_side then
-				for k,vec in pairs(v.LeftDoorPositions) do table.insert(boardingDoorList,v:LocalToWorld(vec)) end
-			else
-				for k,vec in pairs(v.RightDoorPositions) do table.insert(boardingDoorList,v:LocalToWorld(vec)) end
+			-- Keep list of door positions
+			if left_side 
+			then for k,vec in pairs(v.LeftDoorPositions)  do table.insert(boardingDoorList,v:LocalToWorld(vec)) end
+			else for k,vec in pairs(v.RightDoorPositions) do table.insert(boardingDoorList,v:LocalToWorld(vec)) end
 			end
 			-- Add doors to boarding list
 			--print("BOARDING",boarding_rate,"DELTA = "..passenger_delta,self.PlatformLast,v:GetPassengerCount())
@@ -175,13 +203,7 @@ function ENT:Think()
 	
 	-- Add passengers
 	if (not self.PlatformLast) and (#boardingDoorList == 0) then
-		local target = 300
-		if self.StationIndex == 111 then target = 100 end
-		if self.StationIndex == 112 then target = 150 end
-		if self.StationIndex == 113 then target = 150 end
-		if self.StationIndex == 114 then target = 50 end
-		if self.StationIndex == 115 then target = 0 end
-		if self.StationIndex == 116 then target = 200 end
+		local target = 300*self.PopularityIndex
 		
 		local growthDelta = math.max(0,(target-self.TotalCount)*0.005)
 		if growthDelta < 1.0 then
@@ -200,6 +222,6 @@ function ENT:Think()
 		self:SetNWVector("TrainDoor"..k,v)
 	end
 	self:SetNWInt("TrainDoorCount",#boardingDoorList)
-	self:NextThink(CurTime() + 1.00)
+	self:NextThink(CurTime() + dT)
 	return true
 end
