@@ -8,6 +8,7 @@ include( "chat.lua" )
 include( "trainspawner.lua" )
 include( "sh_ranks.lua" )
 include( "sv_ranks.lua" )
+include( "sv_scoring.lua" )
 include( "playerclass.lua" )
 
 CreateConVar("metro_motd_overrideurl","",{FCVAR_ARCHIVE,FCVAR_REPLICATED},"Override URL for MOTD, set to number to completely disable")
