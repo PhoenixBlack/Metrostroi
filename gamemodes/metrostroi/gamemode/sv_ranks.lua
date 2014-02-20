@@ -13,12 +13,14 @@ function SQLQuery( str, ... )
 end
 
 hook.Add("Initialize", "SetupSQL", function()
+	SQLQuery("DROP TABLE IF EXISTS `metroplayerdata`")
+	
 	SQLQuery([[
 	CREATE TABLE IF NOT EXISTS `metroplayerdata` (
 		`steamid` varchar(19) NOT NULL,
 		`rank` tinyint(1) NOT NULL DEFAULT '1',
+		`ip` varchar(21) NOT NULL,
 		`nick` varchar(32) NOT NULL DEFAULT '',
-		`nationality` char(2) NOT NULL DEFAULT '',
 		`playtime` int(32) NOT NULL DEFAULT '0',
 		PRIMARY KEY (`steamid`))
 	]])
@@ -30,29 +32,18 @@ hook.Add("PlayerInitialSpawn", "LoadSQL", function(ply)
 	local nick = sql.SQLStr(ply:Nick())
 	local ipport = ply:IPAddress()
 	if ipport == "loopback" then ipport = "74.125.232.102:fart" end -- use google's ip incase its singleplayer
-	local ip = string.Explode(":", ipport)[1] -- Gets ip and not ip:port
+	local ip = sql.SQLStr(string.Explode(":", ipport)[1]) -- Gets ip and not ip:port
 	
 	local ret = SQLQuery("SELECT * FROM `metroplayerdata` WHERE `steamid` = '%s'", sid)
 	if not ret then -- Incase we don't have a record of him already
 	
-		--Fetch nation from IP.
-		local function complete(jsondata)
-			local nationality = "US" -- Default to US
-			if jsondata and not game.SinglePlayer() then
-				local jsontbl = util.JSONToTable(jsondata) or {}
-				nationality = sql.SQLStr(jsontbl["countryCode"] or "US")
-			end
-			
-			SQLQuery("INSERT INTO `metroplayerdata` (`steamid`, `nick`, `nationality`) VALUES('%s', %s, %s);", sid, nick, nationality)
-			hook.Run("PlayerDataReceived", ply)
-		end
-		http.Fetch(string.format("http://ip-api.com/json/%s", ip),complete,complete)
+		SQLQuery("INSERT INTO `metroplayerdata` (`steamid`, `nick`, `ip`) VALUES('%s', %s, %s);", sid, nick, ip)
 		
 		ply.playtime = 0
 		ply:SetTeam(RANK_GUEST)
 		
 	else -- We do have a record already!
-		SQLQuery("UPDATE `metroplayerdata` SET `nick` = %s WHERE `steamid` = '%s'", nick, sid) -- Update our stored nickname
+		SQLQuery("UPDATE `metroplayerdata` SET `nick` = %s, `ip` = %s WHERE `steamid` = '%s'", nick, ip, sid) -- Update our stored nickname and ip
 		
 		ply:SetTeam(ret[1].rank)
 		ply.playtime = ret[1].playtime
