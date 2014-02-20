@@ -5,21 +5,21 @@ function SQLQuery( str, ... )
 	local ret = sql.Query(str)
 	if ret == false then
 		MsgN("[SQL Error] "..sql.LastError())
-		MsgN("In query \"" .. str .. "\"")
+		MsgN("In query \"" .. string.gsub(str, "\r\n", "") .. "\"") -- Replace newlines with nothing so we get it in a pretty format
 		debug.Trace()
 	end
 	
 	return ret
 end
 
-hook.Add("Initialize", "SetupSQL", function()
-	SQLQuery("DROP TABLE IF EXISTS `metroplayerdata`")
+hook.Add("Initialize", "SetupSQL_PlayerData", function()
+	--SQLQuery("DROP TABLE IF EXISTS `metroplayerdata`")
 	
 	SQLQuery([[
 	CREATE TABLE IF NOT EXISTS `metroplayerdata` (
 		`steamid` varchar(19) NOT NULL,
 		`rank` tinyint(1) NOT NULL DEFAULT '1',
-		`ip` varchar(21) NOT NULL,
+		`ip` varchar(15) NOT NULL,
 		`nick` varchar(32) NOT NULL DEFAULT '',
 		`playtime` int(32) NOT NULL DEFAULT '0',
 		PRIMARY KEY (`steamid`))
