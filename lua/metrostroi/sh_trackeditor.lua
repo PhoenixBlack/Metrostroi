@@ -60,7 +60,7 @@ local function ShowStatus()
 			if #path > 0 then
 				print(string.format("\t %d: %d nodes %s",k,#path,suffix))
 			else
-				print("Errous empty path?!")
+				print("Erroneous empty path?!")
 			end
 		end
 	else
@@ -136,11 +136,9 @@ end
 -- Unused
 local function ClientDraw()
 	if GetConVarNumber("metrostroi_drawdebug") <= 0 then return end
-
 	if #Metrostroi.TrackEditor.Paths == 0 then return end
 	
 	local lastpos
-	
 	for _,path in pairs(Metrostroi.TrackEditor.Paths) do
 		if #path > 0 then
 			local drawcolor
@@ -231,9 +229,9 @@ if SERVER then
 	concommand.Add("metrostroi_trackeditor_mark",function(ply,cmd,args,fullstring) Mark(ply:GetEyeTrace().Entity) end,nil,"Mark currently aimed at entity as track editing source")
 	concommand.Add("metrostroi_trackeditor_start",function(ply,cmd,args,fullstring) Start() end,nil,"Start recording")
 	concommand.Add("metrostroi_trackeditor_stop",function(ply,cmd,args,fullstring) Stop() end,nil,"Stop recording")
-	concommand.Add("metrostroi_trackeditor_drawall",function(ply,cmd,args,fullstring) ShowAll() end,nil,"Draw all paths")
+	concommand.Add("metrostroi_trackeditor_drawall",function(ply,cmd,args,fullstring) timer.Simple(0.05,ShowAll) end,nil,"Draw all paths")
 	concommand.Add("metrostroi_trackeditor_status",function(ply,cmd,args,fullstring) ShowStatus() end,nil,"Show path status")
-	concommand.Add("metrostroi_trackeditor_drawpath",function(ply,cmd,args,fullstring) DrawPathID(args) end,nil,"Draw single path")
+	concommand.Add("metrostroi_trackeditor_drawpath",function(ply,cmd,args,fullstring) timer.Simple(0.05,function() DrawPathID(args) end) end,nil,"Draw single path")
 	concommand.Add("metrostroi_trackeditor_removepath",function(ply,cmd,args,fullstring) RemovePath(args) end,nil,"Remove a path")
 	concommand.Add("metrostroi_trackeditor_save",function(ply,cmd,args,fullstring) Save(args) end,nil,"Save track")
 	concommand.Add("metrostroi_trackeditor_load",function(ply,cmd,args,fullstring) Load(args) end,nil,"Load track")
