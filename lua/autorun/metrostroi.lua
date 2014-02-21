@@ -89,6 +89,9 @@ if SERVER then
 	-- Add all shared files
 	local files = file.Find("metrostroi/sh_*.lua","LUA")
 	for _,filename in pairs(files) do AddCSLuaFile("metrostroi/"..filename) end
+	-- Add all system files
+	local files = file.Find("metrostroi/systems/sys_*.lua","LUA")
+	for _,filename in pairs(files) do AddCSLuaFile("metrostroi/systems/"..filename) end
 	
 
 	-- Alpha tester stuff
@@ -132,26 +135,22 @@ function Metrostroi.DefineSystem(name)
 	TRAIN_SYSTEM_NAME = name
 end
 
--- Load all systems
-local files = file.Find("metrostroi/systems/sys_*.lua","LUA")
-for _,short_filename in pairs(files) do 
-	local filename = "metrostroi/systems/"..short_filename
-	
-	-- Make the file shared
-	AddCSLuaFile(filename)
-	if SERVER 
-	then include(filename)
-	else timer.Simple(0.05, function() include(filename) end)
-	end
+local function loadSystem(filename)
+	-- Get the Lua code
+	include(filename)
 	
 	-- Load train systems
 	if TRAIN_SYSTEM then TRAIN_SYSTEM.FileName = filename end
-	local name = TRAIN_SYSTEM_NAME or "UNDEFINED"
+	local name = TRAIN_SYSTEM_NAME or "UndefinedSystem"
+	TRAIN_SYSTEM_NAME = nil
+	
+	-- Register system with turbostroi
 	if Turbostroi and (not Metrostroi.TurbostroiRegistered[name]) then
 		Turbostroi.RegisterSystem(name,filename) 
 		Metrostroi.TurbostroiRegistered[name] = true
 	end
 
+	-- Load up the system
 	Metrostroi.Systems["_"..name] = TRAIN_SYSTEM
 	Metrostroi.BaseSystems[name] = TRAIN_SYSTEM
 	Metrostroi.Systems[name] = function(train,...)
@@ -192,5 +191,17 @@ for _,short_filename in pairs(files) do
 		tbl.IsInput = {}
 		for k,v in pairs(tbl.InputsList) do tbl.IsInput[v] = true end
 		return tbl
+	end
+end
+
+-- Load all systems
+local files = file.Find("metrostroi/systems/sys_*.lua","LUA")
+for _,short_filename in pairs(files) do 
+	local filename = "metrostroi/systems/"..short_filename
+	
+	-- Load the file
+	if SERVER 
+	then loadSystem(filename)
+	else timer.Simple(0.05, function() loadSystem(filename) end)
 	end
 end
