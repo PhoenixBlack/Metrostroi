@@ -46,7 +46,7 @@ if not Metrostroi then
 	Metrostroi.TrainClasses = {
 		"gmod_subway_ezh3",
 		"gmod_subway_ema",
-		"gmod_subway_em508t",		
+		"gmod_subway_em508t",
 	}
 	
 	-- List of all systems

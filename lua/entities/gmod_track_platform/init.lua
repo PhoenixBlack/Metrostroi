@@ -12,6 +12,7 @@ function ENT:Initialize()
 	self.PlatformStart		= ents.FindByName(self.VMF.PlatformStart or "")[1]
 	self.PlatformEnd		= ents.FindByName(self.VMF.PlatformEnd or "")[1]
 	self.StationIndex		= tonumber(self.VMF.StationIndex) or 100
+	self.PlatformIndex		= tonumber(self.VMF.PlatformIndex) or 1
 	self.PopularityIndex	= self.VMF.PopularityIndex or 1.0
 	self.PlatformLast		= (self.VMF.PlatformLast == "yes")
 	self.PlatformX0			= self.VMF.PlatformX0 or 0.80
@@ -201,7 +202,7 @@ function ENT:Think()
 	
 	-- Add passengers
 	if (not self.PlatformLast) and (#boardingDoorList == 0) then
-		local target = 300*self.PopularityIndex
+		local target = 50*self.PopularityIndex --300
 		
 		local growthDelta = math.max(0,(target-self.TotalCount)*0.005)
 		if growthDelta < 1.0 then -- Accumulate fractional rate

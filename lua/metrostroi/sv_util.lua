@@ -24,6 +24,22 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Custom drop to floor that only checks origin and not bounding box
+--------------------------------------------------------------------------------
+function Metrostroi.DropToFloor(ent)
+	local result = util.TraceLine({
+		start = ent:GetPos(),
+		endpos = ent:GetPos() - Vector(0,0,256),
+		mask = -1,
+		filter = { ent },
+	})
+	if result.Hit then ent:SetPos(result.HitPos) end
+end
+
+
+
+
+--------------------------------------------------------------------------------
 -- Joystick controls
 -- Author: HunterNL
 --------------------------------------------------------------------------------

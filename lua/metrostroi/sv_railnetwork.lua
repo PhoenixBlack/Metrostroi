@@ -1,11 +1,25 @@
 --------------------------------------------------------------------------------
 -- Rail network handling and ARS simulation
 --------------------------------------------------------------------------------
-if not Metrostroi.Paths then
+--if not Metrostroi.Paths then
+if true then
 	-- Definition of paths used in runtime
 	Metrostroi.Paths = {}
 	-- Spatial lookup for nodes
 	Metrostroi.SpatialLookup = {}
+	
+	-- List of ARS entities for every track segment/node
+	Metrostroi.ARSEntitiesForNode = {}
+	-- List of trains for every segment/node
+	Metrostroi.TrainsForNode = {}
+	-- List of train positions
+	Metrostroi.TrainPositions = {}
+	
+	-- List of stations/platforms
+	Metrostroi.Stations = {}
+	
+	-- List of ARS sections
+	Metrostroi.ARSSections = {}
 end
 
 
@@ -67,18 +81,20 @@ end
 --------------------------------------------------------------------------------
 -- Return position on track for target XYZ
 --------------------------------------------------------------------------------
-function Metrostroi.GetPositionOnTrack(pos,ang)
+function Metrostroi.GetPositionOnTrack(pos,ang,opts)
+	if not opts then opts = empty_table end
+	
 	-- Angle can be specified to determine if facing forward or backward
 	ang = ang or Angle(0,0,0)
 	
 	-- Size of box which envelopes region of space that counts as being on track
 	local X_PAD = 0
-	local Y_PAD = 384
-	local Z_PAD = 256
+	local Y_PAD = 384/2
+	local Z_PAD = 256/2
 	
 	-- Find position on any track
 	local results = {}
-	for nodeID,node in Metrostroi.NearestNodes(pos) do
+	for nodeID,node in Metrostroi.NearestNodes(pos) do		
 		-- Get local coordinate system of a section
 		local forward = node.dir
 		local up = Vector(0,0,1)
@@ -95,16 +111,18 @@ function Metrostroi.GetPositionOnTrack(pos,ang)
 		local local_dir = ang:Forward()
 		local dir_delta = local_dir:Dot(forward)
 		local dir_forward = dir_delta > 0
+		local dir_angle = 90-math.deg(math.acos(dir_delta))
 		
 		-- If this position resides on track, add it to results
 		if ((local_x > -X_PAD) and (local_x < node.vec:Length()+X_PAD) and
 			(local_y > -Y_PAD) and (local_y < Y_PAD) and
-			(local_z > -Z_PAD) and (local_z < Z_PAD)) then
+			(local_z > -Z_PAD) and (local_z < Z_PAD)) and (node.path ~= opts.ignore_path) then
 			table.insert(results,{
 				node1 = node,
 				node2 = node.next,
 				path = node.path,
 				
+				angle = dir_angle,				-- Angle between forward vector and axis of track
 				forward = dir_forward,			-- Is facing forward relative to track
 				x = local_x*0.01905 + node.x,	-- Local coordinates in track curvilinear coordinates
 				y = local_y*0.01905,			--
@@ -117,6 +135,157 @@ function Metrostroi.GetPositionOnTrack(pos,ang)
 	
 	-- Return list of positions
 	return results
+end
+
+
+--------------------------------------------------------------------------------
+-- Update ARS entities lists
+--------------------------------------------------------------------------------
+function Metrostroi.UpdateARSEntities()
+	Metrostroi.ARSEntitiesForNode = {}
+	
+	local entities = ents.FindByClass("gmod_track_ars")
+	for k,v in pairs(entities) do
+		local pos = Metrostroi.GetPositionOnTrack(v:GetPos(),v:GetAngles())[1]
+		if pos then
+			Metrostroi.ARSEntitiesForNode[pos.node1] = 
+				Metrostroi.ARSEntitiesForNode[pos.node1] or {}
+			table.insert(Metrostroi.ARSEntitiesForNode[pos.node1],v)
+		end
+	end	
+end
+
+
+--------------------------------------------------------------------------------
+-- Update ARS sections
+--------------------------------------------------------------------------------
+function Metrostroi.UpdateARSSections()
+	Metrostroi.ARSSections = {}
+	
+	-- ...
+end
+
+
+--------------------------------------------------------------------------------
+-- Is track occupied starting from the given node
+--------------------------------------------------------------------------------
+function Metrostroi.IsTrackOccupied(node,checked)
+	if not node then return end
+	if not checked then checked = {} end
+	if checked[node] then return end	
+	checked[node] = true
+
+	-- Any trains in this node?
+	if Metrostroi.TrainsForNode[node] and (#Metrostroi.TrainsForNode[node] > 0) then
+		return true
+	end
+	
+	-- Any isolation joints in this node?
+	-- FIXME: add more fine check, not just for node but for coordinates too
+	if Metrostroi.ARSEntitiesForNode[node] then
+		for k,v in pairs(Metrostroi.ARSEntitiesForNode[node]) do
+			if IsValid(v) and v:GetIsolatingJoint() then 
+				return 
+			end
+		end
+	end
+	
+	-- Check other nodes
+	if node.branches then
+		for k,v in pairs(node.branches) do
+			if Metrostroi.IsTrackOccupied(v,checked) then return true end
+		end
+	end
+	if Metrostroi.IsTrackOccupied(node.next,checked) then return true end
+	if Metrostroi.IsTrackOccupied(node.prev,checked) then return true end
+end
+
+
+--------------------------------------------------------------------------------
+-- Update train positions
+--------------------------------------------------------------------------------
+function Metrostroi.UpdateTrainPositions()
+	Metrostroi.TrainPositions = {}
+	Metrostroi.TrainsForNode = {}
+
+	-- Query all train types
+	for _,class in pairs(Metrostroi.TrainClasses) do
+		local trains = ents.FindByClass(class)
+		for _,train in pairs(trains) do
+			Metrostroi.TrainPositions[train] = Metrostroi.GetPositionOnTrack(train:GetPos(),train:GetAngles())
+		
+			--print("TRAIN",train)
+			for k,v in pairs(Metrostroi.TrainPositions[train]) do
+				print(Format("\t[%d] Path #%d: (%.2f x %.2f x %.2f) m  Facing %s",k,v.path.id,v.x,v.y,v.z,v.forward and "forward" or "backward"))
+			end
+	
+			for _,pos in pairs(Metrostroi.TrainPositions[train]) do
+				Metrostroi.TrainsForNode[pos.node1] = Metrostroi.TrainsForNode[pos.node1] or {}
+				table.insert(Metrostroi.TrainsForNode[pos.node1],train)
+			end
+		end
+	end
+end
+timer.Create("Metrostroi_TrainPositionTimer",0.25,0,Metrostroi.UpdateTrainPositions)
+
+
+--------------------------------------------------------------------------------
+-- Update stations list
+--------------------------------------------------------------------------------
+function Metrostroi.UpdateStations()
+	Metrostroi.Stations = {}
+	local platforms = ents.FindByClass("gmod_track_platform")
+	for _,platform in pairs(platforms) do
+		local station = Metrostroi.Stations[platform.StationIndex] or {}
+		Metrostroi.Stations[platform.StationIndex] = station
+		
+		-- Position
+		local dir = platform.PlatformEnd - platform.PlatformStart
+		local pos1 = Metrostroi.GetPositionOnTrack(platform.PlatformStart,dir:Angle())[1]
+		local pos2 = Metrostroi.GetPositionOnTrack(platform.PlatformEnd,dir:Angle())[1]
+
+		if pos1 and pos2 then		
+			-- Add platform to station
+			local platform_data = {
+				x_start = pos1.x,
+				x_end = pos2.x,
+				length = math.abs(pos2.x - pos1.x),
+				node_start = pos1.node1,
+				node_end = pos2.node1,
+			}
+			table.insert(station,platform_data)
+			
+			-- Print information
+			print(Format("\t[%03d][0] %.3f-%.3f km (%.1f m)",platform.StationIndex,pos1.x*1e-3,pos2.x*1e-3,platform_data.length))
+		end
+	end
+	
+	-- Do things
+	--[[local tt = Metrostroi.GetTravelTime(
+		Metrostroi.Stations[111][1].node_end,
+		Metrostroi.Stations[116][1].node_start) or 0
+	print("TRAVEL TIME: "..math.floor(tt/60)..":"..(math.floor(tt)%60).." min")]]--
+end
+
+
+--------------------------------------------------------------------------------
+-- Get travel time between two nodes in seconds
+--------------------------------------------------------------------------------
+function Metrostroi.GetTravelTime(src,dest)
+	-- Determine direction of travel
+	assert(src.path == dest.path)
+	local direction = src.x < dest.x
+	
+	-- Accumulate travel time
+	local travel_time = 0
+	local travel_speed = 60	-- FIXME: take 77% of ARS nominal speed
+	local node = src
+	while (node) and (node ~= dest) do
+		travel_time = travel_time + (node.length / (travel_speed/3.6))
+		node = node.next
+	end
+	
+	return travel_time
 end
 
 
@@ -142,6 +311,10 @@ function Metrostroi.Load(name)
 	if not paths then
 		print("Parse error in track definition JSON")
 		paths = {}
+	end
+	-- Quick small hack to load tracks as well
+	if Metrostroi.TrackEditor then
+		Metrostroi.TrackEditor.Paths = paths
 	end
 	
 	-- Prepare spatial lookup table
@@ -202,6 +375,38 @@ function Metrostroi.Load(name)
 		end
 	end
 	
+	-- Find places where tracks link up together
+	for pathID,path in pairs(Metrostroi.Paths) do
+		-- Find position of end nodes
+		local node1,node2 = path[1],path[#path]
+		local pos1 = Metrostroi.GetPositionOnTrack(node1.pos,nil,{ ignore_path = path })
+		local pos2 = Metrostroi.GetPositionOnTrack(node2.pos,nil,{ ignore_path = path })
+		
+		-- Create connection
+		local join1,join2
+		if pos1[1] then join1 = pos1[1].node1 end
+		if pos2[1] then join2 = pos2[1].node2 end
+		
+		-- Record it
+		if join1 then
+			join1.branches = join1.branches or {}
+			table.insert(join1.branches,node1)
+			node1.branches = node1.branches or {}
+			table.insert(node1.branches,join1)
+		end
+		if join2 then
+			join2.branches = join2.branches or {}
+			table.insert(join2.branches,node2)
+			node2.branches = node2.branches or {}
+			table.insert(node2.branches,join2)
+		end
+	end
+	
+	-- Load ARS entities
+	Metrostroi.UpdateARSEntities()
+	-- Initialize stations list
+	Metrostroi.UpdateStations()
+	
 	-- Print info
 	Metrostroi.PrintStatistics()
 end
@@ -247,6 +452,13 @@ concommand.Add("metrostroi_pos_info", function(ply, _, args)
 	local results = Metrostroi.GetPositionOnTrack(ply:GetPos(),ply:GetAimVector():Angle())
 	for k,v in pairs(results) do
 		print(Format("\t[%d] Path #%d: (%.2f x %.2f x %.2f) m  Facing %s",k,v.path.id,v.x,v.y,v.z,v.forward and "forward" or "backward"))
+	end
+	
+	-- Info about local track
+	if results[1] then
+		print(Format("Track status: %s",
+			Metrostroi.IsTrackOccupied(results[1].node1) and "occupied" or "free"
+		))
 	end
 end)
 
