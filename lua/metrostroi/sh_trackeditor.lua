@@ -202,18 +202,21 @@ local function Save(args)
 	if not file.Exists("metrostroi_data","DATA") then
 		file.CreateDir("metrostroi_data")
 	end
-	local name = args[1] or ("track_"..game.GetMap())
+	local name = args[1] or game.GetMap()
 	local data = util.TableToJSON(Metrostroi.TrackEditor.Paths)
-	file.Write(string.format("metrostroi_data/%s.txt",name),data)
-	print("Saved to "..name..".txt")
+	file.Write(string.format("metrostroi_data/track_%s.txt",name),data)
+	print("Saved to metrostroi_data/track_"..name..".txt")
 end
 
 local function Load(args)
-	local name = args[1] or ("track_"..game.GetMap())
-	if not file.Exists(string.format("metrostroi_data/%s.txt",name),"DATA") then print("File not found: "..name..".txt") return end
-	print("Loading from "..name..".txt")
+	local name = args[1] or game.GetMap()
+	if not file.Exists(string.format("metrostroi_data/track_%s.txt",name),"DATA") then
+		print("File not found: metrostroi_data/track_"..name..".txt")
+		return 
+	end
+	print("Loading from metrostroi_data/track_"..name..".txt")
 	
-	local tbl = util.JSONToTable(file.Read(string.format("metrostroi_data/%s.txt",name)))
+	local tbl = util.JSONToTable(file.Read(string.format("metrostroi_data/track_%s.txt",name)))
 	if tbl == nil then
 		print("JSON Parse error")
 	else
