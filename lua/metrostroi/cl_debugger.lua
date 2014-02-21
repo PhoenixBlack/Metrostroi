@@ -13,6 +13,7 @@ Debugger.EntData = {}
 Debugger.EntDataTime = {}
 Debugger.EntNameMap = {}
 
+CreateClientConVar("metrostroi_drawdebug",0,true)
 CreateClientConVar("metrostroi_debugger_data_timeout",2,true,false)
 
 local Colors = {
