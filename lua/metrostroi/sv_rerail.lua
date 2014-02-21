@@ -104,8 +104,9 @@ local function getTrackData(pos,forward)
 	}
 
 	return data
-
 end
+Metrostroi.RerailGetTrackData = getTrackData
+
 
 -- Helper function that tries to find trackdata at -z or -ent:Up()
 local function getTrackDataBelowEnt(ent)
