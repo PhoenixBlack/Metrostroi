@@ -20,8 +20,11 @@ function Metrostroi.NextEquipmentID()
 	return id
 end
 
+
+
+
 --------------------------------------------------------------------------------
--- Register Joystick Controlls
+-- Joystick controls
 -- Author: HunterNL
 --------------------------------------------------------------------------------
 if not Metrostroi.JoystickValueRemap then
@@ -65,7 +68,7 @@ function Metrostroi.RegisterJoystickInput (uid,analog,desc,min,max)
 	jcon.register(temp)
 end
 
---Wrapper around joystick get to implement our own remapping
+-- Wrapper around joystick get to implement our own remapping
 function Metrostroi.GetJoystickInput(ply,uid) 
 	local remapinfo = Metrostroi.JoystickValueRemap[uid]
 	local jvalue = joystick.Get(ply,uid)
@@ -78,6 +81,9 @@ function Metrostroi.GetJoystickInput(ply,uid)
 	end
 end
 
+
+
+
 --------------------------------------------------------------------------------
 -- Player meta table magic
 -- Author: HunterNL
@@ -85,7 +91,7 @@ end
 local Player = FindMetaTable("Player")
 
 function Player:CanDriveTrains()
-	return IsValid(self:GetWeapon("train_reverser_switch")) or self:IsAdmin()
+	return IsValid(self:GetWeapon("train_kv_wrench")) or self:IsAdmin()
 end
 
 function Player:GetTrain()
