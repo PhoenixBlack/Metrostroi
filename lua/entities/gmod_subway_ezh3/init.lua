@@ -125,6 +125,7 @@ end
 --------------------------------------------------------------------------------
 function ENT:Think()
 	local retVal = self.BaseClass.Think(self)
+	--if not self.Panel["HeadLights1"] then return true end
 
 	-- Check if wrench was pulled out
 	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end

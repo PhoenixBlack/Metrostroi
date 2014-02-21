@@ -154,8 +154,6 @@ function ENT:Think()
 				if self.PlatformLast then proportion = 1 end
 				-- Total count
 				v.PassengersToLeave = math.floor(proportion * v:GetPassengerCount() + 0.5)
-				
-				print("SETUP LEAVE",proportion,v.PassengersToLeave)
 			end
 			
 			-- Calculate number of passengers near the train
@@ -206,15 +204,14 @@ function ENT:Think()
 		local target = 300*self.PopularityIndex
 		
 		local growthDelta = math.max(0,(target-self.TotalCount)*0.005)
-		if growthDelta < 1.0 then
-			self.Accum = (self.Accum or 0) + growthDelta
-			if self.Accum > 1.0 then
+		if growthDelta < 1.0 then -- Accumulate fractional rate
+			self.GrowthAccumulation = (self.GrowthAccumulation or 0) + growthDelta
+			if self.GrowthAccumulation > 1.0 then
 				growthDelta = 1
-				self.Accum = 0
+				self.GrowthAccumulation = self.GrowthAccumulation - 1.0
 			end
 		end
 		self.WindowEnd = (self.WindowEnd + math.floor(growthDelta+0.5)) % self:PoolSize()
-		--print("BORNS",self,growthDelta)
 	end
 	
 	-- Send boarding list FIXME make this nicer

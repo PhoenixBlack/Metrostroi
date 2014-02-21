@@ -1,5 +1,4 @@
 ENT.Type			= "point"
-
 ENT.PrintName		= "Train Platform"
 ENT.Spawnable		= false
 ENT.AdminSpawnable	= false
