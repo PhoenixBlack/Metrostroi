@@ -1,16 +1,6 @@
 --------------------------------------------------------------------------------
--- Metrostroi simulation acceleration DLL support
+-- Simulation acceleration DLL support
 --------------------------------------------------------------------------------
-local function split(inputstr, sep)
-	if sep == nil then sep = "%s" end
-
-	local t = {} i=1
-	for str in string.gmatch(inputstr, "([^"..sep.."]+)") do 
-		t[i] = str
-		i = i + 1
-	end return t
-end
-
 if not TURBOSTROI then
 	local dataCache = {}
 	local inputCache = {}
@@ -93,8 +83,10 @@ if not TURBOSTROI then
 end
 
 
+
+
 --------------------------------------------------------------------------------
--- Metrostroi emulator
+-- Turbostroi scripts
 --------------------------------------------------------------------------------
 Metrostroi = {}
 Metrostroi.BaseSystems = {} -- Systems that can be loaded
@@ -105,6 +97,8 @@ GlobalTrain = {} -- Train emulator
 GlobalTrain.Systems = {} -- Train systems
 GlobalTrain.TrainWires = {}
 GlobalTrain.WriteTrainWires = {}
+
+function CurTime() return CurrentTime end
 
 function Metrostroi.DefineSystem(name)
 	TRAIN_SYSTEM = {}
@@ -181,16 +175,14 @@ end
 
 function GlobalTrain.WriteTrainWire(self,n,v)
 	self.WriteTrainWires[n] = v
-	--print(self.TrainWires,n,v)
---	ExtraData = ExtraData.."TW\t"..n.."\t"..v.."\n"
 end
 
 
---------------------------------------------------------------------------------
--- Turbostroi lua code (this all runs outside of GMOD)
---------------------------------------------------------------------------------
-function CurTime() return CurrentTime end
 
+
+--------------------------------------------------------------------------------
+-- Main train code (turbostroi side)
+--------------------------------------------------------------------------------
 print("[!] Train initialized!")
 function Think()
 	-- This is just blatant copy paste from init.lua of base train entity

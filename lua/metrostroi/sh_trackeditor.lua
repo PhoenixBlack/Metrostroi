@@ -1,7 +1,6 @@
 --------------------------------------------------------------------------------
--- Генератор путь трек
+-- Track definition generator
 --------------------------------------------------------------------------------
-
 Metrostroi.TrackEditor = Metrostroi.TrackEditor or {} 
 Metrostroi.TrackEditor.Paths = Metrostroi.TrackEditor.Paths or {}
 
@@ -13,7 +12,6 @@ local MIN_NODE_DISTANCE = 100 -- Minimal distance between nodes
 ANGLE_LIMIT = math.cos(math.rad(ANGLE_LIMIT))
 MAX_NODE_DISTANCE = MAX_NODE_DISTANCE ^ 2
 MIN_NODE_DISTANCE = MIN_NODE_DISTANCE ^ 2
-
 
 local CurrentPath
 local Active = false
@@ -201,22 +199,25 @@ local function Stop()
 end
 
 local function Save(args)
-	if not file.Exists("metrostroi track editor","DATA") then
-		file.CreateDir("metrostroi track editor")
+	if not file.Exists("metrostroi_data","DATA") then
+		file.CreateDir("metrostroi_data")
 	end
-	local name = args[1]
+	local name = args[1] or ("track_"..game.GetMap())
 	local data = util.TableToJSON(Metrostroi.TrackEditor.Paths)
-	file.Write(string.format("metrostroi track editor/%s.txt",name),data)
+	file.Write(string.format("metrostroi_data/%s.txt",name),data)
+	print("Saved to "..name..".txt")
 end
 
 local function Load(args)
-	local name = args[1]
-	if not file.Exists(string.format("metrostroi track editor/%s.txt",name),"DATA") then print("File not found") return end
-	local tbl = util.JSONToTable(file.Read(string.format("metrostroi track editor/%s.txt",name)))
+	local name = args[1] or ("track_"..game.GetMap())
+	if not file.Exists(string.format("metrostroi_data/%s.txt",name),"DATA") then print("File not found: "..name..".txt") return end
+	print("Loading from "..name..".txt")
+	
+	local tbl = util.JSONToTable(file.Read(string.format("metrostroi_data/%s.txt",name)))
 	if tbl == nil then
 		print("JSON Parse error")
 	else
-		Metrostroi.TrackEditor.Paths = tbl --Maybe requires hardcopy?
+		Metrostroi.TrackEditor.Paths = tbl -- Maybe requires hardcopy?
 	end
 end
 
@@ -233,6 +234,4 @@ if SERVER then
 	concommand.Add("metrostroi_trackeditor_removepath",function(ply,cmd,args,fullstring) RemovePath(args) end,nil,"Remove a path")
 	concommand.Add("metrostroi_trackeditor_save",function(ply,cmd,args,fullstring) Save(args) end,nil,"Save track")
 	concommand.Add("metrostroi_trackeditor_load",function(ply,cmd,args,fullstring) Load(args) end,nil,"Load track")
-	
 end
-

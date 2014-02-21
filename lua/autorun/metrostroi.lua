@@ -36,10 +36,10 @@ end
 
 
 --------------------------------------------------------------------------------
--- Create subway manager
+-- Create metrostroi global library
 --------------------------------------------------------------------------------
 if not Metrostroi then
-	-- Subway manager
+	-- Global library
 	Metrostroi = {}
 	
 	-- Supported train classes
@@ -76,14 +76,21 @@ if SERVER then
 	else print("Metrostroi: Simulation acceleration DISABLED")
 	end
 
-	include("metrostroi/sv_railnetwork.lua")
-	include("metrostroi/sv_saveload.lua")
-	include("metrostroi/sv_debug.lua")
-	include("metrostroi/sv_telemetry.lua")
-	include("metrostroi/sv_debugger.lua")
-	include("metrostroi/sv_turbostroi.lua")
-	AddCSLuaFile("metrostroi/cl_debugger.lua")
+	-- Load all serverside lua files
+	local files = file.Find("metrostroi/sv_*.lua","LUA")
+	for _,filename in pairs(files) do include("metrostroi/"..filename) end
+	-- Load all shared files serverside
+	local files = file.Find("metrostroi/sh_*.lua","LUA")
+	for _,filename in pairs(files) do include("metrostroi/"..filename) end
+
+	-- Add all clientside files
+	local files = file.Find("metrostroi/cl_*.lua","LUA")
+	for _,filename in pairs(files) do AddCSLuaFile("metrostroi/"..filename) end
+	-- Add all shared files
+	local files = file.Find("metrostroi/sh_*.lua","LUA")
+	for _,filename in pairs(files) do AddCSLuaFile("metrostroi/"..filename) end
 	
+
 	-- Alpha tester stuff
 	hook.Add("PlayerInitialSpawn", "Metrostroi_PlayerConnect", function(ply)
 		local name = ply:GetName()
@@ -98,43 +105,53 @@ if SERVER then
 		file.Write("alpha_testers.txt",string.Implode("\r\n",tbl))
 	end)
 else
-	include("metrostroi/cl_debugger.lua")
+	-- Load all clientside files
+	local files = file.Find("metrostroi/cl_*.lua","LUA")
+	for _,filename in pairs(files) do include("metrostroi/"..filename) end
+	
+	-- Load all shared files
+	local files = file.Find("metrostroi/sh_*.lua","LUA")
+	for _,filename in pairs(files) do include("metrostroi/"..filename) end
 end
 
 
---------------------------------------------------------------------------------
--- Load shared files
---------------------------------------------------------------------------------
-AddCSLuaFile("metrostroi/sh_failsim.lua")
-AddCSLuaFile("metrostroi/sh_trackeditor.lua")
-if SERVER then
-	include("metrostroi/sh_failsim.lua")
-	include("metrostroi/sh_trackeditor.lua")
-else
-	timer.Simple(0.05, function() 
-		include("metrostroi/sh_failsim.lua") 
-		include("metrostroi/sh_trackeditor.lua") 
-	end)
-end
 
 
 --------------------------------------------------------------------------------
 -- Load systems
 --------------------------------------------------------------------------------
-local function LoadSystem(name)
-	local filename = "metrostroi/systems/sys_"..string.lower(name)..".lua"
+if not Metrostroi.TurbostroiRegistered then
+	Metrostroi.TurbostroiRegistered = {}
+end
+
+function Metrostroi.DefineSystem(name)
+	if not Metrostroi.BaseSystems[name] then
+		Metrostroi.BaseSystems[name] = {}
+	end
+	TRAIN_SYSTEM = Metrostroi.BaseSystems[name]
+	TRAIN_SYSTEM_NAME = name
+end
+
+-- Load all systems
+local files = file.Find("metrostroi/systems/sys_*.lua","LUA")
+for _,short_filename in pairs(files) do 
+	local filename = "metrostroi/systems/"..short_filename
 	
 	-- Make the file shared
 	AddCSLuaFile(filename)
-	if SERVER then
-		include(filename)
-		if Turbostroi then Turbostroi.RegisterSystem(name,filename) end
-	else
-		timer.Simple(0.05, function() include(filename) end)
+	if SERVER 
+	then include(filename)
+	else timer.Simple(0.05, function() include(filename) end)
 	end
 	
 	-- Load train systems
 	if TRAIN_SYSTEM then TRAIN_SYSTEM.FileName = filename end
+	local name = TRAIN_SYSTEM_NAME or "UNDEFINED"
+	if Turbostroi and (not Metrostroi.TurbostroiRegistered[name]) then
+		Turbostroi.RegisterSystem(name,filename) 
+		Metrostroi.TurbostroiRegistered[name] = true
+	end
+
 	Metrostroi.Systems["_"..name] = TRAIN_SYSTEM
 	Metrostroi.BaseSystems[name] = TRAIN_SYSTEM
 	Metrostroi.Systems[name] = function(train,...)
@@ -177,44 +194,3 @@ local function LoadSystem(name)
 		return tbl
 	end
 end
-
-function Metrostroi.DefineSystem(name)
-	if not Metrostroi.BaseSystems[name] then
-		Metrostroi.BaseSystems[name] = {}
-	end
-	TRAIN_SYSTEM = Metrostroi.BaseSystems[name]
-end
-
--- Load systems
-LoadSystem("Announcer")
-LoadSystem("Relay")
-LoadSystem("DURA")
-LoadSystem("EKG")
-
-LoadSystem("81_717_Pneumatic")
-LoadSystem("81_705_Electric")
-LoadSystem("81_705_Panel")
-LoadSystem("DK_117DM")
-LoadSystem("TR_3B")
-LoadSystem("YAP_57")
-LoadSystem("EKG_17B")
-LoadSystem("EKG_18B")
-LoadSystem("KF_47A")
-LoadSystem("KF_50A")
-LoadSystem("KV_70")
-LoadSystem("LK_755A")
-LoadSystem("YAR_13A")
-LoadSystem("YAR_27")
-LoadSystem("YAK_36")
-LoadSystem("YAK_37E")
-LoadSystem("YAS_44V")
-LoadSystem("YARD_2")
-LoadSystem("PR_14X_Panels")
-LoadSystem("Battery")
-LoadSystem("DIP_01K")
-
-LoadSystem("Gen_Int")
-LoadSystem("Gen_Res")
-
--- Tatra T3
-LoadSystem("Tatra_Systems")
