@@ -189,13 +189,11 @@ table {
 	margin: 0 0 0.5em 0;
 }
 
-/* cheat sheet */
-
-article#cheat-sheet table {
-        padding-left: 32px;
+table.listing {
+	padding-left: 32px;
 }
 
-article#cheat-sheet table td {
+table.listing td {
 	border-radius: 4px;
 	border: 1px solid #AAA;
 }
