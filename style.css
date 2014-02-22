@@ -202,12 +202,13 @@ article#cheat-sheet table td {
 
 /* breaker chart */
 
-article#breakers {
+article.breakers {
 	border-bottom-left-radius: 0.5em;
 	border-bottom-right-radius: 0.5em;
+	max-width: 54em;
 }
 
-table#breakertable {
+table.breakertable {
 	border-collapse: separate;
 	border-spacing: 0;
 
@@ -215,8 +216,9 @@ table#breakertable {
 	background: transparent url("images/noise.png");
 }
 
-#breakertable td {
+.breakertable td {
 	width: 4.5em;
+	height: 6em;
 
 	border: 0.20em solid black;
 
@@ -227,7 +229,7 @@ table#breakertable {
 	color: black;
 }
 
-#breakertable td > dfn {
+.breakertable td > dfn {
 	display: block;
 	height: 1em;
 	margin: 0.5em 0 -0.35em 0;
@@ -237,8 +239,17 @@ table#breakertable {
 	font-weight: bold;
 }
 
-#breakertable details {
-	display: none; /* we'll do something cool with them later */
+.breakertable details {
+	display: none;
+	position: absolute;
+	padding: 0.5em;
+
+	background: #FFF8C7;
+	border: 1px solid #E6E0B3;
+}
+
+.breakertable td:hover details:not(:empty) {
+	display: block;
 }
 
 .breaker-white {
