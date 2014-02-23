@@ -8,8 +8,10 @@ if true then
 	-- Spatial lookup for nodes
 	Metrostroi.SpatialLookup = {}
 	
-	-- List of ARS entities for every track segment/node
-	Metrostroi.ARSEntitiesForNode = {}
+	-- List of signal entities for every track segment/node
+	Metrostroi.SignalEntitiesForNode = {}
+	-- List of nodes for every signal entity
+	Metrostroi.NodesForSignalEntities = {}
 	-- List of trains for every segment/node
 	Metrostroi.TrainsForNode = {}
 	-- List of train positions
@@ -139,18 +141,21 @@ end
 
 
 --------------------------------------------------------------------------------
--- Update ARS entities lists
+-- Update signal entities lists
 --------------------------------------------------------------------------------
-function Metrostroi.UpdateARSEntities()
-	Metrostroi.ARSEntitiesForNode = {}
+function Metrostroi.UpdateSignalEntities()
+	Metrostroi.SignalEntitiesForNode = {}
 	
-	local entities = ents.FindByClass("gmod_track_ars")
+	local entities = ents.FindByClass("gmod_track_signal")
 	for k,v in pairs(entities) do
 		local pos = Metrostroi.GetPositionOnTrack(v:GetPos(),v:GetAngles())[1]
 		if pos then
-			Metrostroi.ARSEntitiesForNode[pos.node1] = 
-				Metrostroi.ARSEntitiesForNode[pos.node1] or {}
-			table.insert(Metrostroi.ARSEntitiesForNode[pos.node1],v)
+			Metrostroi.SignalEntitiesForNode[pos.node1] = 
+				Metrostroi.SignalEntitiesForNode[pos.node1] or {}
+			table.insert(Metrostroi.SignalEntitiesForNode[pos.node1],v)
+
+			Metrostroi.NodesForSignalEntities[v] = pos.node1
+			v.TrackX = pos.x
 		end
 	end	
 end
@@ -167,37 +172,119 @@ end
 
 
 --------------------------------------------------------------------------------
--- Is track occupied starting from the given node
+-- Scans an isolated track segment and for every useable segment calls func
 --------------------------------------------------------------------------------
-function Metrostroi.IsTrackOccupied(node,checked)
+function Metrostroi.ScanTrack(node,func,x,dir,checked)
 	if not node then return end
 	if not checked then checked = {} end
 	if checked[node] then return end	
 	checked[node] = true
-
-	-- Any trains in this node?
-	if Metrostroi.TrainsForNode[node] and (#Metrostroi.TrainsForNode[node] > 0) then
-		return true
-	end
 	
-	-- Any isolation joints in this node?
-	-- FIXME: add more fine check, not just for node but for coordinates too
-	if Metrostroi.ARSEntitiesForNode[node] then
-		for k,v in pairs(Metrostroi.ARSEntitiesForNode[node]) do
-			if IsValid(v) and v:GetIsolatingJoint() then 
-				return 
+	-- Try to use entire node
+	local min_x = node.x
+	local max_x = min_x + node.length
+	
+	-- Get range of node which can be actually sensed
+	local isolateForward = false
+	local isolateBackward = false
+	if Metrostroi.SignalEntitiesForNode[node] then
+		for k,v in pairs(Metrostroi.SignalEntitiesForNode[node]) do
+			if IsValid(v) and v:GetIsolatingJoint() then
+				--print("ISOLATING JOINT",v.TrackX)
+				if dir and (v.TrackX > x) then
+					max_x = math.min(max_x,v.TrackX)
+					isolateForward = true
+				end
+				if dir and (v.TrackX == x) then
+					min_x = math.max(min_x,v.TrackX)
+					isolateBackward = true
+				end
+				if (not dir) and (v.TrackX < x) then
+					min_x = math.max(min_x,v.TrackX)
+					isolateBackward = true
+				end
+				if (not dir) and (v.TrackX == x) then
+					max_x = math.min(max_x,v.TrackX)
+					isolateForward = true
+				end
 			end
 		end
 	end
 	
+	--print("CHECK NODE",node.id,min_x,max_x)
+
+	-- Any trains in this node?
+	local result = func(node,min_x,max_x)
+	if result ~= nil then return result end
+
 	-- Check other nodes
 	if node.branches then
 		for k,v in pairs(node.branches) do
-			if Metrostroi.IsTrackOccupied(v,checked) then return true end
+			local result = Metrostroi.ScanTrack(v,func,v.offset,true,checked) -- FIXME DIR,OFFSET
+			if result ~= nil then return result end
 		end
 	end
-	if Metrostroi.IsTrackOccupied(node.next,checked) then return true end
-	if Metrostroi.IsTrackOccupied(node.prev,checked) then return true end
+	if (not isolateForward) then 
+		local result = Metrostroi.ScanTrack(node.next,func,max_x,dir,checked)
+		if result ~= nil then return result end
+	end
+	if (not isolateBackward) then
+		local result = Metrostroi.ScanTrack(node.prev,func,min_x,dir,checked)
+		if result ~= nil then return result end
+	end
+end
+
+
+--------------------------------------------------------------------------------
+-- Get next traffic light
+--------------------------------------------------------------------------------
+function Metrostroi.GetNextTrafficLight(src_node,x,dir)
+	return Metrostroi.ScanTrack(src_node,function(node,min_x,max_x)
+		-- If there are no signals in node, keep scanning
+		if (not Metrostroi.SignalEntitiesForNode[node]) or (#Metrostroi.SignalEntitiesForNode[node] == 0) then
+			return
+		end
+		
+		-- For every signal entity in node, check if it rests on path
+		for k,v in pairs(Metrostroi.SignalEntitiesForNode[node]) do
+			if (v:GetTrafficLights() > 0) and (v.TrackX ~= x) and 
+			   (v.TrackX >= min_x) and (v.TrackX <= max_x) then
+				return v
+			end
+		end
+	end,x,dir)
+end
+
+
+--------------------------------------------------------------------------------
+-- Is track occupied starting from the given coordinate or node
+--------------------------------------------------------------------------------
+function Metrostroi.IsTrackOccupied(src_node,x,dir)
+	return Metrostroi.ScanTrack(src_node,function(node,min_x,max_x)
+		-- If there are no trains in node, keep scanning
+		if (not Metrostroi.TrainsForNode[node]) or (#Metrostroi.TrainsForNode[node] == 0) then
+			return
+		end
+		
+		-- For every train in node, for every path it rests on, check if it's in range
+		--print("SCAN TRACK",node.id,min_x,max_x)
+		for k,v in pairs(Metrostroi.TrainsForNode[node]) do
+			local pos = Metrostroi.TrainPositions[v]
+			for k2,v2 in pairs(pos) do
+				if v2.path == node.path then
+					--local x1 = v2.x-1100*0.5
+					--local x2 = v2.x+1100*0.5
+					--print(x1,x2)
+					local x1,x2 = v2.x,v2.x
+					if ((x1 >= min_x) and (x1 <= max_x)) or
+					   ((x2 >= min_x) and (x2 <= max_x)) or
+					   ((x1 <= min_x) and (x2 >= max_x)) then
+						return true
+					end
+				end
+			end
+		end
+	end,x,dir)
 end
 
 
@@ -215,9 +302,9 @@ function Metrostroi.UpdateTrainPositions()
 			Metrostroi.TrainPositions[train] = Metrostroi.GetPositionOnTrack(train:GetPos(),train:GetAngles())
 		
 			--print("TRAIN",train)
-			for k,v in pairs(Metrostroi.TrainPositions[train]) do
-				print(Format("\t[%d] Path #%d: (%.2f x %.2f x %.2f) m  Facing %s",k,v.path.id,v.x,v.y,v.z,v.forward and "forward" or "backward"))
-			end
+			--for k,v in pairs(Metrostroi.TrainPositions[train]) do
+				--print(Format("\t[%d] Path #%d: (%.2f x %.2f x %.2f) m  Facing %s",k,v.path.id,v.x,v.y,v.z,v.forward and "forward" or "backward"))
+			--end
 	
 			for _,pos in pairs(Metrostroi.TrainPositions[train]) do
 				Metrostroi.TrainsForNode[pos.node1] = Metrostroi.TrainsForNode[pos.node1] or {}
@@ -403,7 +490,7 @@ function Metrostroi.Load(name)
 	end
 	
 	-- Load ARS entities
-	Metrostroi.UpdateARSEntities()
+	Metrostroi.UpdateSignalEntities()
 	-- Initialize stations list
 	Metrostroi.UpdateStations()
 	
