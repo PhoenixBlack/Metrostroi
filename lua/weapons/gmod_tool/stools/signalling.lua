@@ -21,6 +21,7 @@ TOOL.ClientConVar["light4"] = 0
 TOOL.ClientConVar["light5"] = 0
 TOOL.ClientConVar["light6"] = 0
 TOOL.ClientConVar["light7"] = 0
+TOOL.ClientConVar["light8"] = 0
 
 TOOL.ClientConVar["isolated"] = 1
 TOOL.ClientConVar["ars0"] = 0
@@ -46,11 +47,20 @@ function TOOL:LeftClick(trace)
 	if not tr then return end
 
 	-- Create signal entity
-	local ent = ents.Create("gmod_track_signal")
+	local ent
+	local found = false
+	local entlist = ents.FindInSphere(pos,64)
+	for k,v in pairs(entlist) do
+		if v:GetClass() == "gmod_track_signal" then
+			ent = v
+			found = true
+		end
+	end	
+	if not ent then ent = ents.Create("gmod_track_signal") end
 	if IsValid(ent) then
 		ent:SetPos(tr.centerpos - ang:Up()*10)
 		ent:SetAngles((-tr.right):Angle())
-		ent:Spawn()
+		--ent:Spawn()
 		ent:SetIsolatingJoint(self:GetClientNumber("isolated") > 0.5)
 		
 		ent:SetLightsStyle(self:GetClientNumber("light"))
@@ -62,6 +72,7 @@ function TOOL:LeftClick(trace)
 		ent:SetTrafficLight(5,self:GetClientNumber("light5") > 0.5)
 		ent:SetTrafficLight(6,self:GetClientNumber("light6") > 0.5)
 		ent:SetTrafficLight(7,self:GetClientNumber("light7") > 0.5)
+		ent:SetTrafficLight(8,self:GetClientNumber("light8") > 0.5)
 		
 		ent:SetARSSpeedWarning(self:GetClientNumber("ars_speedawrn") > 0.5)
 		ent:SetARSSignal(0,self:GetClientNumber("ars0") > 0.5)
@@ -122,6 +133,7 @@ function TOOL.BuildCPanel(panel)
 	panel:AddControl("Checkbox", { Label = "Y2-R",	Command = "signalling_light5" })
 	panel:AddControl("Checkbox", { Label = "R-Y-G",	Command = "signalling_light6" })
 	panel:AddControl("Checkbox", { Label = "B-Y-G",	Command = "signalling_light7" })
+	panel:AddControl("Checkbox", { Label = "Always red", Command = "signalling_light8" })
 
 	panel:AddControl("Label", {Text = "ARS signals in the following segment:"})
 	panel:AddControl("Checkbox", { Label = "(75  Hz) 80 KM/H", Command = "signalling_ars0" })

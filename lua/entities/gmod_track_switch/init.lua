@@ -7,40 +7,75 @@ function ENT:Initialize()
 	
 	-- Initial state of the switch
 	self.AlternateTrack = false
-end
+	self.InhibitSwitching = false
+	self.LastSignalTime = 0
 
-function ENT:Think()
-	-- Find all prop_door_rotating
-	--[[local list = ents.FindInSphere(self:GetPos(),512)
+	-- Find rotating parts which belong to this switch
+	local list = ents.FindInSphere(self:GetPos(),256)
 	self.TrackSwitches = {}
 	for k,v in pairs(list) do
 		if (v:GetClass() == "prop_door_rotating") and (string.find(v:GetName(),"switch")) then
 			table.insert(self.TrackSwitches,v)
+			--print("Track switch",self,"found door",v)
+			
+			timer.Simple(0.05,function()
+				debugoverlay.Line(v:GetPos(),self:GetPos(),10,Color(255,255,0),true)
+			end)
+		end
+	end
+
+	Metrostroi.UpdateSignalEntities()
+end
+
+function ENT:OnRemove()
+	Metrostroi.UpdateSignalEntities()
+end
+
+function ENT:SendSignal(index)
+	--if self.InhibitSwitching then return end
+	
+	if index == "alt" then 
+		self.AlternateTrack = true
+	end
+	if index == "main" then 
+		self.AlternateTrack = false
+	end
+	self.LastSignalTime = CurTime()
+end
+
+function ENT:GetSignal()
+	if self.InhibitSwitching and self.AlternateTrack then return 1 end
+	if self.AlternateTrack then return 2 end
+	return 0
+end
+
+function ENT:Think()
+	-- Reset
+	self.InhibitSwitching = false
+	
+	-- Check if local section of track is occupied or no
+	local pos = self.TrackPosition
+	if pos then
+		local trackOccupied = Metrostroi.IsTrackOccupied(pos.node1,pos.x,pos.forward)
+		if trackOccupied then -- Prevent track switches from working when there's a train on segment
+			self.InhibitSwitching = true
 		end
 	end
 	
-	-- Force state
-	self.AlternateTrack = (CurTime() % 5) > 2.5
+	-- Force door state state
 	if self.AlternateTrack then
 		for k,v in pairs(self.TrackSwitches) do v:Fire("Open","","0") end
 	else
 		for k,v in pairs(self.TrackSwitches) do v:Fire("Close","","0") end
 	end
 	
-	-- Print things
-	local asd = self.TrackSwitches[1]
-	local results = Metrostroi.GetPositionOnTrack(asd:GetPos(),asd:GetAngles())
-	for k,v in pairs(results) do
-		print(Format("\t[%d] APath #%d: (%.2f x %.2f x %.2f) m  Facing %.3f",k,v.path.id,v.x,v.y,v.z,v.angle))
+	-- Return switch to original position
+	if (self.InhibitSwitching == false) and (self.AlternateTrack == true) and 
+	   (CurTime() - self.LastSignalTime > 8.0) then
+		self:SendSignal("main")
 	end
 	
-	local asd = self.TrackSwitches[2]
-	local results = Metrostroi.GetPositionOnTrack(asd:GetPos(),asd:GetAngles())
-	for k,v in pairs(results) do
-		print(Format("\t[%d] BPath #%d: (%.2f x %.2f x %.2f) m  Facing %.3f",k,v.path.id,v.x,v.y,v.z,v.angle))
-	end]]--
-	
-	--debugoverlay.Sphere(self:GetPos(),512,1,Color(0,255,255),true)
+	-- Process logic
 	self:NextThink(CurTime() + 1.0)
 	return true
 end

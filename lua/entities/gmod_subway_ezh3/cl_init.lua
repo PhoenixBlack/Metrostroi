@@ -214,6 +214,18 @@ ENT.ButtonMap["DriverValveDisconnect"] = {
 		{ID = "DriverValveDisconnectToggle", x=150, y=45, radius=50, tooltip="Клапан разобщения\nDriver valve disconnect valve"},
 	}
 }
+ENT.ButtonMap["DURA"] = {
+	pos = Vector(412.5,-58.0,-2.6),
+	ang = Angle(0,0,0),
+	width = 240,
+	height = 80,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "DURASelectMain", x=95, y=43, radius=20, tooltip=""},
+		{ID = "DURASelectAlternate", x=60, y=43, radius=20, tooltip=""},
+	}
+}
 
 
 -- Temporary panels (possibly temporary)
@@ -309,6 +321,11 @@ ENT.ClientProps["panellights"] = {
 	pos = Vector(444.1,-59.3,3.3),
 	ang = Angle(-90,0,0)
 }
+ENT.ClientProps["dura"] = {
+	model = "models/metrostroi/81-717/dura.mdl",
+	pos = Vector(420.0,-58.3,-5.0),
+	ang = Angle(0,0,90)
+}
 --------------------------------------------------------------------------------
 Metrostroi.ClientPropForButton("DIPon",{
 	panel = "Main",
@@ -402,6 +419,17 @@ Metrostroi.ClientPropForButton("Program2",{
 	panel = "Main",
 	button = "Program2Set",	
 	model = "models/metrostroi/81-717/button08.mdl",
+})
+
+Metrostroi.ClientPropForButton("SelectMain",{
+	panel = "DURA",
+	button = "DURASelectMain",	
+	model = "models/metrostroi/81-717/button07.mdl",
+})
+Metrostroi.ClientPropForButton("SelectAlternate",{
+	panel = "DURA",
+	button = "DURASelectAlternate",	
+	model = "models/metrostroi/81-717/button07.mdl",
 })
 
 
@@ -536,6 +564,8 @@ function ENT:Think()
 	self:Animate("KRZD",			self:GetPackedBool(17) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KSN",				self:GetPackedBool(18) and 1 or 0, 	0,1, 16, false)
 	self:Animate("OtklAVU",			self:GetPackedBool(19) and 1 or 0, 	0,1, 16, false)
+	self:Animate("SelectMain",		self:GetPackedBool(29) and 1 or 0, 	0,1, 16, false)
+	self:Animate("SelectAlternate",	self:GetPackedBool(30) and 1 or 0, 	0,1, 16, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -732,6 +762,10 @@ function ENT:Draw()
 	self:DrawOnPanel("RearPneumatic",function()
 		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
 	end)
+	--self:DrawOnPanel("DURA",function()
+		--surface.SetDrawColor(50,255,50)
+		--surface.DrawRect(0,0,240,80)
+	--end)
 end
 
 function ENT:OnButtonPressed(button)

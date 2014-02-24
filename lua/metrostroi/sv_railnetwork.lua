@@ -11,7 +11,9 @@ if true then
 	-- List of signal entities for every track segment/node
 	Metrostroi.SignalEntitiesForNode = {}
 	-- List of nodes for every signal entity
-	Metrostroi.NodesForSignalEntities = {}
+	Metrostroi.SignalEntityPositions = {}
+	-- List of track switches for every track segment/node
+	Metrostroi.SwitchesForNode = {}
 	-- List of trains for every segment/node
 	Metrostroi.TrainsForNode = {}
 	-- List of train positions
@@ -20,8 +22,8 @@ if true then
 	-- List of stations/platforms
 	Metrostroi.Stations = {}
 	
-	-- List of ARS sections
-	Metrostroi.ARSSections = {}
+	-- List of ARS subsections
+	Metrostroi.ARSSubSections = {}
 end
 
 
@@ -114,11 +116,12 @@ function Metrostroi.GetPositionOnTrack(pos,ang,opts)
 		local dir_delta = local_dir:Dot(forward)
 		local dir_forward = dir_delta > 0
 		local dir_angle = 90-math.deg(math.acos(dir_delta))
-		
+
 		-- If this position resides on track, add it to results
 		if ((local_x > -X_PAD) and (local_x < node.vec:Length()+X_PAD) and
 			(local_y > -Y_PAD) and (local_y < Y_PAD) and
 			(local_z > -Z_PAD) and (local_z < Z_PAD)) and (node.path ~= opts.ignore_path) then
+
 			table.insert(results,{
 				node1 = node,
 				node2 = node.next,
@@ -148,13 +151,14 @@ function Metrostroi.UpdateSignalEntities()
 	
 	local entities = ents.FindByClass("gmod_track_signal")
 	for k,v in pairs(entities) do
-		local pos = Metrostroi.GetPositionOnTrack(v:GetPos(),v:GetAngles())[1]
-		if pos then
+		local pos = Metrostroi.GetPositionOnTrack(v:GetPos(),v:GetAngles() - Angle(0,90,0))[1]
+		if pos then -- FIXME make it select proper path
 			Metrostroi.SignalEntitiesForNode[pos.node1] = 
 				Metrostroi.SignalEntitiesForNode[pos.node1] or {}
 			table.insert(Metrostroi.SignalEntitiesForNode[pos.node1],v)
 
-			Metrostroi.NodesForSignalEntities[v] = pos.node1
+			Metrostroi.SignalEntityPositions[v] = pos
+			v.TrackPosition = pos
 			v.TrackX = pos.x
 		end
 	end	
@@ -162,12 +166,84 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Update switch entities lists
+--------------------------------------------------------------------------------
+function Metrostroi.UpdateSwitchEntities()
+	Metrostroi.SwitchesForNode = {}
+	
+	local entities = ents.FindByClass("gmod_track_switch")
+	for k,v in pairs(entities) do
+		local pos = Metrostroi.GetPositionOnTrack(v:GetPos(),v:GetAngles() - Angle(0,90,0))[1]
+		if pos then
+			Metrostroi.SwitchesForNode[pos.node1] = Metrostroi.SwitchesForNode[pos.node1] or {}
+			table.insert(Metrostroi.SwitchesForNode[pos.node1],v)
+			v.TrackPosition = pos
+		end
+	end	
+end
+
+
+--------------------------------------------------------------------------------
+-- Add additional ARS element based on given one
+--------------------------------------------------------------------------------
+function Metrostroi.AddARSSubSection(node,source)
+	local ent = ents.Create("gmod_track_signal")
+	if not IsValid(ent) then return end
+	
+	local tr = Metrostroi.RerailGetTrackData(node.pos-Vector(0,0,112),node.dir)
+	if not tr then return end
+	
+	ent:SetPos(tr.centerpos - Vector(0,0,10))
+	ent:SetAngles((-tr.right):Angle())
+	ent:Spawn()
+	ent:SetIsolatingJoint(true)
+	ent:SetLightsStyle(0)
+	ent:SetTrafficLights(0)
+	ent:SetARSSignals(0)
+	ent:SetARSSpeedWarning(0)
+	
+	-- Add to list of ARS subsections
+	Metrostroi.ARSSubSections[ent] = true
+end
+
+--------------------------------------------------------------------------------
 -- Update ARS sections
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateARSSections()
-	Metrostroi.ARSSections = {}
+	Metrostroi.ARSSubSections = {}
 	
-	-- ...
+	print("Metrostroi: Updating ARS subsections...")
+	for k,v in pairs(Metrostroi.SignalEntityPositions) do
+		-- Find signal which sits BEFORE this signal
+		local signal = Metrostroi.GetNextTrafficLight(v.node1,v.x,not v.forward,true)
+		if IsValid(k) and signal then
+			local pos = Metrostroi.SignalEntityPositions[signal]
+			debugoverlay.Line(k:GetPos(),signal:GetPos(),10,Color(0,0,255),true)
+
+			-- Interpolate between two positions and add intermediates
+			local offset = 0
+			if v.path == pos.path then
+				local node = pos.node1
+				while (node) and (node ~= v.node1) do
+					if offset > 100 then
+						--Metrostroi.AddARSSubSection(node,signal)
+						offset = offset - 100
+					end
+					
+					node = node.next
+					if node then
+						offset = offset + node.length
+					end
+				end
+			end
+		end
+	end
+	
+	--[[for k,v in ipairs(Metrostroi.Paths[2]) do
+		print(k,v.pos)
+		if (k % 2) == 0 then continue end
+		
+	end]]--
 end
 
 
@@ -190,7 +266,6 @@ function Metrostroi.ScanTrack(node,func,x,dir,checked)
 	if Metrostroi.SignalEntitiesForNode[node] then
 		for k,v in pairs(Metrostroi.SignalEntitiesForNode[node]) do
 			if IsValid(v) and v:GetIsolatingJoint() then
-				--print("ISOLATING JOINT",v.TrackX)
 				if dir and (v.TrackX > x) then
 					max_x = math.min(max_x,v.TrackX)
 					isolateForward = true
@@ -210,8 +285,19 @@ function Metrostroi.ScanTrack(node,func,x,dir,checked)
 			end
 		end
 	end
-	
-	--print("CHECK NODE",node.id,min_x,max_x)
+	--[[if (node.id > 600) or (node.path.id ~= 1) then
+		if Metrostroi.SignalEntitiesForNode[node] then
+			print("S2",node.x,node.path.id,dir,#Metrostroi.SignalEntitiesForNode[node])
+		else
+			print("S1",node.x,node.path.id,dir)
+		end
+	end]]--
+	--[[local T = CurTime()
+	timer.Simple(0.05 + math.random()*0.1,function()
+		if node.next then
+			debugoverlay.Line(node.pos,node.next.pos,3,Color((T*1234)%255,(T*12345)%255,(T*12346)%255),true)
+		end
+	end)]]--
 
 	-- Any trains in this node?
 	local result = func(node,min_x,max_x)
@@ -220,16 +306,18 @@ function Metrostroi.ScanTrack(node,func,x,dir,checked)
 	-- Check other nodes
 	if node.branches then
 		for k,v in pairs(node.branches) do
-			local result = Metrostroi.ScanTrack(v,func,v.offset,true,checked) -- FIXME DIR,OFFSET
-			if result ~= nil then return result end
+			if (v[1] >= min_x) and (v[1] <= max_x) then
+				local result = Metrostroi.ScanTrack(v[2],func,v[1],true,checked) -- FIXME DIR,OFFSET
+				if result ~= nil then return result end
+			end
 		end
 	end
 	if (not isolateForward) then 
-		local result = Metrostroi.ScanTrack(node.next,func,max_x,dir,checked)
+		local result = Metrostroi.ScanTrack(node.next,func,max_x,true,checked)
 		if result ~= nil then return result end
 	end
 	if (not isolateBackward) then
-		local result = Metrostroi.ScanTrack(node.prev,func,min_x,dir,checked)
+		local result = Metrostroi.ScanTrack(node.prev,func,min_x,false,checked)
 		if result ~= nil then return result end
 	end
 end
@@ -238,21 +326,44 @@ end
 --------------------------------------------------------------------------------
 -- Get next traffic light
 --------------------------------------------------------------------------------
-function Metrostroi.GetNextTrafficLight(src_node,x,dir)
+function Metrostroi.GetNextTrafficLight(src_node,x,dir,ars_sections)
 	return Metrostroi.ScanTrack(src_node,function(node,min_x,max_x)
 		-- If there are no signals in node, keep scanning
 		if (not Metrostroi.SignalEntitiesForNode[node]) or (#Metrostroi.SignalEntitiesForNode[node] == 0) then
 			return
 		end
-		
+
 		-- For every signal entity in node, check if it rests on path
 		for k,v in pairs(Metrostroi.SignalEntitiesForNode[node]) do
-			if (v:GetTrafficLights() > 0) and (v.TrackX ~= x) and 
+			if ((v:GetTrafficLights() > 0) or ars_sections) and (v.TrackX ~= x) and 
 			   (v.TrackX >= min_x) and (v.TrackX <= max_x) then
 				return v
 			end
 		end
 	end,x,dir)
+end
+
+
+--------------------------------------------------------------------------------
+-- Get all track switches in section
+--------------------------------------------------------------------------------
+function Metrostroi.GetTrackSwitches(src_node,x,dir)
+	local switches = {}
+	Metrostroi.ScanTrack(src_node,function(node,min_x,max_x)
+		-- If there are no signals in node, keep scanning
+		if (not Metrostroi.SwitchesForNode[node]) or (#Metrostroi.SwitchesForNode[node] == 0) then
+			return
+		end
+
+		-- For every entity in node, check if it rests on path
+		for k,v in pairs(Metrostroi.SwitchesForNode[node]) do
+			if v.TrackPosition and 
+				(v.TrackPosition.x >= min_x) and (v.TrackPosition.x <= max_x) then
+				table.insert(switches,v)
+			end
+		end
+	end,x,dir)
+	return switches
 end
 
 
@@ -387,13 +498,13 @@ function Metrostroi.Load(name)
 		print("Track definition file not found: metrostroi_data/track_"..name..".txt")
 		return
 	end
-	--if not file.Exists(string.format("metrostroi_data/signs_%s.txt",name),"DATA") then
-		--print("Sign definition file not found: metrostroi_data/signs_"..name..".txt")
+	if not file.Exists(string.format("metrostroi_data/signs_%s.txt",name),"DATA") then
+		print("Sign definition file not found: metrostroi_data/signs_"..name..".txt")
 		--return
-	--end
+	end
 
 	-- Load data
-	print("Metrostroi: Loading signs and track definition...")
+	print("Metrostroi: Loading track definition...")
 	local paths = util.JSONToTable(file.Read(string.format("metrostroi_data/track_%s.txt",name)))
 	if not paths then
 		print("Parse error in track definition JSON")
@@ -472,38 +583,110 @@ function Metrostroi.Load(name)
 		-- Create connection
 		local join1,join2
 		if pos1[1] then join1 = pos1[1].node1 end
-		if pos2[1] then join2 = pos2[1].node2 end
+		if pos2[1] then join2 = pos2[1].node1 end
 		
 		-- Record it
 		if join1 then
 			join1.branches = join1.branches or {}
-			table.insert(join1.branches,node1)
+			table.insert(join1.branches,{ pos1[1].x, node1 })
 			node1.branches = node1.branches or {}
-			table.insert(node1.branches,join1)
+			table.insert(node1.branches,{ node1.x, join1 })
 		end
 		if join2 then
 			join2.branches = join2.branches or {}
-			table.insert(join2.branches,node2)
+			table.insert(join2.branches,{ pos2[1].x, node2 })
 			node2.branches = node2.branches or {}
-			table.insert(node2.branches,join2)
+			table.insert(node2.branches,{ node2.x, join2 })
 		end
 	end
-	
-	-- Load ARS entities
-	Metrostroi.UpdateSignalEntities()
+
 	-- Initialize stations list
 	Metrostroi.UpdateStations()
 	
 	-- Print info
 	Metrostroi.PrintStatistics()
+	
+	
+	-- Remove old entities
+	local signals_ents = ents.FindByClass("gmod_track_signal")
+	for k,v in pairs(signals_ents) do SafeRemoveEntity(v) end
+	local switch_ents = ents.FindByClass("gmod_track_switch")
+	for k,v in pairs(switch_ents) do SafeRemoveEntity(v) end
+	
+	-- Create new entities
+	print("Metrostroi: Loading signs, signals, switches...")	
+	local signs = util.JSONToTable(file.Read(string.format("metrostroi_data/signs_%s.txt",name)) or "")
+	if signs then
+		for k,v in pairs(signs) do
+			local ent = ents.Create(v.Class)
+			if IsValid(ent) then
+				ent:SetPos(v.Pos)
+				ent:SetAngles(v.Angles)
+				ent:Spawn()
+				if v.Class == "gmod_track_signal" then
+					ent:SetIsolatingJoint(v.IsolatingJoint)
+					ent:SetLightsStyle(v.LightsStyle)
+					ent:SetTrafficLights(v.TrafficLights)
+					ent:SetARSSignals(v.ARSSignals)
+					ent:SetARSSpeedWarning(v.ARSSpeedWarning)
+				end
+			end
+		end
+	end
+	
+	timer.Simple(0.05,function()
+		-- Load ARS entities
+		Metrostroi.UpdateSignalEntities()
+		-- Load switches
+		Metrostroi.UpdateSwitchEntities()
+		-- Add additional ARS sections
+		Metrostroi.UpdateARSSections()
+		
+		print(Format("Metrostroi: Added %d ARS rail joints",#Metrostroi.ARSSubSections))
+	end)
 end
 
 
 --------------------------------------------------------------------------------
 -- Save track & sign definitions
 --------------------------------------------------------------------------------
-function Metrostroi.Save()
+function Metrostroi.Save(name)
+	if not file.Exists("metrostroi_data","DATA") then
+		file.CreateDir("metrostroi_data")
+	end
+	name = name or game.GetMap()
+	
+	-- Format signs data
+	local signs = {}
+	local signals_ents = ents.FindByClass("gmod_track_signal")
+	for k,v in pairs(signals_ents) do
+		if not Metrostroi.ARSSubSections[v] then
+			table.insert(signs,{
+				Class = "gmod_track_signal",
+				Pos = v:GetPos(),
+				Angles = v:GetAngles(),
+				IsolatingJoint = v:GetIsolatingJoint(),
+				ARSSpeedWarning = v:GetARSSpeedWarning(),
+				ARSSignals = v:GetARSSignals(),
+				TrafficLights = v:GetTrafficLights(),
+				LightsStyle = v:GetLightsStyle(),
+			})
+		end
+	end
+	local switch_ents = ents.FindByClass("gmod_track_switch")
+	for k,v in pairs(switch_ents) do
+		table.insert(signs,{
+			Class = "gmod_track_switch",
+			Pos = v:GetPos(),
+			Angles = v:GetAngles(),
+		})
+	end
 
+	-- Save data
+	print("Metrostroi: Saving signs and track definition...")
+	local data = util.TableToJSON(signs)
+	file.Write(string.format("metrostroi_data/signs_%s.txt",name),data)
+	print("Saved to metrostroi_data/signs_"..name..".txt")
 end
 
 
@@ -511,7 +694,7 @@ end
 -- Concommands and automatic loading of rail network
 --------------------------------------------------------------------------------
 hook.Add("Initialize", "Metrostroi_MapInitialize", function()
-	Metrostroi.Load("metrostroi_signs/"..game.GetMap()..".txt")
+	timer.Simple(2.0,Metrostroi.Load)
 end)
 
 concommand.Add("metrostroi_save", function(ply, _, args)
@@ -546,6 +729,34 @@ concommand.Add("metrostroi_pos_info", function(ply, _, args)
 		print(Format("Track status: %s",
 			Metrostroi.IsTrackOccupied(results[1].node1) and "occupied" or "free"
 		))
+	end
+end)
+
+concommand.Add("metrostroi_track_main", function(ply, _, args)
+	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
+	
+	-- Trigger all track switches
+	local results = Metrostroi.GetPositionOnTrack(ply:GetPos(),ply:GetAimVector():Angle())
+	for k,v in pairs(results) do
+		local switches = Metrostroi.GetTrackSwitches(v.node1,v.x,v.forward)
+		for _,switch in pairs(switches) do
+			print("Found switch:",switch,switch.TrackPosition.x)
+			switch:SendSignal("main")
+		end
+	end
+end)
+
+concommand.Add("metrostroi_track_alt", function(ply, _, args)
+	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
+	
+	-- Trigger all track switches
+	local results = Metrostroi.GetPositionOnTrack(ply:GetPos(),ply:GetAimVector():Angle())
+	for k,v in pairs(results) do
+		local switches = Metrostroi.GetTrackSwitches(v.node1,v.x,v.forward)
+		for _,switch in pairs(switches) do
+			print("Found switch:",switch,switch.TrackPosition.x)
+			switch:SendSignal("alt")
+		end
 	end
 end)
 

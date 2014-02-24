@@ -182,6 +182,8 @@ function ENT:Think()
 	self:SetPackedBool(26,self.Pneumatic.RightDoorState[2] > 0.5)
 	self:SetPackedBool(27,self.Pneumatic.RightDoorState[3] > 0.5)
 	self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
+	self:SetPackedBool(29,self.DURA.SelectAlternate == false)
+	self:SetPackedBool(30,self.DURA.SelectAlternate == true)
 	
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -276,6 +278,8 @@ end
 function ENT:OnButtonPress(button)
 	-- Special sounds
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
+	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
+	if button == "DURASelectAlternate" then self:PlayOnce("switch","cabin") return end
 	if button == "DriverValveDisconnectToggle" then
 		if self.DriverValveDisconnect.Value == 1.0 then
 			self:PlayOnce("pneumo_disconnect2","cabin",0.9)

@@ -67,6 +67,9 @@ function ENT:InitializeSounds()
 	self.SoundPositions["ring"] 	= "cabin"
 	self.SoundPositions["ring_end"] = "cabin"
 	
+	self.SoundNames["dura1"]		= "subway_trains/dura_alarm_1.wav"
+	self.SoundNames["dura2"]		= "subway_trains/dura_alarm_2.wav"
+	
 	self.SoundNames["pneumo_switch"] = {
 		"subway_trains/pneumo_1.wav",
 		"subway_trains/pneumo_2.wav",
