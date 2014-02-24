@@ -18,6 +18,7 @@ local L_RY2	= 5
 local L_Y2R	= 6
 local L_RYG	= 7
 local L_BYG	= 8
+local L_R	= 9
 
 -- 1 Red
 -- 2 Yellow
@@ -25,6 +26,7 @@ local L_BYG	= 8
 -- 4 Blue
 -- 5 Second yellow (flashing yellow)
 -- 6 White
+-- 7 Always red
 
 
 --------------------------------------------------------------------------------
@@ -39,12 +41,12 @@ ENT.TrafficLightModels[0] = {
 				[3] = { Vector(8,5,25), Color(0,255,0) }, } },
 	[L_YR]	= { 32, "models/metrostroi/signals/light_2.mdl", {
 				[1] = { Vector(8,5,14), Color(255,0,0) },
-				[2] = { Vector(8,5,25), Color(255,255,0) }, } },
+				[3] = { Vector(8,5,25), Color(255,255,0) }, } },
 	[L_YG]	= { 32, "models/metrostroi/signals/light_2.mdl", {
 				[2] = { Vector(8,5,14), Color(255,255,0) },
 				[3] = { Vector(8,5,25), Color(0,255,0) }, } },
 	[L_BY]	= { 32, "models/metrostroi/signals/light_2.mdl", {
-				[2] = { Vector(8,5,14), Color(255,255,0) },
+				[3] = { Vector(8,5,14), Color(255,255,0) },
 				[4] = { Vector(8,5,25), Color(32,0,255) }, } },
 	[L_RY2]	= { 32, "models/metrostroi/signals/light_2.mdl", {
 				[1] = { Vector(8,5,25), Color(255,0,0) },
@@ -60,6 +62,8 @@ ENT.TrafficLightModels[0] = {
 				[4] = { Vector(8,5,35), Color(32,0,255) },
 				[2] = { Vector(8,5,25), Color(255,255,0) },				
 				[3] = { Vector(8,5,14), Color(0,255,0) }, } },
+	[L_R]	= { 32, "models/metrostroi/signals/light_2.mdl", {
+				[7] = { Vector(8,5,14), Color(255,0,0) } } },
 
 	--[3] = { 24, "models/metrostroi/signals/light_path.mdl" },
 }
