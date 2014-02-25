@@ -7,7 +7,6 @@ util.AddNetworkString("metrostroi-debugger-dataupdate")
 util.AddNetworkString("metrostroi-debugger-entremoved")
 util.AddNetworkString("metrostroi-debugger-entnamemap")
 
-CreateConVar("metrostroi_debugger_update_interval",1,FCVAR_ARCHIVE,"Seconds between debugger data messages")
 
 if game.SinglePlayer() then
 	RunConsoleCommand("metrostroi_debugger_update_interval",0)

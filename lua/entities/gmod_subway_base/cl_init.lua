@@ -3,7 +3,7 @@ include("shared.lua")
 --------------------------------------------------------------------------------
 -- Console commands and convars
 --------------------------------------------------------------------------------
-CreateClientConVar("metrostroi_tooltip_delay",0,true)
+
 
 concommand.Add("metrostroi_train_manual", function(ply, _, args)
 	local w = ScrW() * 2/3
