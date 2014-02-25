@@ -45,7 +45,9 @@ function TOOL:SpawnEnt(ply,trace,param)
 		end
 		if not found then ent:Spawn() end
 
-		ent:SetLightsStyle(self:GetClientNumber("light_style"))
+		if param ~= 2 then 
+			ent:SetLightsStyle(self:GetClientNumber("light_style"))
+		end
 		for i=0,31 do
 			if param ~= 2 then 
 				ent:SetTrafficLightsBit(i,self:GetClientNumber("light"..i) > 0.5)
@@ -123,8 +125,12 @@ function TOOL.BuildCPanel(panel)
 	})
 	
 	panel:AddControl("Checkbox", {
-		Label = "Isolated joint between rails",
+		Label = "Isolated joint for traffic lights",
 		Command = "signalling_settings16"
+	})
+	panel:AddControl("Checkbox", {
+		Label = "Isolated joint for track switches",
+		Command = "signalling_settings17"
 	})
 	
 	panel:AddControl("Label", {Text = "Traffic lights configuration:"})
@@ -162,8 +168,8 @@ function TOOL.BuildCPanel(panel)
 	panel:AddControl("Checkbox", { Label = "(225 Hz) 40 KM/H", Command = "signalling_settings3" })
 	panel:AddControl("Checkbox", { Label = "(275 Hz)  0 KM/H", Command = "signalling_settings4" })
 	panel:AddControl("Checkbox", { Label = "(325 Hz) Special", Command = "signalling_settings5" })
-	panel:AddControl("Checkbox", {
+	--[[panel:AddControl("Checkbox", {
 		Label = "Include signal about speed limit in next segment",
 		Command = "signalling_settings17"
-	})
+	})]]--
 end

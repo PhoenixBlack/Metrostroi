@@ -52,10 +52,20 @@ function TRAIN_SYSTEM:Initialize()
 	
 	
 	-- Extra coils for some relays
-	self.Train.RUTtest = 0
 	self.Train.RUTpod = 0
 	self.Train.RRTuderzh = 0
 	self.Train.RRTpod = 0
+	self.WeightLoadRatio = 0
+end
+
+function TRAIN_SYSTEM:Inputs()
+	return { "WeightLoadRatio" }
+end
+
+function TRAIN_SYSTEM:TriggerInput(name,value)
+	if name == "WeightLoadRatio" then
+		self.WeightLoadRatio = value
+	end
 end
 
 function TRAIN_SYSTEM:Think()
@@ -71,9 +81,7 @@ function TRAIN_SYSTEM:Think()
 	
 	-- RUT operation
 	self.RUTCurrent = math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24)
-	self.RUTTarget = 260 + self.Train.RUTtest
-	-- HACK: increase RUT current on slopes
-	--if math.abs(Train:GetAngles().pitch) > 2.5 then self.RUTTarget = self.RUTTarget + 75 end	
+	self.RUTTarget = 260 + 100*self.WeightLoadRatio
 	if Train.PositionSwitch.SelectedPosition >= 3 then self.RUTTarget = 180 end
 	
 	if Train.RUTpod > 0.5 

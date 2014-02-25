@@ -55,7 +55,8 @@ function ENT:Logic(trackOccupied,nexRed,switchBlocked,switchAlternate)
 	self:SetRed(trackOccupied or switchBlocked or self:GetAlwaysRed())
 	
 	-- Yellow if next light is red or switch set to alternate
-	self:SetYellow(nextRed or switchAlternate)
+	--self:SetYellow(nextRed or switchAlternate)
+	self:SetYellow(false)
 	-- Second yellow is switch set to alternate and not red
 	self:SetSecondYellow(switchAlternate and (not self:GetRed()))
 	
