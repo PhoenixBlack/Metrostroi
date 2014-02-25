@@ -6,7 +6,7 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
 	-- Output voltage from contact rail
-	CreateConVar("metrostroi_train_requirethirdrail",1,FCVAR_ARCHIVE,"Whether or not Metrostroi trains require power from the third rail")
+	
 	self.NeedRail = (GetConVarNumber("metrostroi_train_requirethirdrail") > 0)
 	
 	if self.NeedRail then
