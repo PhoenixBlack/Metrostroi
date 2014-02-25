@@ -3,6 +3,14 @@
 --------------------------------------------------------------------------------
 -- Z Offset for rerailing bogeys
 local bogeyOffset = 31
+local TRACK_GAUGE = 80 			--Distance between rails
+local TRACK_WIDTH = 5.8 		--Width of a single rail
+local TRACK_HEIGHT = 10 		--Height of a single rail
+local TRACK_CLEARANCE = 200		--Vertical space above the rails that will always be clear of world, also used as rough estimation of train height
+
+--------------------------------------------------------------------------------
+
+local TRACK_SINGLERAIL = (TRACK_GAUGE + TRACK_WIDTH) / 2
 
 local function dirdebug(v1,v2)
 	debugoverlay.Line(v1,v1+v2*30,10,Color(255,0,0),true)
@@ -16,14 +24,14 @@ local function debugtrackdata(data)
 end
 
 -- Helper for commonly used trace
-local function traceWorldOnly(pos,dir)
+local function traceWorldOnly(pos,dir,col)
 	local tr = util.TraceLine({
 		start = pos,
 		endpos = pos+dir,
 		mask = MASK_NPCWORLDSTATIC
 	})
 	if false then -- Shows all traces done by rerailer
-		debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,0,255),true)
+		debugoverlay.Line(tr.StartPos,tr.HitPos,10,col or Color(0,0,255),true)
 		debugoverlay.Sphere(tr.StartPos,2,10,Color(0,255,255),true)
 	end
 	return tr
@@ -48,8 +56,9 @@ end
 -- Elevates a position to track level
 -- Requires a position in the center of the track
 local function ElevateToTrackLevel(pos,right,up)
-	local tr1 = traceWorldOnly(pos+up*200+right*42,-up*500)
-	local tr2 = traceWorldOnly(pos+up*200-right*42,-up*500)
+	local tr1 = traceWorldOnly(pos+up*TRACK_CLEARANCE+right*TRACK_SINGLERAIL,-up*TRACK_CLEARANCE*2)
+	local tr2 = traceWorldOnly(pos+up*TRACK_CLEARANCE-right*TRACK_SINGLERAIL,-up*TRACK_CLEARANCE*2)
+	--Trace from above the track down to the rails
 	if not tr1.Hit or not tr2.Hit then return false end
 	return (tr1.HitPos + tr2.HitPos)/2
 end
@@ -60,17 +69,20 @@ end
 local function getTrackData(pos,forward)	
 	--Trace down
 	--debugoverlay.Cross(pos,5,10,Color(255,0,255),true)
-	local tr = traceWorldOnly(pos,Vector(0,0,-100))
+	local tr = traceWorldOnly(pos,Vector(0,0,-500))
 	if !tr or !tr.Hit then return false end
 	
+	
+	
 	--debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
-	local floor = tr.HitPos
 	local updir = tr.HitNormal
+	local floor = tr.HitPos + updir * (TRACK_HEIGHT * 0.9)
 	local right = forward:Cross(updir)
 	
 	--Trace right
-	local tr = traceWorldOnly(pos,right*500)
+	local tr = traceWorldOnly(floor,right*500)
 	if not tr or not tr.Hit then return false end
+	
 	
 	--debugoverlay.Line(tr.StartPos,tr.HitPos,10,Color(0,255,0),true)
 	
@@ -82,9 +94,10 @@ local function getTrackData(pos,forward)
 	--debugoverlay.Line(pos,pos+trackforward*30,10,Color(255,0,0),true)
 	
 	--Trace right with proper right
-	local tr1 = traceWorldOnly(floor,trackright*80)
-	local tr2 = traceWorldOnly(floor,-trackright*80)
+	local tr1 = traceWorldOnly(floor,trackright*TRACK_GAUGE)
+	local tr2 = traceWorldOnly(floor,-trackright*TRACK_GAUGE)
 	if not tr1 or not tr2 then return false end
+	
 	
 	local floor = (tr1.HitPos+tr2.HitPos)/2
 	
