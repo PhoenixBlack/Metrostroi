@@ -12,25 +12,13 @@ if CLIENT then
 end
 
 TOOL.ClientConVar["sign"] = ""
-TOOL.ClientConVar["light"] = 0
-TOOL.ClientConVar["light0"] = 0
-TOOL.ClientConVar["light1"] = 0
-TOOL.ClientConVar["light2"] = 0
-TOOL.ClientConVar["light3"] = 0
-TOOL.ClientConVar["light4"] = 0
-TOOL.ClientConVar["light5"] = 0
-TOOL.ClientConVar["light6"] = 0
-TOOL.ClientConVar["light7"] = 0
-TOOL.ClientConVar["light8"] = 0
-
-TOOL.ClientConVar["isolated"] = 1
-TOOL.ClientConVar["ars0"] = 0
-TOOL.ClientConVar["ars1"] = 0
-TOOL.ClientConVar["ars2"] = 0
-TOOL.ClientConVar["ars3"] = 0
-TOOL.ClientConVar["ars4"] = 0
-TOOL.ClientConVar["ars5"] = 0
-TOOL.ClientConVar["ars_speedwarn"] = 0
+TOOL.ClientConVar["light_style"] = 0
+for i=0,31 do
+	TOOL.ClientConVar["light"..i] = 0
+end
+for i=0,31 do
+	TOOL.ClientConVar["settings"..i] = 0
+end
 
 function TOOL:LeftClick(trace)
 	if CLIENT then return true end
@@ -60,27 +48,15 @@ function TOOL:LeftClick(trace)
 	if IsValid(ent) then
 		ent:SetPos(tr.centerpos - ang:Up()*10)
 		ent:SetAngles((-tr.right):Angle())
-		--ent:Spawn()
-		ent:SetIsolatingJoint(self:GetClientNumber("isolated") > 0.5)
-		
-		ent:SetLightsStyle(self:GetClientNumber("light"))
-		ent:SetTrafficLight(0,self:GetClientNumber("light0") > 0.5)
-		ent:SetTrafficLight(1,self:GetClientNumber("light1") > 0.5)
-		ent:SetTrafficLight(2,self:GetClientNumber("light2") > 0.5)
-		ent:SetTrafficLight(3,self:GetClientNumber("light3") > 0.5)
-		ent:SetTrafficLight(4,self:GetClientNumber("light4") > 0.5)
-		ent:SetTrafficLight(5,self:GetClientNumber("light5") > 0.5)
-		ent:SetTrafficLight(6,self:GetClientNumber("light6") > 0.5)
-		ent:SetTrafficLight(7,self:GetClientNumber("light7") > 0.5)
-		ent:SetTrafficLight(8,self:GetClientNumber("light8") > 0.5)
-		
-		ent:SetARSSpeedWarning(self:GetClientNumber("ars_speedawrn") > 0.5)
-		ent:SetARSSignal(0,self:GetClientNumber("ars0") > 0.5)
-		ent:SetARSSignal(1,self:GetClientNumber("ars1") > 0.5)
-		ent:SetARSSignal(2,self:GetClientNumber("ars2") > 0.5)
-		ent:SetARSSignal(3,self:GetClientNumber("ars3") > 0.5)
-		ent:SetARSSignal(4,self:GetClientNumber("ars4") > 0.5)
-		ent:SetARSSignal(5,self:GetClientNumber("ars5") > 0.5)
+		ent:Spawn()
+
+		ent:SetLightsStyle(self:GetClientNumber("light_style"))
+		for i=0,31 do
+			ent:SetTrafficLightsBit(i,self:GetClientNumber("light"..i) > 0.5)
+		end
+		for i=0,31 do
+			ent:SetSettingsBit(i,self:GetClientNumber("settings"..i) > 0.5)
+		end
 	end
 
 	-- Add to undo
@@ -112,17 +88,17 @@ function TOOL.BuildCPanel(panel)
 	
 	panel:AddControl("Checkbox", {
 		Label = "Isolated joint between rails",
-		Command = "signalling_isolated"
+		Command = "signalling_settings16"
 	})
 	
-	panel:AddControl("Label", {Text = "Traffic light configuration:"})
+	panel:AddControl("Label", {Text = "Traffic lights configuration:"})
 	panel:AddControl("ComboBox", {
 		Label = "Style",
 		Options = {
-			["Inside"]			= { signalling_light = 0 },
-			["Outside Pole"]	= { signalling_light = 1 },
-			["Outside Box"]		= { signalling_light = 2 },
-			["Outside Depot"]	= { signalling_light = 3 },
+			["Inside"]			= { signalling_light_style = 0 },
+			["Outside Pole"]	= { signalling_light_style = 1 },
+			["Outside Box"]		= { signalling_light_style = 2 },
+			["Outside Depot"]	= { signalling_light_style = 3 },
 		}
 	})
 	panel:AddControl("Checkbox", { Label = "G-R",	Command = "signalling_light0" })
@@ -133,17 +109,19 @@ function TOOL.BuildCPanel(panel)
 	panel:AddControl("Checkbox", { Label = "Y2-R",	Command = "signalling_light5" })
 	panel:AddControl("Checkbox", { Label = "R-Y-G",	Command = "signalling_light6" })
 	panel:AddControl("Checkbox", { Label = "B-Y-G",	Command = "signalling_light7" })
-	panel:AddControl("Checkbox", { Label = "Always red", Command = "signalling_light8" })
+	
+	panel:AddControl("Label", {Text = "Traffic lights settings:"})
+	panel:AddControl("Checkbox", { Label = "Always red (OP)", Command = "signalling_settings8" })
 
 	panel:AddControl("Label", {Text = "ARS signals in the following segment:"})
-	panel:AddControl("Checkbox", { Label = "(75  Hz) 80 KM/H", Command = "signalling_ars0" })
-	panel:AddControl("Checkbox", { Label = "(125 Hz) 70 KM/H", Command = "signalling_ars1" })
-	panel:AddControl("Checkbox", { Label = "(175 Hz) 60 KM/H", Command = "signalling_ars2" })
-	panel:AddControl("Checkbox", { Label = "(225 Hz) 40 KM/H", Command = "signalling_ars3" })
-	panel:AddControl("Checkbox", { Label = "(275 Hz)  0 KM/H", Command = "signalling_ars4" })
-	panel:AddControl("Checkbox", { Label = "(325 Hz) Special", Command = "signalling_ars5" })
+	panel:AddControl("Checkbox", { Label = "(75  Hz) 80 KM/H", Command = "signalling_settings0" })
+	panel:AddControl("Checkbox", { Label = "(125 Hz) 70 KM/H", Command = "signalling_settings1" })
+	panel:AddControl("Checkbox", { Label = "(175 Hz) 60 KM/H", Command = "signalling_settings2" })
+	panel:AddControl("Checkbox", { Label = "(225 Hz) 40 KM/H", Command = "signalling_settings3" })
+	panel:AddControl("Checkbox", { Label = "(275 Hz)  0 KM/H", Command = "signalling_settings4" })
+	panel:AddControl("Checkbox", { Label = "(325 Hz) Special", Command = "signalling_settings5" })
 	panel:AddControl("Checkbox", {
 		Label = "Include signal about speed limit in next segment",
-		Command = "signalling_ars_speedwarn"
+		Command = "signalling_settings17"
 	})
 end

@@ -770,6 +770,6 @@ end
 
 function ENT:OnButtonPressed(button)
 	if button == "ShowHelp" then
-		RunConsoleCommand("train_show_manual")
+		RunConsoleCommand("metrostroi_train_manual")
 	end
 end

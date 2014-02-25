@@ -34,7 +34,7 @@ function ENT:Think()
 		-- Create traffic light models
 		local offset = self.RenderOffset[self:GetLightsStyle()] or Vector(0,0,0)
 		for k,v in ipairs(models) do
-			if self:GetTrafficLight(k-1) then
+			if self:GetTrafficLightsBit(k-1) then
 				offset = offset - Vector(0,0,v[1])
 				if not self.Models[k] then
 					self.Models[k] = ClientsideModel(v[2],RENDERGROUP_OPAQUE)
@@ -93,12 +93,12 @@ function ENT:Draw()
 			draw.DrawText("ARS Section Information:","Trebuchet24",5,0,Color(0,0,0,255))
 			draw.DrawText("Joint isolates signals: "..(self:GetIsolatingJoint() and "Yes" or "No"),
 				"Trebuchet24",15,20,Color(0,0,0,255))
-			draw.DrawText("(75  Hz) 80 KM/H","Trebuchet24",15,50, Color(self:GetARSSignal(0) and 255 or 0,0,0,255))
-			draw.DrawText("(125 Hz) 70 KM/H","Trebuchet24",15,70, Color(self:GetARSSignal(1) and 255 or 0,0,0,255))
-			draw.DrawText("(175 Hz) 60 KM/H","Trebuchet24",15,90, Color(self:GetARSSignal(2) and 255 or 0,0,0,255))
-			draw.DrawText("(225 Hz) 40 KM/H","Trebuchet24",15,110,Color(self:GetARSSignal(3) and 255 or 0,0,0,255))
-			draw.DrawText("(275 Hz)  0 KM/H","Trebuchet24",15,130,Color(self:GetARSSignal(4) and 255 or 0,0,0,255))
-			draw.DrawText("(325 Hz) Special","Trebuchet24",15,150,Color(self:GetARSSignal(5) and 255 or 0,0,0,255))
+			draw.DrawText("(75  Hz) 80 KM/H","Trebuchet24",15,50, Color(self:GetSettingsBit(0) and 255 or 0,0,0,255))
+			draw.DrawText("(125 Hz) 70 KM/H","Trebuchet24",15,70, Color(self:GetSettingsBit(1) and 255 or 0,0,0,255))
+			draw.DrawText("(175 Hz) 60 KM/H","Trebuchet24",15,90, Color(self:GetSettingsBit(2) and 255 or 0,0,0,255))
+			draw.DrawText("(225 Hz) 40 KM/H","Trebuchet24",15,110,Color(self:GetSettingsBit(3) and 255 or 0,0,0,255))
+			draw.DrawText("(275 Hz)  0 KM/H","Trebuchet24",15,130,Color(self:GetSettingsBit(4) and 255 or 0,0,0,255))
+			draw.DrawText("(325 Hz) Special","Trebuchet24",15,150,Color(self:GetSettingsBit(5) and 255 or 0,0,0,255))
 		cam.End3D2D()
 	end
 end

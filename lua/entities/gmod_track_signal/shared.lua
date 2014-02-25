@@ -18,7 +18,6 @@ local L_RY2	= 5
 local L_Y2R	= 6
 local L_RYG	= 7
 local L_BYG	= 8
-local L_R	= 9
 
 -- 1 Red
 -- 2 Yellow
@@ -26,7 +25,6 @@ local L_R	= 9
 -- 4 Blue
 -- 5 Second yellow (flashing yellow)
 -- 6 White
--- 7 Always red
 
 
 --------------------------------------------------------------------------------
@@ -62,8 +60,6 @@ ENT.TrafficLightModels[0] = {
 				[4] = { Vector(8,5,35), Color(32,0,255) },
 				[2] = { Vector(8,5,25), Color(255,255,0) },				
 				[3] = { Vector(8,5,14), Color(0,255,0) }, } },
-	[L_R]	= { 32, "models/metrostroi/signals/light_2.mdl", {
-				[7] = { Vector(8,5,14), Color(255,0,0) } } },
 
 	--[3] = { 24, "models/metrostroi/signals/light_path.mdl" },
 }
@@ -148,67 +144,54 @@ ENT.TrafficLightModels[2] = {
 
 --------------------------------------------------------------------------------
 function ENT:SetupDataTables()
-	self:NetworkVar("Bool", 0, "IsolatingJoint", { KeyName = "k1", Edit = {
-		title = "Isolating joint",
-		category = "Parameters",
-		type = "Boolean" } } )
-		
-	self:NetworkVar("Bool", 1, "ARSSpeedWarning", { KeyName = "k2", Edit = {
-		title = "Warn about next limit",
-		category = "ARS/ALS",
-		type = "Boolean" } } )
-		
-	self:NetworkVar("Int", 0, "ARSSignals", { KeyName = "k3", Edit = {
-		title = "ARS Signals (bits)",
-		category = "ARS/ALS",
-		type = "Integer" } } )
-		
-	self:NetworkVar("Int", 1, "TrafficLights", { KeyName = "k4", Edit = {
-		title = "Traffic Lights",
-		category = "Parameters",
-		type = "Integer" } } )
-		
-	self:NetworkVar("Int", 2, "TrafficLamps")
-		
-	self:NetworkVar("Int", 3, "LightsStyle", { KeyName = "k6", Edit = {
-		title = "Lights Style",
-		category = "Parameters",
-		type = "Integer" } } )
+	-- Bits which define ARS signals and behaviors of the current joint
+	self:NetworkVar("Int", 0, "Settings" )
+
+	-- Bits which define traffic lights in current joint
+	self:NetworkVar("Int", 1, "TrafficLights" )
+
+	-- Which lamps are shining for the traffic lamps, which ARS signals are active
+	self:NetworkVar("Int", 2, "ActiveSignals")
+	
+	-- Style of the traffic lights
+	self:NetworkVar("Int", 3, "LightsStyle" )	
 end
 
-function ENT:CanEditVariables(ply)
-	return ply:IsAdmin()
+local function addBitField(name)
+	ENT["Set"..name.."Bit"] = function(self,idx,value)
+		local packed_value = bit.lshift(value and 1 or 0,idx)
+		local mask = bit.bnot(bit.lshift(1,idx))
+		self["Set"..name](self,bit.bor(bit.band(self["Get"..name](self),mask),packed_value))
+	end
+
+	ENT["Get"..name.."Bit"] = function(self,idx)
+		local mask = bit.lshift(1,idx)
+		return bit.band(self["Get"..name](self),mask) ~= 0
+	end
 end
 
-function ENT:SetARSSignal(idx,value)
-	local packed_value = bit.lshift(value and 1 or 0,idx)
-	local mask = bit.bnot(bit.lshift(1,idx))
-	self:SetARSSignals(bit.bor(bit.band(self:GetARSSignals(),mask),packed_value))
+addBitField("Settings")
+addBitField("TrafficLights")
+addBitField("ActiveSignals")
+
+local function addBitParameter(name,field,bit)
+	ENT["Set"..name] = function(self,value)
+		self["Set"..field.."Bit"](self,bit,value)
+	end
+
+	ENT["Get"..name] = function(self)
+		return self["Get"..field.."Bit"](self,bit)
+	end
 end
 
-function ENT:GetARSSignal(idx)
-	local mask = bit.lshift(1,idx)
-	return bit.band(self:GetARSSignals(),mask) ~= 0
-end
+addBitParameter("AlwaysRed","Settings",8)
 
-function ENT:SetTrafficLight(idx,value)
-	local packed_value = bit.lshift(value and 1 or 0,idx)
-	local mask = bit.bnot(bit.lshift(1,idx))
-	self:SetTrafficLights(bit.bor(bit.band(self:GetTrafficLights(),mask),packed_value))
-end
+addBitParameter("IsolatingJoint","Settings",16)
+addBitParameter("ARSSpeedWarning","Settings",17)
 
-function ENT:GetTrafficLight(idx)
-	local mask = bit.lshift(1,idx)
-	return bit.band(self:GetTrafficLights(),mask) ~= 0
-end
-
-function ENT:SetTrafficLamp(idx,value)
-	local packed_value = bit.lshift(value and 1 or 0,idx)
-	local mask = bit.bnot(bit.lshift(1,idx))
-	self:SetTrafficLamps(bit.bor(bit.band(self:GetTrafficLamps(),mask),packed_value))
-end
-
-function ENT:GetTrafficLamp(idx)
-	local mask = bit.lshift(1,idx)
-	return bit.band(self:GetTrafficLamps(),mask) ~= 0
-end
+addBitParameter("ActiveSignals","Red",0)
+addBitParameter("ActiveSignals","Yellow",1)
+addBitParameter("ActiveSignals","Green",2)
+addBitParameter("ActiveSignals","Blue",3)
+addBitParameter("ActiveSignals","SecondYellow",4)
+addBitParameter("ActiveSignals","White",5)

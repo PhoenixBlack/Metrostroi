@@ -67,22 +67,17 @@ function ENT:Logic(trackOccupied,nextLight,switchBlocked,switchAlternate)
 	end
 	
 	-- Red (always triggers when track is occupied or switch is in wrong pos)
-	self:SetTrafficLamp(0,trackOccupied or switchBlocked)
+	self:SetRed(0,trackOccupied or switchBlocked or self:GetAlwaysRed())
 	
 	-- Only accept change in values after they settled
 	--if (CurTime() - self.LastValueChange) < 2.0 then return end
-	
-	-- Yellow
-	self:SetTrafficLamp(1,nextRed or switchAlternate)
-	-- Second yellow
-	self:SetTrafficLamp(4,switchAlternate and (not self:GetTrafficLamp(0)))
-	-- Green
-	self:SetTrafficLamp(2,not (
+
+	self:SetYellow(1,nextRed or switchAlternate)
+	self:SetSecondYellow(4,switchAlternate and (not self:GetTrafficLamp(0)))
+	self:SetGreen(2,not (
 		self:GetTrafficLamp(0) or 
 		self:GetTrafficLamp(1) or 
-		switchAlternate) ) 
-	-- Always red
-	self:SetTrafficLamp(6,true)
+		switchAlternate) )
 end
 
 function ENT:Think()
@@ -120,11 +115,11 @@ function ENT:Think()
 		local models = self.TrafficLightModels[self:GetLightsStyle()] or {}	
 		local offset = self.RenderOffset[self:GetLightsStyle()] or Vector(0,0,0)
 		for k,v in ipairs(models) do
-			if self:GetTrafficLight(k-1) then
+			if self:GetTrafficLightsBit(k-1) then
 				offset = offset - Vector(0,0,v[1])
 				if v[3] then
 					for light,data in pairs(v[3]) do
-						local state = self:GetTrafficLamp(light-1)
+						local state = self:GetActiveSignalsBit(light-1)
 						if light == 5 then
 							state = state and ((CurTime() % 1.00) > 0.25)
 						end
