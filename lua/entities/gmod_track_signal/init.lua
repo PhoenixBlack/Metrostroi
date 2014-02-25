@@ -42,7 +42,7 @@ function ENT:SetSprite(index,active,model,scale,brightness,pos,color)
 	end
 end
 
-function ENT:Logic(trackOccupied,nexRed,switchBlocked,switchAlternate)
+function ENT:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 	-- Should alternate/main position block the path
 	if self:GetRedWhenMain() then
 		switchBlocked = switchBlocked or (not switchAlternate)
@@ -55,8 +55,7 @@ function ENT:Logic(trackOccupied,nexRed,switchBlocked,switchAlternate)
 	self:SetRed(trackOccupied or switchBlocked or self:GetAlwaysRed())
 	
 	-- Yellow if next light is red or switch set to alternate
-	--self:SetYellow(nextRed or switchAlternate)
-	self:SetYellow(false)
+	self:SetYellow(nextRed or switchAlternate)
 	-- Second yellow is switch set to alternate and not red
 	self:SetSecondYellow(switchAlternate and (not self:GetRed()))
 	

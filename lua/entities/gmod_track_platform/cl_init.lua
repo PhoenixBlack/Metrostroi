@@ -207,8 +207,8 @@ function ENT:Think()
 	end
 	
 	-- Add models for cleanup of people who left trains
-	self.PassengersLeft = self.PassengersLeft or 0
-	while self.PassengersLeft < self:GetNWInt("PassengersLeft") do
+	self.PassengersLeft = self.PassengersLeft or self:GetNWInt("PassengersLeft")
+	while poolReady and (self.PassengersLeft < self:GetNWInt("PassengersLeft")) do
 		-- Get random door
 		local count = self:GetNWInt("TrainDoorCount",0)
 		local i = math.max(1,math.min(count,1+math.floor((count-1)*math.random() + 0.5)))
