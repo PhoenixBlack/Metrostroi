@@ -16,8 +16,7 @@ function ENT:Initialize()
 	for k,v in pairs(list) do
 		if (v:GetClass() == "prop_door_rotating") and (string.find(v:GetName(),"switch")) then
 			table.insert(self.TrackSwitches,v)
-			--print("Track switch",self,"found door",v)
-			
+
 			timer.Simple(0.05,function()
 				debugoverlay.Line(v:GetPos(),self:GetPos(),10,Color(255,255,0),true)
 			end)
@@ -31,21 +30,46 @@ function ENT:OnRemove()
 	Metrostroi.UpdateSignalEntities()
 end
 
-function ENT:SendSignal(index)
-	--if self.InhibitSwitching then return end
+function ENT:GetLinkedSwitches()
+	if not self.TrackSwitches[1] then return {} end
 	
-	if index == "alt" then 
-		self.AlternateTrack = true
+	local list = {}
+	local name = self.TrackSwitches[1]:GetName()
+	local ent_list = ents.FindByClass("gmod_track_switch")
+	for k,v in pairs(ent_list) do
+		if v.TrackSwitches[1] and (v ~= self) then
+			if name == v.TrackSwitches[1]:GetName() then
+				table.insert(list,v)
+			end
+		end
 	end
-	if index == "main" then 
-		self.AlternateTrack = false
+	return list
+end
+
+function ENT:SendSignal(index,checked)
+	if checked then 
+		if checked[self] then return end 
+		checked[self] = true
+	end
+	
+	-- Get linked switches
+	local linkedSwitches = self:GetLinkedSwitches()
+	
+	-- Switch to alternate track
+	if index == "alt" then self.AlternateTrack = true end
+	-- Switch to main track
+	if index == "main" then self.AlternateTrack = false end
+	
+	-- Send this signal to other switches
+	for k,v in pairs(linkedSwitches) do
+		v:SendSignal(index,checked or { [self] = true })
 	end
 	self.LastSignalTime = CurTime()
 end
 
 function ENT:GetSignal()
 	if self.InhibitSwitching and self.AlternateTrack then return 1 end
-	if self.AlternateTrack then return 2 end
+	if self.AlternateTrack then return 3 end
 	return 0
 end
 

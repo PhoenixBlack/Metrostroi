@@ -15,20 +15,18 @@ end
 if SERVER then
 	util.AddNetworkString("metrostroi-cabin-button")
 	util.AddNetworkString("metrostroi-cabin-reset")
-	
+
 	resource_AddDir("materials/metrostroi/props")
 	resource_AddDir("materials/models/metrostroi_train")
 	resource_AddDir("materials/models/metrostroi_passengers")
-	--resource_AddDir("materials/myproject")
-	
-	resource_AddDir("models/metrostroi/props_models")
-	resource_AddDir("models/metrostroi/props")
+	resource_AddDir("materials/models/metrostroi_signals")
+
 	resource_AddDir("models/metrostroi/81-717")
 	resource_AddDir("models/metrostroi/e")
 	resource_AddDir("models/metrostroi/metro")
-	resource_AddDir("models/metrostroi/tatra_t3")
 	resource_AddDir("models/metrostroi/passengers")
-	--resource_AddDir("models/myproject")
+	resource_AddDir("models/metrostroi/signals")
+	resource_AddDir("models/metrostroi/tatra_t3")
 	
 	resource_AddDir("sound/subway_trains")
 	--resource_AddDir("sound/subway_announcer")
