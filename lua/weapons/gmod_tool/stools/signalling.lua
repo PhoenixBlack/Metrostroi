@@ -28,10 +28,10 @@ function TOOL:LeftClick(trace)
 	if not trace then return false end
 	if trace.Entity and trace.Entity:IsPlayer() then return false end
 
-	local pos,ang = trace.HitPos,trace.HitNormal:Angle() + Angle(0,0,0)
+	local pos = trace.HitPos
   
-	-- Use some code from rerailer
-	local tr = Metrostroi.RerailGetTrackData(pos,ang:Right())
+	-- Use some code from rerailer --
+	local tr = Metrostroi.RerailGetTrackData(pos,ply:GetAimVector())
 	if not tr then return end
 
 	-- Create signal entity
@@ -46,7 +46,7 @@ function TOOL:LeftClick(trace)
 	end	
 	if not ent then ent = ents.Create("gmod_track_signal") end
 	if IsValid(ent) then
-		ent:SetPos(tr.centerpos - ang:Up()*10)
+		ent:SetPos(tr.centerpos - tr.up * 9.5)
 		ent:SetAngles((-tr.right):Angle())
 		ent:Spawn()
 
