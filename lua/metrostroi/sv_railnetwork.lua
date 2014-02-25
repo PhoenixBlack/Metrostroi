@@ -207,7 +207,7 @@ function Metrostroi.AddARSSubSection(node,source)
 	local tr = Metrostroi.RerailGetTrackData(node.pos-Vector(0,0,112),node.dir)
 	if not tr then return end
 	
-	ent:SetPos(tr.centerpos - Vector(0,0,10))
+	ent:SetPos(tr.centerpos - tr.up * 9.5)
 	ent:SetAngles((-tr.right):Angle())
 	ent:Spawn()
 	ent:SetIsolatingJoint(true)
@@ -265,7 +265,7 @@ function Metrostroi.ScanTrack(node,func,x,dir,checked)
 	if not checked then checked = {} end
 	if checked[node] then return end	
 	checked[node] = true
-	
+
 	-- Try to use entire node length by default
 	local min_x = node.x
 	local max_x = min_x + node.length
@@ -383,19 +383,20 @@ function Metrostroi.GetTrackSwitches(src_node,x,dir)
 	end,x,dir)
 	
 	-- Find similar switches and add them even if they aren't on the same section
+	local ent_list = ents.FindByClass("gmod_track_switch")
+	local extra_switches = {}
 	for k,v in pairs(switches) do
 		if v.TrackSwitches[1] then
 			local name = v.TrackSwitches[1]:GetName()
-			local ent_list = ents.FindByClass("gmod_track_switch")
 			for _,v2 in pairs(ent_list) do
-				if v2.TrackSwitches[1] and (v2 ~= v) then
-					if name == v2.TrackSwitches[1]:GetName() then
-						table.insert(switches,v)
-					end
+				if v2.TrackSwitches[1] and (v2 ~= v) and (name == v2.TrackSwitches[1]:GetName()) then
+					table.insert(extra_switches,v2)
 				end
 			end
 		end
 	end
+	
+	for k,v in pairs(extra_switches) do table.insert(switches,v) end
 	return switches
 end
 
@@ -666,6 +667,9 @@ function Metrostroi.Load(name)
 					ent:SetTrafficLights(v.TrafficLights)
 					ent:SetLightsStyle(v.LightsStyle)
 				end
+				if v.Class == "gmod_track_switch" then
+					ent:SetChannel(v.Channel or 1)
+				end
 			end
 		end
 	end
@@ -715,6 +719,7 @@ function Metrostroi.Save(name)
 			Class = "gmod_track_switch",
 			Pos = v:GetPos(),
 			Angles = v:GetAngles(),
+			Channel = v:GetChannel(),
 		})
 	end
 
@@ -777,7 +782,7 @@ concommand.Add("metrostroi_track_main", function(ply, _, args)
 		local switches = Metrostroi.GetTrackSwitches(v.node1,v.x,v.forward)
 		for _,switch in pairs(switches) do
 			print("Found switch:",switch,switch.TrackPosition.x)
-			switch:SendSignal("main")
+			switch:SendSignal("main",1)
 		end
 	end
 end)
@@ -791,7 +796,7 @@ concommand.Add("metrostroi_track_alt", function(ply, _, args)
 		local switches = Metrostroi.GetTrackSwitches(v.node1,v.x,v.forward)
 		for _,switch in pairs(switches) do
 			print("Found switch:",switch,switch.TrackPosition.x)
-			switch:SendSignal("alt")
+			switch:SendSignal("alt",1)
 		end
 	end
 end)

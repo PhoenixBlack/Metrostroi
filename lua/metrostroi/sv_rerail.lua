@@ -6,7 +6,7 @@ local bogeyOffset = 31
 local TRACK_GAUGE = 80 			--Distance between rails
 local TRACK_WIDTH = 5.8 		--Width of a single rail
 local TRACK_HEIGHT = 10 		--Height of a single rail
-local TRACK_CLEARANCE = 200		--Vertical space above the rails that will always be clear of world, also used as rough estimation of train height
+local TRACK_CLEARANCE = 150		--Vertical space above the rails that will always be clear of world, also used as rough estimation of train height
 
 --------------------------------------------------------------------------------
 
