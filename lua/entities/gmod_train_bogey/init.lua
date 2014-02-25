@@ -2,7 +2,7 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
-
+local DECOUPLE_TIMEOUT = 2 -- Time after decoupling furing wich a bogey cannot couple
 
 
 --------------------------------------------------------------------------------
@@ -172,10 +172,17 @@ local function AreFacingEachother(ent1,ent2)
 	return ent1:GetForward():Dot(ent2:GetForward()) < -0.95
 end
 
+local function IsInTimeOut(ent)
+	return (((ent.DeCoupleTime or 0) + DECOUPLE_TIMEOUT) > CurTime())
+end
+
+-- This feels so wrong, any ideas how to improve this?
 local function CanCouple(ent1,ent2)
 	if not IsValidBogey(ent1) then return false end
 	if not IsValidBogey(ent2) then return false end
 	if AreCoupled(ent1,ent2) then return false end
+	if IsInTimeOut(ent1) then return false end
+	if IsInTimeOut(ent1) then return false end
 	if not AreInCoupleDistance(ent1,ent2) then return false end
 	if not AreFacingEachother(ent1,ent2) then return false end
 	if not constraint.CanConstrain(ent1,0) then return false end
@@ -218,7 +225,7 @@ function ENT:Decouple()
 	end
 	
 	-- Above this runs on initiator, below runs on both
-	
+	self.DeCoupleTime = CurTime()
 	self:OnDecouple()
 end
 
