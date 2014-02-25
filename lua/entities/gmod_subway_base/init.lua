@@ -503,8 +503,12 @@ function ENT:IsWrenchPresent()
 	return false
 end
 
-
-
+function ENT:GetDriver()
+	if IsValid(self.DriverSeat) then
+		local ply = self.DriverSeat:GetPassenger(0)
+		if IsValid(ply) then return ply end
+	end
+end
 
 --------------------------------------------------------------------------------
 -- Turn light on or off
