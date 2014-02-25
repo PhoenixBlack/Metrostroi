@@ -45,7 +45,7 @@ ENT.TrafficLightModels[0] = {
 				[1] = { Vector(8,5,25), Color(255,255,0) },
 				[2] = { Vector(8,5,14), Color(0,255,0) }, } },
 	[L_BY]	= { 32, "models/metrostroi/signals/light_2.mdl", {
-				[2] = { Vector(8,5,14), Color(255,255,0) },
+				[1] = { Vector(8,5,14), Color(255,255,0) },
 				[3] = { Vector(8,5,25), Color(32,0,255) }, } },
 	[L_RY2]	= { 32, "models/metrostroi/signals/light_2.mdl", {
 				[0] = { Vector(8,5,25), Color(255,0,0) },
@@ -193,8 +193,8 @@ addBitParameter("AlwaysRed",		"Settings",8)
 addBitParameter("RedWhenAlternate",	"Settings",9)
 addBitParameter("RedWhenMain",		"Settings",10)
 
-addBitParameter("IsolatingJoint",	"Settings",16)
-addBitParameter("ARSSpeedWarning",	"Settings",17)
+addBitParameter("IsolatingLight",	"Settings",16)
+addBitParameter("IsolatingSwitch",	"Settings",17)
 
 addBitParameter("Red",			"ActiveSignals",0)
 addBitParameter("Yellow",		"ActiveSignals",1)

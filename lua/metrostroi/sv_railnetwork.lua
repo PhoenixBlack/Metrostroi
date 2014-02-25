@@ -259,7 +259,7 @@ end
 --------------------------------------------------------------------------------
 -- Scans an isolated track segment and for every useable segment calls func
 --------------------------------------------------------------------------------
-function Metrostroi.ScanTrack(node,func,x,dir,checked)
+function Metrostroi.ScanTrack(itype,node,func,x,dir,checked)
 	-- Check if this node was already scanned
 	if not node then return end
 	if not checked then checked = {} end
@@ -275,7 +275,12 @@ function Metrostroi.ScanTrack(node,func,x,dir,checked)
 	local isolateBackward = false	-- Should scanning continue backward along track
 	if Metrostroi.SignalEntitiesForNode[node] then
 		for k,v in pairs(Metrostroi.SignalEntitiesForNode[node]) do
-			if IsValid(v) and v:GetIsolatingJoint() then
+			local isolating = false
+			if IsValid(v) then
+				if itype == "light" then isolating = v:GetIsolatingLight() end
+				if itype == "switch" then isolating = v:GetIsolatingSwitch() end
+			end
+			if isolating then
 				-- If scanning forward, and there's a joint IN FRONT of current X
 				if dir and (v.TrackX > x) then
 					max_x = math.min(max_x,v.TrackX)
@@ -321,19 +326,19 @@ function Metrostroi.ScanTrack(node,func,x,dir,checked)
 		for k,v in pairs(node.branches) do
 			if (v[1] >= min_x) and (v[1] <= max_x) then
 				-- FIXME: somehow define direction and X!
-				local result = Metrostroi.ScanTrack(v[2],func,v[1],true,checked)
+				local result = Metrostroi.ScanTrack(itype,v[2],func,v[1],true,checked)
 				if result ~= nil then return result end
 			end
 		end
 	end
 	-- If not isolated, continue scanning forward from the front end of node
 	if (not isolateForward) then 
-		local result = Metrostroi.ScanTrack(node.next,func,max_x,true,checked)
+		local result = Metrostroi.ScanTrack(itype,node.next,func,max_x,true,checked)
 		if result ~= nil then return result end
 	end
 	-- If not isolated, continue scanning backward from the rear end of node
 	if (not isolateBackward) then
-		local result = Metrostroi.ScanTrack(node.prev,func,min_x,false,checked)
+		local result = Metrostroi.ScanTrack(itype,node.prev,func,min_x,false,checked)
 		if result ~= nil then return result end
 	end
 end
@@ -345,7 +350,7 @@ end
 -- Get one next traffic light within current isolated segment. Ignores ARS sections.
 --------------------------------------------------------------------------------
 function Metrostroi.GetNextTrafficLight(src_node,x,dir,ars_sections)
-	return Metrostroi.ScanTrack(src_node,function(node,min_x,max_x)
+	return Metrostroi.ScanTrack("light",src_node,function(node,min_x,max_x)
 		-- If there are no signals in node, keep scanning
 		if (not Metrostroi.SignalEntitiesForNode[node]) or (#Metrostroi.SignalEntitiesForNode[node] == 0) then
 			return
@@ -367,7 +372,7 @@ end
 --------------------------------------------------------------------------------
 function Metrostroi.GetTrackSwitches(src_node,x,dir)
 	local switches = {}
-	Metrostroi.ScanTrack(src_node,function(node,min_x,max_x)
+	Metrostroi.ScanTrack("switch",src_node,function(node,min_x,max_x)
 		-- If there are no signals in node, keep scanning
 		if (not Metrostroi.SwitchesForNode[node]) or (#Metrostroi.SwitchesForNode[node] == 0) then
 			return
@@ -406,7 +411,7 @@ end
 -- ignores ARS subsections (if they are unisolated), accounts for traffic lights
 --------------------------------------------------------------------------------
 function Metrostroi.IsTrackOccupied(src_node,x,dir)
-	return Metrostroi.ScanTrack(src_node,function(node,min_x,max_x)
+	return Metrostroi.ScanTrack("light",src_node,function(node,min_x,max_x)
 		-- If there are no trains in node, keep scanning
 		if (not Metrostroi.TrainsForNode[node]) or (#Metrostroi.TrainsForNode[node] == 0) then
 			return

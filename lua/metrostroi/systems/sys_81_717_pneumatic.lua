@@ -103,7 +103,7 @@ end
 function TRAIN_SYSTEM:GetPressures(Train)
 	local frontBrakeOpen = Train.FrontBrakeLineIsolation.Value == 0
 	local rearBrakeOpen = Train.RearBrakeLineIsolation.Value == 0
-	
+
 	-- If open into atmosphere, relieve pressure
 	if frontBrakeOpen and (not Train.FrontTrain) then
 		self.BrakeLinePressure = 0
@@ -121,14 +121,14 @@ function TRAIN_SYSTEM:GetPressures(Train)
 		if Train.FrontTrain.FrontTrain == Train then -- Nose to nose
 			frontBrakeOpen = frontBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
 		else -- Rear to nose
-			rearBrakeOpen = rearBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
+			rearBrakeOpen = rearBrakeOpen and (Train.FrontTrain.RearBrakeLineIsolation.Value == 0)
 		end
 	end
 	if Train.RearTrain then
 		if Train.RearTrain.FrontTrain == Train then -- Back to back
 			rearBrakeOpen = rearBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)
 		else
-			frontBrakeOpen = frontBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)		
+			frontBrakeOpen = frontBrakeOpen and (Train.RearTrain.RearBrakeLineIsolation.Value == 0)
 		end
 	end
 	

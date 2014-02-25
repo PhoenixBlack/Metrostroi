@@ -854,7 +854,7 @@ BaseNetwork = {
 	{	"8Zh",	"0",	"#PneumaticNo1" },
 	
 	{	"8A",	"8Ye",	"RK1" },
-	{	"8A",	"8Ye",	"!LK4" },
+	{	"8A",	"8Ye",	"LK4" }, --NOTE
 	{	"8Ye",	"8G",	"!RT2" },
 	{	"8G",	"0",	"#PneumaticNo2" },
 	

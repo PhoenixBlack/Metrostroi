@@ -95,8 +95,9 @@ function ENT:Draw()
 			draw.DrawText("Red when alternate: "..		(self:GetRedWhenAlternate() and "Yes" or "No"),"Trebuchet24",	15, 40,Color(0,0,0,255))
 			draw.DrawText("Red when main: "..			(self:GetRedWhenMain() and "Yes" or "No"),"Trebuchet24",		15, 60,Color(0,0,0,255))
 			
-			draw.DrawText("Isolates signals: "..		(self:GetIsolatingJoint() and "Yes" or "No"),"Trebuchet24",		15, 80,Color(0,0,0,255))
-			draw.DrawText("ARS speed warning: "..		(self:GetARSSpeedWarning() and "Yes" or "No"),"Trebuchet24",	15,100,Color(0,0,0,255))
+			draw.DrawText("Isolates light signals: "..	(self:GetIsolatingLight() and "Yes" or "No"),"Trebuchet24",		15, 80,Color(0,0,0,255))
+			draw.DrawText("Isolates switch signals: "..	(self:GetIsolatingSwitch() and "Yes" or "No"),"Trebuchet24",	15,100,Color(0,0,0,255))
+			--draw.DrawText("ARS speed warning: "..		(self:GetARSSpeedWarning() and "Yes" or "No"),"Trebuchet24",	15,100,Color(0,0,0,255))
 			
 			
 			draw.DrawText("(75  Hz) 80 KM/H","Trebuchet24",15,140,Color(self:GetSettingsBit(0) and 255 or 0,0,0,255))

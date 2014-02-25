@@ -106,6 +106,12 @@ end
 local function CDF(x,x0,sigma) return 0.5 * (1 + erf((x - x0)/math.sqrt(2*sigma^2))) end
 local function merge(t1,t2) for k,v in pairs(t2) do t1[k] = v end end
 
+function ENT:PopulationCount()
+	local totalCount = self.WindowEnd - self.WindowStart
+	if self.WindowStart > self.WindowEnd then totalCount = (self:PoolSize() - self.WindowStart) + self.WindowEnd end
+	return totalCount
+end
+
 function ENT:Think()
 	-- Rate of boarding
 	local dT = 0.25
@@ -116,9 +122,6 @@ function ENT:Think()
 		merge(trains,ents.FindByClass(v)) 
 	end
 	
-	-- Update window
-	self.TotalCount = self.WindowEnd - self.WindowStart
-	if self.WindowStart > self.WindowEnd then self.TotalCount = (self:PoolSize() - self.WindowStart) + self.WindowEnd end	
 	-- Send update to client
 	self:SetNWInt("WindowStart",self.WindowStart)
 	self:SetNWInt("WindowEnd",self.WindowEnd)
@@ -159,7 +162,7 @@ function ENT:Think()
 			
 			-- Calculate number of passengers near the train
 			local passenger_density = math.abs(CDF(train_start,self.PlatformX0,self.PlatformSigma) - CDF(train_end,self.PlatformX0,self.PlatformSigma))
-			local passenger_count = passenger_density * self.TotalCount
+			local passenger_count = passenger_density * self:PopulationCount()
 			
 			-- Get number of doors
 			local door_count = #v.LeftDoorPositions
@@ -175,7 +178,7 @@ function ENT:Think()
 			if v.PassengersToLeave == 0 then leaving_rate = 0 end
 			
 			-- Board these passengers into train
-			local boarded	= math.min(math.max(1,math.floor(boarding_rate+0.5)),self.TotalCount)
+			local boarded	= math.min(math.max(1,math.floor(boarding_rate+0.5)),self:PopulationCount())
 			local left		= math.min(math.max(1,math.floor(leaving_rate +0.5)),v.PassengersToLeave)
 			local passenger_delta = boarded - left
 			-- People board from platform
@@ -204,7 +207,7 @@ function ENT:Think()
 	if (not self.PlatformLast) and (#boardingDoorList == 0) then
 		local target = 50*self.PopularityIndex --300
 		
-		local growthDelta = math.max(0,(target-self.TotalCount)*0.005)
+		local growthDelta = math.max(0,(target-self:PopulationCount())*0.005)
 		if growthDelta < 1.0 then -- Accumulate fractional rate
 			self.GrowthAccumulation = (self.GrowthAccumulation or 0) + growthDelta
 			if self.GrowthAccumulation > 1.0 then
