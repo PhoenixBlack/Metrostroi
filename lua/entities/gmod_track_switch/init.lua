@@ -30,14 +30,15 @@ function ENT:OnRemove()
 	Metrostroi.UpdateSignalEntities()
 end
 
-function ENT:SendSignal(index)
+function ENT:SendSignal(index,channel)
+	if channel ~= self:GetChannel() then return end
+	
 	-- Switch to alternate track
 	if index == "alt" then self.AlternateTrack = true end
 	-- Switch to main track
 	if index == "main" then self.AlternateTrack = false end
 	
 	-- Remember this signal
-	print("SIGNAL",self,index)
 	self.LastSignalTime = CurTime()
 end
 
@@ -69,7 +70,7 @@ function ENT:Think()
 	
 	-- Return switch to original position
 	if (self.InhibitSwitching == false) and (self.AlternateTrack == true) and 
-	   (CurTime() - self.LastSignalTime > 8.0) then
+	   (CurTime() - self.LastSignalTime > 30.0) then
 		self:SendSignal("main")
 	end
 	

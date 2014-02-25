@@ -7,7 +7,7 @@ TOOL.ConfigName = ""
 if CLIENT then
 	language.Add("Tool.signalling.name", "Signalling Tool")
 	language.Add("Tool.signalling.desc", "Adds and modifies signalling equipment (ARS/ALS) or signs")
-	language.Add("Tool.signalling.0", "Primary: Spawn selected signalling entity (point at the inner side of rail)\nSecondary: Spawn selected sign")
+	language.Add("Tool.signalling.0", "Primary: Spawn/update selected signalling entity (point at the inner side of rail)\nReload: Update only ARS/light settings\nSecondary: Spawn selected sign")
 	language.Add("Undone_signalling", "Undone ARS/signalling equipment")
 end
 
@@ -20,14 +20,7 @@ for i=0,31 do
 	TOOL.ClientConVar["settings"..i] = 0
 end
 
-function TOOL:LeftClick(trace)
-	if CLIENT then return true end
-	
-	local ply = self:GetOwner()
-	if (ply:IsValid()) and (not ply:IsAdmin()) then return false end
-	if not trace then return false end
-	if trace.Entity and trace.Entity:IsPlayer() then return false end
-
+function TOOL:SpawnEnt(ply,trace,param)
 	local pos = trace.HitPos
   
 	-- Use some code from rerailer --
@@ -46,18 +39,34 @@ function TOOL:LeftClick(trace)
 	end	
 	if not ent then ent = ents.Create("gmod_track_signal") end
 	if IsValid(ent) then
-		ent:SetPos(tr.centerpos - tr.up * 9.5)
-		ent:SetAngles((-tr.right):Angle())
-		ent:Spawn()
+		if param ~= 2 then 
+			ent:SetPos(tr.centerpos - tr.up * 9.5)
+			ent:SetAngles((-tr.right):Angle())
+		end
+		if not found then ent:Spawn() end
 
 		ent:SetLightsStyle(self:GetClientNumber("light_style"))
 		for i=0,31 do
-			ent:SetTrafficLightsBit(i,self:GetClientNumber("light"..i) > 0.5)
+			if param ~= 2 then 
+				ent:SetTrafficLightsBit(i,self:GetClientNumber("light"..i) > 0.5)
+			end
 		end
 		for i=0,31 do
 			ent:SetSettingsBit(i,self:GetClientNumber("settings"..i) > 0.5)
 		end
 	end
+	return ent
+end
+
+function TOOL:LeftClick(trace)
+	if CLIENT then return true end
+	
+	local ply = self:GetOwner()
+	if (ply:IsValid()) and (not ply:IsAdmin()) then return false end
+	if not trace then return false end
+	if trace.Entity and trace.Entity:IsPlayer() then return false end
+
+	local ent = self:SpawnEnt(ply,trace)
 
 	-- Add to undo
 	undo.Create("signalling")
@@ -69,10 +78,37 @@ end
 
 
 function TOOL:RightClick(trace)
+	if CLIENT then return true end
+	
+	local ply = self:GetOwner()
+	if (ply:IsValid()) and (not ply:IsAdmin()) then return false end
+	if not trace then return false end
+	if trace.Entity and trace.Entity:IsPlayer() then return false end
 
+	local entlist = ents.FindInSphere(trace.HitPos,64)
+	for k,v in pairs(entlist) do
+		if v:GetClass() == "gmod_track_signal" then
+			if v then SafeRemoveEntity(v) end
+		end
+	end	
+	return true
 end
 
 function TOOL:Reload(trace)
+	if CLIENT then return true end
+	
+	local ply = self:GetOwner()
+	if (ply:IsValid()) and (not ply:IsAdmin()) then return false end
+	if not trace then return false end
+	if trace.Entity and trace.Entity:IsPlayer() then return false end
+
+	local ent = self:SpawnEnt(ply,trace,2)
+
+	-- Add to undo
+	undo.Create("signalling")
+		undo.AddEntity(ent)
+		undo.SetPlayer(ply)
+	undo.Finish()
 	return true
 end
 
