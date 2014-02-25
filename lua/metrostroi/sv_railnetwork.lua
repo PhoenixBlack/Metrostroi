@@ -1,8 +1,7 @@
 --------------------------------------------------------------------------------
 -- Rail network handling and ARS simulation
 --------------------------------------------------------------------------------
---if not Metrostroi.Paths then
-if true then
+if not Metrostroi.Paths then
 	-- Definition of paths used in runtime
 	Metrostroi.Paths = {}
 	-- Spatial lookup for nodes
@@ -24,6 +23,9 @@ if true then
 	
 	-- List of ARS subsections
 	Metrostroi.ARSSubSections = {}
+	
+	-- Should position updates in switches and signals be ignores
+	Metrostroi.IgnoreEntityUpdates = false
 end
 
 
@@ -58,6 +60,8 @@ end
 
 --------------------------------------------------------------------------------
 -- for nodeID,node in Metrostroi.NearestNodes(pos) do ... end
+--
+-- This is used for iterating through nodes around given position
 --------------------------------------------------------------------------------
 function Metrostroi.NearestNodes(pos)
 	local kx,ky,kz = spatialPosition(pos)
@@ -84,6 +88,8 @@ end
 
 --------------------------------------------------------------------------------
 -- Return position on track for target XYZ
+--
+-- Simply checks every line between two nodes, for all ndoes around position
 --------------------------------------------------------------------------------
 function Metrostroi.GetPositionOnTrack(pos,ang,opts)
 	if not opts then opts = empty_table end
@@ -144,9 +150,10 @@ end
 
 
 --------------------------------------------------------------------------------
--- Update signal entities lists
+-- Update list of signal entities and signal positions on track
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateSignalEntities()
+	if Metrostroi.IgnoreEntityUpdates then return end
 	Metrostroi.SignalEntitiesForNode = {}
 	
 	local entities = ents.FindByClass("gmod_track_signal")
@@ -157,6 +164,7 @@ function Metrostroi.UpdateSignalEntities()
 				Metrostroi.SignalEntitiesForNode[pos.node1] or {}
 			table.insert(Metrostroi.SignalEntitiesForNode[pos.node1],v)
 
+			-- A signal belongs only to a single track
 			Metrostroi.SignalEntityPositions[v] = pos
 			v.TrackPosition = pos
 			v.TrackX = pos.x
@@ -166,9 +174,13 @@ end
 
 
 --------------------------------------------------------------------------------
--- Update switch entities lists
+-- Update lists of switches
+--
+-- This is used for searching where the switches belong on tracks. One switch
+-- belongs to one track.
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateSwitchEntities()
+	if Metrostroi.IgnoreEntityUpdates then return end
 	Metrostroi.SwitchesForNode = {}
 	
 	local entities = ents.FindByClass("gmod_track_switch")
@@ -177,14 +189,16 @@ function Metrostroi.UpdateSwitchEntities()
 		if pos then
 			Metrostroi.SwitchesForNode[pos.node1] = Metrostroi.SwitchesForNode[pos.node1] or {}
 			table.insert(Metrostroi.SwitchesForNode[pos.node1],v)
-			v.TrackPosition = pos
+			v.TrackPosition = pos -- FIXME: check that one switch belongs to one track
 		end
 	end	
 end
 
 
 --------------------------------------------------------------------------------
--- Add additional ARS element based on given one
+-- Add additional ARS element in the given node
+--
+-- These ARS elements do not isolate track signals, only isolate ARS signals
 --------------------------------------------------------------------------------
 function Metrostroi.AddARSSubSection(node,source)
 	local ent = ents.Create("gmod_track_signal")
@@ -206,8 +220,9 @@ function Metrostroi.AddARSSubSection(node,source)
 	Metrostroi.ARSSubSections[ent] = true
 end
 
+
 --------------------------------------------------------------------------------
--- Update ARS sections
+-- Update ARS sections (and add additional subsections
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateARSSections()
 	Metrostroi.ARSSubSections = {}
@@ -238,12 +253,6 @@ function Metrostroi.UpdateARSSections()
 			end
 		end
 	end
-	
-	--[[for k,v in ipairs(Metrostroi.Paths[2]) do
-		print(k,v.pos)
-		if (k % 2) == 0 then continue end
-		
-	end]]--
 end
 
 
@@ -251,33 +260,40 @@ end
 -- Scans an isolated track segment and for every useable segment calls func
 --------------------------------------------------------------------------------
 function Metrostroi.ScanTrack(node,func,x,dir,checked)
+	-- Check if this node was already scanned
 	if not node then return end
 	if not checked then checked = {} end
 	if checked[node] then return end	
 	checked[node] = true
 	
-	-- Try to use entire node
+	-- Try to use entire node length by default
 	local min_x = node.x
 	local max_x = min_x + node.length
 	
 	-- Get range of node which can be actually sensed
-	local isolateForward = false
-	local isolateBackward = false
+	local isolateForward = false	-- Should scanning continue forward along track
+	local isolateBackward = false	-- Should scanning continue backward along track
 	if Metrostroi.SignalEntitiesForNode[node] then
 		for k,v in pairs(Metrostroi.SignalEntitiesForNode[node]) do
 			if IsValid(v) and v:GetIsolatingJoint() then
+				-- If scanning forward, and there's a joint IN FRONT of current X
 				if dir and (v.TrackX > x) then
 					max_x = math.min(max_x,v.TrackX)
 					isolateForward = true
 				end
+				-- If scanning forward, and there's a joint in current X
+				-- This is triggered when traffic light searches for next light from its own X (then
+				--  scan direction is defined by dir)
 				if dir and (v.TrackX == x) then
 					min_x = math.max(min_x,v.TrackX)
 					isolateBackward = true
 				end
+				-- if scanning backward, and there's a joint BEHIND current X
 				if (not dir) and (v.TrackX < x) then
 					min_x = math.max(min_x,v.TrackX)
 					isolateBackward = true
 				end
+				-- If scanning backward starting from current X, use dir for guiding scan
 				if (not dir) and (v.TrackX == x) then
 					max_x = math.min(max_x,v.TrackX)
 					isolateForward = true
@@ -285,37 +301,37 @@ function Metrostroi.ScanTrack(node,func,x,dir,checked)
 			end
 		end
 	end
-	--[[if (node.id > 600) or (node.path.id ~= 1) then
-		if Metrostroi.SignalEntitiesForNode[node] then
-			print("S2",node.x,node.path.id,dir,#Metrostroi.SignalEntitiesForNode[node])
-		else
-			print("S1",node.x,node.path.id,dir)
-		end
+	
+	-- Show the scanned path
+	--[[if GetConVarNumber("metrostroi_drawdebug") == 1 then
+		local T = CurTime()
+		timer.Simple(0.05 + math.random()*0.05,function()
+			if node.next then
+				debugoverlay.Line(node.pos,node.next.pos,3,Color((T*1234)%255,(T*12345)%255,(T*12346)%255),true)
+			end
+		end)
 	end]]--
-	--[[local T = CurTime()
-	timer.Simple(0.05 + math.random()*0.1,function()
-		if node.next then
-			debugoverlay.Line(node.pos,node.next.pos,3,Color((T*1234)%255,(T*12345)%255,(T*12346)%255),true)
-		end
-	end)]]--
 
-	-- Any trains in this node?
+	-- Call function for the determined portion of the node
 	local result = func(node,min_x,max_x)
 	if result ~= nil then return result end
 
-	-- Check other nodes
+	-- First check all the branches, whose positions fall within min_x..max_x
 	if node.branches then
 		for k,v in pairs(node.branches) do
 			if (v[1] >= min_x) and (v[1] <= max_x) then
-				local result = Metrostroi.ScanTrack(v[2],func,v[1],true,checked) -- FIXME DIR,OFFSET
+				-- FIXME: somehow define direction and X!
+				local result = Metrostroi.ScanTrack(v[2],func,v[1],true,checked)
 				if result ~= nil then return result end
 			end
 		end
 	end
+	-- If not isolated, continue scanning forward from the front end of node
 	if (not isolateForward) then 
 		local result = Metrostroi.ScanTrack(node.next,func,max_x,true,checked)
 		if result ~= nil then return result end
 	end
+	-- If not isolated, continue scanning backward from the rear end of node
 	if (not isolateBackward) then
 		local result = Metrostroi.ScanTrack(node.prev,func,min_x,false,checked)
 		if result ~= nil then return result end
@@ -323,8 +339,10 @@ function Metrostroi.ScanTrack(node,func,x,dir,checked)
 end
 
 
+
+
 --------------------------------------------------------------------------------
--- Get next traffic light
+-- Get one next traffic light within current isolated segment. Ignores ARS sections.
 --------------------------------------------------------------------------------
 function Metrostroi.GetNextTrafficLight(src_node,x,dir,ars_sections)
 	return Metrostroi.ScanTrack(src_node,function(node,min_x,max_x)
@@ -345,7 +363,7 @@ end
 
 
 --------------------------------------------------------------------------------
--- Get all track switches in section
+-- Get all track switches in an isolated section
 --------------------------------------------------------------------------------
 function Metrostroi.GetTrackSwitches(src_node,x,dir)
 	local switches = {}
@@ -363,12 +381,28 @@ function Metrostroi.GetTrackSwitches(src_node,x,dir)
 			end
 		end
 	end,x,dir)
+	
+	-- Find similar switches and add them even if they aren't on the same section
+	for k,v in pairs(switches) do
+		if v.TrackSwitches[1] then
+			local name = v.TrackSwitches[1]:GetName()
+			local ent_list = ents.FindByClass("gmod_track_switch")
+			for _,v2 in pairs(ent_list) do
+				if v2.TrackSwitches[1] and (v2 ~= v) then
+					if name == v2.TrackSwitches[1]:GetName() then
+						table.insert(switches,v)
+					end
+				end
+			end
+		end
+	end
 	return switches
 end
 
 
 --------------------------------------------------------------------------------
--- Is track occupied starting from the given coordinate or node
+-- Check if there is a train somewhere in the local isolated section. This
+-- ignores ARS subsections (if they are unisolated), accounts for traffic lights
 --------------------------------------------------------------------------------
 function Metrostroi.IsTrackOccupied(src_node,x,dir)
 	return Metrostroi.ScanTrack(src_node,function(node,min_x,max_x)
@@ -397,6 +431,8 @@ function Metrostroi.IsTrackOccupied(src_node,x,dir)
 		end
 	end,x,dir)
 end
+
+
 
 
 --------------------------------------------------------------------------------
@@ -500,10 +536,10 @@ function Metrostroi.Load(name)
 	end
 	if not file.Exists(string.format("metrostroi_data/signs_%s.txt",name),"DATA") then
 		print("Sign definition file not found: metrostroi_data/signs_"..name..".txt")
-		--return
+		-- This is optional
 	end
 
-	-- Load data
+	-- Load path data
 	print("Metrostroi: Loading track definition...")
 	local paths = util.JSONToTable(file.Read(string.format("metrostroi_data/track_%s.txt",name)))
 	if not paths then
@@ -602,10 +638,12 @@ function Metrostroi.Load(name)
 
 	-- Initialize stations list
 	Metrostroi.UpdateStations()
-	
 	-- Print info
 	Metrostroi.PrintStatistics()
 	
+
+	-- Ignore updates to prevent created/removed switches from constantly updating table of positions
+	Metrostroi.IgnoreEntityUpdates = true
 	
 	-- Remove old entities
 	local signals_ents = ents.FindByClass("gmod_track_signal")
@@ -613,7 +651,7 @@ function Metrostroi.Load(name)
 	local switch_ents = ents.FindByClass("gmod_track_switch")
 	for k,v in pairs(switch_ents) do SafeRemoveEntity(v) end
 	
-	-- Create new entities
+	-- Create new entities (add a delay so the old entities clean up)
 	print("Metrostroi: Loading signs, signals, switches...")	
 	local signs = util.JSONToTable(file.Read(string.format("metrostroi_data/signs_%s.txt",name)) or "")
 	if signs then
@@ -624,17 +662,17 @@ function Metrostroi.Load(name)
 				ent:SetAngles(v.Angles)
 				ent:Spawn()
 				if v.Class == "gmod_track_signal" then
-					ent:SetIsolatingJoint(v.IsolatingJoint)
-					ent:SetLightsStyle(v.LightsStyle)
+					ent:SetSettings(v.Settings)
 					ent:SetTrafficLights(v.TrafficLights)
-					ent:SetARSSignals(v.ARSSignals)
-					ent:SetARSSpeedWarning(v.ARSSpeedWarning)
+					ent:SetLightsStyle(v.LightsStyle)
 				end
 			end
 		end
 	end
 	
 	timer.Simple(0.05,function()
+		-- No more ignoring updates
+		Metrostroi.IgnoreEntityUpdates = false
 		-- Load ARS entities
 		Metrostroi.UpdateSignalEntities()
 		-- Load switches
@@ -656,7 +694,7 @@ function Metrostroi.Save(name)
 	end
 	name = name or game.GetMap()
 	
-	-- Format signs data
+	-- Format signs, signal, switch data
 	local signs = {}
 	local signals_ents = ents.FindByClass("gmod_track_signal")
 	for k,v in pairs(signals_ents) do
@@ -665,9 +703,7 @@ function Metrostroi.Save(name)
 				Class = "gmod_track_signal",
 				Pos = v:GetPos(),
 				Angles = v:GetAngles(),
-				IsolatingJoint = v:GetIsolatingJoint(),
-				ARSSpeedWarning = v:GetARSSpeedWarning(),
-				ARSSignals = v:GetARSSignals(),
+				Settings = v:GetSettings(),
 				TrafficLights = v:GetTrafficLights(),
 				LightsStyle = v:GetLightsStyle(),
 			})
@@ -748,7 +784,7 @@ end)
 
 concommand.Add("metrostroi_track_alt", function(ply, _, args)
 	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
-	
+
 	-- Trigger all track switches
 	local results = Metrostroi.GetPositionOnTrack(ply:GetPos(),ply:GetAimVector():Angle())
 	for k,v in pairs(results) do
@@ -793,8 +829,6 @@ function Metrostroi.PrintStatistics()
 	for k,v in pairs(cells) do maxn = math.max(maxn,v) avgn = avgn + v end
 	print(Format("Metrostroi: Most nodes in cell: %d, average nodes in cell: %.2f",maxn,avgn/#cells))
 end
-
-
 
 
 Metrostroi.Load()

@@ -30,40 +30,14 @@ function ENT:OnRemove()
 	Metrostroi.UpdateSignalEntities()
 end
 
-function ENT:GetLinkedSwitches()
-	if not self.TrackSwitches[1] then return {} end
-	
-	local list = {}
-	local name = self.TrackSwitches[1]:GetName()
-	local ent_list = ents.FindByClass("gmod_track_switch")
-	for k,v in pairs(ent_list) do
-		if v.TrackSwitches[1] and (v ~= self) then
-			if name == v.TrackSwitches[1]:GetName() then
-				table.insert(list,v)
-			end
-		end
-	end
-	return list
-end
-
-function ENT:SendSignal(index,checked)
-	if checked then 
-		if checked[self] then return end 
-		checked[self] = true
-	end
-	
-	-- Get linked switches
-	local linkedSwitches = self:GetLinkedSwitches()
-	
+function ENT:SendSignal(index)
 	-- Switch to alternate track
 	if index == "alt" then self.AlternateTrack = true end
 	-- Switch to main track
 	if index == "main" then self.AlternateTrack = false end
 	
-	-- Send this signal to other switches
-	for k,v in pairs(linkedSwitches) do
-		v:SendSignal(index,checked or { [self] = true })
-	end
+	-- Remember this signal
+	print("SIGNAL",self,index)
 	self.LastSignalTime = CurTime()
 end
 

@@ -24,7 +24,6 @@ function ENT:SetSprite(index,active,model,scale,brightness,pos,color)
 		sprite:SetLocalAngles(self:GetAngles())
 	
 		-- Set parameters
-		--local brightness = 1.0
 		sprite:SetKeyValue("rendercolor",
 			Format("%i %i %i",
 				color.r*brightness,
@@ -43,101 +42,92 @@ function ENT:SetSprite(index,active,model,scale,brightness,pos,color)
 	end
 end
 
-function ENT:Logic(trackOccupied,nextLight,switchBlocked,switchAlternate)
-	local nextRed = false
-	if nextLight then nextRed = nextLight:GetTrafficLamp(0) end
-	
-	-- Filter changes
-	--[[self.LastValueChange = self.LastValueChange or 0
-	if self.LastTrackOccupied ~= trackOccupied then
-		self.LastTrackOccupied = trackOccupied
-		self.LastValueChange = CurTime()
+function ENT:Logic(trackOccupied,nexRed,switchBlocked,switchAlternate)
+	-- Should alternate/main position block the path
+	if self:GetRedWhenMain() then
+		switchBlocked = switchBlocked or (not switchAlternate)
 	end
-	if self.LastNextLight ~= nextLight then
-		self.LastNextLight = nextLight
-		self.LastValueChange = CurTime()
-	end
-	if self.LastSwitchToAlternate ~= switchToAlternate then
-		self.LastSwitchToAlternate = switchToAlternate
-		self.LastValueChange = CurTime()
-	end]]--
-	
-	if self:GetTrafficLights() == 1 then -- FIXME special behavior
+	if self:GetRedWhenAlternate() then
 		switchBlocked = switchBlocked or switchAlternate
 	end
 	
-	-- Red (always triggers when track is occupied or switch is in wrong pos)
-	self:SetRed(0,trackOccupied or switchBlocked or self:GetAlwaysRed())
+	-- Red if track occupied, switch section is blocked (occupied), or always red
+	self:SetRed(trackOccupied or switchBlocked or self:GetAlwaysRed())
 	
-	-- Only accept change in values after they settled
-	--if (CurTime() - self.LastValueChange) < 2.0 then return end
-
-	self:SetYellow(1,nextRed or switchAlternate)
-	self:SetSecondYellow(4,switchAlternate and (not self:GetTrafficLamp(0)))
-	self:SetGreen(2,not (
-		self:GetTrafficLamp(0) or 
-		self:GetTrafficLamp(1) or 
-		switchAlternate) )
+	-- Yellow if next light is red or switch set to alternate
+	self:SetYellow(nextRed or switchAlternate)
+	-- Second yellow is switch set to alternate and not red
+	self:SetSecondYellow(switchAlternate and (not self:GetRed()))
+	
+	-- Green if not alternate path selected and not red
+	self:SetGreen(not (self:GetRed() or switchAlternate) )
 end
 
 function ENT:Think()
+	-- Do no interesting logic if there's no traffic light involved
+	if self:GetTrafficLights() == 0 then
+		self:NextThink(CurTime() + 1.00)
+		return true
+	end
+	
+	-- Traffic light logic
 	self.PrevTime = self.PrevTime or 0
 	if (CurTime() - self.PrevTime) > 1.0 then
 		self.PrevTime = CurTime()
-		-- Traffic light logic
-		if self:GetTrafficLights() > 0 then
-			local pos = Metrostroi.SignalEntityPositions[self]
-			local node
-			if pos then node = pos.node1 end
-			if node and pos then
-				-- Check if there is a train anywhere on the isolated area
-				local trackOccupied = Metrostroi.IsTrackOccupied(node,pos.x,pos.forward)
-				local nextLight = Metrostroi.GetNextTrafficLight(node,pos.x,pos.forward)
-				
-				-- Check if there's a track switch and it's set to alternate
-				local switchAlternate = false
-				local switchBlocked = false
-				local switches = Metrostroi.GetTrackSwitches(node,pos.x,pos.forward)
-				for _,switch in pairs(switches) do
-					switchBlocked = switchBlocked or (switch.AlternateTrack and self.InhibitSwitching)
-					switchAlternate = switchAlternate or switch.AlternateTrack
-				end
-				
-				-- Execute logic
-				self:Logic(trackOccupied,nextLight,switchBlocked,switchAlternate)
+		
+		-- Get position of the traffic light
+		local pos = Metrostroi.SignalEntityPositions[self]
+		local node
+		if pos then node = pos.node1 end
+		if node and pos then
+			-- Check if there is a train anywhere on the isolated area
+			local trackOccupied = Metrostroi.IsTrackOccupied(node,pos.x,pos.forward)
+			local nextLight = Metrostroi.GetNextTrafficLight(node,pos.x,pos.forward)
+			local nextRed = false
+			if nextLight then nextRed = nextLight:GetRed() end
+			
+			-- Check if there's a track switch and it's set to alternate
+			local switchAlternate = false
+			local switchBlocked = false
+			local switches = Metrostroi.GetTrackSwitches(node,pos.x,pos.forward)
+			for _,switch in pairs(switches) do
+				switchBlocked = switchBlocked or (switch.AlternateTrack and self.InhibitSwitching)
+				switchAlternate = switchAlternate or switch.AlternateTrack
 			end
+			
+			-- Execute logic
+			self:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
+		else
+			-- Execute logic (but no track data is available
+			self:Logic(false,false,false,false)
 		end
 	end
 	
 	-- Create sprites and manage lamps
-	if self:GetTrafficLights() > 0 then
-		local index = 1
-		local models = self.TrafficLightModels[self:GetLightsStyle()] or {}	
-		local offset = self.RenderOffset[self:GetLightsStyle()] or Vector(0,0,0)
-		for k,v in ipairs(models) do
-			if self:GetTrafficLightsBit(k-1) then
-				offset = offset - Vector(0,0,v[1])
-				if v[3] then
-					for light,data in pairs(v[3]) do
-						local state = self:GetActiveSignalsBit(light-1)
-						if light == 5 then
-							state = state and ((CurTime() % 1.00) > 0.25)
-						end
-						
-						self:SetSprite(index,state,
-							"models/metrostroi_signals/signal_sprite_001.vmt",0.40,1.0,
-							self.BasePosition + offset + data[1],data[2])
-						index = index + 1
-						
-						self:SetSprite(index,state,
-							"models/metrostroi_signals/signal_sprite_002.vmt",0.25,0.5,
-							self.BasePosition + offset + data[1],data[2])
-						index = index + 1
-						
-						--self:SetSprite(index,true,"models/metrostroi_signals/signal_sprite_002.vmt",self.BasePosition + offset + data[1],data[2])
-						--index = index + 1
-					end
-				end
+	local index = 1
+	local models = self.TrafficLightModels[self:GetLightsStyle()] or {}	
+	local offset = self.RenderOffset[self:GetLightsStyle()] or Vector(0,0,0)
+	for k,v in ipairs(models) do
+		if self:GetTrafficLightsBit(k-1) and v[3] then
+			offset = offset - Vector(0,0,v[1])
+			for light,data in pairs(v[3]) do
+				local state = self:GetActiveSignalsBit(light)
+				if light == 4 then state = state and ((CurTime() % 1.00) > 0.25) end
+				
+				-- The LED glow
+				self:SetSprite(k..light.."a",state,
+					"models/metrostroi_signals/signal_sprite_001.vmt",0.40,1.0,
+					self.BasePosition + offset + data[1],data[2])
+				
+				-- Overall glow
+				self:SetSprite(k..light.."b",state,
+					"models/metrostroi_signals/signal_sprite_002.vmt",0.25,0.5,
+					self.BasePosition + offset + data[1],data[2])
+				index = index + 1
+				
+				--self:SetSprite(index,true,"models/metrostroi_signals/signal_sprite_002.vmt",
+					--self.BasePosition + offset + data[1],data[2])
+				--index = index + 1
 			end
 		end
 	end
