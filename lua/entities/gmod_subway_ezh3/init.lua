@@ -40,7 +40,7 @@ function ENT:Initialize()
 		[KEY_G] = "VozvratRPSet",
 		
 		[KEY_0] = "KVReverserUp",
-		[KEY_9] = "KVReverserDown",		
+		[KEY_9] = "KVReverserDown",
 		[KEY_W] = "KVControllerUp",
 		[KEY_S] = "KVControllerDown",
 		[KEY_F] = "PneumaticBrakeUp",
@@ -53,7 +53,8 @@ function ENT:Initialize()
 
 		[KEY_LSHIFT] = {
 			[KEY_A] = "DURASelectAlternate",
-			[KEY_D] = "DURASelectMain",			
+			[KEY_D] = "DURASelectMain",
+			[KEY_V] = "DURAToggleChannel",
 			[KEY_1] = "DIPonSet",
 			[KEY_2] = "DIPoffSet",
 			[KEY_L] = "DriverValveDisconnectToggle",
@@ -184,6 +185,7 @@ function ENT:Think()
 	self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
 	self:SetPackedBool(29,self.DURA.SelectAlternate == false)
 	self:SetPackedBool(30,self.DURA.SelectAlternate == true)
+	self:SetPackedBool(31,self.DURA.Channel == 2)
 	
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -247,9 +249,9 @@ function ENT:Think()
 	self.DebugVars["Acceleration"] = acceleration
 	
 	-- RUT test
-	local weight = math.max(0,math.min(1,(self:GetPassengerCount()/300)))
-	if math.abs(self:GetAngles().pitch) > 2.5 then weight = 1 end
-	self.RUTtest = 75 * weight
+	local weightRatio = math.max(0,math.min(1,(self:GetPassengerCount()/300)))
+	if math.abs(self:GetAngles().pitch) > 2.5 then weightRatio = weightRatio + 0.75 end
+	self.YAR_13A:TriggerInput("WeightLoadRatio",math.max(0,math.min(1.25,weightRatio)))
 	
 	-- Exchange some parameters between engines, pneumatic system, and real world
 	self.Engines:TriggerInput("Speed",speed)
