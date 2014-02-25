@@ -134,7 +134,7 @@ function TRAIN_SYSTEM:GetPressures(Train)
 	
 	-- Pressure in this wagon = pressure in this wagon with leaks from other wagons
 	local t1 = 0.50
-	local t2 = 0.75
+	local t2 = 0.10
 	if Train.FrontTrain and Train.RearTrain and	frontBrakeOpen and rearBrakeOpen then
 		self.TrainLinePressure = 
 			(Train.FrontTrain.Pneumatic.TrainLinePressure +
@@ -268,8 +268,8 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	-- 3 Close all valves
 	if (self.DriverValvePosition == 3) or (Train.DriverValveDisconnect.Value == 0.0) then
-		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 0.30)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 0.30)
+		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 0.90)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 0.90)
 	end
 	-- 4 Reservoir open to atmosphere, brake line equalizes with reservoir
 	if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
