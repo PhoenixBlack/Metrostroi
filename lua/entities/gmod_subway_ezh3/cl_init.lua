@@ -224,6 +224,7 @@ ENT.ButtonMap["DURA"] = {
 	buttons = {
 		{ID = "DURASelectMain", x=95, y=43, radius=20, tooltip=""},
 		{ID = "DURASelectAlternate", x=60, y=43, radius=20, tooltip=""},
+		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip=""},
 	}
 }
 
@@ -431,6 +432,11 @@ Metrostroi.ClientPropForButton("SelectAlternate",{
 	button = "DURASelectAlternate",	
 	model = "models/metrostroi/81-717/button07.mdl",
 })
+Metrostroi.ClientPropForButton("SelectChannel",{
+	panel = "DURA",
+	button = "DURAToggleChannel",	
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
 
 
 
@@ -566,6 +572,7 @@ function ENT:Think()
 	self:Animate("OtklAVU",			self:GetPackedBool(19) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectMain",		self:GetPackedBool(29) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectAlternate",	self:GetPackedBool(30) and 1 or 0, 	0,1, 16, false)
+	self:Animate("SelectChannel",	self:GetPackedBool(31) and 1 or 0, 	0,1, 16, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do

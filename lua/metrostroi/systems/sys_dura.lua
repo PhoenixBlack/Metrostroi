@@ -6,6 +6,7 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
 	self.SelectAlternate = nil
+	self.Channel = 1
 	--self.SwitchBlocked = false
 	--self.AlternateTrack = false
 	
@@ -21,7 +22,7 @@ function TRAIN_SYSTEM:Outputs()
 end
 
 function TRAIN_SYSTEM:Inputs()
-	return { "SelectAlternate", "SelectMain" }
+	return { "SelectAlternate", "SelectMain", "SelectChannel", "ToggleChannel" }
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
@@ -29,12 +30,16 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 		self.SelectAlternate = true
 	elseif (name == "SelectMain") and (value > 0.0) then
 		self.SelectAlternate = false
+	elseif (name == "ToggleChannel") and (value > 0.0) then
+		if self.Channel == 1 then self.Channel = 2 else self.Channel = 1 end
+	elseif (name == "SelectChannel") then
+		self.Channel = math.floor(value)
     end
 end
 
 function TRAIN_SYSTEM:Think()
 	-- Require 80 volts
-	if self.Train.Electric and (self.Train.Electric.Aux80V < 70) then return end
+	if self.Train.Battery and (self.Train.Battery.Voltage < 70) then return end
 	--self.Train:PlayOnce("dura2","cabin",0.4,100)
 	
 	-- Check ARS signals
@@ -54,21 +59,23 @@ function TRAIN_SYSTEM:Think()
 			for _,switch in pairs(switches) do
 				no_switches = false
 				if self.SelectAlternate == true then
-					switch:SendSignal("alt")
+					switch:SendSignal("alt",self.Channel)
+					self.SelectAlternate = nil
 				elseif self.SelectAlternate == false then
-					switch:SendSignal("main")
+					switch:SendSignal("main",self.Channel)
+					self.SelectAlternate = nil
 				end
-				signal = switch:GetSignal()
+				signal = math.max(signal,switch:GetSignal())
 			end
 		end
-		if signal == 1 then
+		if signal > 0 then
 			self.Train:PlayOnce("dura1","cabin",0.35,200)
 		end
 		
 		-- If no switches, reset
 		if no_switches and (self.SelectAlternate ~= nil) then
-			self.Train:PlayOnce("dura2","cabin",0.35,200)
-			self.SelectAlternate = nil
+			--self.Train:PlayOnce("dura2","cabin",0.35,200)
+			--self.SelectAlternate = nil
 		end
 	end
 end
