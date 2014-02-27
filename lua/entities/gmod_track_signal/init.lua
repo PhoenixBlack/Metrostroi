@@ -96,13 +96,13 @@ function ENT:ARSLogic()
 		local ARSsp = self:GetSettingsBit(5)
 		
 		-- Reset to zero when traffic light is red
-		--[[if self:GetRed() then
+		if nextARS and nextARS:GetRed() then
 			ARS80 = false
 			ARS70 = false
 			ARS60 = false
 			ARS40 = false
 			ARS0 = true
-		end]]--
+		end
 
 		-- Does this section have default set of signals defined
 		if ARS80 or ARS70 or ARS60 or ARS40 or ARS0 or ARSsp then
