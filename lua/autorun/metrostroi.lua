@@ -42,6 +42,7 @@ if not Metrostroi then
 	
 	-- Supported train classes
 	Metrostroi.TrainClasses = {
+		"gmod_subway_base",
 		"gmod_subway_ezh3",
 		"gmod_subway_ema",
 		"gmod_subway_em508t",
