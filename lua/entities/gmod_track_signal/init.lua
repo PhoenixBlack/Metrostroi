@@ -104,7 +104,11 @@ function ENT:ARSLogic()
 			ARS0 = true
 		end
 
+		-- Previous section feeds signals to this section
+		for i=10,15 do self:SetActiveSignalsBit(i,false) end
+
 		-- Does this section have default set of signals defined
+		local speedLimit = self.SpeedLimit
 		if ARS80 or ARS70 or ARS60 or ARS40 or ARS0 or ARSsp then
 			self:SetActiveSignalsBit(10,ARS80)
 			self:SetActiveSignalsBit(11,ARS70)
@@ -112,12 +116,9 @@ function ENT:ARSLogic()
 			self:SetActiveSignalsBit(13,ARS40)
 			self:SetActiveSignalsBit(14,ARS0)
 			self:SetActiveSignalsBit(15,ARSsp)
-		elseif prevARS then
-			-- Previous section feeds signals to this section
-			for i=10,15 do self:SetActiveSignalsBit(i,false) end
-			
+		elseif prevARS then			
 			-- Read speed limit from previous section
-			local speedLimit = prevARS.SpeedLimit or 0
+			speedLimit = prevARS.SpeedLimit or 0
 			
 			-- If speed limit in next section is less, create smooth stop for train
 			if nextARS and ((nextARS.SpeedLimit or 0) < speedLimit) then
@@ -133,17 +134,17 @@ function ENT:ARSLogic()
 			if speedLimit == 60 then self:SetActiveSignalsBit(12,true) end
 			if speedLimit == 70 then self:SetActiveSignalsBit(11,true) end
 			if speedLimit == 80 then self:SetActiveSignalsBit(10,true) end
-			
-			-- Add signal about next speed limit
-			if nextARS and ((nextARS.SpeedLimit or 0) < speedLimit) then
-				if nextARS.SpeedLimit ==  0 then self:SetActiveSignalsBit(14,true) end
-				if nextARS.SpeedLimit == 40 then self:SetActiveSignalsBit(13,true) end
-				if nextARS.SpeedLimit == 60 then self:SetActiveSignalsBit(12,true) end
-				if nextARS.SpeedLimit == 70 then self:SetActiveSignalsBit(11,true) end
-			end
 		else
 			-- No signals: error
 			for i=10,15 do self:SetActiveSignalsBit(i,false) end
+		end
+
+		-- Add signal about next speed limit
+		if nextARS and ((nextARS.SpeedLimit or 0) < (speedLimit or 0)) then
+			if nextARS.SpeedLimit ==  0 then self:SetActiveSignalsBit(14,true) end
+			if nextARS.SpeedLimit == 40 then self:SetActiveSignalsBit(13,true) end
+			if nextARS.SpeedLimit == 60 then self:SetActiveSignalsBit(12,true) end
+			if nextARS.SpeedLimit == 70 then self:SetActiveSignalsBit(11,true) end
 		end
 		
 		-- Generate speed limit in this ARS section
