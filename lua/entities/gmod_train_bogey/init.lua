@@ -2,8 +2,14 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
-local DECOUPLE_TIMEOUT = 2 -- Time after decoupling furing wich a bogey cannot couple
+local DECOUPLE_TIMEOUT 		= 2		-- Time after decoupling furing wich a bogey cannot couple
+local COUPLE_MAX_DISTANCE 	= 20	-- Maximum distance between couple offsets
+local COUPLE_MAX_ANGLE 		= 18	-- Maximum angle between bogeys on couple
 
+
+--------------------------------------------------------------------------------
+COUPLE_MAX_DISTANCE = COUPLE_MAX_DISTANCE ^ 2
+COUPLE_MAX_ANGLE = math.cos(math.rad(COUPLE_MAX_ANGLE))
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
@@ -127,14 +133,14 @@ local function AreCoupled(ent1,ent2)
 end
 
 -- Adv ballsockets ents by their CouplingPointOffset 
-function ENT:Couple(ent1,ent2) 
+function ENT:Couple(ent) 
 	if IsValid(constraint.AdvBallsocket(
-		ent1,
-		ent2,
+		self,
+		ent,
 		0, --bone
 		0, --bone
-		ent1.CouplingPointOffset,
-		ent2.CouplingPointOffset,
+		self.CouplingPointOffset,
+		ent.CouplingPointOffset,
 		0, --forcelimit
 		0, --torquelimit
 		-180, --xmin
@@ -149,51 +155,46 @@ function ENT:Couple(ent1,ent2)
 		0, --rotonly
 		1 --nocollide
 	)) then
-		sound.Play("buttons/lever2.wav",(ent1:GetPos()+ent2:GetPos())/2)
+		sound.Play("buttons/lever2.wav",(self:GetPos()+ent:GetPos())/2)
 		
-		ent1:OnCouple(ent2)
-		ent2:OnCouple(ent1)
-		
+		self:OnCouple(ent)
+		ent:OnCouple(self)
 	end
 end
 
--- Quick and simple check, maybe expand later?
-local function IsValidBogey(ent)
-	return IsValid(ent) and 
-	ent:GetClass() == "gmod_train_bogey" 
-end
-
 local function AreInCoupleDistance(ent,self)
-	return self:LocalToWorld(self.CouplingPointOffset):Distance(ent:LocalToWorld(ent.CouplingPointOffset)) < 20
+	return self:LocalToWorld(self.CouplingPointOffset):DistToSqr(ent:LocalToWorld(ent.CouplingPointOffset)) < COUPLE_MAX_DISTANCE
 end
 
 
 local function AreFacingEachother(ent1,ent2)
-	return ent1:GetForward():Dot(ent2:GetForward()) < -0.95
+	return ent1:GetForward():Dot(ent2:GetForward()) < - COUPLE_MAX_ANGLE
 end
 
-local function IsInTimeOut(ent)
-	return (((ent.DeCoupleTime or 0) + DECOUPLE_TIMEOUT) > CurTime())
+function ENT:IsInTimeOut()
+	return (((self.DeCoupleTime or 0) + DECOUPLE_TIMEOUT) > CurTime())
+end
+
+function ENT:CanCouple()
+	if self.CoupledBogey then return false end
+	if self:IsInTimeOut() then return false end
+	if not constraint.CanConstrain(self,0) then return false end
+	return true
 end
 
 -- This feels so wrong, any ideas how to improve this?
-local function CanCouple(ent1,ent2)
-	if not IsValidBogey(ent1) then return false end
-	if not IsValidBogey(ent2) then return false end
-	if AreCoupled(ent1,ent2) then return false end
-	if IsInTimeOut(ent1) then return false end
-	if IsInTimeOut(ent1) then return false end
+local function CanCoupleTogether(ent1,ent2)
+	if not (ent1.CanCouple and ent1:CanCouple()) then return false end
+	if not (ent2.CanCouple and ent2:CanCouple()) then return false end
 	if not AreInCoupleDistance(ent1,ent2) then return false end
 	if not AreFacingEachother(ent1,ent2) then return false end
-	if not constraint.CanConstrain(ent1,0) then return false end
-	if not constraint.CanConstrain(ent2,0) then return false end
 	return true 
 end
 
 -- Used the couple with other bogeys
 function ENT:StartTouch(ent) 
-	if CanCouple(self,ent) then
-		self:Couple(self,ent)
+	if CanCoupleTogether(self,ent) then
+		self:Couple(ent)
 	end
 end
 
