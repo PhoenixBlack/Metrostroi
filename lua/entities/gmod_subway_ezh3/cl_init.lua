@@ -583,8 +583,8 @@ function ENT:Think()
 	self:Animate("SelectMain",		self:GetPackedBool(29) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectAlternate",	self:GetPackedBool(30) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectChannel",	self:GetPackedBool(31) and 1 or 0, 	0,1, 16, false)
-	self:Animate("ARS",				self:GetPackedBool(64) and 1 or 0, 	0,1, 16, false)
-	self:Animate("ALS",				self:GetPackedBool(65) and 1 or 0, 	0,1, 16, false)
+	self:Animate("ARS",				self:GetPackedBool(56) and 1 or 0, 	0,1, 16, false)
+	self:Animate("ALS",				self:GetPackedBool(57) and 1 or 0, 	0,1, 16, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
