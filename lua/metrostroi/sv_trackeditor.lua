@@ -1,14 +1,19 @@
 --------------------------------------------------------------------------------
 -- Track definition generator
+-- Author: HunterNL
 --------------------------------------------------------------------------------
+-- Yes, this code is a mess 
+
+
+
 Metrostroi.TrackEditor = Metrostroi.TrackEditor or {} 
 Metrostroi.TrackEditor.Paths = Metrostroi.TrackEditor.Paths or {}
 
-local ANGLE_LIMIT = 10 -- At what difference from last node do we make a new node
-local MAX_NODE_DISTANCE = 512 -- When do we force a new node regardless of angle difference
+local ANGLE_LIMIT = 10			-- At what difference from last node do we make a new node
+local MAX_NODE_DISTANCE = 512 	-- When do we force a new node regardless of angle difference
+local MIN_NODE_DISTANCE = 100 	-- Minimal distance between nodes
 
-local MIN_NODE_DISTANCE = 100 -- Minimal distance between nodes
-
+-- Convert variables into something we can throw at the vector dot product and cheaper distance calculation
 ANGLE_LIMIT = math.cos(math.rad(ANGLE_LIMIT))
 MAX_NODE_DISTANCE = MAX_NODE_DISTANCE ^ 2
 MIN_NODE_DISTANCE = MIN_NODE_DISTANCE ^ 2
@@ -19,10 +24,30 @@ local LastNode
 local LastDir
 local Train 
 
+local FileDir = "metrostroi_data"
+local FilePath = string.format("%s/track_%s.txt",FileDir,game.GetMap())
+
+local DataMsgName = "metrostroi_trackeditor_trackdata"
+local StrMsgName = "metrostroi_trackeditor_message"
+
+util.AddNetworkString(DataMsgName)
+util.AddNetworkString(StrMsgName)
+
+local function SendClientUpdate(ply)
+	net.Start(DataMsgName)
+	net.WriteTable(Metrostroi.TrackEditor.Paths)
+	net.Send(ply)
+end
+
+local function SendClientMsg(ply,msg)
+	net.Start(StrMsgName)
+	net.WriteString(msg)
+	net.Send(ply)
+end
+
 local function DebugLine(p1,p2)
 	debugoverlay.Line(p1,p2,10,Color(0,0,255),true)
 end
-
 
 local function DrawPath(path)
 	local lastnode
@@ -33,6 +58,40 @@ local function DrawPath(path)
 		end
 		lastnode = v
 	end
+end
+
+-- TODO: I know these are almost duplicates, will improve later
+local function TeleStart(args,ply)
+	if #args > 0 then
+		ply:SetPos(Metrostroi.TrackEditor.Paths[tonumber(args[1])][1])
+	end
+end
+
+local function TeleEnd(args,ply)
+	if #args > 0 then
+		ply:SetPos(table.GetLastValue(Metrostroi.TrackEditor.Paths[tonumber(args[1])]))
+	end
+end
+
+local function TeleEntStart(args,ply)
+	if #args > 0 and IsValid(Train) then
+		Train:SetPos(Metrostroi.TrackEditor.Paths[tonumber(args[1])][1])
+		
+		if Train.Base == "gmod_subway_base" then
+			Metrostroi.RerailTrain(Train)
+		end
+	end
+end
+
+local function TeleEntEnd(args,ply)
+	if #args > 0 and IsValid(Train) then
+		Train:SetPos(table.GetLastValue(Metrostroi.TrackEditor.Paths[tonumber(args[1])]))
+		
+		if Train.Base == "gmod_subway_base" then
+			Metrostroi.RerailTrain(Train)
+		end
+	end
+	
 end
 
 local function ShowAll()
@@ -68,35 +127,16 @@ local function ShowStatus()
 	end
 end
 
-local function DrawPathID(args)
-	local paths = Metrostroi.TrackEditor.Paths
-	local path = paths[tonumber(args[1])]
-	if not path then 
-		print("Path not found")
-		return
-	else
-		DrawPath(path)
+local function Mark(args,ply)
+	ent = ply:GetEyeTrace().Entity
+	if IsEntity(ent) and IsValid(ent) then
+		Train = ent
+		print(Train," marked")
+		SendClientMsg(ply,tostring(Train).." marked")
 	end
-	
-end
-
-local function RemovePath(args)
-	local id = tonumber(args[1])
-	local path = Metrostroi.TrackEditor.Paths[id]
-	if path == CurrentPath then
-		FinishPath()
-	end
-	table.remove(Metrostroi.TrackEditor.Paths,id)
-end
-
-
-local function Mark(ent)
-	Train = ent
-	print(Train," marked")
 end
 
 local function NextNode()
-	print("New node")
 	local pos = Train:GetPos()
 	if LastNode then
 		DebugLine(pos,LastNode,10,Color(0,0,255),true)
@@ -124,12 +164,10 @@ local function Think()
 	if (LastDir:Dot(CurrentDir) < ANGLE_LIMIT)
 	and (LastNode:DistToSqr(pos) > MIN_NODE_DISTANCE) 
 	then
-		print("Angle limit")
 		NextNode()
 	end
 	
 	if LastNode:DistToSqr(pos) > MAX_NODE_DISTANCE then
-		print("Distance limit")
 		NextNode()
 	end
 end
@@ -159,19 +197,30 @@ local function ClientDraw()
 	end 
 end
 
-local function FinishPath()
+local function FinishPath(args,ply)
 	NextNode()
 	CurrentPath = nil
 	LastNode = nil
 	LastDir = nil
 	print("Path ended")
+	SendClientMsg(ply,"Path ended")
+end
+
+local function RemovePath(args,ply)
+	local id = tonumber(args[1])
+	local path = Metrostroi.TrackEditor.Paths[id]
+	if path == CurrentPath then
+		FinishPath()
+	end
+	table.remove(Metrostroi.TrackEditor.Paths,id)
+	SendClientUpdate(ply)
 end
 
 --Takes forward direction
-local function StartPath(forward)
+local function StartPath()
 	print("New Path")
 	
-	local forward = forward or Train and Train:GetAngles():Forward()
+	local forward = forward or (Train and Train:GetAngles():Forward())
 	local ID = table.insert(Metrostroi.TrackEditor.Paths,{})
 	
 	CurrentPath = Metrostroi.TrackEditor.Paths[ID]
@@ -181,51 +230,83 @@ local function StartPath(forward)
 end
 
 
-local function Start()
+local function Start(args,ply)
+	if Active then
+		print("Already started")
+		SendClientMsg(ply,"Already started")
+		return
+	end
+	
 	if Train then
 		StartPath()
 		Active = true
 		print("Started")
+		SendClientMsg(ply,"Started")
 	else
 		print("No train!")
+		SendClientMsg(ply,"No train!")
 	end
 end
 
-local function Stop()
-	FinishPath()
-	Active = false
+local function Stop(args,ply)
+	if Active then
+		FinishPath()
+		Active = false
+		SendClientUpdate(ply)
+	else
+		print("Not active")
+		SendClientMsg(ply,"Not active")
+	end
 end
 
-local function Save(args)
-	if not file.Exists("metrostroi_data","DATA") then
-		file.CreateDir("metrostroi_data")
+local function Save(args,ply)
+	if not file.Exists(FileDir,"DATA") then
+		file.CreateDir(FileDir)
 	end
-	local name = args[1] or game.GetMap()
 	local data = util.TableToJSON(Metrostroi.TrackEditor.Paths)
-	file.Write(string.format("metrostroi_data/track_%s.txt",name),data)
-	print("Saved to metrostroi_data/track_"..name..".txt")
+	file.Write(FilePath,data)
+	print("Saved to " .. FilePath)
+	SendClientMsg(ply,"Saved to file")
 end
 
-local function Load(args)
-	local name = args[1] or game.GetMap()
-	if not file.Exists(string.format("metrostroi_data/track_%s.txt",name),"DATA") then
-		print("File not found: metrostroi_data/track_"..name..".txt")
+local function Load(args,ply)
+	if not file.Exists(FilePath,"DATA") then
+		print("File not found: ".. FilePath)
+		SendClientMsg(ply,"File not found: ".. FilePath)
 		return 
 	end
-	print("Loading from metrostroi_data/track_"..name..".txt")
 	
-	local tbl = util.JSONToTable(file.Read(string.format("metrostroi_data/track_%s.txt",name)))
+	local tbl = util.JSONToTable(file.Read(FilePath))
 	if tbl == nil then
-		print("JSON Parse error")
+		print("JSON Parse error reading from "..FilePath)
 	else
 		Metrostroi.TrackEditor.Paths = tbl -- Maybe requires hardcopy?
+		print("Loaded from "..FilePath)
+		SendClientMsg(ply,"Loaded from file")
+		SendClientUpdate(ply)
 	end
 end
 
 
 hook.Add("Think","metrostroi track editor",Think)
 
-if SERVER then
+local function AddCmd(name,func,helptext,flags)
+	concommand.Add(string.format("metrostroi_trackeditor_%s",name),function(ply,cmd,args,fullstring) if ply:IsAdmin() then func(args,ply) end end,flags,helptext)
+end
+
+AddCmd("start",Start,"Start recording a new path")
+AddCmd("stop",Stop,"Stop recording a path")
+AddCmd("removepath",RemovePath,"Remove path with given ID")
+AddCmd("save",Save,"Save the current paths to file")
+AddCmd("load",Load,"Load paths from file")
+AddCmd("mark",Mark,"Mark the given ent index as ent to record with")
+AddCmd("teletostart",TeleStart,"Teleport to the start of the given path")
+AddCmd("teletoend",TeleEnd,"Teleport to the end of the given path")
+AddCmd("teleenttostart",TeleEntStart,"Teleport train to the end of the given path")
+AddCmd("teleenttoend",TeleEntEnd,"Teleport train to the end of the given path")
+
+--[[
+if SERVER and false then
 	concommand.Add("metrostroi_trackeditor_mark",function(ply,cmd,args,fullstring) Mark(ply:GetEyeTrace().Entity) end,nil,"Mark currently aimed at entity as track editing source")
 	concommand.Add("metrostroi_trackeditor_start",function(ply,cmd,args,fullstring) Start() end,nil,"Start recording")
 	concommand.Add("metrostroi_trackeditor_stop",function(ply,cmd,args,fullstring) Stop() end,nil,"Stop recording")
@@ -236,3 +317,4 @@ if SERVER then
 	concommand.Add("metrostroi_trackeditor_save",function(ply,cmd,args,fullstring) Save(args) end,nil,"Save track")
 	concommand.Add("metrostroi_trackeditor_load",function(ply,cmd,args,fullstring) Load(args) end,nil,"Load track")
 end
+--]]
