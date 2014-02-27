@@ -49,7 +49,7 @@ function ENT:Initialize()
 		[KEY_A] = "KDLSet",
 		[KEY_D] = "KDPSet",
 		[KEY_V] = "VUD1Set",
-		[KEY_L] = "HeadLightsToggle",
+		[KEY_L] = "VUSToggle",
 
 		[KEY_LSHIFT] = {
 			[KEY_A] = "DURASelectAlternate",
@@ -125,6 +125,41 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:Think()
+	-- Lights
+	self.Lights = {
+		-- Head
+		[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0), Color(176,161,132), fov = 100 },
+		[2] = { "glow",				Vector(460, 49,-28), Angle(0,0,0), Color(255,255,255), brightness = 2 },
+		[3] = { "glow",				Vector(460,-49,-28), Angle(0,0,0), Color(255,255,255), brightness = 2 },
+		[4] = { "glow",				Vector(458,-15, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
+		[5] = { "glow",				Vector(458,-5,  55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
+		[6] = { "glow",				Vector(458, 5,  55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
+		[7] = { "glow",				Vector(458, 15, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
+		
+		-- Reverse
+		[8] = { "light",			Vector(458,-27, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
+		[9] = { "light",			Vector(458, 27, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
+		
+		-- Cabin
+		[10] = { "dynamiclight",	Vector( 420, -40, 35), Angle(0,0,0), Color(255,255,255), brightness = 0.1, distance = 550 },
+		
+		-- Interior
+		--[11] = { "dynamiclight",	Vector( 250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
+		[12] = { "dynamiclight",	Vector(   0, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 400 },
+		--[13] = { "dynamiclight",	Vector(-250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
+		
+		-- Side lights
+		[14] = { "light",			Vector(390, 69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[15] = { "light",			Vector(390, 69, 51), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[16] = { "light",			Vector(390, 69, 48), Angle(0,0,0), Color(0,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[17] = { "light",			Vector(390, 69, 45), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		
+		[18] = { "light",			Vector(390, -69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[19] = { "light",			Vector(390, -69, 51), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[20] = { "light",			Vector(390, -69, 48), Angle(0,0,0), Color(0,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[21] = { "light",			Vector(390, -69, 45), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+	}
+	
 	local retVal = self.BaseClass.Think(self)
 	--if not self.Panel["HeadLights1"] then return true end
 
@@ -132,9 +167,9 @@ function ENT:Think()
 	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end
 
 	-- Headlights
-	local brightness = (math.min(1,self.Panel["HeadLights1"]) + 
-						math.min(1,self.Panel["HeadLights2"]) + 
-						math.min(1,self.Panel["HeadLights3"]))/3
+	local brightness = (math.min(1,self.Panel["HeadLights1"])*0.50 + 
+						math.min(1,self.Panel["HeadLights2"])*0.25 + 
+						math.min(1,self.Panel["HeadLights3"])*0.25)
 	self:SetLightPower(1, self.Panel["HeadLights3"] > 0.5,brightness)
 	self:SetLightPower(2, self.Panel["HeadLights3"] > 0.5)
 	self:SetLightPower(3, self.Panel["HeadLights3"] > 0.5)
@@ -149,9 +184,22 @@ function ENT:Think()
 	
 	-- Interior/cabin lights
 	self:SetLightPower(10, self.Panel["CabinLight"] > 0.5)
-	self:SetLightPower(11, self.PowerSupply.XT3_4 > 65.0)
-	self:SetLightPower(12, self.Panel["EmergencyLight"] > 0.5)
-	self:SetLightPower(13, self.PowerSupply.XT3_4 > 65.0)
+	self:SetLightPower(12, self.Panel["EmergencyLight"] > 0.5,0.1 + ((self.PowerSupply.XT3_4 > 65.0) and 0.4 or 0))
+	--self:SetLightPower(12, self.Panel["EmergencyLight"] > 0.5)
+	--self:SetLightPower(13, self.PowerSupply.XT3_4 > 65.0)
+	
+	-- Side lights
+	self:SetLightPower(14, false)
+	self:SetLightPower(18, false)
+	
+	self:SetLightPower(15, self.Panel["TrainDoors"] > 0.5)
+	self:SetLightPower(19, self.Panel["TrainDoors"] > 0.5)
+	
+	self:SetLightPower(16, self.Panel["GreenRP"] > 0.5)
+	self:SetLightPower(20, self.Panel["GreenRP"] > 0.5)
+	
+	self:SetLightPower(17, self.Panel["TrainBrakes"] > 0.5)
+	self:SetLightPower(21, self.Panel["TrainBrakes"] > 0.5)
 	
 	-- Switch and button states
 	self:SetPackedBool(0,self:IsWrenchPresent())
@@ -186,7 +234,9 @@ function ENT:Think()
 	self:SetPackedBool(29,self.DURA.SelectAlternate == false)
 	self:SetPackedBool(30,self.DURA.SelectAlternate == true)
 	self:SetPackedBool(31,self.DURA.Channel == 2)
-	
+	self:SetPackedBool(64,self.ARS.Value == 1.0)
+	self:SetPackedBool(65,self.ALS.Value == 1.0)
+
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
 		(self.Pneumatic.LeftDoorState[1] > 0.5) or
@@ -217,6 +267,18 @@ function ENT:Think()
 	self:SetPackedBool(39,self.Panel["Ring"] > 0.5)
 	-- SD
 	self:SetPackedBool(40,self.Panel["SD"] > 0.5)
+	-- OCh
+	self:SetPackedBool(41,self.ALS_ARS.NoFreq)
+	-- 0
+	self:SetPackedBool(42,self.ALS_ARS.Signal0)
+	-- 40
+	self:SetPackedBool(43,self.ALS_ARS.Signal40)
+	-- 60
+	self:SetPackedBool(44,self.ALS_ARS.Signal60)
+	-- 75
+	self:SetPackedBool(45,self.ALS_ARS.Signal70)
+	-- 80
+	self:SetPackedBool(46,self.ALS_ARS.Signal80)
 	
 	-- AV states
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -247,6 +309,16 @@ function ENT:Think()
 	end
 	self.DebugVars["Speed"] = speed
 	self.DebugVars["Acceleration"] = acceleration
+	
+	-- Speed check
+	local limit = 0
+	if self.ALS_ARS.Signal40 then limit = 40 end
+	if self.ALS_ARS.Signal60 then limit = 60 end
+	if self.ALS_ARS.Signal70 then limit = 70 end
+	if self.ALS_ARS.Signal80 then limit = 80 end
+	if self.ALS.Value == 1.0 then
+		if math.floor(speed) >= math.floor(limit) then self:SetPackedBool(39,true) end
+	end
 	
 	-- RUT test
 	local weightRatio = math.max(0,math.min(1,(self:GetPassengerCount()/300)))

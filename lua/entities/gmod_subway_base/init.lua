@@ -626,7 +626,7 @@ function ENT:SetLightPower(index,power,brightness)
 		)
 		light:SetKeyValue("style", 0)
 		light:SetKeyValue("distance", lightData.distance or 300)
-		light:SetKeyValue("brightness", lightData.brightness or 2)
+		light:SetKeyValue("brightness", brightness * (lightData.brightness or 2))
 
 		-- Turn light on
 		light:Spawn()

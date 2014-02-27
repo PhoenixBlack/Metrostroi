@@ -17,7 +17,7 @@ ENT.AdminSpawnable  = false
 -- Default initializer only loads up DURA
 --------------------------------------------------------------------------------
 function ENT:InitializeSystems()
-	self:LoadSystem("DURA","DURA")
+	self:LoadSystem("DURA")
 end
 
 function ENT:PassengerCapacity()
@@ -246,7 +246,8 @@ function ENT:LoadSystem(a,b,...)
 		if GLOBAL_SKIP_TRAIN_SYSTEMS == 0 then GLOBAL_SKIP_TRAIN_SYSTEMS = nil end
 		
 		-- Setup nice name as normal
-		if (name ~= sys_name) or (b) then self[sys_name].Name = sys_name end
+		--if (name ~= sys_name) or (b) then self[sys_name].Name = sys_name end
+		self[sys_name].Name = sys_name
 		self.Systems[sys_name] = self[sys_name]
 		
 		-- Create fake placeholder
@@ -259,7 +260,8 @@ function ENT:LoadSystem(a,b,...)
 	else
 		-- Load system like normal
 		self[sys_name] = Metrostroi.Systems[name](self,...)
-		if (name ~= sys_name) or (b) then self[sys_name].Name = sys_name end
+		--if (name ~= sys_name) or (b) then self[sys_name].Name = sys_name end
+		self[sys_name].Name = sys_name
 		self.Systems[sys_name] = self[sys_name]
 
 		--if SERVER then

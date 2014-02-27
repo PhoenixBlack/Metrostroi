@@ -24,8 +24,8 @@ ENT.ButtonMap["Main"] = {
 		{ID = "VAHToggle",		x=187, y=19, radius=20, tooltip="ВАХ: Включение аварийного хода (неисправность реле педали безопасности)\nVAH: Emergency driving mode (failure of RPB relay)"},
 		{ID = "VADToggle",		x=226, y=19, radius=20, tooltip="ВАД: Включение аварийного закрытия дверей (неисправность реле контроля дверей)\nVAD: Emergency door close override (failure of KD relay)"},
 		
-		{ID = "",				x=187+77, y=19, radius=20, tooltip="Включение системы автоматического регулирования скорости"},
-		{ID = "",				x=226+77, y=19, radius=20, tooltip="Включение системы автоматической локомотивной сигнализации"},
+		{ID = "ARSToggle",		x=187+77, y=19, radius=20, tooltip="Включение системы автоматического регулирования скорости"},
+		{ID = "ALSToggle",		x=226+77, y=19, radius=20, tooltip="Включение системы автоматической локомотивной сигнализации\nAutomatic locomotive signalling (ALS)"},
 		
 		{ID = "OtklAVUToggle",	x=349, y=19, radius=20, tooltip="Отключение автоматического выключения управления (неисправность реле АВУ)\nTurn off automatic control disable relay (failure of AVU relay)"},
 		{ID = "KRZDSet",		x=393, y=19, radius=20, tooltip="КРЗД: Кнопка резервного закрытия дверей\nKRZD: Emergency door closing"},
@@ -61,7 +61,7 @@ ENT.ButtonMap["Front"] = {
 	buttons = {
 		{ID = "VUSToggle",x=400, y=75, radius=15, tooltip="ВУС: Выключатель усиленого света ходовых фар\nVUS: Head lights bright/dim"},
 		--{ID = "CabinLightsToggle",		x=387, y=28, radius=15, tooltip=""},
-		{x=50,y=50,tooltip="Индикатор скорости\nSpeed indicator",radius=35},
+		{x=50,y=50,tooltip="Напряжение цепей управления\nControl circuits voltage",radius=35},
 	}
 }
 
@@ -364,6 +364,16 @@ Metrostroi.ClientPropForButton("VAD",{
 	button = "VADToggle",	
 	model = "models/metrostroi/81-717/switch04.mdl",
 })
+Metrostroi.ClientPropForButton("ALS",{
+	panel = "Main",
+	button = "ALSToggle",	
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("ARS",{
+	panel = "Main",
+	button = "ARSToggle",	
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
 Metrostroi.ClientPropForButton("OtklAVU",{
 	panel = "Main",
 	button = "OtklAVUToggle",	
@@ -573,6 +583,8 @@ function ENT:Think()
 	self:Animate("SelectMain",		self:GetPackedBool(29) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectAlternate",	self:GetPackedBool(30) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectChannel",	self:GetPackedBool(31) and 1 or 0, 	0,1, 16, false)
+	self:Animate("ARS",				self:GetPackedBool(64) and 1 or 0, 	0,1, 16, false)
+	self:Animate("ALS",				self:GetPackedBool(65) and 1 or 0, 	0,1, 16, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -636,10 +648,10 @@ function ENT:Think()
 	if self.PreviousAlertState ~= state then
 		self.PreviousAlertState = state
 		if state then
-			self:SetSoundState("ring",0.30,1)
+			self:SetSoundState("ring",0.20,1)
 		else
 			self:SetSoundState("ring",0,0)
-			self:PlayOnce("ring_end","cabin",0.55)		
+			self:PlayOnce("ring_end","cabin",0.45)		
 		end
 	end
 	
@@ -758,6 +770,55 @@ function ENT:Draw()
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(102*10,33*10,16*10,8*10)
 			draw.DrawText("СД","MetrostroiSubway_LargeText",102*10+30,33*10-20,Color(0,0,0,255))
+		end
+	
+		------------------------------------------------------------------------
+		b = self:Animate("light_OCh",self:GetPackedBool(41) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(255,50,0)
+			surface.DrawRect(102*10,53*10,16*10,8*10)
+			draw.DrawText("ОЧ","MetrostroiSubway_LargeText",102*10+30,53*10-15,Color(0,0,0,255))
+		end
+		
+		b = self:Animate("light_0",self:GetPackedBool(42) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(255,50,0)
+			surface.DrawRect(140*10,53*10,16*10,8*10)
+			draw.DrawText("0","MetrostroiSubway_LargeText",140*10+55,53*10-10,Color(0,0,0,255))
+		end
+		
+		b = self:Animate("light_40",self:GetPackedBool(43) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(255,50,0)
+			surface.DrawRect(176*10,53*10,16*10,8*10)
+			draw.DrawText("40","MetrostroiSubway_LargeText",176*10+30,53*10-10,Color(0,0,0,255))
+		end
+			
+		b = self:Animate("light_60",self:GetPackedBool(44) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(217*10,53*10,16*10,8*10)
+			draw.DrawText("60","MetrostroiSubway_LargeText",217*10+30,53*10-10,Color(0,0,0,255))
+		end
+			
+		b = self:Animate("light_75",self:GetPackedBool(45) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(255*10,53*10,16*10,8*10)
+			draw.DrawText("75","MetrostroiSubway_LargeText",255*10+30,53*10-10,Color(0,0,0,255))
+		end
+			
+		b = self:Animate("light_80",self:GetPackedBool(46) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(294*10,53*10,16*10,8*10)
+			draw.DrawText("80","MetrostroiSubway_LargeText",294*10+30,53*10-10,Color(0,0,0,255))
 		end
 		
 		surface.SetAlphaMultiplier(1.0)
