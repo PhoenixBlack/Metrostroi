@@ -61,11 +61,106 @@ function ENT:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 	
 	-- Green if not alternate path selected and not red
 	self:SetGreen(not (self:GetRed() or switchAlternate) )
+	
+	-- Mirror green with yellow, if signal does not have green on it
+	--[[if not (
+		self:GetTrafficLightsBit(0) or
+		self:GetTrafficLightsBit(2) or
+		self:GetTrafficLightsBit(7) or
+		self:GetTrafficLightsBit(8)) then
+		self:SetYellow(self:GetGreen())
+	end]]--
+end
+
+function ENT:ARSLogic()
+	if self:GetNoARS() then
+		for i=10,15 do self:SetActiveSignalsBit(i,false) end
+		return
+	end
+	
+	-- Get position of the next ARS node
+	local pos = Metrostroi.SignalEntityPositions[self]
+	local node
+	if pos then node = pos.node1 end
+	if node and pos then
+		-- Check if there is a train anywhere on the isolated area
+		local nextARS = Metrostroi.GetARSJoint(node,pos.x,    pos.forward)
+		local prevARS = Metrostroi.GetARSJoint(node,pos.x,not pos.forward)
+
+		-- Default ARS signals
+		local ARS80 = self:GetSettingsBit(0)
+		local ARS70 = self:GetSettingsBit(1)
+		local ARS60 = self:GetSettingsBit(2)
+		local ARS40 = self:GetSettingsBit(3)
+		local ARS0  = self:GetSettingsBit(4)
+		local ARSsp = self:GetSettingsBit(5)
+		
+		-- Reset to zero when traffic light is red
+		if nextARS and nextARS:GetRed() then
+			ARS80 = false
+			ARS70 = false
+			ARS60 = false
+			ARS40 = false
+			ARS0 = true
+		end
+
+		-- Does this section have default set of signals defined
+		if ARS80 or ARS70 or ARS60 or ARS40 or ARS0 or ARSsp then
+			self:SetActiveSignalsBit(10,ARS80)
+			self:SetActiveSignalsBit(11,ARS70)
+			self:SetActiveSignalsBit(12,ARS60)
+			self:SetActiveSignalsBit(13,ARS40)
+			self:SetActiveSignalsBit(14,ARS0)
+			self:SetActiveSignalsBit(15,ARSsp)
+		elseif prevARS then
+			-- Previous section feeds signals to this section
+			for i=10,15 do self:SetActiveSignalsBit(i,false) end
+			
+			-- Read speed limit from previous section
+			local speedLimit = prevARS.SpeedLimit or 0
+			
+			-- If speed limit in next section is less, create smooth stop for train
+			if nextARS and ((nextARS.SpeedLimit or 0) < speedLimit) then
+				if nextARS.SpeedLimit ==  0 then speedLimit = 40 end
+				if nextARS.SpeedLimit == 40 then speedLimit = 60 end
+				if nextARS.SpeedLimit == 60 then speedLimit = 70 end
+				if nextARS.SpeedLimit == 70 then speedLimit = 80 end
+			end
+			
+			-- Create signal based on new target speed limit
+			if speedLimit ==  0 then self:SetActiveSignalsBit(14,true) end
+			if speedLimit == 40 then self:SetActiveSignalsBit(13,true) end
+			if speedLimit == 60 then self:SetActiveSignalsBit(12,true) end
+			if speedLimit == 70 then self:SetActiveSignalsBit(11,true) end
+			if speedLimit == 80 then self:SetActiveSignalsBit(10,true) end
+			
+			-- Add signal about next speed limit
+			if nextARS and ((nextARS.SpeedLimit or 0) < speedLimit) then
+				if nextARS.SpeedLimit ==  0 then self:SetActiveSignalsBit(14,true) end
+				if nextARS.SpeedLimit == 40 then self:SetActiveSignalsBit(13,true) end
+				if nextARS.SpeedLimit == 60 then self:SetActiveSignalsBit(12,true) end
+				if nextARS.SpeedLimit == 70 then self:SetActiveSignalsBit(11,true) end
+			end
+		else
+			-- No signals: error
+			for i=10,15 do self:SetActiveSignalsBit(i,false) end
+		end
+		
+		-- Generate speed limit in this ARS section
+		self.SpeedLimit = 0
+		if self:GetActiveSignalsBit(13) then self.SpeedLimit = 40 end
+		if self:GetActiveSignalsBit(12) then self.SpeedLimit = 60 end
+		if self:GetActiveSignalsBit(11) then self.SpeedLimit = 70 end
+		if self:GetActiveSignalsBit(10) then self.SpeedLimit = 80 end
+		
+		--self:SetActiveSignalsBit(15,(CurTime() % 2.0) > 1.0)
+	end
 end
 
 function ENT:Think()
 	-- Do no interesting logic if there's no traffic light involved
 	if self:GetTrafficLights() == 0 then
+		self:ARSLogic()
 		self:NextThink(CurTime() + 1.00)
 		return true
 	end
@@ -74,6 +169,7 @@ function ENT:Think()
 	self.PrevTime = self.PrevTime or 0
 	if (CurTime() - self.PrevTime) > 1.0 then
 		self.PrevTime = CurTime()
+		self:ARSLogic()
 		
 		-- Get position of the traffic light
 		local pos = Metrostroi.SignalEntityPositions[self]

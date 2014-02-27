@@ -70,8 +70,8 @@ function ENT:Think()
 	
 	-- Return switch to original position
 	if (self.InhibitSwitching == false) and (self.AlternateTrack == true) and 
-	   (CurTime() - self.LastSignalTime > 30.0) then
-		self:SendSignal("main")
+	   (CurTime() - self.LastSignalTime > 20.0) then
+		self:SendSignal("main",self:GetChannel())
 	end
 	
 	-- Process logic

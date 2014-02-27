@@ -204,17 +204,17 @@ function Metrostroi.AddARSSubSection(node,source)
 	local ent = ents.Create("gmod_track_signal")
 	if not IsValid(ent) then return end
 	
-	local tr = Metrostroi.RerailGetTrackData(node.pos-Vector(0,0,112),node.dir)
+	local tr = Metrostroi.RerailGetTrackData(node.pos-Vector(0,0,112) - node.dir*32,node.dir)
 	if not tr then return end
 	
 	ent:SetPos(tr.centerpos - tr.up * 9.5)
 	ent:SetAngles((-tr.right):Angle())
 	ent:Spawn()
-	ent:SetIsolatingJoint(true)
 	ent:SetLightsStyle(0)
 	ent:SetTrafficLights(0)
-	ent:SetARSSignals(0)
-	ent:SetARSSpeedWarning(0)
+	ent:SetSettings(0)
+	ent:SetIsolatingLight(false)
+	ent:SetIsolatingSwitch(false)
 	
 	-- Add to list of ARS subsections
 	Metrostroi.ARSSubSections[ent] = true
@@ -226,25 +226,40 @@ end
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateARSSections()
 	Metrostroi.ARSSubSections = {}
+	local list = {}
 	
 	print("Metrostroi: Updating ARS subsections...")
+	Metrostroi.IgnoreEntityUpdates = false
 	for k,v in pairs(Metrostroi.SignalEntityPositions) do
 		-- Find signal which sits BEFORE this signal
 		local signal = Metrostroi.GetNextTrafficLight(v.node1,v.x,not v.forward,true)
 		if IsValid(k) and signal then
 			local pos = Metrostroi.SignalEntityPositions[signal]
-			debugoverlay.Line(k:GetPos(),signal:GetPos(),10,Color(0,0,255),true)
+			--debugoverlay.Line(k:GetPos(),signal:GetPos(),10,Color(0,0,255),true)
 
 			-- Interpolate between two positions and add intermediates
 			local offset = 0
-			if v.path == pos.path then
+			if (v.path == pos.path) and (pos.x < v.x) then
+				print(Format("Metrostroi: Adding ARS sections between [%d] %.0f -> %.0f m",pos.path.id,pos.x,v.x))
+				if (v.path.id == 1) then list[pos.x] = v.x end
 				local node = pos.node1
+				local prev_pos
 				while (node) and (node ~= v.node1) do
-					if offset > 100 then
-						--Metrostroi.AddARSSubSection(node,signal)
+					--prev_pos = prev_pos or node.pos
+					if (offset > 100) and (math.abs(node.x - v.x) > 100) then
+						--[[timer.Simple(0.05,function()
+							if node then
+								--debugoverlay.Line(node.pos,prev_pos,10,Color(0,0,255),true)
+								debugoverlay.Cross(node.pos,20,Color(0,0,255),true)
+							end
+						end)]]--
+						--print(offset)
+						
+						Metrostroi.AddARSSubSection(node,signal)
 						offset = offset - 100
 					end
 					
+					--prev_pos = node.pos
 					node = node.next
 					if node then
 						offset = offset + node.length
@@ -252,6 +267,12 @@ function Metrostroi.UpdateARSSections()
 				end
 			end
 		end
+	end
+	Metrostroi.IgnoreEntityUpdates = true
+	Metrostroi.UpdateSignalEntities()
+	
+	for k,v in SortedPairs(list) do
+		print("\t",k,v)
 	end
 end
 
@@ -279,6 +300,7 @@ function Metrostroi.ScanTrack(itype,node,func,x,dir,checked)
 			if IsValid(v) then
 				if itype == "light" then isolating = v:GetIsolatingLight() end
 				if itype == "switch" then isolating = v:GetIsolatingSwitch() end
+				if itype == "ars" then isolating = true end
 			end
 			if isolating then
 				-- If scanning forward, and there's a joint IN FRONT of current X
@@ -349,8 +371,8 @@ end
 --------------------------------------------------------------------------------
 -- Get one next traffic light within current isolated segment. Ignores ARS sections.
 --------------------------------------------------------------------------------
-function Metrostroi.GetNextTrafficLight(src_node,x,dir,ars_sections)
-	return Metrostroi.ScanTrack("light",src_node,function(node,min_x,max_x)
+function Metrostroi.GetNextTrafficLight(src_node,x,dir,include_ars_sections,override_type)
+	return Metrostroi.ScanTrack(override_type or "light",src_node,function(node,min_x,max_x)
 		-- If there are no signals in node, keep scanning
 		if (not Metrostroi.SignalEntitiesForNode[node]) or (#Metrostroi.SignalEntitiesForNode[node] == 0) then
 			return
@@ -358,9 +380,33 @@ function Metrostroi.GetNextTrafficLight(src_node,x,dir,ars_sections)
 
 		-- For every signal entity in node, check if it rests on path
 		for k,v in pairs(Metrostroi.SignalEntitiesForNode[node]) do
-			if ((v:GetTrafficLights() > 0) or ars_sections) and (v.TrackX ~= x) and 
-			   (v.TrackX >= min_x) and (v.TrackX <= max_x) then
+			if IsValid(v) and
+				(((v:GetTrafficLights() > 0) or include_ars_sections) and (v.TrackX ~= x) and 
+				 (v.TrackX >= min_x) and (v.TrackX <= max_x)) then
 				return v
+			end
+		end
+	end,x,dir)
+end
+
+
+--------------------------------------------------------------------------------
+-- Get next/previous ARS section
+--------------------------------------------------------------------------------
+function Metrostroi.GetARSJoint(src_node,x,dir)
+	return Metrostroi.ScanTrack("ars",src_node,function(node,min_x,max_x)
+		-- If there are no signals in node, keep scanning
+		if (not Metrostroi.SignalEntitiesForNode[node]) or (#Metrostroi.SignalEntitiesForNode[node] == 0) then
+			return
+		end
+
+		-- For every signal entity in node, check if it rests on path
+		for k,v in pairs(Metrostroi.SignalEntitiesForNode[node]) do
+			if IsValid(v) and
+				((not v:GetNoARS()) and (v.TrackX ~= x) and 
+				 (v.TrackX >= min_x) and (v.TrackX <= max_x)) then
+				if dir and (v.TrackX > x) then return v end
+				if (not dir) and (v.TrackX < x) then return v end
 			end
 		end
 	end,x,dir)
@@ -689,7 +735,7 @@ function Metrostroi.Load(name)
 		-- Add additional ARS sections
 		Metrostroi.UpdateARSSections()
 		
-		print(Format("Metrostroi: Added %d ARS rail joints",#Metrostroi.ARSSubSections))
+		print(Format("Metrostroi: Added %d ARS rail joints",table.getn(Metrostroi.ARSSubSections)))
 	end)
 end
 
@@ -802,6 +848,38 @@ concommand.Add("metrostroi_track_alt", function(ply, _, args)
 		for _,switch in pairs(switches) do
 			print("Found switch:",switch,switch.TrackPosition.x)
 			switch:SendSignal("alt",1)
+		end
+	end
+end)
+
+concommand.Add("metrostroi_track_arstest", function(ply, _, args)
+	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
+	
+	-- Trigger all track switches
+	local results = Metrostroi.GetPositionOnTrack(ply:GetPos(),ply:GetAimVector():Angle())
+	for k,v in pairs(results) do
+		local ars = Metrostroi.GetNextTrafficLight(v.node1,v.x,v.forward,true)
+		if ars then
+			local ARS80 = ars:GetActiveSignalsBit(10)
+			local ARS70 = ars:GetActiveSignalsBit(11)
+			local ARS60 = ars:GetActiveSignalsBit(12)
+			local ARS40 = ars:GetActiveSignalsBit(13)
+			local ARS0  = ars:GetActiveSignalsBit(14)
+			local ARSsp = ars:GetActiveSignalsBit(15)
+
+			if not (ARS80 or ARS70 or ARS60 or ARS40 or ARS0 or ARSsp) then
+				print("ARS: NO SIGNAL")
+			else
+				print(Format("ARS: 80:%d 70:%d 60:%d 40:%d 0:%d Sp:%d",
+					ARS80 and 1 or 0,
+					ARS70 and 1 or 0,
+					ARS60 and 1 or 0,
+					ARS40 and 1 or 0,
+					ARS0 and 1 or 0,
+					ARSsp and 1 or 0))
+			end			
+		else
+			print("ARS: NO SIGNAL (NO ARS)")
 		end
 	end
 end)

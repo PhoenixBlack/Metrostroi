@@ -7,18 +7,10 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 function TRAIN_SYSTEM:Initialize()
 	self.SelectAlternate = nil
 	self.Channel = 1
-	--self.SwitchBlocked = false
-	--self.AlternateTrack = false
-	
-	--self.NextLightRed = false
-	--self.NextLightYellow = false
-	--self.DistanceToLight = -1
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { } --[["SwitchBlocked", "SelectedAlternate",
-			 "SelectingAlternate", "SelectingMain",
-			 "NextLightRed","NextLightYellow","DistanceToLight" }]]--
+	return { }
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -55,18 +47,30 @@ function TRAIN_SYSTEM:Think()
 		local no_switches = true
 		local signal = 0
 		if pos then
+			-- Get traffic light in front
+			local light = Metrostroi.GetNextTrafficLight(pos.node1,pos.x,pos.forward)
+			local function getSignal(base,chan)
+				if (chan == 1) and (base == "alt")  and light and light:GetInvertChannel1() then return "main" end
+				if (chan == 2) and (base == "alt")  and light and light:GetInvertChannel2() then return "main" end
+				return base
+			end
+
+			-- Get switches and trigger them all
 			local switches = Metrostroi.GetTrackSwitches(pos.node1,pos.x,pos.forward)
 			for _,switch in pairs(switches) do
 				no_switches = false
 				if self.SelectAlternate == true then
-					switch:SendSignal("alt",self.Channel)
-					self.SelectAlternate = nil
+					switch:SendSignal(getSignal("alt",1),1)
+					if self.Channel == 2 then switch:SendSignal(getSignal("alt",2),2) end
 				elseif self.SelectAlternate == false then
-					switch:SendSignal("main",self.Channel)
-					self.SelectAlternate = nil
+					switch:SendSignal(getSignal("main",1),1)
+					if self.Channel == 2 then switch:SendSignal(getSignal("main",2),2) end
 				end
 				signal = math.max(signal,switch:GetSignal())
 			end
+			
+			-- Reset state selection
+			self.SelectAlternate = nil
 		end
 		if signal > 0 then
 			self.Train:PlayOnce("dura1","cabin",0.35,200)
