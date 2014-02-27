@@ -82,49 +82,6 @@ function ENT:Initialize()
 			ID = "VBToggle" },
 	}
 
-	
-	-- Lights
-	self.Lights = {
-		-- Head
-		[1] = { "headlight", Vector(465,0,-20), Angle(0,0,0), Color(176,161,132), fov = 100 },
-		[2] = { "glow",      Vector(460, 49,-28), Angle(0,0,0), Color(255,255,255), brightness = 2 },
-		[3] = { "glow",      Vector(460,-49,-28), Angle(0,0,0), Color(255,255,255), brightness = 2 },
-		[4] = { "glow",      Vector(458,-15, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-		[5] = { "glow",      Vector(458,-5,  55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-		[6] = { "glow",      Vector(458, 5,  55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-		[7] = { "glow",      Vector(458, 15, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-		
-		-- Reverse
-		[8] = { "light",     Vector(458,-27, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
-		[9] = { "light",     Vector(458, 27, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
-		
-		-- Cabin
-		[10] = { "dynamiclight",	Vector( 420, -40, 35), Angle(0,0,0), Color(255,255,255), brightness = 0.1, distance = 550 },
-		
-		-- Interior
-		[11] = { "dynamiclight",	Vector( 250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
-		[12] = { "dynamiclight",	Vector(   0, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 150 },
-		[13] = { "dynamiclight",	Vector(-250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
-	}
-	
-	-- Cross connections in train wires
-	self.TrainWireCrossConnections = {
-		[5] = 4, -- Reverser F<->B
-		[31] = 32, -- Doors L<->R
-	}
-	
-	-- Setup door positions
-	self.LeftDoorPositions = {}
-	self.RightDoorPositions = {}
-	for i=0,3 do
-		table.insert(self.LeftDoorPositions,Vector(353.0 - 35*0.5 - 231*i,65,-1.8))
-		table.insert(self.RightDoorPositions,Vector(353.0 - 35*0.5 - 231*i,-65,-1.8))
-	end
-end
-
-
---------------------------------------------------------------------------------
-function ENT:Think()
 	-- Lights
 	self.Lights = {
 		-- Head
@@ -160,6 +117,24 @@ function ENT:Think()
 		[21] = { "light",			Vector(390, -69, 45), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 	}
 	
+	-- Cross connections in train wires
+	self.TrainWireCrossConnections = {
+		[5] = 4, -- Reverser F<->B
+		[31] = 32, -- Doors L<->R
+	}
+	
+	-- Setup door positions
+	self.LeftDoorPositions = {}
+	self.RightDoorPositions = {}
+	for i=0,3 do
+		table.insert(self.LeftDoorPositions,Vector(353.0 - 35*0.5 - 231*i,65,-1.8))
+		table.insert(self.RightDoorPositions,Vector(353.0 - 35*0.5 - 231*i,-65,-1.8))
+	end
+end
+
+
+--------------------------------------------------------------------------------
+function ENT:Think()	
 	local retVal = self.BaseClass.Think(self)
 	--if not self.Panel["HeadLights1"] then return true end
 
