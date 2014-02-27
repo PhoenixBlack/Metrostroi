@@ -234,8 +234,8 @@ function ENT:Think()
 	self:SetPackedBool(29,self.DURA.SelectAlternate == false)
 	self:SetPackedBool(30,self.DURA.SelectAlternate == true)
 	self:SetPackedBool(31,self.DURA.Channel == 2)
-	self:SetPackedBool(64,self.ARS.Value == 1.0)
-	self:SetPackedBool(65,self.ALS.Value == 1.0)
+	self:SetPackedBool(56,self.ARS.Value == 1.0)
+	self:SetPackedBool(57,self.ALS.Value == 1.0)
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
