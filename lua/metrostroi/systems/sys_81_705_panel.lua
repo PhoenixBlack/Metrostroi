@@ -24,6 +24,8 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("KRZD","Relay","Switch")
 	self.Train:LoadSystem("KSN","Relay","Switch")
 	self.Train:LoadSystem("OtklAVU","Relay","Switch")
+	self.Train:LoadSystem("ARS","Relay","Switch")
+	self.Train:LoadSystem("ALS","Relay","Switch",{ normally_closed = true })
 	
 	-- Автоматические выключатели (АВ)
 	self.Train:LoadSystem("A1","Relay","VA21-29")

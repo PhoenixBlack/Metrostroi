@@ -63,5 +63,7 @@ function ENT:InitializeSystems()
 	
 	self:LoadSystem("PowerSupply","DIP_01K")
 	
-	self:LoadSystem("DURA","DURA")
+	self:LoadSystem("DURA")
+	
+	self:LoadSystem("ALS_ARS")
 end
