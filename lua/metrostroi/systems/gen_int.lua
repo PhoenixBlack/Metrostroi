@@ -98,6 +98,8 @@ function ParseName(str)
 	if str == "RP" then str = "RPvozvrat" end
 	if str == "_" then return "COIL" end
 	if str == "B" then return "B" end
+	if str == "HIGH" then return "1" end
+	if str == "LOW" then return "0" end
 
 	-- Train variable
 	if inverted then	return "(1.0-Train."..str..".Value)"	
@@ -906,12 +908,12 @@ BaseNetwork = {
 	
 	----------------------------------------------------------------------------
 	-- Train wire 18
-	{	"B2",		"18s1",	"!RP" }, 	-- This is not how it's implemented on circuit,
+	{	"HIGH",		"18s1",	"!RP" }, 	-- This is not how it's implemented on circuit,
 	{	"18s1",		"18s2",	"LK4" },	-- but an equivalent circuit instead
 	{	"18s2",		"18A",	"A14" },	-- Value of 1.0 on TW18 would indicated 'not grounded'
 	{	"18A",		"0",	"#TW[18]" },
 	
-	{	"B2",		"18s3",	"!RP" },
+	{	"HIGH",		"18s3",	"!RP" },
 	{	"18s3",		"18Aa",	"A14" },
 	--{	"18Aa",		"0",	"#TW[10AH]" },
 	{	"18Aa",		"10AN",	"1" },
@@ -1021,7 +1023,7 @@ BaseNetwork = {
 	
 	{	"10N",		"0",		"#SDRK" },
 }
-Sources = { "B" }
+Sources = { "B","HIGH","LOW" }
 Drains = { "0" }
 AddToNodes = {
 	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
