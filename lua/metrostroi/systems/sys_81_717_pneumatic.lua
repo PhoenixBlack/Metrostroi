@@ -153,10 +153,10 @@ function TRAIN_SYSTEM:UpdatePressures(Train,dT)
 	end
 	
 	-- Equalize pressure
-	equalizePressure("BrakeLinePressure",Train.FrontTrain,frontBrakeOpen,100.0)
-	equalizePressure("BrakeLinePressure",Train.RearTrain,rearBrakeOpen,100.0)
-	equalizePressure("TrainLinePressure",Train.FrontTrain,frontBrakeOpen,0.01)
-	equalizePressure("TrainLinePressure",Train.RearTrain,rearBrakeOpen,0.01)
+	equalizePressure("BrakeLinePressure",Train.FrontTrain,frontBrakeOpen,200.0)
+	equalizePressure("BrakeLinePressure",Train.RearTrain,rearBrakeOpen,200.0)
+	equalizePressure("TrainLinePressure",Train.FrontTrain,frontBrakeOpen,200.0)
+	equalizePressure("TrainLinePressure",Train.RearTrain,rearBrakeOpen,200.0)
 end
 
 
@@ -216,13 +216,13 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	-- 3 Close all valves
 	if (self.DriverValvePosition == 3) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.80)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.80)
+		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.50)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.50)
 	end
 	-- 4 Reservoir open to atmosphere, brake line equalizes with reservoir
 	if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
 		equalizePressure("ReservoirPressure", 0.0,0.40)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 0.70)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.50)
 	end
 	-- 5 Reservoir and brake line open to atmosphere
 	if (self.DriverValvePosition == 5) and (Train.DriverValveDisconnect.Value == 1.0) then
@@ -253,7 +253,7 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	-- Valve #2
 	if self.Train.PneumaticNo2.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.45, 1.00, 1.50)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.40, 1.00, 1.50)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
 	
