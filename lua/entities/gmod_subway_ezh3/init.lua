@@ -20,8 +20,10 @@ function ENT:Initialize()
 	-- Create seat entities
 	self.DriverSeat = self:CreateSeat("driver",Vector(418,-45,-28))
 	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28))
-	
-	self.DriverSeat:SetRenderMode(RENDERMODE_NONE)
+
+	-- Hide seats
+	self.DriverSeat:SetColor(Color(0,0,0,0))
+	self.DriverSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
 	
 	-- Create bogeys
 	self.FrontBogey = self:CreateBogey(Vector( 325-10,0,-75),Angle(0,180,0),true)
@@ -134,7 +136,7 @@ end
 
 
 --------------------------------------------------------------------------------
-function ENT:Think()	
+function ENT:Think()
 	local retVal = self.BaseClass.Think(self)
 	--if not self.Panel["HeadLights1"] then return true end
 

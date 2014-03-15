@@ -175,6 +175,20 @@ ENT.ButtonMap["Battery"] = {
 	}
 }
 
+-- Train driver helpers panel
+ENT.ButtonMap["HelperPanel"] = {
+	pos = Vector(444.7,62,30.4),
+	ang = Angle(0,-50,90),
+	width = 64,
+	height = 144,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "VUD2Toggle", x=32, y=42, radius=32, tooltip="ВУД2: Выключатель управления дверьми\nVUD2: Door control toggle (close doors)"},
+		{ID = "VDLSet",     x=32, y=108, radius=32, tooltip="ВДЛ: Выключатель левых дверей\nVDL: Left doors open"},
+	}
+}
+
 -- Help panel
 ENT.ButtonMap["Help"] = {
 	pos = Vector(445.0,-36.0,30.0),
@@ -448,6 +462,17 @@ Metrostroi.ClientPropForButton("SelectChannel",{
 	model = "models/metrostroi/81-717/switch04.mdl",
 })
 
+Metrostroi.ClientPropForButton("VUD2",{
+	panel = "HelperPanel",
+	button = "VUD2Toggle",	
+	model = "models/metrostroi/81-717/switch01.mdl",
+})
+Metrostroi.ClientPropForButton("VDL",{
+	panel = "HelperPanel",
+	button = "VDLSet",	
+	model = "models/metrostroi/81-717/switch01.mdl",
+})
+
 
 
 --------------------------------------------------------------------------------
@@ -573,8 +598,8 @@ function ENT:Think()
 	self:Animate("VAH",				self:GetPackedBool(10) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VAD",				self:GetPackedBool(11) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VUD1",			self:GetPackedBool(12) and 1 or 0, 	0,1, 16, false)
-	--self:Animate("VUD2",			self:GetPackedBool(13) and 1 or 0, 	0,1, 16, false)
-	--self:Animate("VDL",				self:GetPackedBool(14) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VUD2",			self:GetPackedBool(13) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VDL",				self:GetPackedBool(14) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KDL",				self:GetPackedBool(15) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KDP",				self:GetPackedBool(16) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KRZD",			self:GetPackedBool(17) and 1 or 0, 	0,1, 16, false)
