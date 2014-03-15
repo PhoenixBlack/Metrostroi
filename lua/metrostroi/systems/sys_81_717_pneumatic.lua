@@ -100,23 +100,11 @@ end
 
 
 -------------------------------------------------------------------------------
-function TRAIN_SYSTEM:GetPressures(Train)
+function TRAIN_SYSTEM:UpdatePressures(Train,dT)
 	local frontBrakeOpen = Train.FrontBrakeLineIsolation.Value == 0
 	local rearBrakeOpen = Train.RearBrakeLineIsolation.Value == 0
 
-	-- If open into atmosphere, relieve pressure
-	if frontBrakeOpen and (not Train.FrontTrain) then
-		self.BrakeLinePressure = 0
-		self.TrainLinePressure = 0
-		return
-	end
-	if rearBrakeOpen and (not Train.RearTrain) then
-		self.BrakeLinePressure = 0
-		self.TrainLinePressure = 0
-		return
-	end
-
-	-- If other end is closed, this one must be closed too
+	-- Check if both valve on this train and connected train are open
 	if Train.FrontTrain then 
 		if Train.FrontTrain.FrontTrain == Train then -- Nose to nose
 			frontBrakeOpen = frontBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
@@ -127,85 +115,48 @@ function TRAIN_SYSTEM:GetPressures(Train)
 	if Train.RearTrain then
 		if Train.RearTrain.FrontTrain == Train then -- Back to back
 			rearBrakeOpen = rearBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)
-		else
+		else -- Back to nose
 			frontBrakeOpen = frontBrakeOpen and (Train.RearTrain.RearBrakeLineIsolation.Value == 0)
 		end
 	end
 	
-	-- Pressure in this wagon = pressure in this wagon with leaks from other wagons
-	local t1 = 0.50
-	local t2 = 0.10
-	if Train.FrontTrain and Train.RearTrain and	frontBrakeOpen and rearBrakeOpen then
-		self.TrainLinePressure = 
-			(Train.FrontTrain.Pneumatic.TrainLinePressure +
-			 Train.RearTrain.Pneumatic.TrainLinePressure) / 2
-			 
-		self.BrakeLinePressure = 
-			self.BrakeLinePressure*t2 + 
-			(1-t2)*0.5*Train.FrontTrain.Pneumatic.BrakeLinePressure +
-			(1-t2)*0.5*Train.RearTrain.Pneumatic.BrakeLinePressure
-			 
-		-- Not realistic to share this, but helps pneumatic system to react faster
-		self.ReservoirPressure = 
-			self.ReservoirPressure*t2 + 
-			(1-t2)*0.5*Train.FrontTrain.Pneumatic.ReservoirPressure +
-			(1-t2)*0.5*Train.RearTrain.Pneumatic.ReservoirPressure
-	elseif Train.FrontTrain and	frontBrakeOpen then
-		self.TrainLinePressure = Train.FrontTrain.Pneumatic.TrainLinePressure
-		self.BrakeLinePressure =
-			self.BrakeLinePressure*(1-t1) + (t1)*Train.FrontTrain.Pneumatic.BrakeLinePressure
-		self.ReservoirPressure =
-			self.ReservoirPressure*(1-t1) + (t1)*Train.FrontTrain.Pneumatic.ReservoirPressure
-	elseif Train.RearTrain and rearBrakeOpen then
-		self.TrainLinePressure = Train.RearTrain.Pneumatic.TrainLinePressure
-		self.BrakeLinePressure =
-			self.BrakeLinePressure*(1-t1) + (t1)*Train.RearTrain.Pneumatic.BrakeLinePressure
-		self.ReservoirPressure =
-			self.ReservoirPressure*(1-t1) + (t1)*Train.RearTrain.Pneumatic.ReservoirPressure
-	end
-	--print(self,"AFTER",self.BrakeLinePressure)
-end
-
-function TRAIN_SYSTEM:SetPressures(Train)
-	--[[local frontBrakeOpen = Train.FrontBrakeLineIsolation.Value == 0
-	local rearBrakeOpen = Train.RearBrakeLineIsolation.Value == 0
-	
-	-- If other end is closed, this one must be closed too
-	if Train.FrontTrain then 
-		if Train.FrontTrain.FrontTrain == Train then -- Nose to nose
-			frontBrakeOpen = frontBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
-		else -- Rear to nose
-			rearBrakeOpen = rearBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
-		end
-	end
-	if Train.RearTrain then
-		if Train.RearTrain.FrontTrain == Train then -- Back to back
-			rearBrakeOpen = rearBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)
+	-- Calculate derivatives
+	local function equalizePressure(pressure,train,valve_status,rate)
+		if not valve_status then return end
+		local other
+		if train then other = train.Pneumatic end
+		
+		-- Get second pressure
+		local P2 = 0
+		if other then P2 = other[pressure] end
+		
+		-- Calculate rate
+		local dPdT = rate * (P2 - self[pressure])
+		-- Calculate delta
+		local dP = dPdT*dT
+		
+		-- Equalized pressure
+		local P0 = (P2 + self[pressure]) / 2
+		
+		-- Update pressures
+		if dP > 0 then
+			self[pressure] = math.min(P0,self[pressure] + dP)
+			if other then
+				other[pressure] = math.max(P0,other[pressure] - dP)
+			end
 		else
-			frontBrakeOpen = frontBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)		
+			self[pressure] = math.max(P0,self[pressure] + dP)
+			if other then
+				other[pressure] = math.min(P0,other[pressure] - dP)
+			end
 		end
-	end]]--
-
+	end
+	
 	-- Equalize pressure
-	--[[if Train.FrontTrain and Train.RearTrain and frontBrakeOpen and rearBrakeOpen then
-		Train.FrontTrain.Pneumatic.TrainLinePressure = self.TrainLinePressure
-		Train.RearTrain.Pneumatic.TrainLinePressure = self.TrainLinePressure
-		
-		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure		
-		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
-		Train.FrontTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
-		Train.RearTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
-	elseif Train.FrontTrain and frontBrakeOpen then
-		Train.FrontTrain.Pneumatic.TrainLinePressure = self.TrainLinePressure
-		
-		Train.FrontTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
-		Train.FrontTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
-	elseif Train.RearTrain and rearBrakeOpen then
-		Train.RearTrain.Pneumatic.TrainLinePressure = self.TrainLinePressure
-		
-		Train.RearTrain.Pneumatic.BrakeLinePressure = self.BrakeLinePressure
-		Train.RearTrain.Pneumatic.ReservoirPressure = self.ReservoirPressure
-	end]]--
+	equalizePressure("BrakeLinePressure",Train.FrontTrain,frontBrakeOpen,100.0)
+	equalizePressure("BrakeLinePressure",Train.RearTrain,rearBrakeOpen,100.0)
+	equalizePressure("TrainLinePressure",Train.FrontTrain,frontBrakeOpen,0.01)
+	equalizePressure("TrainLinePressure",Train.RearTrain,rearBrakeOpen,0.01)
 end
 
 
@@ -236,9 +187,6 @@ function TRAIN_SYSTEM:Think(dT)
 		return dPdT
 	end
 	
-	-- Get pressures (if isolation valves are open, this connects it to next wagon)
-	self:GetPressures(Train)
-	
 	
 	----------------------------------------------------------------------------
 	-- Accumulate derivatives
@@ -261,20 +209,20 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	-- 2 Brake line, reservoir replenished from brake line reductor
 	if (self.DriverValvePosition == 2) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.40)
-		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.40)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.50)
+		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.50)
 		equalizePressure("ReservoirPressure", self.TrainToBrakeReducedPressure*1.01, 2.00)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 	end
 	-- 3 Close all valves
-	if (self.DriverValvePosition == 3) or (Train.DriverValveDisconnect.Value == 0.0) then
-		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 0.90)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 0.90)
+	if (self.DriverValvePosition == 3) and (Train.DriverValveDisconnect.Value == 1.0) then
+		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.80)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.80)
 	end
 	-- 4 Reservoir open to atmosphere, brake line equalizes with reservoir
 	if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("ReservoirPressure", 0.0,0.60)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.50)
+		equalizePressure("ReservoirPressure", 0.0,0.40)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 0.70)
 	end
 	-- 5 Reservoir and brake line open to atmosphere
 	if (self.DriverValvePosition == 5) and (Train.DriverValveDisconnect.Value == 1.0) then
@@ -308,6 +256,9 @@ function TRAIN_SYSTEM:Think(dT)
 		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.45, 1.00, 1.50)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
+	
+	-- Simulate cross-feed between different wagons
+	self:UpdatePressures(Train,dT)
 	
 	
 	----------------------------------------------------------------------------
@@ -389,12 +340,8 @@ function TRAIN_SYSTEM:Think(dT)
 		(self.RightDoorState[3] == 0) and
 		(self.RightDoorState[4] == 0))
 
-	----------------------------------------------------------------------------
-	-- Set pressures (if isolation valves are open, propagate pressure to next wagon)
-	self:SetPressures(Train)
-	
+	----------------------------------------------------------------------------	
 	-- FIXME
 	Train:SetNWBool("FI",Train.FrontBrakeLineIsolation.Value ~= 0)
 	Train:SetNWBool("RI",Train.RearBrakeLineIsolation.Value ~= 0)
-
 end
