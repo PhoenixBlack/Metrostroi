@@ -35,7 +35,7 @@ function ENT:PhysicsCollide(data,physobj)
 	end
 
 	-- Generate flange sounds
-	if (data.Speed > 115) and (data.DeltaTime > 0.085) then
+	if (data.Speed > 115) and (data.DeltaTime > 0.095) then
 		self:EmitSound("subway_trains/flange_"..math.random(1,8)..".wav",65,math.random(80,120))
 	end
 end
