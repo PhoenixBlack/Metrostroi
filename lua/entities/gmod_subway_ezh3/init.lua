@@ -266,11 +266,9 @@ function ENT:Think()
 	end
     
 	-- Feed packed floats
-	local speed = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
 	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/5)
 	self:SetPackedRatio(1, (self.KV.ControllerPosition+3)/7)
 	self:SetPackedRatio(2, 1-(self.KV.ReverserPosition+1)/2)
-	self:SetPackedRatio(3, speed/100.0)
 	self:SetPackedRatio(4, self.Pneumatic.ReservoirPressure/16.0)
 	self:SetPackedRatio(5, self.Pneumatic.TrainLinePressure/16.0)
 	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
@@ -287,15 +285,26 @@ function ENT:Think()
 	self.DebugVars["Speed"] = speed
 	self.DebugVars["Acceleration"] = acceleration
 	
-	-- Speed check
-	local limit = 0
-	if self.ALS_ARS.Signal40 then limit = 40 end
-	if self.ALS_ARS.Signal60 then limit = 60 end
-	if self.ALS_ARS.Signal70 then limit = 70 end
-	if self.ALS_ARS.Signal80 then limit = 80 end
-	if self.ALS.Value == 1.0 then
-		if math.floor(speed) >= math.floor(limit) then self:SetPackedBool(39,true) end
+	-- Speed check and update speed data
+	if CurTime() - (self.LastSpeedCheck or 0) > 0.5 then
+		self.LastSpeedCheck = CurTime()
+
+		-- Perform ARS checks
+		local limit = 0
+		if self.ALS_ARS.Signal40 then limit = 40 end
+		if self.ALS_ARS.Signal60 then limit = 60 end
+		if self.ALS_ARS.Signal70 then limit = 70 end
+		if self.ALS_ARS.Signal80 then limit = 80 end
+		if self.ALS.Value == 1.0 then
+			self.ALSCheckState = (math.floor(speed) >= math.floor(limit))
+		else
+			self.ALSCheckState = false
+		end
+
+		-- Update speed
+		self:SetPackedRatio(3, speed/100.0)
 	end
+	self:SetPackedBool(39,self.ALSCheckState)
 	
 	-- RUT test
 	local weightRatio = math.max(0,math.min(1,(self:GetPassengerCount()/300)))
