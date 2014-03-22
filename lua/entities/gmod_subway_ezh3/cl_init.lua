@@ -241,6 +241,19 @@ ENT.ButtonMap["DURA"] = {
 		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip=""},
 	}
 }
+ENT.ButtonMap["Schedule"] = {
+	//pos = Vector(457,-25,20),
+	//ang = Angle(0,-100,90),
+	pos = Vector(442.4,-59.8,26),
+	ang = Angle(0,-110,90),
+	width = 42 + (1 + 16) * 3,
+	height = 240,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "ScheduleTip", x=40, y=125, radius=150, tooltip="Your current schedule"},
+	}
+}
 
 
 -- Temporary panels (possibly temporary)
@@ -717,8 +730,140 @@ surface.CreateFont("MetrostroiSubway_SmallText", {
   outline = false
 })
 
+--[[
+Scheduledrawing
+
+--Reference
+http://static.diary.ru/userdir/1/0/4/7/1047/28088395.jpg
+
+--Todo: Add this:
+http://wiki.garrysmod.com/page/render/GetLightColor
+http://wiki.garrysmod.com/page/render/SetColorModulation
+]]
+local function HoursFromStamp( stamp )
+	local hours = tostring(math.floor(stamp/3600)%24)
+	if #hours == 1 then hours = "0" .. hours end
+	return hours .. " "
+end
+
+local function MinutesFromStamp( stamp )
+	local minutes = tostring(math.floor(stamp/60)%60)
+	if #minutes == 1 then minutes = "0" .. minutes end
+	return minutes .. " "
+end
+
+local function SecondsFromStamp( stamp )
+	local seconds = tostring(stamp%60)
+	if #seconds == 1 then seconds = "0" .. seconds end
+	return seconds .. " "
+end
+
+surface.CreateFont( "Schedule_Hand", {
+	font = "Monotype Corsiva",
+	size = 15,
+	weight = 500
+})
+surface.CreateFont( "Schedule_Hand_Small", {
+	font = "Monotype Corsiva",
+	size = 12,
+	weight = 500
+})
+surface.CreateFont( "Schedule_Machine", {
+	font = "Arial",
+	size = 12,
+	weight = 500
+})
+
+local DrawRe = surface.DrawRect
+local DrawTe = function(txt, x, y)
+	draw.SimpleText(txt, "Schedule_Hand", x, y, Color(0,15,85), 0, 0)
+end
+local DrawTeSm = function(txt, x, y)
+	draw.SimpleText(txt, "Schedule_Hand_Small", x, y, Color(0,15,85), 0, 0)
+end
+local DrawTeMa = function(txt, x, y)
+	draw.SimpleText(txt, "Schedule_Machine", x, y, Color(0,0,0), 0, 0)
+end
+
+
+local Schedule = {
+	stations = {
+		{"Station 1", os.time() + 20},
+		{"Station 2", os.time() + 46},
+		{"Station 3", os.time() + 80},
+		{"Station 4", os.time() + 95},
+		{"Station 5", os.time() + 120}
+	},
+	total = 2000,
+	interval = 300
+}
+
+local col1w = 40
+local col2w = 16
+local rowtall = 15
+local function DrawSchedule(panel)
+	local w = panel.width
+	local h = panel.height
+	
+	surface.SetDrawColor(Color(255, 253, 208))
+	DrawRe(0,0,w,h)
+	
+	surface.SetDrawColor(Color(0,0,0))
+	
+	--Hors
+	DrawRe(0,0,1,h)
+	DrawRe(1 + col1w,0,1,h)
+	DrawRe(1 + col1w + 1 + col2w,32,1,h-32)
+	DrawRe(1 + col1w + 1 + col2w + 1 + col2w,32,1,h-32)
+	DrawRe(1 + col1w + 1 + col2w + 1 + col2w + 1 + col2w,0,1,h)
+	
+	--Verts
+	DrawRe(0,0,w,1)
+	DrawRe(1 + col1w,16,w - col1w - 1,1)
+	DrawRe(1 + col1w,32,w - col1w - 1,1)
+	for i=48,h,rowtall+1 do		
+		DrawRe(0,i,w,1)
+	end
+	
+	--Text
+	local t = Schedule
+	
+	--Top info
+	DrawTeMa("Total", col1w + 3, 3)
+	DrawTe(MinutesFromStamp(t.total), w - 27, 1)
+	DrawTeSm(SecondsFromStamp(t.total), w - 15, 1)
+	
+	DrawTeMa("Intrvl", col1w + 3, rowtall + 4)
+	DrawTe(MinutesFromStamp(t.interval), w - 27, rowtall)
+	DrawTeSm(SecondsFromStamp(t.interval), w - 15, rowtall)
+	
+	--Schedule rows
+	local lasthour = -1
+	for i,v in pairs(t.stations) do
+		local y = 50 + (i-1)*(rowtall+1)
+		
+		DrawTeMa(v[1], 2, y) -- Stationname
+		
+		local hours = HoursFromStamp(v[2])
+		local minutes = MinutesFromStamp(v[2])
+		local seconds = SecondsFromStamp(v[2])
+		
+		if hours != lasthour then
+			lasthour = hours
+			
+			DrawTe(hours, col1w + 3, y) -- Hours
+		end
+		
+		DrawTe(minutes, col1w + col2w + 5, y) -- Minutes
+		DrawTe(seconds, col1w + col2w + col2w + 5, y) -- Seconds
+	end
+end
+
 function ENT:Draw()
 	self.BaseClass.Draw(self)
+	
+	self:DrawOnPanel("Schedule", DrawSchedule)
+	
 	self:DrawOnPanel("ARS",function()
 		if not self:GetPackedBool(32) then return end
 	
