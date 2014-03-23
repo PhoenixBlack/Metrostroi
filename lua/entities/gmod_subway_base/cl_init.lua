@@ -710,7 +710,6 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 		local plyaimvec = gui.ScreenToVector(ScrW()/2, ScrH()/2) -- ply:GetAimVector() is unreliable when in seats
 		
 		-- Loop trough every panel
-		drawCrosshair = false
 		for k2,panel in pairs(train.ButtonMap) do
 			local wang = train:LocalToWorldAngles(panel.ang)
 			
