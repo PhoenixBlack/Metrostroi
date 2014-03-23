@@ -241,14 +241,15 @@ ENT.ButtonMap["DURA"] = {
 		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip=""},
 	}
 }
+
 ENT.ButtonMap["Schedule"] = {
 	//pos = Vector(457,-25,20),
 	//ang = Angle(0,-100,90),
 	pos = Vector(442.4,-59.8,26),
 	ang = Angle(0,-110,90),
-	width = 42 + (1 + 16) * 3,
-	height = 240,
-	scale = 0.0625,
+	width = (80 + 2 + (1 + 32) * 3),
+	height = (30+1)*16+1,
+	scale = 0.0625/2,
 	
 	buttons = {
 		{ID = "ScheduleTip", x=40, y=125, radius=150, tooltip="Your current schedule"},
@@ -760,18 +761,18 @@ end
 
 surface.CreateFont( "Schedule_Hand", {
 	font = "Monotype Corsiva",
-	size = 15,
-	weight = 500
+	size = 30,
+	weight = 600
 })
 surface.CreateFont( "Schedule_Hand_Small", {
 	font = "Monotype Corsiva",
-	size = 12,
-	weight = 500
+	size = 18,
+	weight = 600
 })
 surface.CreateFont( "Schedule_Machine", {
 	font = "Arial",
-	size = 12,
-	weight = 500
+	size = 20,
+	weight = 600
 })
 
 local DrawRe = surface.DrawRect
@@ -798,30 +799,37 @@ local Schedule = {
 	interval = 300
 }
 
-local col1w = 40
-local col2w = 16
-local rowtall = 15
-local function DrawSchedule(panel)
+local col1w = 80
+local col2w = 32
+local col2w2 = col2w*2
+local rowtall = 30
+local rowtall2 = rowtall*2
+local function DrawSchedule(panel, train)
 	local w = panel.width
 	local h = panel.height
 	
+	local light = render.GetLightColor(train:LocalToWorld(Vector(442.4,-59.8,26)))
+	render.SetColorModulation(light.x, light.y, light.z)
+	
+	--Background
 	surface.SetDrawColor(Color(255, 253, 208))
 	DrawRe(0,0,w,h)
 	
+	--Lines
 	surface.SetDrawColor(Color(0,0,0))
 	
-	--Hors
+	--Horisontal lines
 	DrawRe(0,0,1,h)
 	DrawRe(1 + col1w,0,1,h)
-	DrawRe(1 + col1w + 1 + col2w,32,1,h-32)
-	DrawRe(1 + col1w + 1 + col2w + 1 + col2w,32,1,h-32)
+	DrawRe(1 + col1w + 1 + col2w,rowtall2+2,1,h-rowtall2+2)
+	DrawRe(1 + col1w + 1 + col2w + 1 + col2w,rowtall2+2,1,h-rowtall2+2)
 	DrawRe(1 + col1w + 1 + col2w + 1 + col2w + 1 + col2w,0,1,h)
 	
-	--Verts
+	--Vertical lines
 	DrawRe(0,0,w,1)
-	DrawRe(1 + col1w,16,w - col1w - 1,1)
-	DrawRe(1 + col1w,32,w - col1w - 1,1)
-	for i=48,h,rowtall+1 do		
+	DrawRe(1 + col1w,rowtall+1,w - col1w - 1,1)
+	DrawRe(1 + col1w,rowtall2+2,w - col1w - 1,1)
+	for i=(rowtall+1)*3,h,rowtall+1 do		
 		DrawRe(0,i,w,1)
 	end
 	
@@ -830,19 +838,19 @@ local function DrawSchedule(panel)
 	
 	--Top info
 	DrawTeMa("Total", col1w + 3, 3)
-	DrawTe(MinutesFromStamp(t.total), w - 27, 1)
-	DrawTeSm(SecondsFromStamp(t.total), w - 15, 1)
+	DrawTe(MinutesFromStamp(t.total), w - 50, 1)
+	DrawTeSm(SecondsFromStamp(t.total), w - 25, 5)
 	
 	DrawTeMa("Intrvl", col1w + 3, rowtall + 4)
-	DrawTe(MinutesFromStamp(t.interval), w - 27, rowtall)
-	DrawTeSm(SecondsFromStamp(t.interval), w - 15, rowtall)
+	DrawTe(MinutesFromStamp(t.interval), w - 50, rowtall)
+	DrawTeSm(SecondsFromStamp(t.interval), w - 25, rowtall + 4)
 	
 	--Schedule rows
 	local lasthour = -1
 	for i,v in pairs(t.stations) do
-		local y = 50 + (i-1)*(rowtall+1)
+		local y = ((rowtall+1)*3+2) + (i-1)*(rowtall+1)
 		
-		DrawTeMa(v[1], 2, y) -- Stationname
+		DrawTeMa(v[1], 3, y + 4) -- Stationname
 		
 		local hours = HoursFromStamp(v[2])
 		local minutes = MinutesFromStamp(v[2])
@@ -857,6 +865,8 @@ local function DrawSchedule(panel)
 		DrawTe(minutes, col1w + col2w + 5, y) -- Minutes
 		DrawTe(seconds, col1w + col2w + col2w + 5, y) -- Seconds
 	end
+	
+	render.SetColorModulation(1,1,1)
 end
 
 function ENT:Draw()
