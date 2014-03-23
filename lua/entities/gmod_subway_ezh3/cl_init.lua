@@ -804,20 +804,16 @@ local col2w = 32
 local col2w2 = col2w*2
 local rowtall = 30
 local rowtall2 = rowtall*2
+local defaultlight = Vector(0.8,0.8,0.8)
 local function DrawSchedule(panel, train)
 	local w = panel.width
 	local h = panel.height
 	
-	//PrintTable(train.Panel)
-	
-	local light = Vector(0.8,0.8,0.8)
+	local light = defaultlight
 	local cabinlights = train:GetPackedBool(58)
 	if not cabinlights then
 		light = render.GetLightColor(train:LocalToWorld(Vector(430,0,26)))
 	end
-	
-	//print(light)
-	render.SetColorModulation(light.x, light.y, light.z)
 	
 	--Background
 	surface.SetDrawColor(Color(255 * light.x, 253 * light.y, 208 * light.z))
@@ -873,8 +869,6 @@ local function DrawSchedule(panel, train)
 		DrawTe(minutes, col1w + col2w + 5, y, light) -- Minutes
 		DrawTe(seconds, col1w + col2w + col2w + 5, y, light) -- Seconds
 	end
-	
-	render.SetColorModulation(1,1,1)
 end
 
 function ENT:Draw()
