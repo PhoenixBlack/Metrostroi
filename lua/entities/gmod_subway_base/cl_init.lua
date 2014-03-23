@@ -707,10 +707,7 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 	local train = isValidTrainDriver(ply)
 	if(IsValid(train) and not ply:GetVehicle():GetThirdPersonMode() and train.ButtonMap != nil) then
 		
-		local tr = ply:GetEyeTrace()
-		
-		local plyaimvec = ply:GetAimVector()
-		plyaimvec:Rotate(Angle(0, 0, train:GetAngles().p)) -- Rotate it with the train's pitch for it to work in hills.
+		local plyaimvec = gui.ScreenToVector(ScrW()/2, ScrH()/2) -- ply:GetAimVector() is unreliable when in seats
 		
 		-- Loop trough every panel
 		drawCrosshair = false
@@ -720,7 +717,7 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 			if plyaimvec:Dot(wang:Up()) < 0 then
 				local wpos = train:LocalToWorld(panel.pos)
 				
-				local isectPos = LinePlaneIntersect(wpos,wang:Up(),tr.StartPos,plyaimvec)
+				local isectPos = LinePlaneIntersect(wpos,wang:Up(),ply:EyePos(),plyaimvec)
 				local localx,localy = WorldToScreen(isectPos,wpos,panel.scale,wang)
 				
 				panel.aimX = localx
