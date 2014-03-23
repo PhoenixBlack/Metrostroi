@@ -736,10 +736,6 @@ Scheduledrawing
 
 --Reference
 http://static.diary.ru/userdir/1/0/4/7/1047/28088395.jpg
-
---Todo: Add this:
-http://wiki.garrysmod.com/page/render/GetLightColor
-http://wiki.garrysmod.com/page/render/SetColorModulation
 ]]
 local function HoursFromStamp( stamp )
 	local hours = tostring(math.floor(stamp/3600)%24)
@@ -801,7 +797,6 @@ local Schedule = {
 
 local col1w = 80
 local col2w = 32
-local col2w2 = col2w*2
 local rowtall = 30
 local rowtall2 = rowtall*2
 local defaultlight = Vector(0.8,0.8,0.8)
