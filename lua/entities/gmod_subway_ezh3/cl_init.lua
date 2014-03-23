@@ -776,11 +776,11 @@ surface.CreateFont( "Schedule_Machine", {
 })
 
 local DrawRe = surface.DrawRect
-local DrawTe = function(txt, x, y)
-	draw.SimpleText(txt, "Schedule_Hand", x, y, Color(0,15,85), 0, 0)
+local DrawTe = function(txt, x, y, col)
+	draw.SimpleText(txt, "Schedule_Hand", x, y, Color(0,15*col.y,85*col.z), 0, 0)
 end
-local DrawTeSm = function(txt, x, y)
-	draw.SimpleText(txt, "Schedule_Hand_Small", x, y, Color(0,15,85), 0, 0)
+local DrawTeSm = function(txt, x, y, col)
+	draw.SimpleText(txt, "Schedule_Hand_Small", x, y, Color(0,15*col.y,85*col.z), 0, 0)
 end
 local DrawTeMa = function(txt, x, y)
 	draw.SimpleText(txt, "Schedule_Machine", x, y, Color(0,0,0), 0, 0)
@@ -808,11 +808,19 @@ local function DrawSchedule(panel, train)
 	local w = panel.width
 	local h = panel.height
 	
-	local light = render.GetLightColor(train:LocalToWorld(Vector(442.4,-59.8,26)))
+	//PrintTable(train.Panel)
+	
+	local light = Vector(0.8,0.8,0.8)
+	local cabinlights = train:GetPackedBool(58)
+	if not cabinlights then
+		light = render.GetLightColor(train:LocalToWorld(Vector(430,0,26)))
+	end
+	
+	//print(light)
 	render.SetColorModulation(light.x, light.y, light.z)
 	
 	--Background
-	surface.SetDrawColor(Color(255, 253, 208))
+	surface.SetDrawColor(Color(255 * light.x, 253 * light.y, 208 * light.z))
 	DrawRe(0,0,w,h)
 	
 	--Lines
@@ -837,13 +845,13 @@ local function DrawSchedule(panel, train)
 	local t = Schedule
 	
 	--Top info
-	DrawTeMa("Total", col1w + 3, 3)
-	DrawTe(MinutesFromStamp(t.total), w - 50, 1)
-	DrawTeSm(SecondsFromStamp(t.total), w - 25, 5)
+	DrawTeMa("Total", col1w + 3, 3, light)
+	DrawTe(MinutesFromStamp(t.total), w - 50, 1, light)
+	DrawTeSm(SecondsFromStamp(t.total), w - 25, 5, light)
 	
 	DrawTeMa("Intrvl", col1w + 3, rowtall + 4)
-	DrawTe(MinutesFromStamp(t.interval), w - 50, rowtall)
-	DrawTeSm(SecondsFromStamp(t.interval), w - 25, rowtall + 4)
+	DrawTe(MinutesFromStamp(t.interval), w - 50, rowtall, light)
+	DrawTeSm(SecondsFromStamp(t.interval), w - 25, rowtall + 4, light)
 	
 	--Schedule rows
 	local lasthour = -1
@@ -859,11 +867,11 @@ local function DrawSchedule(panel, train)
 		if hours != lasthour then
 			lasthour = hours
 			
-			DrawTe(hours, col1w + 3, y) -- Hours
+			DrawTe(hours, col1w + 3, y, light) -- Hours
 		end
 		
-		DrawTe(minutes, col1w + col2w + 5, y) -- Minutes
-		DrawTe(seconds, col1w + col2w + col2w + 5, y) -- Seconds
+		DrawTe(minutes, col1w + col2w + 5, y, light) -- Minutes
+		DrawTe(seconds, col1w + col2w + col2w + 5, y, light) -- Seconds
 	end
 	
 	render.SetColorModulation(1,1,1)
