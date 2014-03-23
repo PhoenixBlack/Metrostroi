@@ -657,10 +657,6 @@ local function LinePlaneIntersect(PlanePos,PlaneNormal,LinePos,LineDir)
 	return LineDir * dis + LinePos
 end
 
-local function IsFacingPanel(ply,ang)
-	return ply:GetEyeTrace().Normal:Dot(ang:Up()) < 0
-end
-
 -- Checks if the player is driving a train, also returns said train
 local function isValidTrainDriver(ply)
 	local seat = ply:GetVehicle()
@@ -713,28 +709,30 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 		
 		local tr = ply:GetEyeTrace()
 		
+		local plyaimvec = ply:GetAimVector()
+		plyaimvec:Rotate(Angle(0, 0, train:GetAngles().p)) -- Rotate it with the train's pitch for it to work in hills.
+		
 		-- Loop trough every panel
+		drawCrosshair = false
 		for k2,panel in pairs(train.ButtonMap) do
 			local wang = train:LocalToWorldAngles(panel.ang)
-			if IsFacingPanel(ply,wang) then
+			
+			if plyaimvec:Dot(wang:Up()) < 0 then
 				local wpos = train:LocalToWorld(panel.pos)
 				
-				local isectPos = LinePlaneIntersect(wpos,wang:Up(),tr.StartPos,tr.Normal)
+				local isectPos = LinePlaneIntersect(wpos,wang:Up(),tr.StartPos,plyaimvec)
 				local localx,localy = WorldToScreen(isectPos,wpos,panel.scale,wang)
 				
 				panel.aimX = localx
 				panel.aimY = localy
-				panel.aimedAt = (localx > 0 and localx < panel.width and localy > 0 and localy < panel.height)
+				if localx > 0 and localx < panel.width and localy > 0 and localy < panel.height then
+					drawCrosshair = true
+					panel.aimedAt = true
+				else
+					panel.aimedAt = false
+				end
 			else
 				panel.aimedAt = false
-			end
-		end
-		
-		-- Check if we should draw the crosshair
-		for kp,panel in pairs(train.ButtonMap) do
-			if panel.aimedAt then 
-				drawCrosshair = true
-				break
 			end
 		end
 		
