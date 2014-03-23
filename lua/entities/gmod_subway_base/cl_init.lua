@@ -343,7 +343,7 @@ end
 function ENT:DrawOnPanel(index,func)
 	local panel = self.ButtonMap[index]
 	cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
-		func(panel)
+		func(panel, self)
 	cam.End3D2D()
 end
 
