@@ -236,9 +236,9 @@ ENT.ButtonMap["DURA"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "DURASelectMain", x=95, y=43, radius=20, tooltip=""},
-		{ID = "DURASelectAlternate", x=60, y=43, radius=20, tooltip=""},
-		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip=""},
+		{ID = "DURASelectMain", x=95, y=43, radius=20, tooltip="DURA Select Main"},
+		{ID = "DURASelectAlternate", x=60, y=43, radius=20, tooltip="DURA Select Alternate"},
+		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip="DURA Toggle Channel"},
 	}
 }
 
