@@ -196,7 +196,7 @@ ENT.ButtonMap["Help"] = {
 	scale = 1,
 	
 	buttons = {
-		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Show help on driving the train"},
+		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Show help on driving the train"}, -- NEEDS TRANSLATING
 	}
 }
 
@@ -232,9 +232,22 @@ ENT.ButtonMap["DURA"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "DURASelectMain", x=95, y=43, radius=20, tooltip="DURA Select Main"},
-		{ID = "DURASelectAlternate", x=60, y=43, radius=20, tooltip="DURA Select Alternate"},
-		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip="DURA Toggle Channel"},
+		{ID = "DURASelectMain", x=95, y=43, radius=20, tooltip="DURA Select Main"}, -- NEEDS TRANSLATING
+		{ID = "DURASelectAlternate", x=60, y=43, radius=20, tooltip="DURA Select Alternate"}, -- NEEDS TRANSLATING
+		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip="DURA Toggle Channel"}, -- NEEDS TRANSLATING
+	}
+}
+
+ENT.ButtonMap["Meters"] = {
+	pos = Vector(449.3,-53,27.5),
+	ang = Angle(0,-125,90),
+	width = 170,
+	height = 110,
+	scale = 0.0625,
+	
+	buttons = {
+		{x=22, y=24, w=55, h=45, tooltip="Highvoltage Meter (kV)"}, -- NEEDS TRANSLATING
+		{x=90, y=24, w=58, h=45, tooltip="Total Amperemeter (A)"}, -- NEEDS TRANSLATING
 	}
 }
 
@@ -262,9 +275,9 @@ ENT.ButtonMap["Schedule"] = {
 		{x=col1w+2, y=rowtall*2+3, w=col2w, h=rowtall, tooltip="ЧАС\nHour"},
 		{x=col1w+col2w+3, y=rowtall*2+3, w=col2w, h=rowtall, tooltip="МИН\nMinute"},
 		{x=col1w+col2w*2+4, y=rowtall*2+3, w=col2w, h=rowtall, tooltip="СЕК\nSecond"},
-		{x=col1w+2, y=rowtall*3+4, w=col2w*3+2, h=(rowtall+1)*(rowamount-3)-1, tooltip="Время прибытия\nArrival times"},
+		{x=col1w+2, y=rowtall*3+4, w=col2w*3+2, h=(rowtall+1)*(rowamount-3)-1, tooltip="Arrival times"}, -- NEEDS TRANSLATING
 		
-		{x=1, y=rowtall*3+4, w=col1w, h=(rowtall+1)*(rowamount-3)-1, tooltip="Название станции\nStation name"},
+		{x=1, y=rowtall*3+4, w=col1w, h=(rowtall+1)*(rowamount-3)-1, tooltip="Station name"}, -- NEEDS TRANSLATING
 	}
 }
 
