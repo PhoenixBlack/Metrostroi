@@ -281,7 +281,13 @@ end
 -- Reference: http://static.diary.ru/userdir/1/0/4/7/1047/28088395.jpg
 --------------------------------------------------------------------------------
 local function AddZero( s )
-	if #s < 2 then return "0" .. s else return s end
+	if #s == 0 then
+		return "00"
+	elseif #s == 1 then
+		return "0" .. s
+	else
+		return s
+	end
 end
 
 local function HoursFromStamp( stamp )
@@ -485,11 +491,11 @@ function ENT:Draw()
 							
 							if button.w and button.h then
 								surface.DrawRect(button.x, button.y, button.w, button.h)
+								surface.DrawRect(button.x + button.w/2 - 8,button.y + button.h/2 - 8,16,16)
 							else
 								self:DrawCircle(button.x,button.y,button.radius or 10)
+								surface.DrawRect(button.x-8,button.y-8,16,16)
 							end
-							
-							surface.DrawRect(button.x-8,button.y-8,16,16)
 						end
 						
 						--Gotta reset this otherwise the qmenu draws transparent as well
