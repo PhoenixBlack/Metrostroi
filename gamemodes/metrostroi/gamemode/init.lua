@@ -1,4 +1,5 @@
 AddCSLuaFile( "cl_init.lua" )
+AddCSLuaFile( "cl_jobs.lua" )
 AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "sh_ranks.lua" )
 AddCSLuaFile( "playerclass.lua" )
