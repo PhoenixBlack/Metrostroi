@@ -304,7 +304,9 @@ function ENT:Think()
 		-- Update speed
 		self:SetPackedRatio(3, speed/100.0)
 	end
-	self:SetPackedBool(39,self.ALSCheckState)
+	if self.ALSCheckState == true then
+		self:SetPackedBool(39,true)
+	end
 	
 	-- RUT test
 	local weightRatio = math.max(0,math.min(1,(self:GetPassengerCount()/300)))
