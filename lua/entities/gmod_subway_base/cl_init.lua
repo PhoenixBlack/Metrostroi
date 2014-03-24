@@ -472,7 +472,7 @@ function ENT:Draw()
 					--surface.DrawRect(0,0,panel.width,panel.height)
 					if panel.buttons then
 						
-						surface.SetAlphaMultiplier(0.2) 
+						surface.SetAlphaMultiplier(0.2)
 						
 						for kb,button in pairs(panel.buttons) do
 							if not button.ID then
@@ -482,7 +482,13 @@ function ENT:Draw()
 							else
 								surface.SetDrawColor(0,255,0)
 							end
-							self:DrawCircle(button.x,button.y,button.radius or 10)
+							
+							if button.w and button.h then
+								surface.DrawRect(button.x, button.y, button.w, button.h)
+							else
+								self:DrawCircle(button.x,button.y,button.radius or 10)
+							end
+							
 							surface.DrawRect(button.x-8,button.y-8,16,16)
 						end
 						
@@ -837,11 +843,19 @@ local function findAimButton(ply)
 				--Loop trough every button on it
 				for kb,button in pairs(panel.buttons) do
 					
-					--If the aim location is withing button radis
-					local dist = math.Dist(button.x,button.y,panel.aimX,panel.aimY)
-					if dist < (button.radius or 10) then
-						table.insert(foundbuttons,{button,dist})
+					if button.w and button.h then
+						if panel.aimX >= button.x and panel.aimX <= (button.x + button.w) and
+								panel.aimY >= button.y and panel.aimY <= (button.y + button.h) then
+							table.insert(foundbuttons,{button,0})
+						end
+					else
+						--If the aim location is withing button radis
+						local dist = math.Dist(button.x,button.y,panel.aimX,panel.aimY)
+						if dist < (button.radius or 10) then
+							table.insert(foundbuttons,{button,dist})
+						end
 					end
+					
 				end
 			end
 		end
