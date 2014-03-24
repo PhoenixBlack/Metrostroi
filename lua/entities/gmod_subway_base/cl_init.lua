@@ -343,7 +343,7 @@ end
 function ENT:DrawOnPanel(index,func)
 	local panel = self.ButtonMap[index]
 	cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
-		func(panel)
+		func(panel, self)
 	cam.End3D2D()
 end
 
@@ -657,10 +657,6 @@ local function LinePlaneIntersect(PlanePos,PlaneNormal,LinePos,LineDir)
 	return LineDir * dis + LinePos
 end
 
-local function IsFacingPanel(ply,ang)
-	return ply:GetEyeTrace().Normal:Dot(ang:Up()) < 0
-end
-
 -- Checks if the player is driving a train, also returns said train
 local function isValidTrainDriver(ply)
 	local seat = ply:GetVehicle()
@@ -711,30 +707,28 @@ hook.Add("Think","metrostroi-cabin-panel",function()
 	local train = isValidTrainDriver(ply)
 	if(IsValid(train) and not ply:GetVehicle():GetThirdPersonMode() and train.ButtonMap != nil) then
 		
-		local tr = ply:GetEyeTrace()
+		local plyaimvec = gui.ScreenToVector(ScrW()/2, ScrH()/2) -- ply:GetAimVector() is unreliable when in seats
 		
 		-- Loop trough every panel
 		for k2,panel in pairs(train.ButtonMap) do
 			local wang = train:LocalToWorldAngles(panel.ang)
-			if IsFacingPanel(ply,wang) then
+			
+			if plyaimvec:Dot(wang:Up()) < 0 then
 				local wpos = train:LocalToWorld(panel.pos)
 				
-				local isectPos = LinePlaneIntersect(wpos,wang:Up(),tr.StartPos,tr.Normal)
+				local isectPos = LinePlaneIntersect(wpos,wang:Up(),ply:EyePos(),plyaimvec)
 				local localx,localy = WorldToScreen(isectPos,wpos,panel.scale,wang)
 				
 				panel.aimX = localx
 				panel.aimY = localy
-				panel.aimedAt = (localx > 0 and localx < panel.width and localy > 0 and localy < panel.height)
+				if localx > 0 and localx < panel.width and localy > 0 and localy < panel.height then
+					drawCrosshair = true
+					panel.aimedAt = true
+				else
+					panel.aimedAt = false
+				end
 			else
 				panel.aimedAt = false
-			end
-		end
-		
-		-- Check if we should draw the crosshair
-		for kp,panel in pairs(train.ButtonMap) do
-			if panel.aimedAt then 
-				drawCrosshair = true
-				break
 			end
 		end
 		
