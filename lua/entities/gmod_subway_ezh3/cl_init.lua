@@ -61,7 +61,7 @@ ENT.ButtonMap["Front"] = {
 	buttons = {
 		{ID = "VUSToggle",x=400, y=75, radius=15, tooltip="ВУС: Выключатель усиленого света ходовых фар\nVUS: Head lights bright/dim"},
 		--{ID = "CabinLightsToggle",		x=387, y=28, radius=15, tooltip=""},
-		{x=50,y=50,tooltip="Напряжение цепей управления\nControl circuits voltage",radius=35},
+		{x=25, y=30, w=57, h=40, tooltip="Напряжение цепей управления\nControl circuits voltage"},
 	}
 }
 
@@ -169,9 +169,7 @@ ENT.ButtonMap["Battery"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "VBToggle", x=110+70*0, y=130, radius=120, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
-		{ID = "VBToggle", x=110+70*1, y=130, radius=120, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
-		{ID = "VBToggle", x=110+70*2, y=130, radius=120, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
+		{ID = "VBToggle", x=0, y=0, w=210+10/0.0625, h=90+10/0.0625, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
 	}
 }
 
@@ -223,9 +221,7 @@ ENT.ButtonMap["DriverValveDisconnect"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "DriverValveDisconnectToggle", x=50, y=45, radius=50, tooltip="Клапан разобщения\nDriver valve disconnect valve"},
-		{ID = "DriverValveDisconnectToggle", x=100, y=45, radius=50, tooltip="Клапан разобщения\nDriver valve disconnect valve"},
-		{ID = "DriverValveDisconnectToggle", x=150, y=45, radius=50, tooltip="Клапан разобщения\nDriver valve disconnect valve"},
+		{ID = "DriverValveDisconnectToggle", x=0, y=0, w=200, h=90, tooltip="Клапан разобщения\nDriver valve disconnect valve"},
 	}
 }
 ENT.ButtonMap["DURA"] = {
@@ -257,7 +253,18 @@ ENT.ButtonMap["Schedule"] = {
 	scale = 0.0625/2,
 	
 	buttons = {
-		{ID = "ScheduleTip", x=40, y=125, radius=150, tooltip="Your current schedule"},
+		{x=1, y=1, w=col1w, h=rowtall, tooltip="М №\nRoute number"},
+		{x=1, y=rowtall*2+3, w=col1w, h=rowtall, tooltip="П №\nPath number"},
+		
+		{x=col1w+2, y=1, w=col2w*3+2, h=rowtall, tooltip="ВРЕМЯ ХОДА\nTotal schedule time"},
+		{x=col1w+2, y=rowtall+2, w=col2w*3+2, h=rowtall, tooltip="ИНТ\nTrain interval"},
+		
+		{x=col1w+2, y=rowtall*2+3, w=col2w, h=rowtall, tooltip="ЧАС\nHour"},
+		{x=col1w+col2w+3, y=rowtall*2+3, w=col2w, h=rowtall, tooltip="МИН\nMinute"},
+		{x=col1w+col2w*2+4, y=rowtall*2+3, w=col2w, h=rowtall, tooltip="СЕК\nSecond"},
+		{x=col1w+2, y=rowtall*3+4, w=col2w*3+2, h=(rowtall+1)*(rowamount-3)-1, tooltip="Время прибытия\nArrival times"},
+		
+		{x=1, y=rowtall*3+4, w=col1w, h=(rowtall+1)*(rowamount-3)-1, tooltip="Название станции\nStation name"},
 	}
 }
 
