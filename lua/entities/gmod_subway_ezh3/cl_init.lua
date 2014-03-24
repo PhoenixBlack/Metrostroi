@@ -242,20 +242,24 @@ ENT.ButtonMap["DURA"] = {
 	}
 }
 
+
+--These values should be identical to those drawing the schedule
+local col1w = 80 -- 1st Column width
+local col2w = 32 -- The other column widths
+local rowtall = 30 -- Row height, includes -only- the usable space and not any lines
+
+local rowamount = 16 -- How many rows to show (total)
 ENT.ButtonMap["Schedule"] = {
-	//pos = Vector(457,-25,20),
-	//ang = Angle(0,-100,90),
 	pos = Vector(442.4,-59.8,26),
 	ang = Angle(0,-110,90),
-	width = (80 + 2 + (1 + 32) * 3),
-	height = (30+1)*16+1,
+	width = (col1w + 2 + (1 + col2w) * 3),
+	height = (rowtall+1)*rowamount+1,
 	scale = 0.0625/2,
 	
 	buttons = {
 		{ID = "ScheduleTip", x=40, y=125, radius=150, tooltip="Your current schedule"},
 	}
 }
-
 
 -- Temporary panels (possibly temporary)
 ENT.ButtonMap["FrontPneumatic"] = {
@@ -731,145 +735,9 @@ surface.CreateFont("MetrostroiSubway_SmallText", {
   outline = false
 })
 
---[[
-Scheduledrawing
-
---Reference
-http://static.diary.ru/userdir/1/0/4/7/1047/28088395.jpg
-]]
-local function HoursFromStamp( stamp )
-	local hours = tostring(math.floor(stamp/3600)%24)
-	if #hours == 1 then hours = "0" .. hours end
-	return hours .. " "
-end
-
-local function MinutesFromStamp( stamp )
-	local minutes = tostring(math.floor(stamp/60)%60)
-	if #minutes == 1 then minutes = "0" .. minutes end
-	return minutes .. " "
-end
-
-local function SecondsFromStamp( stamp )
-	local seconds = tostring(stamp%60)
-	if #seconds == 1 then seconds = "0" .. seconds end
-	return seconds .. " "
-end
-
-surface.CreateFont( "Schedule_Hand", {
-	font = "Monotype Corsiva",
-	size = 30,
-	weight = 600
-})
-surface.CreateFont( "Schedule_Hand_Small", {
-	font = "Monotype Corsiva",
-	size = 18,
-	weight = 600
-})
-surface.CreateFont( "Schedule_Machine", {
-	font = "Arial",
-	size = 20,
-	weight = 600
-})
-
-local DrawRe = surface.DrawRect
-local DrawTe = function(txt, x, y, col)
-	draw.SimpleText(txt, "Schedule_Hand", x, y, Color(0,15*col.y,85*col.z), 0, 0)
-end
-local DrawTeSm = function(txt, x, y, col)
-	draw.SimpleText(txt, "Schedule_Hand_Small", x, y, Color(0,15*col.y,85*col.z), 0, 0)
-end
-local DrawTeMa = function(txt, x, y)
-	draw.SimpleText(txt, "Schedule_Machine", x, y, Color(0,0,0), 0, 0)
-end
-
-
-local Schedule = {
-	stations = {
-		{"Station 1", os.time() + 20},
-		{"Station 2", os.time() + 46},
-		{"Station 3", os.time() + 80},
-		{"Station 4", os.time() + 95},
-		{"Station 5", os.time() + 120}
-	},
-	total = 2000,
-	interval = 300
-}
-
-local col1w = 80
-local col2w = 32
-local rowtall = 30
-local rowtall2 = rowtall*2
-local defaultlight = Vector(0.8,0.8,0.8)
-local function DrawSchedule(panel, train)
-	local w = panel.width
-	local h = panel.height
-	
-	local light = defaultlight
-	local cabinlights = train:GetPackedBool(58)
-	if not cabinlights then
-		light = render.GetLightColor(train:LocalToWorld(Vector(430,0,26)))
-	end
-	
-	--Background
-	surface.SetDrawColor(Color(255 * light.x, 253 * light.y, 208 * light.z))
-	DrawRe(0,0,w,h)
-	
-	--Lines
-	surface.SetDrawColor(Color(0,0,0))
-	
-	--Horisontal lines
-	DrawRe(0,0,1,h)
-	DrawRe(1 + col1w,0,1,h)
-	DrawRe(1 + col1w + 1 + col2w,rowtall2+2,1,h-rowtall2+2)
-	DrawRe(1 + col1w + 1 + col2w + 1 + col2w,rowtall2+2,1,h-rowtall2+2)
-	DrawRe(1 + col1w + 1 + col2w + 1 + col2w + 1 + col2w,0,1,h)
-	
-	--Vertical lines
-	DrawRe(0,0,w,1)
-	DrawRe(1 + col1w,rowtall+1,w - col1w - 1,1)
-	DrawRe(1 + col1w,rowtall2+2,w - col1w - 1,1)
-	for i=(rowtall+1)*3,h,rowtall+1 do		
-		DrawRe(0,i,w,1)
-	end
-	
-	--Text
-	local t = Schedule
-	
-	--Top info
-	DrawTeMa("Total", col1w + 3, 3, light)
-	DrawTe(MinutesFromStamp(t.total), w - 50, 1, light)
-	DrawTeSm(SecondsFromStamp(t.total), w - 25, 5, light)
-	
-	DrawTeMa("Intrvl", col1w + 3, rowtall + 4)
-	DrawTe(MinutesFromStamp(t.interval), w - 50, rowtall, light)
-	DrawTeSm(SecondsFromStamp(t.interval), w - 25, rowtall + 4, light)
-	
-	--Schedule rows
-	local lasthour = -1
-	for i,v in pairs(t.stations) do
-		local y = ((rowtall+1)*3+2) + (i-1)*(rowtall+1)
-		
-		DrawTeMa(v[1], 3, y + 4) -- Stationname
-		
-		local hours = HoursFromStamp(v[2])
-		local minutes = MinutesFromStamp(v[2])
-		local seconds = SecondsFromStamp(v[2])
-		
-		if hours != lasthour then
-			lasthour = hours
-			
-			DrawTe(hours, col1w + 3, y, light) -- Hours
-		end
-		
-		DrawTe(minutes, col1w + col2w + 5, y, light) -- Minutes
-		DrawTe(seconds, col1w + col2w + col2w + 5, y, light) -- Seconds
-	end
-end
 
 function ENT:Draw()
 	self.BaseClass.Draw(self)
-	
-	self:DrawOnPanel("Schedule", DrawSchedule)
 	
 	self:DrawOnPanel("ARS",function()
 		if not self:GetPackedBool(32) then return end

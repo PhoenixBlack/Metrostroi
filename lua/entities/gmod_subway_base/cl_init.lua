@@ -257,8 +257,6 @@ function ENT:Think()
 	end
 end
 
-
-
 --------------------------------------------------------------------------------
 -- Various rendering shortcuts for trains
 --------------------------------------------------------------------------------
@@ -278,6 +276,160 @@ function ENT:DrawCircle(cx,cy,radius)
 end
 
 --------------------------------------------------------------------------------
+-- Schedule Drawing
+--
+-- Reference: http://static.diary.ru/userdir/1/0/4/7/1047/28088395.jpg
+--------------------------------------------------------------------------------
+local function AddZero( s )
+	if #s < 2 then return "0" .. s else return s end
+end
+
+local function HoursFromStamp( stamp )
+	return AddZero(tostring(math.floor(stamp/3600)%24))
+end
+
+local function MinutesFromStamp( stamp )
+	return AddZero(tostring(math.floor(stamp/60)%60))
+end
+
+local function SecondsFromStamp( stamp )
+	return AddZero(tostring(stamp%60))
+end
+
+surface.CreateFont( "Schedule_Hand", {
+	font = "Monotype Corsiva",
+	size = 30,
+	weight = 600
+})
+surface.CreateFont( "Schedule_Hand_Small", {
+	font = "Monotype Corsiva",
+	size = 18,
+	weight = 600
+})
+surface.CreateFont( "Schedule_Machine", {
+	font = "Arial",
+	size = 22,
+	weight = 500
+})
+surface.CreateFont( "Schedule_Machine_Small", {
+	font = "Arial",
+	size = 16,
+	weight = 600
+})
+
+local DrawRect = surface.DrawRect
+local DrawTextHand = function(txt, x, y, col)
+	draw.SimpleText(txt, "Schedule_Hand", x, y, Color(0,15*col.y,85*col.z), 0, 0)
+end
+local DrawTextHandSmall = function(txt, x, y, col)
+	draw.SimpleText(txt, "Schedule_Hand_Small", x, y, Color(0,15*col.y,85*col.z), 0, 0)
+end
+local DrawTextMachine = function(txt, x, y)
+	draw.SimpleText(txt, "Schedule_Machine", x, y, Color(0,0,0), 0, 0)
+end
+local DrawTextMachineSmall = function(txt, x, y)
+	draw.SimpleText(txt, "Schedule_Machine_Small", x, y, Color(0,0,0), 0, 0)
+end
+
+-- Placeholder code, to be removed when schedule system is in place
+local Schedule = {
+	stations = {
+		{"Station 1", os.time() + 20},
+		{"Station 2", os.time() + 46},
+		{"Station 3", os.time() + 80},
+		{"Station 4", os.time() + 95},
+		{"Station 5", os.time() + 120}
+	},
+	total = 2000,
+	interval = 300,
+	routenumber = math.random(100,999),
+	pathnumber = math.random(100,999)
+}
+
+local col1w = 80 -- 1st Column width
+local col2w = 32 -- The other column widths
+local rowtall = 30 -- Row height, includes -only- the usable space and not any lines
+local rowtall2 = rowtall*2 -- Helper
+
+local defaultlight = Vector(0.8,0.8,0.8) -- Light to be used when cabinlights are on
+function ENT:DrawSchedule(panel)
+	local w = panel.width
+	local h = panel.height
+	
+	local light = defaultlight
+	local cabinlights = self:GetPackedBool(58)
+	if not cabinlights then
+		light = render.GetLightColor(self:LocalToWorld(Vector(430,0,26))) -- GetLightColor is pretty shit but it works
+	end
+	
+	--Background
+	surface.SetDrawColor(Color(255 * light.x, 253 * light.y, 208 * light.z))
+	DrawRect(0,0,w,h)
+	
+	--Lines
+	surface.SetDrawColor(Color(0,0,0))
+	
+	--Horisontal lines
+	DrawRect(0,0,1,h)
+	DrawRect(1 + col1w,0,1,h)
+	DrawRect(1 + col1w + 1 + col2w,rowtall2+2,1,h-rowtall2-2)
+	DrawRect(1 + col1w + 1 + col2w + 1 + col2w,rowtall2+2,1,h-rowtall2-2)
+	DrawRect(1 + col1w + 1 + col2w + 1 + col2w + 1 + col2w,0,1,h)
+	
+	--Vertical lines
+	DrawRect(0,0,w,1)
+	DrawRect(1 + col1w,rowtall+1,w - col1w - 1,1)
+	DrawRect(1 + col1w,rowtall2+2,w - col1w - 1,1)
+	for i=(rowtall+1)*3,h,rowtall+1 do		
+		DrawRect(0,i,w,1)
+	end
+	
+	--Text
+	local t = Schedule
+	
+	--Top info
+	DrawTextMachine("М №", 3, 3)
+	DrawTextHand(t.routenumber, 42, -2, light)
+	
+	DrawTextMachine("П №", 3, rowtall*2 + 3)
+	DrawTextHand(t.pathnumber, 42, rowtall*2 - 2, light)
+	
+	DrawTextMachineSmall("ВРЕМЯ", col1w + 5, 1, light)
+	DrawTextMachineSmall("ХОДА", col1w + 5, 15, light)
+	DrawTextHand(MinutesFromStamp(t.total), w - 50, 1, light)
+	DrawTextHandSmall(SecondsFromStamp(t.total), w - 25, 5, light)
+	
+	DrawTextMachineSmall("ИНТ", col1w + 5, rowtall + 8)
+	DrawTextHand(MinutesFromStamp(t.interval), w - 50, rowtall, light)
+	DrawTextHandSmall(SecondsFromStamp(t.interval), w - 25, rowtall + 4, light)
+	
+	DrawTextMachineSmall("ЧАС", col1w + 4, rowtall*2	+ 8)
+	DrawTextMachineSmall("МИН", col1w + col2w + 5, rowtall*2 + 8)
+	DrawTextMachineSmall("СЕК", col1w + col2w*2 + 8, rowtall*2 + 8)
+	
+	--Schedule rows
+	local lasthour = -1
+	for i,v in pairs(t.stations) do
+		local y = ((rowtall+1)*3+2) + (i-1)*(rowtall+1) -- Uhh..
+		
+		DrawTextMachineSmall(v[1], 3, y + 6) -- Stationname
+		
+		local hours = HoursFromStamp(v[2])
+		local minutes = MinutesFromStamp(v[2])
+		local seconds = SecondsFromStamp(v[2])
+		
+		if hours != lasthour then -- Only draw hours if they've changed
+			lasthour = hours
+			
+			DrawTextHand(hours, col1w + 3, y, light) -- Hours
+		end
+		
+		DrawTextHand(minutes, col1w + col2w + 5, y, light) -- Minutes
+		DrawTextHand(seconds, col1w + col2w + col2w + 5, y, light) -- Seconds
+	end
+end
+
+--------------------------------------------------------------------------------
 -- Default rendering function
 --------------------------------------------------------------------------------
 function ENT:Draw()
@@ -291,6 +443,13 @@ function ENT:Draw()
 		for k,v in pairs(self.Systems) do
 			v:ClientDraw()
 		end
+	end
+	
+	--Drawing schedule for trains which support it
+	if self.ButtonMap["Schedule"] then
+		self:DrawOnPanel("Schedule", function(panel)
+			self:DrawSchedule(panel)
+		end)
 	end
 	
 	-- Debug draw for buttons
@@ -343,7 +502,7 @@ end
 function ENT:DrawOnPanel(index,func)
 	local panel = self.ButtonMap[index]
 	cam.Start3D2D(self:LocalToWorld(panel.pos),self:LocalToWorldAngles(panel.ang),panel.scale)
-		func(panel, self)
+		func(panel)
 	cam.End3D2D()
 end
 
