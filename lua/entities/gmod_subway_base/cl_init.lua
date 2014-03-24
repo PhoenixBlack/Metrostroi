@@ -74,7 +74,7 @@ local lastAimButtonChange
 local lastAimButton
 
 function ENT:ShouldRenderClientEnts()
-	return self:LocalToWorld(Vector(0,0,0)):Distance(LocalPlayer():GetPos()) < 960*2
+	return true --self:LocalToWorld(Vector(0,0,0)):Distance(LocalPlayer():GetPos()) < 960*2
 end
 
 function ENT:CreateCSEnts()

@@ -456,8 +456,8 @@ end
 -- Check if there is a train somewhere in the local isolated section. This
 -- ignores ARS subsections (if they are unisolated), accounts for traffic lights
 --------------------------------------------------------------------------------
-function Metrostroi.IsTrackOccupied(src_node,x,dir)
-	return Metrostroi.ScanTrack("light",src_node,function(node,min_x,max_x)
+function Metrostroi.IsTrackOccupied(src_node,x,dir,t)
+	return Metrostroi.ScanTrack(t or "light",src_node,function(node,min_x,max_x)
 		-- If there are no trains in node, keep scanning
 		if (not Metrostroi.TrainsForNode[node]) or (#Metrostroi.TrainsForNode[node] == 0) then
 			return
@@ -919,4 +919,4 @@ function Metrostroi.PrintStatistics()
 end
 
 
-Metrostroi.Load()
+--Metrostroi.Load()

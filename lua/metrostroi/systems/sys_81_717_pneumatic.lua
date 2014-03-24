@@ -209,9 +209,9 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	-- 2 Brake line, reservoir replenished from brake line reductor
 	if (self.DriverValvePosition == 2) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.50)
-		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.50)
-		equalizePressure("ReservoirPressure", self.TrainToBrakeReducedPressure*1.01, 2.00)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 3.50)
+		--equalizePressure("ReservoirPressure", self.BrakeLinePressure, 1.50)
+		equalizePressure("ReservoirPressure", self.TrainToBrakeReducedPressure*1.05, 2.00)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 	end
 	-- 3 Close all valves
@@ -222,7 +222,7 @@ function TRAIN_SYSTEM:Think(dT)
 	-- 4 Reservoir open to atmosphere, brake line equalizes with reservoir
 	if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
 		equalizePressure("ReservoirPressure", 0.0,0.40)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 1.50)
+		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 3.50)
 	end
 	-- 5 Reservoir and brake line open to atmosphere
 	if (self.DriverValvePosition == 5) and (Train.DriverValveDisconnect.Value == 1.0) then
