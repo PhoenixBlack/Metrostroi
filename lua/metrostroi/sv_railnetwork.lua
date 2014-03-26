@@ -218,6 +218,7 @@ function Metrostroi.AddARSSubSection(node,source)
 	
 	-- Add to list of ARS subsections
 	Metrostroi.ARSSubSections[ent] = true
+	Metrostroi.ARSSubSectionCount = Metrostroi.ARSSubSectionCount + 1
 end
 
 
@@ -226,8 +227,8 @@ end
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateARSSections()
 	Metrostroi.ARSSubSections = {}
-	local list = {}
-	
+	Metrostroi.ARSSubSectionCount = 0
+
 	print("Metrostroi: Updating ARS subsections...")
 	Metrostroi.IgnoreEntityUpdates = false
 	for k,v in pairs(Metrostroi.SignalEntityPositions) do
@@ -240,26 +241,14 @@ function Metrostroi.UpdateARSSections()
 			-- Interpolate between two positions and add intermediates
 			local offset = 0
 			if (v.path == pos.path) and (pos.x < v.x) then
-				print(Format("Metrostroi: Adding ARS sections between [%d] %.0f -> %.0f m",pos.path.id,pos.x,v.x))
-				if (v.path.id == 1) then list[pos.x] = v.x end
+				--print(Format("Metrostroi: Adding ARS sections between [%d] %.0f -> %.0f m",pos.path.id,pos.x,v.x))
 				local node = pos.node1
-				local prev_pos
 				while (node) and (node ~= v.node1) do
-					--prev_pos = prev_pos or node.pos
 					if (offset > 100) and (math.abs(node.x - v.x) > 100) then
-						--[[timer.Simple(0.05,function()
-							if node then
-								--debugoverlay.Line(node.pos,prev_pos,10,Color(0,0,255),true)
-								debugoverlay.Cross(node.pos,20,Color(0,0,255),true)
-							end
-						end)]]--
-						--print(offset)
-						
 						Metrostroi.AddARSSubSection(node,signal)
 						offset = offset - 100
 					end
-					
-					--prev_pos = node.pos
+	
 					node = node.next
 					if node then
 						offset = offset + node.length
@@ -271,9 +260,7 @@ function Metrostroi.UpdateARSSections()
 	Metrostroi.IgnoreEntityUpdates = true
 	Metrostroi.UpdateSignalEntities()
 	
-	for k,v in SortedPairs(list) do
-		print("\t",k,v)
-	end
+	print(Format("Metrostroi: Added %d ARS rail joints",Metrostroi.ARSSubSectionCount))
 end
 
 
@@ -539,18 +526,18 @@ function Metrostroi.UpdateStations()
 				node_start = pos1.node1,
 				node_end = pos2.node1,
 			}
-			table.insert(station,platform_data)
+			if station[platform.PlatformIndex] then
+				print(Format("Metrostroi: Error, station %03d has two platforms %d with same index!",platform.StationIndex,platform.PlatformIndex))
+			else
+				station[platform.PlatformIndex] = platform_data
+			end
 			
 			-- Print information
-			print(Format("\t[%03d][0] %.3f-%.3f km (%.1f m)",platform.StationIndex,pos1.x*1e-3,pos2.x*1e-3,platform_data.length))
+			print(Format("\t[%03d][%d] %.3f-%.3f km (%.1f m) on path %d",
+				platform.StationIndex,platform.PlatformIndex,pos1.x*1e-3,pos2.x*1e-3,
+				platform_data.length,platform_data.node_start.path.id))
 		end
 	end
-	
-	-- Do things
-	--[[local tt = Metrostroi.GetTravelTime(
-		Metrostroi.Stations[111][1].node_end,
-		Metrostroi.Stations[116][1].node_start) or 0
-	print("TRAVEL TIME: "..math.floor(tt/60)..":"..(math.floor(tt)%60).." min")]]--
 end
 
 
@@ -564,14 +551,32 @@ function Metrostroi.GetTravelTime(src,dest)
 	
 	-- Accumulate travel time
 	local travel_time = 0
-	local travel_speed = 60	-- FIXME: take 77% of ARS nominal speed
+	local travel_dist = 0
+	local travel_speed = 20
 	local node = src
 	while (node) and (node ~= dest) do
-		travel_time = travel_time + (node.length / (travel_speed/3.6))
+		local ars_speed
+		local ars_joint = Metrostroi.GetARSJoint(node,node.x+0.01,false)
+		if ars_joint then
+			if ars_joint:GetActiveSignalsBit(14) then ars_speed = 20 end
+			if ars_joint:GetActiveSignalsBit(13) then ars_speed = 40 end
+			if ars_joint:GetActiveSignalsBit(12) then ars_speed = 60 end
+			if ars_joint:GetActiveSignalsBit(11) then ars_speed = 70 end
+			if ars_joint:GetActiveSignalsBit(10) then ars_speed = 80 end
+		end
+		if ars_speed then travel_speed = ars_speed end
+		--print(Format("[%03d] %.2f m   V = %02d km/h",node.id,node.length,ars_speed or 0))
+		
+		-- Assume 70% of travel speed
+		local speed = travel_speed * 0.82
+
+		-- Add to travel time
+		travel_dist = travel_dist + node.length
+		travel_time = travel_time + (node.length / (speed/3.6))
 		node = node.next
 	end
 	
-	return travel_time
+	return travel_time,travel_dist
 end
 
 
@@ -693,7 +698,6 @@ function Metrostroi.Load(name)
 	-- Print info
 	Metrostroi.PrintStatistics()
 	
-
 	-- Ignore updates to prevent created/removed switches from constantly updating table of positions
 	Metrostroi.IgnoreEntityUpdates = true
 	
@@ -734,8 +738,6 @@ function Metrostroi.Load(name)
 		Metrostroi.UpdateSwitchEntities()
 		-- Add additional ARS sections
 		Metrostroi.UpdateARSSections()
-		
-		print(Format("Metrostroi: Added %d ARS rail joints",table.getn(Metrostroi.ARSSubSections)))
 	end)
 end
 

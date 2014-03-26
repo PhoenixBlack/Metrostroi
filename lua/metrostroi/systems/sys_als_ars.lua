@@ -63,7 +63,7 @@ function TRAIN_SYSTEM:Think()
 			if not (self.Signal80 or self.Signal70 or 
 					self.Signal60 or self.Signal40 or self.Signal0) then
 				self.NoFreq = true
-			end			
+			end
 		else
 			self.Signal80 = false
 			self.Signal70 = false
