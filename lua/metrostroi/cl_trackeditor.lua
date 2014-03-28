@@ -56,7 +56,7 @@ end)
 
 net.Receive("metrostroi_trackeditor_message",function(len,ply) 
 	ServerMessage = net.ReadString()
-	if MessageLabel and ServerMessage then
+	if MessageLabel and ServerMessage and IsValid(MessageLabel) then
 		MessageLabel:SetText(ServerMessage)
 	end
 end)
@@ -155,7 +155,7 @@ local function OpenConfigWindow()
 	Frame:MakePopup()
 	
 end
-concommand.Add("metrostroi_trackrecorder",OpenConfigWindow,nil,"GUI for track recorder")
+concommand.Add("metrostroi_trackeditor",OpenConfigWindow,nil,"GUI for track editor")
 
 
 

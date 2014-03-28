@@ -284,8 +284,7 @@ function Metrostroi.GenerateSchedules()
 		for i,d in ipairs(v) do
 			print(Format("\t%03d   %s",d[2],d.arrivalTimeStr))
 		end
-		if v.ScheduleID == 1 then return end
 	end
 end
 
-Metrostroi.GenerateSchedules()
+--Metrostroi.GenerateSchedules()
