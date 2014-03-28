@@ -36,9 +36,13 @@
 	<tr><td><kbd>F</kbd></td><td>Drivers valve notch up (fill)</td></tr>
 	<tr><td><kbd>G</kbd></td><td>Reset overload relay</td></tr>
 	<tr><td><kbd>L</kbd></td><td>Headlights brightness (dim/bright)</td></tr>
+	<tr><td><kbd>A</kbd></td><td>Open left doors</td></tr>
+	<tr><td><kbd>D</kbd></td><td>Open right doors</td></tr>
+	<tr><td><kbd>V</kbd></td><td>Close all doors</td></tr>
 	<tr><td><kbd>Shift</kbd>+<kbd>L</kbd></td><td>Open/close drivers valve disconnect valve</td></tr>
-	<tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>DURA Select alternate track</td></tr>
-	<tr><td><kbd>Shift</kbd>+<kbd>D</kbd></td><td>DURA Select main track</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>DURA Select alternate path</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>D</kbd></td><td>DURA Select main path</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>V</kbd></td><td>DURA Path selection</td></tr>
 	</table>
 
 	<h3>Driver's valve positions:</h3>
@@ -53,7 +57,7 @@
 	<h3>Reverser positions:</h3>
 	<table class="listing">
 	<tr><td><var>forward</var></td><td>Driver's cabin has control, train will move forwards</td></tr>
-	<tr><td><var>0</var></td><td>Another cabin has control</td></tr>
+	<tr><td><var>0</var></td><td>Cabin not active and not in control</td></tr>
 	<tr><td><var>backward</var></td><td>Driver's cabin has control, train will move backwards</td></tr>
 	</table>
 
@@ -178,6 +182,10 @@
 		Manual electric brakes (<var>T1</var> and <var>T1A</var>) are used only for decreasing speed or keeping
 		it within limits on slopes. The brakes must be always engaged by the time train enters station.
 		</p></aside>
+		
+		<aside class="warning"><p>
+		Always plan your braking ahead. It is <strong>prohibited</strong> to engage brakes from drive mode (<var>X1</var>, <var>X2</var>, <var>X3</var>) without first disengaging the power circuits (position <var>0</var>) for 2-3 seconds.
+		</p></aside>
 
 		<p>
 		When <var>T2</var> is engaged, if the power circuits fail to assemble, pneumatic braking will be applied instead.
@@ -188,6 +196,11 @@
 		Disengaging electric brakes on slopes is <strong>strictly prohibited</strong>. If for some reason electric
 		brakes disengage, apply emergency pneumatic braking and proceed according to instructions.
 		</p></aside>
+		
+		<p>
+		If ARS system is enabled, pneumatic braking will be enabled if <var>T2</var> mode is ineffective (when train speed is below 15 km/h). After the train has stopped, driver should disengage the electric brakes.
+		Pneumatic brakes will remain active as commanded by ARS until driving mode is engaged.
+		</p>
 	</section>
 
 	<section>
@@ -346,6 +359,7 @@
 			<li>Control braking by the value of main ampermeter (efficient electric braking is when about 200-300 amperes are indicated).</li>
 			<li>When the train's speed is at roughly 15-20km/h, switch to <var>T2</var> by pressing <kbd>7</kbd>.</li>
 			<li>When the train's speed is at roughly 5-10km/h, the hydraulic brakes will automatically engage (via pneumatic valve #1).</li>
+			<li>If ARS is enabled, disengage the braking circuits few seconds after pneumatic valve #1 engages.</li>
 		</ol>
 
 		<p>
@@ -379,7 +393,7 @@
 
 	<p>
 	In the subway, there are many signals and signs that you must recognise for safe and efficient operation.
-	Failure to respect them could result in delays and inconvencies to the passengers.
+	Failure to respect them could result in delays and inconvenience for the passengers.
 	Ultimately, there are safeguard devices which prevent most serious accidents from happening for
 	all possible combination of failures.
 	</p>
@@ -516,7 +530,7 @@
 	<h2><a href="#troubleshooting">6. Troubleshooting for Dummies</a></h2>
 
 	<section>
-		<h3>Train refuses to move (power circuits fail to assemble)</h3>
+		<h3>Train refuses to move</h3>
 		<ol>
 			<li>Make sure reverser is in <var>forward</var> position.</li>
 			<li>Move controller to <var>X1</var>. Are red RP lights glowing? The circuits are failing to assemble.</li>
@@ -524,9 +538,11 @@
 			<li>Are doors closed? Close doors. Make sure reverser is set to forward when doing this.</li>
 			<li>Is a single green RP light glowing? Press G to reset overload relay.</li>
 			<li>Check brake cylinder pressure. Are pneumatic brakes engaged? Press <kbd>R</kbd> a few times to move drivers valve to position 2, open drivers valve disconnect valve.</li>
-			<li>Check brake line and train line pressure. Do you have enough pressure in both? Turn on motor-compressor.</li>			
+			<li>Check brake line and train line pressure. Do you have enough pressure in both? Turn on motor-compressor.</li>
 			<li>Is reverser set to neutral in all wagons? Reset reverser to neutral position in all wagons.</li>
 			<li>Is battery turned on in all wagons? Check battery state in every wagon. It must be on in all trains.</li>
+			<li>Are all circuit breakers in right positions? Check that all circuit breakers are turned on.</li>
+			<li>Is <em>АВУ/AVU</em> light glowing? Make sure motor-compressor is turned on, there is enough pressure in train line and pneumatic brakes are released.</li>
 			<li>Do not lose hope and go to 'Advanced train failure troubleshooting' instruction.</li>
 		</ol>
 	</section>
@@ -596,34 +612,35 @@
 		<tr>
 			<td id="breaker-61" class="breaker-white">
 				<dfn>61</dfn> УПР. ПРОВ. 6
-				<details>Train wire 6 control</details>
+				<details>Train wire 6 control (engaging the electric brake)</details>
 			</td>
 			<td id="breaker-55" class="breaker-red">
 				<dfn>55</dfn> УПР. ПРОВ. 10АС
-				<details>Train wire 10AS control</details>
+				<details>Train wire 10AS control (engaging power circuits)</details>
 			</td>
 			<td id="breaker-54" class="breaker-red">
 				<dfn>54</dfn> УПР. ПРОВ. 10АК
-				<details>Train wire 10AK control</details>
+				<details>Train wire 10AK control (engaging drive modes)</details>
 			</td>
 			<td id="breaker-45" class="breaker-blue">
-				<dfn>56</dfn> ВКЛ АКН
+				<dfn>56</dfn> ВКЛ АКБ
+				<details>Turn on battery (enable power to control circuits)</details>
 			</td>
 			<td id="breaker-27" class="breaker-white">
 				<dfn>27</dfn> ВКЛ ДИП</br>И</br>ОСВЕЩ
-				<details>Turn on DIP and lighting</details>
+				<details>Turn on DIP and lighting (overload relay and DIP state lamps power, DIP on/off signal power) </details>
 			</td>
 			<td id="breaker-21" class="breaker-cyan">
 				<dfn>21</dfn> УПР. ДВЕРЕЙ
-				<details>Door control</details>
+				<details>Door control (power to door circuits)</details>
 			</td>
 			<td id="breaker-10" class="breaker-white">
 				<dfn>10</dfn> УПР. МК
-				<details>Motor-compressor control</details>
+				<details>Motor-compressor control signal</details>
 			</td>
 			<td id="breaker-53" class="breaker-yellow">
 				<dfn>53</dfn> ПИТАНИЕ КВЦ
-				<details>KVC power supply</details>
+				<details>KVC relay power (enables high-voltage circuits and cabin heating)</details>
 			</td>
 			<td id="breaker-43" class="breaker-white">
 				<dfn>43</dfn> ПИТ. АРС 12В
@@ -639,7 +656,7 @@
 			</td>
 			<td id="breaker-41" class="breaker-white">
 				<dfn>41</dfn> ТОРМОЖ АРС
-				<details>ARS braking</details>
+				<details>ARS pneumatic braking signal enabled</details>
 			</td>
 		</tr>
 		<tr>
