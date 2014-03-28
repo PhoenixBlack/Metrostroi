@@ -10,7 +10,7 @@ function ENT:Draw()
 		--surface.DrawRect(0, 0, 400, 240)
 		
 		local digits = { 1,2,3 }
-		local interval = CurTime() - self:GetIntervalResetTime()
+		local interval = os.time() - (self:GetIntervalResetTime()+1396011937)
 		if (interval <= (9*60+59)) and (interval >= 0) then
 			digits[1] = math.floor(interval/60)
 			digits[2] = math.floor((interval%60)/10)

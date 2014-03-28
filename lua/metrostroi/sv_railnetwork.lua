@@ -240,13 +240,14 @@ function Metrostroi.UpdateARSSections()
 
 			-- Interpolate between two positions and add intermediates
 			local offset = 0
+			local delta_offset = 50
 			if (v.path == pos.path) and (pos.x < v.x) then
 				--print(Format("Metrostroi: Adding ARS sections between [%d] %.0f -> %.0f m",pos.path.id,pos.x,v.x))
 				local node = pos.node1
 				while (node) and (node ~= v.node1) do
-					if (offset > 100) and (math.abs(node.x - v.x) > 100) then
+					if (offset > delta_offset) and (math.abs(node.x - v.x) > delta_offset) then
 						Metrostroi.AddARSSubSection(node,signal)
-						offset = offset - 100
+						offset = offset - delta_offset
 					end
 	
 					node = node.next
@@ -585,7 +586,7 @@ end
 --------------------------------------------------------------------------------
 -- Load track definition and sign definitions
 --------------------------------------------------------------------------------
-function Metrostroi.Load(name)
+function Metrostroi.Load(name,keep_signs)
 	name = name or game.GetMap()
 	if not file.Exists(string.format("metrostroi_data/track_%s.txt",name),"DATA") then
 		print("Track definition file not found: metrostroi_data/track_"..name..".txt")
@@ -702,28 +703,30 @@ function Metrostroi.Load(name)
 	Metrostroi.IgnoreEntityUpdates = true
 	
 	-- Remove old entities
-	local signals_ents = ents.FindByClass("gmod_track_signal")
-	for k,v in pairs(signals_ents) do SafeRemoveEntity(v) end
-	local switch_ents = ents.FindByClass("gmod_track_switch")
-	for k,v in pairs(switch_ents) do SafeRemoveEntity(v) end
-	
-	-- Create new entities (add a delay so the old entities clean up)
-	print("Metrostroi: Loading signs, signals, switches...")	
-	local signs = util.JSONToTable(file.Read(string.format("metrostroi_data/signs_%s.txt",name)) or "")
-	if signs then
-		for k,v in pairs(signs) do
-			local ent = ents.Create(v.Class)
-			if IsValid(ent) then
-				ent:SetPos(v.Pos)
-				ent:SetAngles(v.Angles)
-				ent:Spawn()
-				if v.Class == "gmod_track_signal" then
-					ent:SetSettings(v.Settings)
-					ent:SetTrafficLights(v.TrafficLights)
-					ent:SetLightsStyle(v.LightsStyle)
-				end
-				if v.Class == "gmod_track_switch" then
-					ent:SetChannel(v.Channel or 1)
+	if not keep_signs then
+		local signals_ents = ents.FindByClass("gmod_track_signal")
+		for k,v in pairs(signals_ents) do SafeRemoveEntity(v) end
+		local switch_ents = ents.FindByClass("gmod_track_switch")
+		for k,v in pairs(switch_ents) do SafeRemoveEntity(v) end
+		
+		-- Create new entities (add a delay so the old entities clean up)
+		print("Metrostroi: Loading signs, signals, switches...")	
+		local signs = util.JSONToTable(file.Read(string.format("metrostroi_data/signs_%s.txt",name)) or "")
+		if signs then
+			for k,v in pairs(signs) do
+				local ent = ents.Create(v.Class)
+				if IsValid(ent) then
+					ent:SetPos(v.Pos)
+					ent:SetAngles(v.Angles)
+					ent:Spawn()
+					if v.Class == "gmod_track_signal" then
+						ent:SetSettings(v.Settings)
+						ent:SetTrafficLights(v.TrafficLights)
+						ent:SetLightsStyle(v.LightsStyle)
+					end
+					if v.Class == "gmod_track_switch" then
+						ent:SetChannel(v.Channel or 1)
+					end
 				end
 			end
 		end
@@ -799,6 +802,11 @@ end)
 concommand.Add("metrostroi_load", function(ply, _, args)
 	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
 	Metrostroi.Load()
+end)
+
+concommand.Add("metrostroi_load_without_signs", function(ply, _, args)
+	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
+	Metrostroi.Load(nil,true)
 end)
 
 concommand.Add("metrostroi_pos_info", function(ply, _, args)

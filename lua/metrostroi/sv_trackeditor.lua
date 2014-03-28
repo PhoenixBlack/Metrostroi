@@ -217,13 +217,22 @@ local function RemovePath(args,ply)
 end
 
 --Takes forward direction
-local function StartPath()
-	print("New Path")
+local function StartPath(id)
+	if id then
+		print("Re-recording path "..id)
+	else
+		print("New Path")
+	end
 	
+	if id then
+		Metrostroi.TrackEditor.Paths[id] = {}
+		CurrentPath = Metrostroi.TrackEditor.Paths[id]
+	else
+		local ID = table.insert(Metrostroi.TrackEditor.Paths,{})
+		CurrentPath = Metrostroi.TrackEditor.Paths[ID]
+	end
+
 	local forward = forward or (Train and Train:GetAngles():Forward())
-	local ID = table.insert(Metrostroi.TrackEditor.Paths,{})
-	
-	CurrentPath = Metrostroi.TrackEditor.Paths[ID]
 	LastDir = forward*-1
 	
 	NextNode()
@@ -238,7 +247,7 @@ local function Start(args,ply)
 	end
 	
 	if Train then
-		StartPath()
+		StartPath(tonumber(args[1]))
 		Active = true
 		print("Started")
 		SendClientMsg(ply,"Started")
@@ -299,6 +308,7 @@ AddCmd("stop",Stop,"Stop recording a path")
 AddCmd("removepath",RemovePath,"Remove path with given ID")
 AddCmd("save",Save,"Save the current paths to file")
 AddCmd("load",Load,"Load paths from file")
+AddCmd("status",ShowStatus,"Show status")
 AddCmd("mark",Mark,"Mark the given ent index as ent to record with")
 AddCmd("teletostart",TeleStart,"Teleport to the start of the given path")
 AddCmd("teletoend",TeleEnd,"Teleport to the end of the given path")
