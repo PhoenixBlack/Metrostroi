@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+﻿--------------------------------------------------------------------------------
 -- АРС-АЛС
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("ALS_ARS")
@@ -131,7 +131,7 @@ function TRAIN_SYSTEM:Think()
 		self.Ring = false
 	end
 	
-	if (Train.ARS.Value == 1.0) then
+	if (Train.ARS.Value == 1.0) and (Train.KV.ReverserPosition ~= 0.0) then
 		-- Check overspeed
 		if self.Overspeed then
 			self.ElectricBrake = true
