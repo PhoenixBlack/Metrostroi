@@ -240,7 +240,7 @@ function Metrostroi.UpdateARSSections()
 
 			-- Interpolate between two positions and add intermediates
 			local offset = 0
-			local delta_offset = 50
+			local delta_offset = 100
 			if (v.path == pos.path) and (pos.x < v.x) then
 				--print(Format("Metrostroi: Adding ARS sections between [%d] %.0f -> %.0f m",pos.path.id,pos.x,v.x))
 				local node = pos.node1

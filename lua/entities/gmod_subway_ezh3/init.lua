@@ -300,9 +300,9 @@ function ENT:Think()
 	end
 	
 	-- RUT test
-	local weightRatio = math.max(0,math.min(1,(self:GetPassengerCount()/300)))
+	local weightRatio = 2.00*math.max(0,math.min(1,(self:GetPassengerCount()/300)))
 	if math.abs(self:GetAngles().pitch) > 2.5 then weightRatio = weightRatio + 0.75 end
-	self.YAR_13A:TriggerInput("WeightLoadRatio",math.max(0,math.min(1.25,weightRatio)))
+	self.YAR_13A:TriggerInput("WeightLoadRatio",math.max(0,math.min(2.00,weightRatio)))
 	
 	-- Exchange some parameters between engines, pneumatic system, and real world
 	self.Engines:TriggerInput("Speed",speed)

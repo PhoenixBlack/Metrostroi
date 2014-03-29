@@ -22,12 +22,12 @@ function ENT:Think()
 			ignoreworld = true,
 		}
 		
-		debugoverlay.Cross(trace.start,10,1,Color(0,0,255))
-		debugoverlay.Line(trace.start,trace.endpos,1,Color(0,0,255))
+		--debugoverlay.Cross(trace.start,10,1,Color(0,0,255))
+		--debugoverlay.Line(trace.start,trace.endpos,1,Color(0,0,255))
 		
 		local result = util.TraceLine(trace)
 		if result.Hit and (not result.HitWorld) then
-			debugoverlay.Sphere(result.HitPos,5,1,Color(0,0,255),true)
+			--debugoverlay.Sphere(result.HitPos,5,1,Color(0,0,255),true)
 			if result.Entity and (not result.Entity:IsPlayer()) then
 				sensingTrain = true
 			end

@@ -34,6 +34,11 @@ function ENT:Initialize()
 		self.PlatformEnd		= ents.FindByName(self.VMF.PlatformEnd or "")[1]
 	end
 	
+	if (self.StationIndex == 115) or (self.StationIndex == 118) then
+		local a,b = self.PlatformStart,self.PlatformEnd
+		self.PlatformStart,self.PlatformEnd = b,a
+	end
+	
 	-- Drop to floor
 	self:DropToFloor()
 	if IsValid(self.PlatformStart) then self.PlatformStart:DropToFloor() end
