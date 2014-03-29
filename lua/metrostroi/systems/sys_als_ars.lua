@@ -42,7 +42,7 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { }
+	return { "2", "8", "20", "21", "29", "33D", "33G", "33Zh" }
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -121,6 +121,7 @@ function TRAIN_SYSTEM:Think()
 		--self.SoftOverspeed = ((Vlimit == 0) and (Train.PB.Value == 1) and (V > 20))
 		self.Overspeed = false
 		if (Train.PB.Value == 0) and (V > Vlimit) and (V > 5) then self.Overspeed = true end
+		if (Train.PB.Value == 1) and (Vlimit ~= 0) and (V > Vlimit) then self.Overspeed = true end
 		if (Train.PB.Value == 1) and (Vlimit == 0) and (V > 20) then self.Overspeed = true end
 		
 		--(V >= Vlimit) or self.SoftOverspeed
@@ -144,17 +145,19 @@ function TRAIN_SYSTEM:Think()
 		end
 		
 		-- Check parking brake functionality
-		if self.Speed < 10 then
+		self.TW1Timer = self.TW1Timer or -1e9
+		if (self.Speed < 10) and ((CurTime() - self.TW1Timer) > 5) then
 			self.PneumaticBrake1 = true
-		end		
+		end
 		-- Check cancel pneumatic brake 1 command
 		if Train:ReadTrainWire(1) > 0 then
 			self.PneumaticBrake1 = false
+			self.TW1Timer = CurTime()
 		end		
 		-- Check use of valve #1 during overspeed
 		self.PV1Timer = self.PV1Timer or -1e9
-		if ((CurTime() - self.PV1Timer) < 1.10) then self.PneumaticBrake1 = false end
-		if ((CurTime() - self.PV1Timer) < 1.0) then self.PneumaticBrake1 = true end
+		if ((CurTime() - self.PV1Timer) < 0.6) then self.PneumaticBrake1 = false end
+		if ((CurTime() - self.PV1Timer) < 0.5) then self.PneumaticBrake1 = true end
 		
 		-- ARS signals
 		local Ebrake,Pbrake1,Pbrake2 = 
