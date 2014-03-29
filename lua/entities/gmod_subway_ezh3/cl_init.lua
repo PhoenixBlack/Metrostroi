@@ -787,16 +787,21 @@ function ENT:Draw()
 			draw.DrawText("РП","MetrostroiSubway_LargeText",140*10+30,33*10-19,Color(0,0,0,255))
 		end
 		
-		--[[if self:GetNWBool("LKT") then
+		b = self:Animate("light_gKT",self:GetPackedBool(47) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(133*10,73*10,16*10,8*10)
 			draw.DrawText("КТ","MetrostroiSubway_LargeText",133*10+30,73*10-20,Color(0,0,0,255))
 		end			
-		if self:GetNWBool("KVD") then
+		
+		b = self:Animate("light_gKVD",self:GetPackedBool(48) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(165*10,73*10,16*10,8*10)
 			draw.DrawText("КВД","MetrostroiSubway_LargeText",165*10,73*10-20,Color(0,0,0,255))
-		end]]--	
+		end
 		
 		b = self:Animate("light_LhRK",self:GetPackedBool(33) and 1 or 0,0,1,5,false)
 		if b > 0.0 then
