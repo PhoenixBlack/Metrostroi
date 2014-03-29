@@ -52,6 +52,8 @@ function ENT:Initialize()
 		[KEY_D] = "KDPSet",
 		[KEY_V] = "VUD1Set",
 		[KEY_L] = "VUSToggle",
+		
+		[KEY_SPACE] = "PBSet",
 
 		[KEY_LSHIFT] = {
 			[KEY_A] = "DURASelectAlternate",
@@ -257,6 +259,10 @@ function ENT:Think()
 	self:SetPackedBool(45,self.ALS_ARS.Signal70)
 	-- 80
 	self:SetPackedBool(46,self.ALS_ARS.Signal80)
+	-- KT
+	self:SetPackedBool(47,self.ALS_ARS.LKT)
+	-- KVD
+	self:SetPackedBool(48,self.ALS_ARS.LVD)
 	
 	-- AV states
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -286,26 +292,10 @@ function ENT:Think()
 	self.DebugVars["Speed"] = speed
 	self.DebugVars["Acceleration"] = acceleration
 	
-	-- Speed check and update speed data
-	if CurTime() - (self.LastSpeedCheck or 0) > 0.5 then
-		self.LastSpeedCheck = CurTime()
-
-		-- Perform ARS checks
-		local limit = 0
-		if self.ALS_ARS.Signal40 then limit = 40 end
-		if self.ALS_ARS.Signal60 then limit = 60 end
-		if self.ALS_ARS.Signal70 then limit = 70 end
-		if self.ALS_ARS.Signal80 then limit = 80 end
-		if self.ALS.Value == 1.0 then
-			self.ALSCheckState = (math.floor(speed) >= math.floor(limit))
-		else
-			self.ALSCheckState = false
-		end
-
-		-- Update speed
-		self:SetPackedRatio(3, speed/100.0)
-	end
-	if self.ALSCheckState == true then
+	-- Update ARS system
+	self.Speed = speed
+	self:SetPackedRatio(3, self.ALS_ARS.Speed/100.0)
+	if self.ALS_ARS.Ring == true then
 		self:SetPackedBool(39,true)
 	end
 	
@@ -326,10 +316,10 @@ function ENT:Think()
 		self.FrontBogey.MotorPower = self.Engines.BogeyMoment
 		
 		-- Apply brakes
-		self.FrontBogey.PneumaticBrakeForce = 100000.0
+		self.FrontBogey.PneumaticBrakeForce = 140000.0
 		self.FrontBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.FrontBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-		self.RearBogey.PneumaticBrakeForce = 100000.0
+		self.RearBogey.PneumaticBrakeForce = 140000.0
 		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
@@ -340,6 +330,7 @@ end
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
 	-- Special sounds
+	if button == "PBSet" then self:PlayOnce("switch","cabin") return end
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
 	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
 	if button == "DURASelectAlternate" then self:PlayOnce("switch","cabin") return end

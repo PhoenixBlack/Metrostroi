@@ -57,7 +57,7 @@ function ParseName(str)
 	end	
 	if str == "RKM2" then
 		return "Train.RheostatController.RKM2"
-	end	
+	end
 	if (string.sub(str,1,2) == "RK") and not string.find(str,"RKR") then
 
 		local d = split(string.sub(str,3),"-")
@@ -90,6 +90,9 @@ function ParseName(str)
 		local twNo = string.sub(str,4,#str-1)
 		if not tonumber(twNo) then twNo = "\""..twNo.."\"" end
 		return "Train:ReadTrainWire("..twNo..")"
+	end
+	if string.sub(str,1,4) == "ARS[" then
+		return "Train.ALS_ARS[\""..string.sub(str,5,#str-1).."\"]"
 	end
 
 	
@@ -312,6 +315,8 @@ function Simplify(name)
 	for k,v in pairs(Network) do
 		if string.sub(v[1],1,2) == "TW" then sources[v[1]] = true end
 		if string.sub(v[2],1,2) == "TW" then sources[v[2]] = true end
+		if string.sub(v[1],1,3) == "ARS" then sources[v[1]] = true end
+		if string.sub(v[2],1,3) == "ARS" then sources[v[2]] = true end
 	end
 	for k,v in pairs(sources) do table.insert(Sources,k) end
 	
@@ -526,6 +531,8 @@ function TRAIN_SYSTEM.Solve]]..name..[[(Train,Triggers)
 			local twNo = string.sub(k,4,#k-1)
 			if not tonumber(twNo) then twNo = "\""..twNo.."\"" end
 			SRC = SRC.."\tTrain:WriteTrainWire("..twNo..","..statement..")\n"
+		elseif string.sub(k,1,4) == "ARS[" then
+			SRC = SRC.."\tTrain.ALS_ARS[\""..string.sub(k,5,#k-1).."\"] = "..statement.."\n"
 		else
 			if isSpecialTrigger[k] then
 				SRC = SRC.."\tTriggers[\""..k.."\"]("..statement..")\n"
@@ -634,6 +641,7 @@ BaseNetwork = {
 	----------------------------------------------------------------------------
 	-- KV-70 controller section
 	{	"10",		"8",		"KV70[10-8]" },
+	{	"FR1",		"8",		"!RPB" },
 	{	"8",		"0",		"#TW[8]" },
 	
 	{	"10AS",		"U2",		"KV70[U2-10AS]" },
@@ -655,17 +663,21 @@ BaseNetwork = {
 	{	"33Aa",		"0",		"#RV2" }, 	-- always OPEN when doors are CLOSED
 	
 	{	"10AS",		"33D",		"KV70[10AS-33D]" },
-	{	"33D",		"1",		"R1_5" },
+	{	"33D",		"33D'",		"ARS[33D]" },
+	{	"33D'",		"1",		"R1_5" },
 	{	"1",		"0",		"#TW[1]" },
 	
 	{	"U2",		"33G",		"KV70[U2-33G]" },
+	{	"ARS[33G]",	"33G",		"1" },
 	{	"33G",		"0",		"#RVT" },
 	
+	{	"ARS[33Zh]","0",		"#K25" },
+
 	{	"U2",		"20",		"KV70[U2-20a]" },
 	{	"20",		"0",		"#TW[20]" },
 	
 	{	"U2",		"25B",		"KV70[U2-25]" },
-	{	"25B",		"25",		"1" }, -- K25 FIXME
+	{	"25B",		"25",		"K25" },
 	{	"25",		"0",		"#TW[25]" },
 	
 	{	"10AS",		"U4",		"KV70[10AS-U4]" },
@@ -1032,6 +1044,10 @@ AddToNodes = {
 	{ "2-7R-21", "(-10*Train:ReadTrainWire(18))" },
 	{ "10AH", "0" },
 	{ "15", "(-10*Train:ReadTrainWire(11))" },--+Train:ReadTrainWire(15))"},
+	{ "2", "Train.ALS_ARS[\"2\"]" },
+	{ "8", "Train.ALS_ARS[\"8\"]" },
+	{ "20", "Train.ALS_ARS[\"20\"]" },
+	{ "29", "Train.ALS_ARS[\"29\"]" },
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes

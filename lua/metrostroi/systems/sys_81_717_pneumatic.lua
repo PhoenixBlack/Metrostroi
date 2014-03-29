@@ -247,13 +247,13 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	-- Valve #1
 	if self.Train.PneumaticNo1.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.30, 1.00, 1.50)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.32, 1.00, 1.50)
 		--equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure * 0.70, 0.50)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
 	-- Valve #2
 	if self.Train.PneumaticNo2.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.40, 1.00, 1.50)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.45, 1.00, 1.50)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
 	
@@ -264,8 +264,8 @@ function TRAIN_SYSTEM:Think(dT)
 	----------------------------------------------------------------------------
 	-- Simulate compressor operation and train line depletion
 	self.Compressor = Train.KK.Value
-	self.TrainLinePressure = self.TrainLinePressure - 0.05*trainLineConsumption_dPdT*dT
-	if self.Compressor == 1 then equalizePressure("TrainLinePressure", 10.0, 0.05) end
+	self.TrainLinePressure = self.TrainLinePressure - 0.075*trainLineConsumption_dPdT*dT
+	if self.Compressor == 1 then equalizePressure("TrainLinePressure", 10.0, 0.10) end
 	
 	----------------------------------------------------------------------------
 	-- Pressure triggered relays

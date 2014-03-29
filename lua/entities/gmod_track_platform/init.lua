@@ -18,12 +18,12 @@ function ENT:Initialize()
 	self.PlatformX0			= self.VMF.PlatformX0 or 0.80
 	self.PlatformSigma		= self.VMF.PlatformSigma or 0.25
 	
-	if self.StationIndex == 111 then self.PopularityIndex = 1.0 end
-	if self.StationIndex == 112 then self.PopularityIndex = 1.5 end
-	if self.StationIndex == 113 then self.PopularityIndex = 1.5 end
-	if self.StationIndex == 114 then self.PopularityIndex = 0.5 end
-	if self.StationIndex == 115 then self.PopularityIndex = 0.0 end
-	if self.StationIndex == 116 then self.PopularityIndex = 2.0 end
+	--if self.StationIndex == 111 then self.PopularityIndex = 1.0 end
+	--if self.StationIndex == 112 then self.PopularityIndex = 1.5 end
+	--if self.StationIndex == 113 then self.PopularityIndex = 1.5 end
+	--if self.StationIndex == 114 then self.PopularityIndex = 0.5 end
+	--if self.StationIndex == 115 then self.PopularityIndex = 0.0 end
+	--if self.StationIndex == 116 then self.PopularityIndex = 2.0 end
 	
 	if not self.PlatformStart then
 		self.VMF.PlatformStart 	= "station"..self.StationIndex.."_"..(self.VMF.PlatformStart or "")

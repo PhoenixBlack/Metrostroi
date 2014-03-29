@@ -14,7 +14,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- Реле времени торможения (РВТ)
 	self.Train:LoadSystem("RVT","Relay","REV-811T")
 	-- Реле педали бдительности (РПБ)
-	self.Train:LoadSystem("RPB","Relay","REV-813T")
+	self.Train:LoadSystem("RPB","Relay","REV-813T", { open_time = 2.5 })
 	
 	
 	
@@ -29,4 +29,8 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("KD","Relay","REV-811T")
 	-- Реле освещения (РО)
 	self.Train:LoadSystem("RO","Relay","KPD-110E")	
+end
+
+function TRAIN_SYSTEM:Think()
+	self.Train.RPB:TriggerInput("Close",self.Train.PB.Value)
 end
