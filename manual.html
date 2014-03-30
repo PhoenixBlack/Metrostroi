@@ -39,6 +39,7 @@
 	<tr><td><kbd>A</kbd></td><td>Open left doors</td></tr>
 	<tr><td><kbd>D</kbd></td><td>Open right doors</td></tr>
 	<tr><td><kbd>V</kbd></td><td>Close all doors</td></tr>
+	<tr><td><kbd>Space</kbd></td><td>Attention pedal (cancel ARS emergency brake)</td></tr>
 	<tr><td><kbd>Shift</kbd>+<kbd>L</kbd></td><td>Open/close drivers valve disconnect valve</td></tr>
 	<tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>DURA Select alternate path</td></tr>
 	<tr><td><kbd>Shift</kbd>+<kbd>D</kbd></td><td>DURA Select main path</td></tr>
@@ -291,6 +292,57 @@
 		The wagon that you wish to control the train should have its reverser set to <var>forward</var> or <var>backward</var>, all others must be set to <var>0</var>.
 		</p>
 	</section>
+	
+	<section>
+		<h3>ARS/ALS</h3>
+
+		<p>
+		All train cabins are equipped with ALS/ARS system (automatic locomotive signalling/automatic speed regulation). This system aids drivers by preventing overspeeds, going through red lights, keeps pneumatic brakes active while standing on station to prevent train from rolling anywhere.
+		</p>
+		
+		<p>		
+		The ALS/ARS system must be always enabled. ALS provides the speed limit indications on cabin dashboard, while ARS executes the commands and has three key functions:
+		</p>
+		<ol>
+			<li>Disassemble driving mode of train (when train overspeeds for example)</li>
+			<li>Assemble braking mode <var>T2</var> (if train overspeeds). This function can be cancelled by pressing the attention pedal (<kbd>Space</kbd> by default).</li>
+			<li>Engage pneumatic valve #1 (to keep train from rolling while standing still). This function is cancelled by moving controller to driving mode.</li>
+		</ol>
+		
+		<p>ARS/ALS system encodes several signals in the rail segment, defining movement speed in each segment. This information is displayed to driver as current speed limit. On some metro lines, ARS also encodes speed limit in the next segment (in this case, two lights will be lit up on the dashboard).</p>
+		<table class="listing">
+		<tr><td>#1</td><td><var>75 Hz</var></td><td>80 km/h</td></tr>
+		<tr><td>#2</td><td><var>125 Hz</var></td><td>70 km/h</td></tr>
+		<tr><td>#3</td><td><var>175 Hz</var></td><td>60 km/h</td></tr>
+		<tr><td>#4</td><td><var>225 Hz</var></td><td>40 km/h</td></tr>
+		<tr><td>#5</td><td><var>275 Hz</var></td><td>0 km/h (prohibiting signal)</td></tr>
+		<tr><td>#6</td><td><var>325 Hz</var></td><td>Special/direction signal</td></tr>			
+		</table>
+		
+		<figure class="infobox rightimg" id="define-ars-operatin">
+			<img src="images/ars_operation.jpg" alt="" />
+			<figcaption>ARS/ALS system operates in such way, so that if there's an obstacle ahead, the train would smoothly brake until full stop at the prohibiting ARS/ALS signal.</figcaption>
+		</figure>
+		
+		<aside class="info"><p>
+		If ARS/ALS system is disabled, driver must constantly hold the attention pedal, otherwise the train will engage pneumatic valve #2.
+		</p></aside>
+		
+		<aside class="info"><p>
+		In Ezh3 panel, the dashboard displays <var>75</var> instead of <var>70</var> for the speed limit. The ARS system is configured for <var>70 km/h</var> though.
+		</p></aside>
+		
+		<aside class="info"><p>
+		When driver encounters a prohibiting ARS signal (<var>0</var>), he must make a full stop and then move at no faster than 15-20 km/h to the next red light.
+		</p></aside>
+	</section>
+	
+	<section>
+		<h3>Dashboard</h3>
+		<figure class="infobox rightimg" id="define-ezh3-dashboard">
+			<img src="images/ezh3_dashboard.jpg" alt="" />
+		</figure>		
+	</section>	
 </article>
 
 <article id="operations">
@@ -318,6 +370,7 @@
 			<li>In the front driver's cabin, set the reverser to <var>forward</var> by pressing <kbd>0</kbd>.</li>
 			<li>Push <var>DIP on</var> button (or press <kbd>Shift</kbd>+<kbd>1</kbd>).</li>
 			<li>Turn on the motor-compressor and wait until sufficient pressure (6-8 atmospheres) builds up in the train line. Verify this by the black arrow on pneumatic pressure gauge.</li>
+			<li>Turn on ALS, ARS switches (underneath and to right of the speed indicator).</li>
 			<li><var>Ezh3:</var> Verify that only СД (SD), НР1 (NR1) lights are glowing on the main panel.</li>
 			<li>Open left doors (<kbd>A</kbd>). Doors must open.</li>
 			<li><var>Ezh3:</var> СД (SD) light must stop glowing.</li>
@@ -326,9 +379,28 @@
 			<li><var>Ezh3:</var> СД (SD) light must stop glowing.</li>			
 			<li>Connect the driver's valve to pneumatic system by turning off the driver's valve disconnect valve (or pressing <kbd>Shift</kbd>+<kbd>L</kbd>).</li>
 			<li>Disengage the hydraulic brakes by pressing <kbd>R</kbd> until the driver's valve in position 2.</li>
-			<li>Wait for brake cylinder pressure to reach 0.</li>
+			<li>Wait for brake line pressure to reach its maximum value.</li>
+			<li>Press <kbd>Space</kbd> to cancel ARS emergency brake.</li>
 			<li>Leave the depot/holding dead end by starting motion of the train by moving the controller to position <var>X1</var> by pressing <kbd>1</kbd>.</li>
+			<li>The depot tracks do not have ARS/ALS signal. Until ARS/ALS signal is regained, hold attention pedal (<kbd>Space</kbd>) and do not exceed <var>20 km/h</var> speed (recommended speed is <var>15 km/h</var>).</li>
 		</ol>
+	</section>
+	
+	<section>
+		<h3>Accelerating/driving:</h3>
+		<ol>
+			<li>Accelerate to target speed by engaging <var>X1</var>, <var>X2</var> or <var>X3</var> mode.</li>
+			<li>Disassemble the driving circuits once the target speed is reached. If speed limit is 60, controller can be left in <var>X2</var> position as it will top out at 55 km/h.</li>
+			<li>If ARS speed limit is exceeded, the ARS system will brake below the speed limit. The driver must confirm his attention by pressing the attention pedal (<kbd>Space</kbd> key), otherwise the train will come to a full stop.</li>
+		</ol>
+		
+		<aside class="info"><p>
+		If ARS is not enabled, driver is required to hold attention pedal all the time and is forbidden to drive faster than 20 km/h.
+		</p></aside>
+		
+		<aside class="info"><p>
+		If there is a spontaneous short-term <var>0</var> or <var>No frequency</var> signal on ARS, the drivers should proceed until the signal is regained and report the place where this happens.
+		</p></aside>
 	</section>
 	
 	<section>
@@ -359,6 +431,7 @@
 			<li>Control braking by the value of main ampermeter (efficient electric braking is when about 200-300 amperes are indicated).</li>
 			<li>When the train's speed is at roughly 15-20km/h, switch to <var>T2</var> by pressing <kbd>7</kbd>.</li>
 			<li>When the train's speed is at roughly 5-10km/h, the hydraulic brakes will automatically engage (via pneumatic valve #1).</li>
+			<li>Open doors for passengers.</li>
 			<li>If ARS is enabled, disengage the braking circuits few seconds after pneumatic valve #1 engages.</li>
 		</ol>
 
@@ -538,11 +611,13 @@
 			<li>Are doors closed? Close doors. Make sure reverser is set to forward when doing this.</li>
 			<li>Is a single green RP light glowing? Press G to reset overload relay.</li>
 			<li>Check brake cylinder pressure. Are pneumatic brakes engaged? Press <kbd>R</kbd> a few times to move drivers valve to position 2, open drivers valve disconnect valve.</li>
+			<li>Is ARS system enabled? If it is not enabled, enable ARS and ALS switches. If unable to do so, hold <kbd>Space</kbd> (attention pedal) while driving.</li>
 			<li>Check brake line and train line pressure. Do you have enough pressure in both? Turn on motor-compressor.</li>
 			<li>Is reverser set to neutral in all wagons? Reset reverser to neutral position in all wagons.</li>
 			<li>Is battery turned on in all wagons? Check battery state in every wagon. It must be on in all trains.</li>
 			<li>Are all circuit breakers in right positions? Check that all circuit breakers are turned on.</li>
 			<li>Is <em>АВУ/AVU</em> light glowing? Make sure motor-compressor is turned on, there is enough pressure in train line and pneumatic brakes are released.</li>
+			<li>Are <em>КТ/KT</em>, <em>КВД/KVD</em> lights glowing? Cancel ARS emergency brake by pressing <kbd>Space</kbd>.</li>
 			<li>Do not lose hope and go to 'Advanced train failure troubleshooting' instruction.</li>
 		</ol>
 	</section>
