@@ -306,7 +306,7 @@ function Simplify(name)
 	-- List of triggers
 	Triggers = {}
 	-- Number of temp variables
-	TempVariables = 0
+	TempVariables = TempVariables or 0
 	-- Number of temp nodes
 	TempNodes = 0
 	
@@ -604,10 +604,13 @@ BaseNetwork = {
 	{	"U0",		"U0a",		"1" },
 	{	"U0a",		"0",		"#I[GreenRP]" }, -- Simulate 10AN wire properly (see addtonodes)
 
-	{	"U0",		"s3",		"DIPon" },
-	{	"U0",		"s10",		"DIPoff" },
-	{	"s3",		"0",		"#TW[27]" },
-	{	"s10",		"0",		"#TW[28]" },
+	{	"U0",		"s3",		"DIPon", "Ezh3" },
+	{	"U0",		"s10",		"DIPoff", "Ezh3" },
+	{	"s3",		"0",		"#TW[27]", "Ezh3" },
+	{	"s10",		"0",		"#TW[28]", "Ezh3" },
+	
+	{	"U0",		"s3",		"BPSNon", "81_717" },
+	{	"s3",		"0",		"#TW[27]", "81_717" },
 	
 	
 	----------------------------------------------------------------------------
@@ -746,7 +749,7 @@ BaseNetwork = {
 	
 	{	"C3",		"11B",		"!NR" },
 	{	"11B",		"0",		"#I[Ring]" },
-	{	"27A",		"11B",		"1" },
+	{	"27A",		"11B",		"1", "Ezh3" },
 	
 	{	"TW[23]",	"23A",		"A23" },
 	{	"23A",		"22A",		"1" },
@@ -807,9 +810,11 @@ BaseNetwork = {
 	{	"2Zh",	"2A",	"!KSB1" },
 	{	"2Zh",	"2A",	"!TR1" },
 	
-	{	"2Zh",	"2A",	"KSB2" },	-- HACK: not in original schematics, but
-									-- for purely rheostat braking the rheostat must be powered by circuitry
-									-- which otherwise indicates ready state of thyristor controller
+	{	"2Zh",	"2A",	"KSB2","Ezh3" },	-- HACK: not in original schematics, but
+											-- for purely rheostat braking the rheostat must be powered by circuitry
+											-- which otherwise indicates ready state of thyristor controller
+											
+	{	"2Zh",	"2A",	"ThyristorBU5_6","81_717" },
 	
 	{	"2A",	"2B",	"!PS,PT1" },
 	{	"2B",	"2G",	"!RK1-17" },
@@ -955,14 +960,14 @@ BaseNetwork = {
 	-- Train wire 27
 	{	"TW[27]",	"27A",	"A50" },
 	{	"27A",		"0",	"#XR3.2" },
-	{	"27A",		"0",	"#RPU" },
+	{	"27A",		"0",	"#RPU", "Ezh3" },
 	{	"27A",		"0",	"#KPP" },
 	
 	
 	----------------------------------------------------------------------------
 	-- Train wire 28
-	{	"TW[28]",	"28A",	"A51" },
-	{	"28A",		"0",	"#XR3.3" },
+	{	"TW[28]",	"28A",	"A51", "Ezh3" },
+	{	"28A",		"0",	"#XR3.3", "Ezh3" },
 	
 	
 	----------------------------------------------------------------------------
@@ -1089,6 +1094,415 @@ ExtraStatements = {
 
 GenerateSourceHeader()
 Simplify("Ezh3")
+
+
+--------------------------------------------------------------------------------
+Sources = { "B","HIGH","LOW" }
+Drains = { "0" }
+AddToNodes = {
+	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
+	{ "U0a", "(-10*S[\"10AN\"])" },
+	{ "10/4", "(1-Train.VB.Value)*Train:ReadTrainWire(10)" },
+	{ "2-7R-21", "(-10*Train:ReadTrainWire(18))" },
+	{ "10AH", "0" },
+	{ "15", "(-10*Train:ReadTrainWire(11))" },--+Train:ReadTrainWire(15))"},
+	{ "2", "Train.ALS_ARS[\"2\"]" },
+	{ "8", "Train.ALS_ARS[\"8\"]" },
+	{ "20", "Train.ALS_ARS[\"20\"]" },
+	{ "29", "Train.ALS_ARS[\"29\"]" },
+}
+Diodes = {
+	{ "6A", "1P" }, -- Add a diode between these two nodes
+	{ "10AV", "2Ye" },
+	{ "TW4", "5V" },
+	{ "TW29", "8Zh" },
+	{ "27A", "11B" },
+	{ "12A", "31A" },
+	{ "12A", "32A" },
+}
+SpecialTriggers = {
+	"LK5",
+	"KPP",
+	"RPvozvrat",
+	"RRTuderzh",
+	"RRTpod",
+	"RUTpod",
+	"SDPP",
+	"SDRK_Coil",
+	"SDRK",	
+	"XR3.2",
+	"XR3.3",
+	"XR3.4",
+	"XR3.6",
+	"XR3.7",
+	"XT3.1",
+	"ReverserForward",
+	"ReverserBackward",
+}
+ExtraStatements = {
+[[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],
+[[Triggers["SDRK_Shunt"]( 1.0 - 0.25*C((RK >= 2) and (RK <= 7))*C(P == 1)*Train.LK2.Value )]]
+}
+Simplify("81_717")
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------
+BaseNetwork = {
+	----------------------------------------------------------------------------
+	-- Battery circuits
+	{	"B",		"B1",		"1" }, -- P1
+	{	"B",		"B9",		"1" }, -- P2
+	{	"B1",		"B12",		"VB" },
+	{	"B9",		"B2",		"VB" },
+	
+	{	"B2",		"B8",		"A53" },
+	{	"B8",		"B22",		"A75" },
+	{	"B22",		"0",		"#KUP" },
+	{	"B8",		"0",		"#KVC" },
+	
+	{	"B8",		"B28",		"KUP" },
+	{	"B28",		"0",		"#I[KUP]" },	
+	{	"B8",		"36Ya",		"KVC" },
+	{	"36Ya",		"0",		"#XR3.4" },
+	{	"36Ya",		"0",		"#XR3.6" },
+	{	"36Ya",		"0",		"#XR3.7" },
+	
+	{	"B12",		"0",		"#I[EmergencyLight]" },
+	
+	{	"B12",		"B16",		"VB" },
+	{	"B16",		"10/4",		"A56" },
+	{	"10/4",		"10/4a",	"VB" }, -- Simulate connection to TW10 in such way that there is no feedback loop
+	{	"10/4a",	"0",		"#TW[10]" },	
+	{	"10/4a",	"0",		"#TW[9]" },
+	{	"TW[10]",	"10",		"1" },
+	
+	{	"B12",		"B13",		"A24" },
+	{	"B13",		"0",		"#XT3.1" },
+	
+	
+	----------------------------------------------------------------------------
+	-- KV-70 reverser section
+	{	"10/4",		"D",		"A21" },
+	{	"10/4",		"D4",		"A13" },
+	{	"D4",		"D4/3",		"1" },
+
+	
+	----------------------------------------------------------------------------
+	-- Lighting/aux circuits	
+	{	"TW[23]",	"23A",		"A23" },
+	{	"23A",		"22A",		"1" },
+	{	"TW[22]",	"22A",		"A22" },
+	{	"22A",		"22V",		"!TRK" },
+	{	"22V",		"0",		"#KK" },
+	
+	{	"D4/3",		"ST/1+ST/2","BPT" },
+	{	"ST/1+ST/2","0",		"#I[TrainBrakes]" },
+	
+	{	"D4/3",		"16V/1+16V/2","!RD" },
+	{	"16V/1+16V/2","0",		"#I[TrainDoors]" },
+	
+	{	"D4/3",		"D6/1",		"BD" },
+	{	"D6/1",		"0",		"#RD" },
+
+
+	----------------------------------------------------------------------------
+	-- Train wire 1
+	{	"TW[1]","1A",	"A1" },
+	{	"1A",	"1T",	"!PS,PP" },
+	{	"1T",	"1P",	"NR" },
+	{	"1T",	"1P",	"RPU" },
+	{	"1P",	"6A",	"PT1,PT2" },
+	
+	{	"1P",	"1B",	"AVT" },
+	{	"1B",	"1G",	"!RP" },
+		
+	{	"1G",	"1E",	"!RK1" },
+	{	"1E",	"1Yu",	"KSH2" },
+	{	"1E",	"1Ya",	"KSB2" },
+	{	"1Ya",	"1Yu",	"KSB1" },
+	{	"1Yu",	"1L",	"!PS,PT1" },
+	{	"1L",	"1Zh",	"LK2" }, -- Usually LK5
+	{	"1G",	"1Zh",	"LK3" },
+		
+	{	"1Zh",	"1K",	"!PS,PP" },
+	{	"1Zh",	"1N",	"!PS,PT1" },
+		
+	{	"1Zh",	"0",	"#LK3" },
+	{	"1K",	"0",	"#LK1" },
+	{	"1N",	"0",	"#RR" },
+	
+	{	"1A",	"1V",	"!RV1" },
+	{	"1V",	"1R",	"!PS" },
+	{	"1A",	"1M",	"!RK1-5" },
+	{	"1M",	"1R",	"PP" },
+	
+	{	"1R",	"0",	"#KSH1" },
+	{	"1R",	"0",	"#KSH2" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 2
+	{	"TW[2]","2Zh",	"A2" },
+	{	"2Zh",	"2A",	"!KSB1" },
+	{	"2Zh",	"2A",	"!TR1" },
+	
+	{	"2Zh",	"2A",	"KSB2","Ezh3" },	-- HACK: not in original schematics, but
+											-- for purely rheostat braking the rheostat must be powered by circuitry
+											-- which otherwise indicates ready state of thyristor controller
+											
+	{	"2Zh",	"2A",	"ThyristorBU5_6","81_717" },
+	
+	{	"2A",	"2B",	"!PS,PT1" },
+	{	"2B",	"2G",	"!RK1-17" },
+	
+	{	"2A",	"2V",	"PP,PT2" },
+	{	"2V",	"2G",	"RK5-18" },
+	{	"2V",	"2R",	"RK2-4" },
+	{	"2R",	"2G",	"KSH1" },
+	
+	{	"2G",	"2Ye",	"LK4" },
+	{	"2Ye",	"0",	"#SR1" },
+	{	"2Ye",	"0",	"#RV1" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 3
+	{	"TW[3]","3A",	"A3" },
+	{	"3A",	"0",	"#Rper" },
+	
+
+	----------------------------------------------------------------------------
+	-- Train wires 4, 5
+	{	"TW[4]","4B",	"!RKR" },
+	{	"4B",	"0",	"#ReverserBackward" },
+	{	"TW[5]","5B",	"RKR" },
+	{	"5B",	"0",	"#ReverserForward" },
+	
+	{	"TW[4]","5V",	"RKR" },
+	{	"TW[5]","5V",	"!RKR" },
+	{	"5V",	"5B'",	"LK3" },
+	{	"5B'",	"0",	"#LK4" },
+	
+
+	----------------------------------------------------------------------------
+	-- Train wire 6
+	{	"TW[6]","6A",	"A6" },
+	{	"6A",	"0",	"#TR1" },
+	{	"6A",	"0",	"#TR2" },
+	{	"6A",	"6G",	"PT1,PT2" },
+	{	"6G",	"6Yu",	"!RK1-5" },
+	--{	"6G",	"6Yu",	"!RK1-2" }, 	-- HACK: not in original schematics, but
+										-- the circuit defines pure rheostat braking instead of
+										-- thyristor braking. The KSB relay triggers KSH instead.
+										-- The relays must be on for more RK positions to allow for gradual
+										-- field control
+	{	"6Yu",	"0",	"#RUP" },
+	{	"6Yu",	"0",	"#KSB1" },
+	{	"6Yu",	"0",	"#KSB2" },
+	
+	
+
+	----------------------------------------------------------------------------
+	-- Train wire 8
+	{	"TW[8]","8A",	"A8" },
+	{	"8A",	"8Zh",	"RK17-18" },
+	{	"8Zh",	"0",	"#PneumaticNo1" },
+	
+	{	"8A",	"8Ye",	"RK1" },
+	{	"8A",	"8Ye",	"!LK4" },
+	{	"8Ye",	"8G",	"!RT2" },
+	{	"8G",	"0",	"#PneumaticNo2" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 11
+	{	"B2",		"11A",	"!RD" }, 		-- This simulates series connection
+	{	"11A",		"0",	"#TW[11]" },	-- of RD contacts in all wagons.
+											-- The value of train wire 11 will be 1.0
+											-- if at least one RD is active
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 12
+	{	"TW[12]",	"12A",	"A12" },
+	{	"12A",		"31A",	"1" },
+	{	"12A",		"32A",	"1" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 16
+	{	"TW[16]",	"16A",	"A16" },
+	{	"16A",		"16V",	"!RD" },
+	{	"16V",		"0",	"#VDZ" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 17
+	{	"TW[17]",	"17A",	"A17" },
+	{	"17A",		"0",	"#RPvozvrat" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 18
+	{	"HIGH",		"18s1",	"!RP" }, 	-- This is not how it's implemented on circuit,
+	{	"18s1",		"18s2",	"LK4" },	-- but an equivalent circuit instead
+	{	"18s2",		"18A",	"A14" },	-- Value of 1.0 on TW18 would indicated 'not grounded'
+	{	"18A",		"0",	"#TW[18]" },
+	
+	{	"HIGH",		"18s3",	"!RP" },
+	{	"18s3",		"18Aa",	"A14" },
+	--{	"18Aa",		"0",	"#TW[10AH]" },
+	{	"18Aa",		"10AN",	"1" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 20
+	{	"TW[20]",	"20A",	"A20" },
+	{	"20A",		"20B",	"!RP" },
+	{	"20B",		"0",	"#LK2" },
+	{	"20B",		"0",	"#LK5" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 24
+	{	"TW[24]",	"24V",	"!LK4" },
+	{	"24V",		"0",	"#RZ_2" },
+
+	
+	----------------------------------------------------------------------------
+	-- Train wire 25
+	{	"TW[25]",	"25A",	"A25" },
+	{	"25A",		"0",	"#RRTuderzh" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 27
+	{	"TW[27]",	"27A",	"A50" },
+	{	"27A",		"0",	"#XR3.2" },
+	{	"27A",		"0",	"#RPU", "Ezh3" },
+	{	"27A",		"0",	"#KPP" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 28
+	{	"TW[28]",	"28A",	"A51", "Ezh3" },
+	{	"28A",		"0",	"#XR3.3", "Ezh3" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 29
+	{	"TW[29]",	"8Zh",	"1" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 31
+	{	"TW[31]",	"31A",	"A31" },
+	{	"31A",		"0",	"#VDOL" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Train wire 32
+	{	"TW[32]",	"32A",	"A32" },
+	{	"32A",		"0",	"#VDOP" },
+	
+	
+	----------------------------------------------------------------------------
+	-- Battery B2 output
+	{	"B2",		"10AYa",	"A80" },
+	{	"10AYa",	"10AB",		"!LK3" },
+	{	"10AB",		"10AV",		"RK2-18" },
+	{	"10AV",		"2Ye",		"!LK4" },
+	
+	-- SDPP movement triggers
+	{	"10AYa",	"10E",		"!LK3" },
+	--{	"10AYa",	"10E",		"PM,PS3" }, --FIXME
+	{	"10AYa",	"10E",		"Rper" },
+	
+	-- SDPP step logic
+	{	"10E",		"10Yu",		"LK3" },
+	{	"10Yu",		"10Ya",		"RK18" },
+	{	"10Ya",		"10AG",		"!PS" },
+	
+	{	"10E",		"10AP",		"!LK1" },
+	{	"10AP",		"10AD",		"LK2" },
+	{	"10AP",		"10AD",		"PT1,PT2" },
+	
+	{	"10AD",		"10AR'",	"!TR2" },
+	{	"10AR'",	"10AR",		"!TR1" },
+	{	"10AR",		"10AG",		"PP,PT1,PT2" },
+	
+	{	"10AD",		"10AT'",	"TR2" },
+	{	"10AT'",	"10AT",		"TR1" },
+	{	"10AT",		"10AG",		"!PS,PP,PT2" },
+	
+	{	"10AG",		"0",		"#SDPP" },
+	
+	-- SDRK coil circuit
+	{	"B2",		"10AE",		"A30" },
+	{	"10AE",		"10B",		"TR1" },
+	{	"10AE",		"10B",		"RV1" },
+	{	"10AE",		"10B",		"RV1" },
+	{	"10B",		"0",		"#SDRK_Coil" },
+	{	"10AE",		"10Zh",		"1" },
+	
+	{	"10AE",		"10I",		"RKM2" }, -- Marked as RKM2 on schematics...
+	{	"10I",		"10AH",		"!LK1" },
+	{	"10AH",		"0",		"#RRTpod" },
+	{	"10I",		"10H",		"LK4" },
+	{	"10H",		"0",		"#RUTpod" },
+	
+	-- SDRK motor circuit
+	{	"10Zh",		"10M",		"SR1" },
+	{	"10M",		"10MA",		"!RRT" },
+	{	"10MA",		"10N",		"!RUT" },
+	{	"10Zh",		"10N",		"RKM1" },
+	
+	{	"10N",		"0",		"#SDRK" },
+}
+Sources = { "B","HIGH","LOW" }
+Drains = { "0" }
+AddToNodes = {
+	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
+}
+Diodes = {
+	{ "6A", "1P" }, -- Add a diode between these two nodes
+	{ "10AV", "2Ye" },
+	{ "TW4", "5V" },
+	{ "TW29", "8Zh" },
+	{ "27A", "11B" },
+	{ "12A", "31A" },
+	{ "12A", "32A" },
+}
+SpecialTriggers = {
+	"LK5",
+	"KPP",
+	"RPvozvrat",
+	"RRTuderzh",
+	"RRTpod",
+	"RUTpod",
+	"SDPP",
+	"SDRK_Coil",
+	"SDRK",	
+	"XR3.2",
+	"XR3.3",
+	"XR3.4",
+	"XR3.6",
+	"XR3.7",
+	"XT3.1",
+	"ReverserForward",
+	"ReverserBackward",
+}
+ExtraStatements = {
+[[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],
+[[Triggers["SDRK_Shunt"]( 1.0 - 0.25*C((RK >= 2) and (RK <= 7))*C(P == 1)*Train.LK2.Value )]]
+}
+Simplify("81_714")
+
 
 --------------------------------------------------------------------------------
 --print("Result:\n"..SRC)

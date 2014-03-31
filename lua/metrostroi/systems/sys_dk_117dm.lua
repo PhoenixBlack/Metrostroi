@@ -88,6 +88,6 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	
 	-- Calculate reduction in magnetic field
-	self.FieldReduction13 = 100 * Train.Electric.Istator13 / (Train.Electric.I13+1e-9)
-	self.FieldReduction13 = 100 * Train.Electric.Istator24 / (Train.Electric.I24+1e-9)
+	self.FieldReduction13 = math.abs(100 * Train.Electric.Istator13 / (Train.Electric.I13+1e-9))
+	self.FieldReduction24 = math.abs(100 * Train.Electric.Istator24 / (Train.Electric.I24+1e-9))
 end

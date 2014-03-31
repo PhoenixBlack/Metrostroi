@@ -1,4 +1,4 @@
-include("shared.lua")
+﻿include("shared.lua")
 
 --------------------------------------------------------------------------------
 -- Console commands and convars
@@ -452,7 +452,7 @@ function ENT:Draw()
 	end
 	
 	--Drawing schedule for trains which support it
-	if self.ButtonMap["Schedule"] then
+	if self.ButtonMap and self.ButtonMap["Schedule"] then
 		self:DrawOnPanel("Schedule", function(panel)
 			self:DrawSchedule(panel)
 		end)
@@ -593,54 +593,6 @@ function ENT:ShowHide(clientProp, value)
 		end		
 	end
 end
-
-function Metrostroi.PositionFromPanel(panel,button_id_or_vec,z)
-	local self = ENT
-	local panel = self.ButtonMap[panel]
-	if not panel then return Vector(0,0,0) end
-	if not panel.buttons then return Vector(0,0,0) end
-	
-	-- Find button or read position
-	local vec
-	if type(button_id_or_vec) == "string" then
-		local button
-		for k,v in pairs(panel.buttons) do
-			if v.ID == button_id_or_vec then
-				button = v
-				break
-			end
-		end
-		vec = Vector(button.x,button.y,z or 0)
-	else
-		vec = button_id_or_vec
-	end
-
-	-- Convert to global coords
-	vec.y = -vec.y
-	vec:Rotate(panel.ang)
-	return panel.pos + vec * panel.scale
-end
-
-function Metrostroi.AngleFromPanel(panel,ang)
-	local self = ENT
-	local panel = self.ButtonMap[panel]
-	if not panel then return Vector(0,0,0) end
-	local true_ang = panel.ang + Angle(0,0,0)
-	true_ang:RotateAroundAxis(panel.ang:Up(),ang or -90)
-	return true_ang
-end
-
-function Metrostroi.ClientPropForButton(prop_name,config)
-	local self = ENT
-	self.ClientProps[prop_name] = {
-		model = config.model or "models/metrostroi/81-717/button07.mdl",
-		pos = Metrostroi.PositionFromPanel(config.panel,config.button or config.pos,(config.z or 0.2)),
-		ang = Metrostroi.AngleFromPanel(config.panel,config.ang)
-	}
-end
-
-
-
 
 local digit_bitmap = {
   [1] = { 0,0,1,0,0,1,0 },

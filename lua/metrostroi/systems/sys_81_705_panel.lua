@@ -79,6 +79,9 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("A80","Relay","VA21-29")
 	self.Train:LoadSystem("VU","Relay","VA21-29")
 	
+	-- 81-717 special
+	self.Train:LoadSystem("BPSNon","Relay","Switch")
+	
 	-- Map of AV switches to indexes on panel
 	self:InitializeAVMap()
 end

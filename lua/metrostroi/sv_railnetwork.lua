@@ -844,6 +844,7 @@ concommand.Add("metrostroi_track_main", function(ply, _, args)
 		for _,switch in pairs(switches) do
 			print("Found switch:",switch,switch.TrackPosition.x)
 			switch:SendSignal("main",1)
+			switch:SendSignal("main",2)
 		end
 	end
 end)
@@ -858,6 +859,7 @@ concommand.Add("metrostroi_track_alt", function(ply, _, args)
 		for _,switch in pairs(switches) do
 			print("Found switch:",switch,switch.TrackPosition.x)
 			switch:SendSignal("alt",1)
+			switch:SendSignal("alt",2)
 		end
 	end
 end)
