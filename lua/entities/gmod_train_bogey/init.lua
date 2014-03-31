@@ -316,7 +316,7 @@ function ENT:Think()
 	-- Calculate forces
 	local motorForce = self.MotorForce*motorPower
 	local pneumaticFactor = math.max(0,math.min(1,2.5*self.Speed))
-	local pneumaticForce = -sign*pneumaticFactor*self.PneumaticBrakeForce*(self.BrakeCylinderPressure / 4.5)
+	local pneumaticForce = -sign*pneumaticFactor*self.PneumaticBrakeForce*((self.BrakeCylinderPressure / 4.5)^1.2)
 	if self.BrakeCylinderPressure < 0.05 then pneumaticForce = 0 end
 	
 	-- Compensate forward friction

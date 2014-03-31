@@ -1,7 +1,7 @@
 ENT.Type            = "anim"
 ENT.Base            = "gmod_subway_base"
 
-ENT.PrintName       = "Ezh3"
+ENT.PrintName       = "81-717"
 ENT.Author          = ""
 ENT.Contact         = ""
 ENT.Purpose         = ""
@@ -19,7 +19,7 @@ function ENT:GetStandingArea()
 	return Vector(-450,-30,-45),Vector(380,30,-45)
 end
 
-function ENT:InitializeSystems()	
+function ENT:InitializeSystems()
 	-- Токоприёмник
 	self:LoadSystem("TR","TR_3B")	
 	-- Электротяговые двигатели
@@ -53,14 +53,14 @@ function ENT:InitializeSystems()
 	self:LoadSystem("PR_14X_Panels")	
 	
 	-- Электросистема 81-705
-	self:LoadSystem("Electric","81_705_Electric")
+	self:LoadSystem("Electric","81_717_Electric")
 	-- Пневмосистема 81-705
 	self:LoadSystem("Pneumatic","81_717_Pneumatic")
 	-- Панель управления 81-705
 	self:LoadSystem("Panel","81_705_Panel")
 	-- Everything else
 	self:LoadSystem("Battery")
-	self:LoadSystem("PowerSupply","DIP_01K")
+	self:LoadSystem("PowerSupply","BPSN")
 	self:LoadSystem("DURA")
 	self:LoadSystem("ALS_ARS")
 end

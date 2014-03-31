@@ -111,7 +111,7 @@ function TRAIN_SYSTEM:Think()
 	
 	-- ARS system placeholder logic
 	if (Train.ALS.Value == 1.0) then
-		local V = math.floor(self.Speed)
+		local V = math.floor(self.Speed+0.5)
 		local Vlimit = 0
 		if self.Signal40 then Vlimit = 40 end
 		if self.Signal60 then Vlimit = 60 end
@@ -120,7 +120,7 @@ function TRAIN_SYSTEM:Think()
 
 		--self.SoftOverspeed = ((Vlimit == 0) and (Train.PB.Value == 1) and (V > 20))
 		self.Overspeed = false
-		if (Train.PB.Value == 0) and (V > Vlimit) and (V > 5) then self.Overspeed = true end
+		if (Train.PB.Value == 0) and (V > Vlimit) and (V > 3) then self.Overspeed = true end
 		if (Train.PB.Value == 1) and (Vlimit ~= 0) and (V > Vlimit) then self.Overspeed = true end
 		if (Train.PB.Value == 1) and (Vlimit == 0) and (V > 20) then self.Overspeed = true end
 		
@@ -146,7 +146,7 @@ function TRAIN_SYSTEM:Think()
 		
 		-- Check parking brake functionality
 		self.TW1Timer = self.TW1Timer or -1e9
-		if (self.Speed < 10) and ((CurTime() - self.TW1Timer) > 5) then
+		if (self.Speed < 6) and ((CurTime() - self.TW1Timer) > 5) then
 			self.PneumaticBrake1 = true
 		end
 		-- Check cancel pneumatic brake 1 command

@@ -23,6 +23,7 @@ if SERVER then
 
 	resource_AddDir("models/metrostroi/81-717")
 	resource_AddDir("models/metrostroi/e")
+	resource_AddDir("models/metrostroi/81")
 	resource_AddDir("models/metrostroi/metro")
 	resource_AddDir("models/metrostroi/passengers")
 	resource_AddDir("models/metrostroi/signals")
@@ -46,6 +47,11 @@ if not Metrostroi then
 		"gmod_subway_ezh3",
 		"gmod_subway_ema",
 		"gmod_subway_em508t",
+		"gmod_subway_tatra_t3",
+		"gmod_subway_81-717",
+		"gmod_subway_81-714",
+		"gmod_subway_81-7036",
+		"gmod_subway_81-7037",
 	}
 	
 	-- List of all systems
