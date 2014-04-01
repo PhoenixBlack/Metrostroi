@@ -80,7 +80,8 @@ function ENT:Initialize()
 		
 		-- Add I/O for train wires
 		if self.SubwayTrain then
-			for i=1,self.TrainWireCount do
+			--for i=1,self.TrainWireCount do
+			for i=1,20 do
 				table.insert(inputs,"TrainWire"..i)
 				table.insert(inputTypes,"NORMAL")
 				table.insert(outputs,"TrainWire"..i)

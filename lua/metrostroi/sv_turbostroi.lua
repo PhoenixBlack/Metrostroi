@@ -65,6 +65,8 @@ if not TURBOSTROI then
 		end
 	
 		hook.Add("Think", "Turbostroi_Think", function()
+			if not Turbostroi then return end
+			
 			-- Proceed with the think loop
 			Turbostroi.SetSimulationFPS(33)
 			Turbostroi.SetTargetTime(CurTime())

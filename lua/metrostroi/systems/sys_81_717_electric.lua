@@ -154,25 +154,71 @@ end
 
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
-	local Active = (Train.KSB1.Value > 0) or (Train.KSB2.Value > 0)
-	--local Field = 0.5*(Train.Engines.FieldReduction13 + Train.Engines.FieldReduction24)
-	local Current = self.Itotal
+	-- General state
+	local Active = ((Train.KSB1.Value > 0) or (Train.KSB2.Value > 0)) and (Train.LK2.Value == 1.0)
+	local Current = math.abs(self.Itotal)
+	local PrevCurrent = self.ThyristorPrevCurrent or Current
+	self.ThyristorPrevCurrent = Current
+	
+	-- Controllers resistance
+	local Resistance = 0.036
 	
 	-- Update thyristor controller signal
 	if not Active then
 		self.ThyristorState = 0.0
 	else
-		local dS = 0.0
-		if (Current < 200.0) and (Train.LK2.Value == 1.0) then dS = 0.50 end
-		self.ThyristorState = math.max(0,math.min(1,self.ThyristorState + dS*dT))
+		-- Generate control signal
+		local T = 200.0 -- amps
+		local I = Current
+		local dI = (Current - PrevCurrent)/dT
+		local A = (T-I)*0.05
+		local B = -dI*0.05
+		local C = math.max(0,A + B)
+		
+		-- Output signal
+		if Current > 0.5 then
+			self.ThyristorState = math.max(0,math.min(1,self.ThyristorState + C*dT))
+		end
+
+		-- Generate resistance
+		local keypoints = {
+			0.10,0.015,
+			0.20,0.036,
+			0.30,0.050,
+			0.40,0.094,
+			0.50,0.139,
+			0.60,0.200,
+			0.70,0.329,
+			0.80,0.545,
+			0.90,1.204,
+			1.00,15.00,
+		} --math.min(1.00,math.max(0.00,
+		local TargetField = ((0.20 + 0.80*self.ThyristorState))
+		local Found = false
+		for i=1,#keypoints/2 do
+			local X1,Y1 = keypoints[(i-1)*2+1],keypoints[(i-1)*2+2]
+			local X2,Y2 = keypoints[(i)*2+1],keypoints[(i)*2+2]
+		
+			if (not Found) and (not X2) then
+				Resistance = Y1
+				Found = true
+			elseif (TargetField >= X1) and (TargetField < X2) then
+				local T = (TargetField-X1)/(X2-X1)
+				Resistance = Y1 + (Y2-Y1)*T
+				Found = true
+			end
+		end
+		
+		--print(Format(
+			--"Thyristor %5.1f amps - %.0f%% - %0.f%% %.3f ohm - %.3f %.3f %.3f",
+			--I,self.ThyristorState*100,Train.Engines.FieldReduction13,Resistance,A,B,C
+		--))
 	end
 	
 	-- Allow or deny using manual brakes
-	Train.ThyristorBU5_6:TriggerInput("Set",self.ThyristorState > 0.95)
-	
+	Train.ThyristorBU5_6:TriggerInput("Set",self.ThyristorState > 0.95)	
 	-- Set resistance
-	self.ThyristorResistance = math.max(0.01,-math.log(math.max(1e-9,1-self.ThyristorState)))
-	self.ThyristorResistance = self.ThyristorResistance + 1e9 * (Active and 0 or 1)
+	self.ThyristorResistance = Resistance + 1e9 * (Active and 0 or 1)
 end
 
 
