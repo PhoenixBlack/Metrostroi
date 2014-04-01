@@ -18,6 +18,7 @@ ENT.AdminSpawnable  = false
 --------------------------------------------------------------------------------
 function ENT:InitializeSystems()
 	self:LoadSystem("DURA")
+	self:LoadSystem("ALS_ARS")
 end
 
 function ENT:PassengerCapacity()

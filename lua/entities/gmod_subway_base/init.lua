@@ -15,12 +15,16 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 	self:SetUseType(SIMPLE_USE)
 	
+	-- Possible number of train wires
+	self.TrainWireCount = self.TrainWireCount or 32
 	-- Train wires
 	self:ResetTrainWires()
 	-- Systems defined in the train
 	self.Systems = {}
 	-- Initialize train systems
 	self:InitializeSystems()
+	-- Initialize highspeed interface
+	self:InitializeHighspeedLayout()
 	
 	-- Prop-protection related
 	if CPPI and self.Owner then
@@ -28,36 +32,40 @@ function ENT:Initialize()
 	end
 
 	-- Initialize wire interface
+	self.WireIOSystems = self.WireIOSystems or { "KV", "ALS_ARS", "DURA", "Pneumatic" }
 	if Wire_CreateInputs then
 		local inputs = {}
 		local outputs = {}
 		local inputTypes = {}
 		local outputTypes = {}
-		for k,v in pairs(self.Systems) do
-			local i = v:Inputs()
-			local o = v:Outputs()
-			
-			for _,v2 in pairs(i) do 
-				if type(v2) == "string" then
-					table.insert(inputs,(v.Name or "")..v2) 
-					table.insert(inputTypes,"NORMAL")
-				elseif type(v2) == "table" then
-					table.insert(inputs,(v.Name or "")..v2[1])
-					table.insert(inputTypes,v2[2])
-				else
-					ErrorNoHalt("Invalid wire input for metrostroi subway entity")
+		for _,name in pairs(self.WireIOSystems) do
+			local v = self.Systems[name]
+			if v then
+				local i = v:Inputs()
+				local o = v:Outputs()
+				
+				for _,v2 in pairs(i) do 
+					if type(v2) == "string" then
+						table.insert(inputs,(v.Name or "")..v2) 
+						table.insert(inputTypes,"NORMAL")
+					elseif type(v2) == "table" then
+						table.insert(inputs,(v.Name or "")..v2[1])
+						table.insert(inputTypes,v2[2])
+					else
+						ErrorNoHalt("Invalid wire input for metrostroi subway entity")
+					end
 				end
-			end
-			
-			for _,v2 in pairs(o) do 
-				if type(v2) == "string" then
-					table.insert(outputs,(v.Name or "")..v2) 
-					table.insert(outputTypes,"NORMAL")
-				elseif type(v2) == "table" then
-					table.insert(outputs,(v.Name or "")..v2[1])
-					table.insert(outputTypes,v2[2])
-				else
-					ErrorNoHalt("Invalid wire output for metrostroi subway entity")
+				
+				for _,v2 in pairs(o) do 
+					if type(v2) == "string" then
+						table.insert(outputs,(v.Name or "")..v2) 
+						table.insert(outputTypes,"NORMAL")
+					elseif type(v2) == "table" then
+						table.insert(outputs,(v.Name or "")..v2[1])
+						table.insert(outputTypes,v2[2])
+					else
+						ErrorNoHalt("Invalid wire output for metrostroi subway entity")
+					end
 				end
 			end
 		end
@@ -66,15 +74,31 @@ function ENT:Initialize()
 		table.insert(inputs,"DriverSeat")
 		table.insert(inputTypes,"ENTITY")
 		
+		-- Add input for wrench
+		table.insert(inputs,"DriversWrenchPresent")
+		table.insert(inputTypes,"NORMAL")
+		
+		-- Add I/O for train wires
+		if self.SubwayTrain then
+			for i=1,self.TrainWireCount do
+				table.insert(inputs,"TrainWire"..i)
+				table.insert(inputTypes,"NORMAL")
+				table.insert(outputs,"TrainWire"..i)
+				table.insert(outputTypes,"NORMAL")
+			end
+		end
+		
 		self.Inputs = WireLib.CreateSpecialInputs(self,inputs,inputTypes)
 		self.Outputs = WireLib.CreateSpecialOutputs(self,outputs,outputTypes)
 	end
-
 
 	-- Setup drivers controls
 	self.ButtonBuffer = {}
 	self.KeyBuffer = {}
 	self.KeyMap = {}
+	
+	-- Override for if drivers wrench is present
+	self.DriversWrenchPresent = false
 	
 	-- External interaction areas
 	self.InteractionAreas = {}
@@ -94,12 +118,18 @@ function ENT:Initialize()
 	
 	-- Cross-connections in train wires
 	self.TrainWireCrossConnections = {}
+	-- Overrides for train wire values from wiremod interface
+	self.TrainWireOverrides = {}
 
 	-- Load sounds
 	self:InitializeSounds()
 	
 	-- Is this train 'odd' or 'even' in coupled set
 	self.TrainCoupledIndex = 0
+	
+	-- Speed and acceleration of train
+	self.Speed = 0
+	self.Acceleration = 0
 	
 	-- Initialize train
 	if Turbostroi then
@@ -167,6 +197,17 @@ function ENT:TriggerInput(name, value)
 			self.DriverSeat = nil
 		end
 	end
+	
+	-- Train wire input
+	if string.sub(name,1,9) == "TrainWire" then
+		local id = tonumber(string.sub(name,10))
+		self.TrainWireOverrides[id] = value
+	end
+	
+	-- Drivers wrench present
+	if name == "DriversWrenchPresent" then
+		self.DriversWrenchPresent = (value > 0.5)
+	end
 
 	-- Propagate inputs to relevant systems
 	for k,v in pairs(self.Systems) do
@@ -192,6 +233,76 @@ function ENT:ShowInteractionZones()
 		debugoverlay.Sphere(self:LocalToWorld(v.Pos),v.Radius,15,Color(255,185,0),true)
 	end
 end
+
+
+
+
+--------------------------------------------------------------------------------
+-- Highspeed interface
+--------------------------------------------------------------------------------
+-- Initialize highspeed layout
+function ENT:InitializeHighspeedLayout()
+	local layout = ""
+	self.HighspeedLayout = {}
+	for k,v in pairs(Metrostroi.TrainHighspeedInterface) do
+		local offset = v[1] + 128
+		if self.Systems[v[2]] then
+			self.HighspeedLayout[offset] = function(value)
+				if value then
+					self.Systems[v[2] ]:TriggerInput(v[3],value)
+				else
+					return (self.Systems[v[2] ][v[3] ] or 0)
+				end
+			end
+		end
+		
+		layout = layout.."["..offset.."]\t"..v[2].."."..v[3].."\r\n"
+	end
+	file.Write("hs_layout.txt",layout)
+	
+	--[[local str = ""
+	local offset = 0
+	for k,v in SortedPairs(self.Systems) do
+		for i=1,#v.InputsList do
+			str = str.."{ "..offset..", \""..k.."\", \""..v.InputsList[i].."\" },\r\n"
+			offset = offset + 1
+		end
+		for i=1,#v.OutputsList do
+			str = str.."{ "..offset..", \""..k.."\", \""..v.OutputsList[i].."\" },\r\n"
+			offset = offset + 1
+		end
+	end
+	file.Write("hs_layout.txt",str)]]--
+end
+
+-- Highspeed interface
+function ENT:ReadCell(Address)
+	if Address < 0 then return nil end
+	if Address >= 2048 then return false end
+
+	if (Address >= 0) and (Address < 128) then
+		return self:ReadTrainWire(Address)
+	end
+	if self.HighspeedLayout[Address] then
+		return self.HighspeedLayout[Address]()
+	end
+end
+
+function ENT:WriteCell(Address, value)
+	if Address < 0 then return false end
+	if Address >= 2048 then return false end
+	
+	if (Address >= 0) and (Address < 128) then
+		self.TrainWireOverrides[Address] = value
+		return true
+	end
+	if self.HighspeedLayout[Address] then
+		self.HighspeedLayout[Address](value)
+		return true
+	end
+	return true
+end
+
 
 
 --------------------------------------------------------------------------------
@@ -231,6 +342,11 @@ function ENT:IsTrainWireCrossConnected(k)
 end
 
 function ENT:WriteTrainWire(k,v)
+	-- Override values with wire interface
+	if self.TrainWireOverrides[k] and (self.TrainWireOverrides[k] > 0) then
+		v = self.TrainWireOverrides[k]
+	end
+	
 	-- Check if line is write-able
 	local can_write = self:TrainWireCanWrite(k)
 	local wrote = false
@@ -493,6 +609,8 @@ end
 
 -- Returns if KV/reverser wrench is present in cabin
 function ENT:IsWrenchPresent()
+	if self.DriversWrenchPresent then return end
+	
 	for k,v in pairs(self.Seats) do
 		if IsValid(v.entity) and v.entity.GetPassenger and
 			((v.type == "driver") or (v.type == "instructor")) then
@@ -689,7 +807,6 @@ function ENT:GetActiveModifiers(key)
 end
 
 function ENT:OnKeyEvent(key,state)
-	
 	if state then
 		self:OnKeyPress(key)
 	else
@@ -875,17 +992,52 @@ function ENT:Think()
 		end
 	end
 	
+	-- Wire outputs
+	--self.PreviousWireIOValue = self.PreviousWireIOValue or {}
+	for _,name in pairs(self.WireIOSystems) do
+		local system = self.Systems[name]
+		if system and system.OutputsList then
+			for _,name in pairs(system.OutputsList) do
+				local varname = (system.Name or "")..name
+				if type(system[name]) ==  "boolean" then
+					self:TriggerOutput(varname,system[name] and 1 or 0)
+				else
+					self:TriggerOutput(varname,tonumber(system[name]) or 0)
+				end
+			end
+		end
+	end
+	
+	-- Write to train wires
+	for k,v in pairs(self.TrainWireOverrides) do
+		if v > 0 then self:WriteTrainWire(k,v) end
+	end
 	
 	-- Add interesting debug variables
 	for i=1,32 do
 		self.DebugVars["TW"..i] = self:ReadTrainWire(i)
+		self:TriggerOutput("TrainWire"..i,self.DebugVars["TW"..i])
 	end
 	for k,v in pairs(self.Systems) do
 		for _,output in pairs(v.OutputsList) do
 			self.DebugVars[(v.Name or "")..output] = v[output] or 0
 		end
 	end
+	
+	-- Calculate own speed and acceleration
+	local speed,acceleration = 0,0
+	if IsValid(self.FrontBogey) and IsValid(self.RearBogey) then
+		speed = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
+		acceleration = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2
+	end
+	self.DebugVars["Speed"] = speed
+	self.DebugVars["Acceleration"] = acceleration
+	
+	-- Save it
+	self.Speed = speed
+	self.Acceleration = acceleration	
 
+	-- Go to next think
 	self:NextThink(CurTime()+0.01)
 	return true
 end

@@ -7,10 +7,11 @@ TRAIN_SYSTEM.DontAccelerateSimulation = true
 function TRAIN_SYSTEM:Initialize()
 	self.SelectAlternate = nil
 	self.Channel = 1
+	self.Signal = 0
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { }
+	return { "Signal" }
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -75,6 +76,7 @@ function TRAIN_SYSTEM:Think()
 		if signal > 0 then
 			self.Train:PlayOnce("dura1","cabin",0.35,200)
 		end
+		self.Signal = signal
 		
 		-- If no switches, reset
 		if no_switches and (self.SelectAlternate ~= nil) then

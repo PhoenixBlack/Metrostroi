@@ -264,8 +264,8 @@ function TRAIN_SYSTEM:Think(dT)
 	----------------------------------------------------------------------------
 	-- Simulate compressor operation and train line depletion
 	self.Compressor = Train.KK.Value
-	self.TrainLinePressure = self.TrainLinePressure - 0.075*trainLineConsumption_dPdT*dT
-	if self.Compressor == 1 then equalizePressure("TrainLinePressure", 10.0, 0.10) end
+	self.TrainLinePressure = self.TrainLinePressure - 0.050*trainLineConsumption_dPdT*dT
+	if self.Compressor == 1 then equalizePressure("TrainLinePressure", 10.0, 0.05) end
 	
 	----------------------------------------------------------------------------
 	-- Pressure triggered relays
