@@ -195,8 +195,7 @@ end
 --------------------------------------------------------------------------------
 function ENT:Think()
 	local retVal = self.BaseClass.Think(self)
-	--if not self.Panel["HeadLights1"] then return true end
-	
+
 	-- Check if wrench was pulled out
 	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end
 
@@ -348,16 +347,7 @@ function ENT:Think()
 	self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
 	self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 100.0)
 
-	local speed,acceleration = 0,0
-	if IsValid(self.FrontBogey) and IsValid(self.RearBogey) then
-		speed = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
-		acceleration = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2
-	end
-	self.DebugVars["Speed"] = speed
-	self.DebugVars["Acceleration"] = acceleration
-	
 	-- Update ARS system
-	self.Speed = speed
 	self:SetPackedRatio(3, self.ALS_ARS.Speed/100.0)
 	if self.ALS_ARS.Ring == true then
 		self:SetPackedBool(39,true)
@@ -369,7 +359,7 @@ function ENT:Think()
 	self.YAR_13A:TriggerInput("WeightLoadRatio",math.max(0,math.min(2.00,weightRatio)))
 	
 	-- Exchange some parameters between engines, pneumatic system, and real world
-	self.Engines:TriggerInput("Speed",speed)
+	self.Engines:TriggerInput("Speed",self.Speed)
 	if IsValid(self.FrontBogey) and IsValid(self.RearBogey) then
 		self.FrontBogey.MotorForce = 42000
 		self.FrontBogey.Reversed = (self.RKR.Value > 0.5)

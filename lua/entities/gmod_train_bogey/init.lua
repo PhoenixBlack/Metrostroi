@@ -32,12 +32,10 @@ function ENT:Initialize()
 	-- Create wire controls
 	if Wire_CreateInputs then
 		self.Inputs = Wire_CreateInputs(self,{
-			"TrainLinePressure", "DriverValvePosition",
+			"BrakeCylinderPressure",
 			"MotorPower", "MotorForce", "MotorReversed" })
 		self.Outputs = Wire_CreateOutputs(self,{
-			"Speed",
-			"ReservoirPressure", "TrainLinePressure",
-			"BrakeLinePressure", "BrakeCylinderPressure"
+			"Speed", "BrakeCylinderPressure"
 		})
 	end
 	
@@ -102,11 +100,8 @@ function ENT:GetDebugVars()
 end
 
 function ENT:TriggerInput(iname, value)
-	if iname == "TrainLinePressure" then
-		self.TrainLinePressure = value
-	elseif iname == "DriverValvePosition" then
-		self.DriverValvePosition = value
-		
+	if iname == "BrakeCylinderPressure" then
+		self.BrakeCylinderPressure = value
 	elseif iname == "MotorPower" then
 		self.MotorPower = value
 	elseif iname == "MotorForce" then

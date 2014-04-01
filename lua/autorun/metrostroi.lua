@@ -42,17 +42,15 @@ if not Metrostroi then
 	Metrostroi = {}
 	
 	-- Supported train classes
-	Metrostroi.TrainClasses = {
-		"gmod_subway_base",
-		"gmod_subway_ezh3",
-		"gmod_subway_ema",
-		"gmod_subway_em508t",
-		"gmod_subway_tatra_t3",
-		"gmod_subway_81-717",
-		"gmod_subway_81-714",
-		"gmod_subway_81-7036",
-		"gmod_subway_81-7037",
-	}
+	Metrostroi.TrainClasses = {}
+	timer.Simple(0.05, function() 
+		for name,ent_base in pairs(scripted_ents.GetList()) do
+			local prefix = "gmod_subway_"
+			if string.sub(name,1,#prefix) == prefix then
+				table.insert(Metrostroi.TrainClasses,name)
+			end
+		end
+	end)
 	
 	-- List of all systems
 	Metrostroi.Systems = {}

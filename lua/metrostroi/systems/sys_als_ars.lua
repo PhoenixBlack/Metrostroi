@@ -16,12 +16,14 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Internal state
 	self.Speed = 0
+	self.SpeedLimit = 0
+	self.NextLimit = 0
 	self.Ring = false
-	self.SoftOverspeed = false
 	self.Overspeed = false
 	self.ElectricBrake = false
 	self.PneumaticBrake1 = false
 	self.PneumaticBrake2 = true
+	self.AttentionPedal = false
 	
 	-- ARS wires
 	self["33D"] = 0
@@ -31,7 +33,7 @@ function TRAIN_SYSTEM:Initialize()
 	self["6"] = 0
 	self["8"] = 0
 	self["20"] = 0
-	self["21"] = 0
+	--self["21"] = 0
 	self["29"] = 0
 	self["31"] = 0
 	self["32"] = 0
@@ -41,21 +43,36 @@ function TRAIN_SYSTEM:Initialize()
 	self.LVD = false
 end
 
-function TRAIN_SYSTEM:Outputs()
-	return { "2", "8", "20", "21", "29", "33D", "33G", "33Zh" }
+function TRAIN_SYSTEM:Outputs() --"21", 
+	return { "2", "8", "20", "29", "33D", "33G", "33Zh",
+			 "Speed", "Signal80","Signal70","Signal60","Signal40","Signal0","Special","NoFreq",
+			 "SpeedLimit", "NextLimit","Ring" }
 end
 
 function TRAIN_SYSTEM:Inputs()
-	return { }
+	return { "AttentionPedal" }
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
-
+	if name == "AttentionPedal" then
+		self.AttentionPedal = value > 0.5
+	end
 end
 
 function TRAIN_SYSTEM:Think()
-	local Train = self.Train	
-	if not Train.VB then return end
+	local Train = self.Train
+	local OverrideState = false
+	if (not Train.VB) or (not Train.ALS) or (not Train.ARS) or (not Train.KV) then
+		OverrideState = true
+	end
+	
+	-- ALS, ARS state
+	local EnableARS = OverrideState or ((Train.ARS.Value == 1.0) and (Train.VB.Value == 1.0))
+	local EnableALS = OverrideState or ((Train.ALS.Value == 1.0) and (Train.VB.Value == 1.0) and (Train.KV.ReverserPosition ~= 0.0))
+	
+	-- Pedal state
+	if (Train.PB) and (Train.PB.Value == 1.0) then self.AttentionPedal = true end
+	if (Train.PB) and (Train.PB.Value == 0.0) then self.AttentionPedal = false end
 	
 	-- Speed check and update speed data
 	if CurTime() - (self.LastSpeedCheck or 0) > 0.5 then
@@ -64,15 +81,7 @@ function TRAIN_SYSTEM:Think()
 	end
 	
 	-- Check ARS signals
-	if (Train.ALS.Value == 0.0) or (Train.VB.Value == 0.0) then
-		self.Signal80 = false
-		self.Signal70 = false
-		self.Signal60 = false
-		self.Signal40 = false
-		self.Signal0 = false
-		self.Special = false
-		self.NoFreq = false
-	else
+	if EnableALS then
 		self.Timer = self.Timer or CurTime()
 		if CurTime() - self.Timer > 1.00 then
 			self.Timer = CurTime()
@@ -107,10 +116,18 @@ function TRAIN_SYSTEM:Think()
 				self.NoFreq = true
 			end
 		end
+	else
+		self.Signal80 = false
+		self.Signal70 = false
+		self.Signal60 = false
+		self.Signal40 = false
+		self.Signal0 = false
+		self.Special = false
+		self.NoFreq = false
 	end
 	
 	-- ARS system placeholder logic
-	if (Train.ALS.Value == 1.0) then
+	if EnableALS then
 		local V = math.floor(self.Speed+0.5)
 		local Vlimit = 0
 		if self.Signal40 then Vlimit = 40 end
@@ -118,20 +135,27 @@ function TRAIN_SYSTEM:Think()
 		if self.Signal70 then Vlimit = 70 end
 		if self.Signal80 then Vlimit = 80 end
 
-		--self.SoftOverspeed = ((Vlimit == 0) and (Train.PB.Value == 1) and (V > 20))
 		self.Overspeed = false
-		if (Train.PB.Value == 0) and (V > Vlimit) and (V > 3) then self.Overspeed = true end
-		if (Train.PB.Value == 1) and (Vlimit ~= 0) and (V > Vlimit) then self.Overspeed = true end
-		if (Train.PB.Value == 1) and (Vlimit == 0) and (V > 20) then self.Overspeed = true end
-		
-		--(V >= Vlimit) or self.SoftOverspeed
+		if (not self.AttentionPedal) and (V > Vlimit) and (V > 3) then self.Overspeed = true end
+		if (    self.AttentionPedal) and (Vlimit ~= 0) and (V > Vlimit) then self.Overspeed = true end
+		if (    self.AttentionPedal) and (Vlimit == 0) and (V > 20) then self.Overspeed = true end
+
 		self.Ring = self.Overspeed and (self.Speed > 5)
+		
+		-- Determine next limit and current limit
+		self.SpeedLimit = Vlimit
+		self.NextLimit = Vlimit
+		if self.Signal80 then self.NextLimit = 80 end
+		if self.Signal70 then self.NextLimit = 70 end
+		if self.Signal60 then self.NextLimit = 60 end
+		if self.Signal40 then self.NextLimit = 40 end
+		if self.Signal0  then self.NextLimit =  0 end
 	else
 		self.Overspeed = true
 		self.Ring = false
 	end
 	
-	if (Train.ARS.Value == 1.0) and (Train.KV.ReverserPosition ~= 0.0) then
+	if EnableARS then
 		-- Check overspeed
 		if self.Overspeed then
 			self.ElectricBrake = true
@@ -139,7 +163,7 @@ function TRAIN_SYSTEM:Think()
 			self.PV1Timer = CurTime()
 		end
 		-- Check cancel of overspeed command
-		if (Train.PB.Value == 1) and (not self.Overspeed) then
+		if self.AttentionPedal and (not self.Overspeed) then
 			self.ElectricBrake = false
 			self.PneumaticBrake2 = false
 		end
@@ -178,8 +202,8 @@ function TRAIN_SYSTEM:Think()
 		self.LKT = (self["33G"] > 0.5) or (self["29"] > 0.5)
 		self.LVD = self["33D"] < 0.5
 	else
-		if Train.PB.Value == 0 then
-			self.Train.RPB:TriggerInput("Open",1)
+		if (Train.RPB) and (not self.AttentionPedal) then
+			Train.RPB:TriggerInput("Open",1)
 		end
 		self.ElectricBrake = false
 		self.PneumaticBrake1 = false
