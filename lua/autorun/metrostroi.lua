@@ -72,6 +72,8 @@ if SERVER then
 		else
 			print("Metrostroi: Turbostroi DLL not not found")
 		end
+	else
+		Turbostroi = nil
 	end
 	
 	if Turbostroi 
