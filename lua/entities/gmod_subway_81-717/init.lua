@@ -127,11 +127,11 @@ function ENT:Initialize()
 			[21] = { "light",			Vector(-1,  -69, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 
 			-- Green RP
-			[22] = { "light",			Vector(439.4,12.5-9.6,-5.7), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
+			[22] = { "light",			Vector(439.8,12.5-9.6,-6.1), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
 			-- AVU
-			[23] = { "light",			Vector(441.2,12.5-20.3,-3.7), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[23] = { "light",			Vector(441.6,12.5-20.3,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 			-- LKTP
-			[24] = { "light",			Vector(441.2,12.5-23.0,-3.7), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[24] = { "light",			Vector(441.6,12.5-23.0,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 		}
 	else
 		self.Lights = {
@@ -168,11 +168,11 @@ function ENT:Initialize()
 			[21] = { "light",			Vector(-1,  -69, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 			
 			-- Green RP
-			[22] = { "light",			Vector(439.4,12.5-9.6,-5.7), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
+			[22] = { "light",			Vector(439.8,12.5-9.6,-6.1), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
 			-- AVU
-			[23] = { "light",			Vector(441.2,12.5-20.3,-3.7), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[23] = { "light",			Vector(441.6,12.5-20.3,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 			-- LKTP
-			[24] = { "light",			Vector(441.2,12.5-23.0,-3.7), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[24] = { "light",			Vector(441.6,12.5-23.0,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 		}
 	end
 	
@@ -324,7 +324,7 @@ function ENT:Think()
 	-- LKVC
 	self:SetPackedBool(51,self.KVC.Value < 0.5)
 	-- BPSN
-	self:SetLightPower(24,true)
+	self:SetLightPower(24,self.PowerSupply.XT3_1 > 0)
 	self:SetPackedBool(52,self.PowerSupply.XT3_1 > 0)
 	
 	-- AV states

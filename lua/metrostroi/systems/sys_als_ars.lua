@@ -56,6 +56,9 @@ end
 function TRAIN_SYSTEM:TriggerInput(name,value)
 	if name == "AttentionPedal" then
 		self.AttentionPedal = value > 0.5
+		if Train.PB then
+			Train.PB:TriggerInput("Set",value)
+		end
 	end
 end
 
@@ -67,8 +70,8 @@ function TRAIN_SYSTEM:Think()
 	end
 	
 	-- ALS, ARS state
-	local EnableARS = OverrideState or ((Train.ARS.Value == 1.0) and (Train.VB.Value == 1.0))
-	local EnableALS = OverrideState or ((Train.ALS.Value == 1.0) and (Train.VB.Value == 1.0) and (Train.KV.ReverserPosition ~= 0.0))
+	local EnableARS = OverrideState or ((Train.ARS.Value == 1.0) and (Train.VB.Value == 1.0) and (Train.KV.ReverserPosition ~= 0.0))
+	local EnableALS = OverrideState or ((Train.ALS.Value == 1.0) and (Train.VB.Value == 1.0))
 	
 	-- Pedal state
 	if (Train.PB) and (Train.PB.Value == 1.0) then self.AttentionPedal = true end
