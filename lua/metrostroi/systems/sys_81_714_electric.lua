@@ -208,11 +208,6 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 				Found = true
 			end
 		end
-		
-		--print(Format(
-			--"Thyristor %5.1f amps - %.0f%% - %0.f%% %.3f ohm - %.3f %.3f %.3f",
-			--I,self.ThyristorState*100,Train.Engines.FieldReduction13,Resistance,A,B,C
-		--))
 	end
 	
 	-- Allow or deny using manual brakes

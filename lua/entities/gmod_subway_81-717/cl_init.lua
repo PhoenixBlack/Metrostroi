@@ -705,7 +705,7 @@ function ENT:Draw()
 		self:DrawDigit((110+0) *10,	16*10, d2, 0.85, 0.70)
 		self:DrawDigit((110+11)*10,	16*10, d1, 0.85, 0.70)
 		
-		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,5,false)
+		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,120,50)
@@ -713,42 +713,42 @@ function ENT:Draw()
 			surface.DrawRect(152*10,78*10,17*10,9*10)
 		end
 		
-		--b = self:Animate("light_gRP",self:GetPackedBool(36) and 1 or 0,0,1,5,false)
+		--b = self:Animate("light_gRP",self:GetPackedBool(36) and 1 or 0,0,1,15,false)
 		--if b > 0.0 then
 			--surface.SetAlphaMultiplier(b)
 			--surface.SetDrawColor(50,255,50)
 			--surface.DrawRect(152*10,78*10,17*10,9*10)
 		--end
 		
-		b = self:Animate("light_KT",self:GetPackedBool(47) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_KT",self:GetPackedBool(47) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(213*10,78*10,17*10,9*10)
 		end			
 		
-		b = self:Animate("light_KVD",self:GetPackedBool(48) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_KVD",self:GetPackedBool(48) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,120,50)
 			surface.DrawRect(213*10,55*10,17*10,9*10)
 		end
 		
-		b = self:Animate("light_LhRK",self:GetPackedBool(33) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_LhRK",self:GetPackedBool(33) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,120,50)
 			surface.DrawRect(111*10,78*10,17*10,9*10)
 		end
 		
-		b = self:Animate("light_LST",self:GetPackedBool(49) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_LST",self:GetPackedBool(49) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(254*10,78*10,17*10,9*10)
 		end
 		
-		b = self:Animate("light_LVD",self:GetPackedBool(50) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_LVD",self:GetPackedBool(50) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
@@ -762,7 +762,7 @@ function ENT:Draw()
 			surface.DrawRect(254*10,10*10,17*10,9*10)
 		end
 		
-		--[[b = self:Animate("light_NR1",self:GetPackedBool(34) and 1 or 0,0,1,5,false)
+		--[[b = self:Animate("light_NR1",self:GetPackedBool(34) and 1 or 0,0,1,15,false)
 		b = 1
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
@@ -770,7 +770,7 @@ function ENT:Draw()
 			surface.DrawRect(196*10,73*10,17*10,9*10)
 		end
 		
-		b = self:Animate("light_PECH",self:GetPackedBool(37) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_PECH",self:GetPackedBool(37) and 1 or 0,0,1,15,false)
 		b = 1
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
@@ -778,7 +778,7 @@ function ENT:Draw()
 			surface.DrawRect(260*10,73*10,17*10,9*10)
 		end]]--
 		
-		--[[b = self:Animate("light_AVU",self:GetPackedBool(38) and 1 or 0,0,1,5,false)
+		--[[b = self:Animate("light_AVU",self:GetPackedBool(38) and 1 or 0,0,1,15,false)
 		b = 1
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
@@ -795,42 +795,42 @@ function ENT:Draw()
 		end
 	
 		------------------------------------------------------------------------
-		b = self:Animate("light_OCh",self:GetPackedBool(41) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_OCh",self:GetPackedBool(41) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,120,50)
 			surface.DrawRect((41+27.5*0)*10,48*10,17*10,9*10)
 		end
 		
-		b = self:Animate("light_0",self:GetPackedBool(42) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_0",self:GetPackedBool(42) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,120,50)
 			surface.DrawRect((41+27.5*1)*10,48*10,17*10,9*10)
 		end
 		
-		b = self:Animate("light_40",self:GetPackedBool(43) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_40",self:GetPackedBool(43) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,120,50)
 			surface.DrawRect((41+27.5*2)*10,48*10,17*10,9*10)
 		end
 			
-		b = self:Animate("light_60",self:GetPackedBool(44) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_60",self:GetPackedBool(44) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect((41+27.5*3)*10,48*10,17*10,9*10)
 		end
 			
-		b = self:Animate("light_70",self:GetPackedBool(45) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_70",self:GetPackedBool(45) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect((41+27.5*4)*10,48*10,17*10,9*10)
 		end
 			
-		b = self:Animate("light_80",self:GetPackedBool(46) and 1 or 0,0,1,5,false)
+		b = self:Animate("light_80",self:GetPackedBool(46) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
