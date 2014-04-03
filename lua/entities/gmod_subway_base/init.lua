@@ -276,30 +276,104 @@ function ENT:InitializeHighspeedLayout()
 	file.Write("hs_layout.txt",str)]]--
 end
 
--- Highspeed interface
+function ENT:UpdateWagonList()
+	if self.LastWagonListUpdate == CurTime() then return end
+	self.LastUpdate = CurTime()
+
+	-- Populate list of wagons
+	self.WagonList = {}
+	local function populateList(train,checked)
+		if train and IsValid(train) then
+			if checked[train] then return end
+			checked[train] = true
+
+			table.insert(self.WagonList,train)
+			populateList(train.RearTrain,checked)
+			populateList(train.FrontTrain,checked)
+		end
+	end
+	populateList(self,{})
+end
+
 function ENT:ReadCell(Address)
 	if Address < 0 then return nil end
-	if Address >= 2048 then return false end
-
-	if (Address >= 0) and (Address < 128) then
+	if Address == 0 then
+		return 1
+	end
+	if (Address > 0) and (Address < 128) then
 		return self:ReadTrainWire(Address)
 	end
 	if self.HighspeedLayout[Address] then
 		return self.HighspeedLayout[Address]()
 	end
+	if (Address >= 57344) and (Address < 57344+4096) then
+		local x = (Address - 57344)
+		local lineID = math.floor(x/400)
+		local stationID = math.floor((x - lineID*400)/4)
+		local platformID = math.floor((x - lineID*400 - stationID*4)/2)
+		local varID = x - lineID*400 - stationID*4 - platformID*2
+
+		local station = Metrostroi.Stations[lineID*100 + stationID]
+		if station then
+			local platform = station[platformID]
+			if platform then
+				if varID == 0 then return platform.x_start end
+				if varID == 1 then return platform.x_end end
+			end
+		end
+		return 0
+	end
+	if (Address >= 65504) and (Address <= 65510) then
+		local pos = Metrostroi.TrainPositions[self]
+		if pos then
+			if Address == 65504 then return pos.x end
+			if Address == 65505 then return pos.y end
+			if Address == 65506 then return pos.z end
+			if Address == 65507 then return pos.distance end
+			if Address == 65508 then return pos.forward and 1 or 0 end
+			if Address == 65509 then return pos.node.id end
+			if Address == 65510 then return pos.path.id end
+		end
+		return 0
+	end
+	if Address == 65535 then
+		self:UpdateWagonList()
+		return #self.WagonList
+	end
+	if Address >= 65536 then
+		local wagonIndex = 1+math.floor(Address/65536)
+		local variableAddress = Address % 65536
+		self:UpdateWagonList()
+		
+		if self.WagonList[wagonIndex] and IsValid(self.WagonList[wagonIndex]) then
+			return self.WagonList[wagonIndex]:ReadCell(variableAddress)
+		else
+			return 0
+		end
+	end
 end
 
 function ENT:WriteCell(Address, value)
 	if Address < 0 then return false end
-	if Address >= 2048 then return false end
-	
-	if (Address >= 0) and (Address < 128) then
+	if Address == 0 then return true end
+	if (Address >= 1) and (Address < 128) then
 		self.TrainWireOverrides[Address] = value
 		return true
 	end
 	if self.HighspeedLayout[Address] then
 		self.HighspeedLayout[Address](value)
 		return true
+	end
+	if Address >= 65536 then
+		local wagonIndex = 1+math.floor(Address/65536)
+		local variableAddress = Address % 65536
+		self:UpdateWagonList()
+		
+		if self.WagonList[wagonIndex] and IsValid(self.WagonList[wagonIndex]) then
+			return self.WagonList[wagonIndex]:WriteCell(variableAddress,value)
+		else
+			return false
+		end
 	end
 	return true
 end
