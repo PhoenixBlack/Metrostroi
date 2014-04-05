@@ -308,9 +308,9 @@ function ENT:SetPackedRatio(vecn,ratio)
 	if vecn >= 3 then int = 3 vecn = vecn-3 end
 		
 	local vector = self["GetPackedVec"..int](self)
-	if vecn == 0 then vector.x = ratio/(max or 1) end
-	if vecn == 1 then vector.y = ratio/(max or 1) end
-	if vecn == 2 then vector.z = ratio/(max or 1) end
+	if vecn == 0 then vector.x = ratio end
+	if vecn == 1 then vector.y = ratio end
+	if vecn == 2 then vector.z = ratio end
 	self["SetPackedVec"..int](self,vector)		
 end
 
@@ -321,9 +321,9 @@ function ENT:GetPackedRatio(vecn)
 	if vecn >= 3 then int = 3 vecn = vecn-3 end
 		
 	local vector = self["GetPackedVec"..int](self)
-	if vecn == 0 then return vector.x*(max or 1) end
-	if vecn == 1 then return vector.y*(max or 1) end
-	if vecn == 2 then return vector.z*(max or 1) end
+	if vecn == 0 then return vector.x end
+	if vecn == 1 then return vector.y end
+	if vecn == 2 then return vector.z end
 end
 
 --------------------------------------------------------------------------------
