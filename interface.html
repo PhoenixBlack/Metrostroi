@@ -52,8 +52,8 @@
 	</table>
 </article>
 
-<article id="train-wires">
-	<h2><a href="#train-wires">Control Panel Signals</a></h2>
+<article id="cpanel-signals">
+	<h2><a href="#cpanel-signals">Control Panel Signals</a></h2>
 
 	<h3>Forward train movement:</h3>
 	<table class="listing">
@@ -144,8 +144,42 @@
 	</table>
 </article>
 
-<article id="high-speed">
-	<h2><a href="#high-speed">High-speed (Wirelink) Interface</a></h2>
+<article id="high-speed1">
+	<h2><a href="#high-speed1">High-speed (Wirelink) Interface - General</a></h2>
+	
+	<p>The trains provide station information, which includes eight variables for every station:</p>
+	<table class="listing">
+	<tr><td><kbd>0</kbd></td><td>Start offset of platform 1</td></tr>
+	<tr><td><kbd>1</kbd></td><td>End offset of platform 1</td></tr>
+	<tr><td><kbd>2</kbd></td><td>Track ID of platform 1</td></tr>
+	<tr><td><kbd>3</kbd></td><td><em>(not used)</em></td></tr>
+	<tr><td><kbd>4</kbd></td><td>Start offset of platform 2</td></tr>
+	<tr><td><kbd>5</kbd></td><td>End offset of platform 2</td></tr>
+	<tr><td><kbd>6</kbd></td><td>Track ID of platform 2</td></tr>
+	<tr><td><kbd>7</kbd></td><td><em>(not used)</em></td></tr>
+	</table>
+	
+	<p>These eight variables are located at offset <kbd>57344 + (lineID-1)*800 + stationID*8</kbd>, where for example for station 216 (line 2, station #16) the offset would be <kbd>57344 + 1*800 + 16*8 = 58272</kbd></p>
+	
+	<table class="listing">
+	<tr><td><kbd>65504</kbd></td><td>Train position (X - offset from line start)</td></tr>
+	<tr><td><kbd>65505</kbd></td><td>Train position (Y - horizontal offset from track)</td></tr>
+	<tr><td><kbd>65506</kbd></td><td>Train position (Z - vertical offset from track)</td></tr>
+	<tr><td><kbd>65507</kbd></td><td>Distance away from the track</td></tr>
+	<tr><td><kbd>65508</kbd></td><td>Is train facing forward (1 yes, 0 no)</td></tr>
+	<tr><td><kbd>65509</kbd></td><td>Track node ID</td></tr>
+	<tr><td><kbd>65510</kbd></td><td>Track ID</td></tr>
+	
+	<tr><td><kbd>65535</kbd></td><td>Number of wagons</td></tr>
+	<tr><td><kbd>65536-131071</kbd></td><td>Wagon #2 highspeed interface</td></tr>
+	<tr><td><kbd>131072-196607</kbd></td><td>Wagon #3 highspeed interface</td></tr>
+	<tr><td><kbd>196607-262144</kbd></td><td>Wagon #4 highspeed interface</td></tr>
+	<tr><td><kbd>262144-327680</kbd></td><td>Wagon #5 highspeed interface</td></tr>
+	</table>
+</article>
+
+<article id="high-speed2">
+	<h2><a href="#high-speed2">High-speed (Wirelink) Interface - Train Variables</a></h2>
 	
 	<table class="listing">
 	<tr><td><kbd>  0</kbd></td><td>Train identifier						</td></tr>
