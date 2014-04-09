@@ -116,3 +116,22 @@ function Player:GetTrain()
 		return seat:GetNWEntity("TrainEntity")
 	end
 end
+
+
+
+
+--------------------------------------------------------------------------------
+-- Train count
+--------------------------------------------------------------------------------
+function Metrostroi.TrainCount()
+	local N = 0
+	for k,v in pairs(Metrostroi.TrainClasses) do
+		N = N + #ents.FindByClass(v)
+	end
+	return N
+end
+
+
+concommand.Add("metrostroi_train_count", function(ply, _, args)
+	print("Trains on server: "..Metrostroi.TrainCount())
+end)

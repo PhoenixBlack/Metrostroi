@@ -313,7 +313,7 @@ function ENT:ReadCell(Address)
 		local platformID = math.floor((x - lineID*400 - stationID*4)/2)
 		local varID = x - lineID*400 - stationID*4 - platformID*2
 
-		local station = Metrostroi.Stations[lineID*100 + stationID]
+		local station = Metrostroi.Stations[(lineID+1)*100 + stationID]
 		if station then
 			local platform = station[platformID]
 			if platform then
