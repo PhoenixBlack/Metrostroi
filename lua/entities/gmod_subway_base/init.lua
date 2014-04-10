@@ -308,10 +308,10 @@ function ENT:ReadCell(Address)
 	end
 	if (Address >= 57344) and (Address < 57344+4096) then
 		local x = (Address - 57344)
-		local lineID = math.floor(x/400)
-		local stationID = math.floor((x - lineID*400)/4)
-		local platformID = math.floor((x - lineID*400 - stationID*4)/2)
-		local varID = x - lineID*400 - stationID*4 - platformID*2
+		local lineID = math.floor(x/800)
+		local stationID = math.floor((x - lineID*800)/8)
+		local platformID = math.floor((x - lineID*800 - stationID*8)/4)
+		local varID = x - lineID*800 - stationID*8 - platformID*4
 
 		local station = Metrostroi.Stations[(lineID+1)*100 + stationID]
 		if station then
@@ -319,6 +319,8 @@ function ENT:ReadCell(Address)
 			if platform then
 				if varID == 0 then return platform.x_start end
 				if varID == 1 then return platform.x_end end
+				if varID == 2 then return platform.node_start.path.id end
+				if varID == 3 then return 0 end
 			end
 		end
 		return 0
