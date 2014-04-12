@@ -8,12 +8,12 @@ ENT.BogeyDistance = 650 -- Needed for gm trainspawner
 function ENT:Initialize()
 	-- Defined train information
 	self.SubwayTrain = {
-		Type = "81",
-		Name = "81-714",
+		Type = "E",
+		Name = "Ema508T",
 	}
 
 	-- Set model and initialize
-	self:SetModel("models/metrostroi/81/81-714.mdl")
+	self:SetModel("models/metrostroi/81/ema508t.mdl")
 	self.BaseClass.Initialize(self)
 	self:SetPos(self:GetPos() + Vector(0,0,140))
 
@@ -163,9 +163,9 @@ function ENT:Think()
 	-- Exchange some parameters between engines, pneumatic system, and real world
 	self.Engines:TriggerInput("Speed",self.Speed)
 	if IsValid(self.FrontBogey) and IsValid(self.RearBogey) then
-		self.FrontBogey.MotorForce = 42000
+		self.FrontBogey.MotorForce = 40000
 		self.FrontBogey.Reversed = (self.RKR.Value > 0.5)
-		self.RearBogey.MotorForce  = 42000
+		self.RearBogey.MotorForce  = 40000
 		self.RearBogey.Reversed = (self.RKR.Value < 0.5)
 	
 		self.RearBogey.MotorPower  = self.Engines.BogeyMoment

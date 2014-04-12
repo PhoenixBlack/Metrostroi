@@ -18,8 +18,8 @@ function ENT:Initialize()
 	self:SetPos(self:GetPos() + Vector(0,0,140))
 	
 	-- Create bogeys
-	self.FrontBogey = self:CreateBogey(Vector( 325-20,0,-75),Angle(0,180,0),true)
-	self.RearBogey  = self:CreateBogey(Vector(-325-10,0,-75),Angle(0,0,0),false)
+	self.FrontBogey = self:CreateBogey(Vector( 325-20,0,-80),Angle(0,180,0),true)
+	self.RearBogey  = self:CreateBogey(Vector(-325-10,0,-80),Angle(0,0,0),false)
 end
 
 
