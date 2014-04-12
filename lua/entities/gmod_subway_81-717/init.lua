@@ -189,6 +189,13 @@ function ENT:Initialize()
 		table.insert(self.LeftDoorPositions,Vector(353.0 - 35*0.5 - 231*i,65,-1.8))
 		table.insert(self.RightDoorPositions,Vector(353.0 - 35*0.5 - 231*i,-65,-1.8))
 	end
+	
+	-- Extra switches not on Ezh3
+	self:LoadSystem("L_1","Relay","Switch", { normally_closed = true })
+	self:LoadSystem("L_2","Relay","Switch", { normally_closed = true })
+	self:LoadSystem("L_3","Relay","Switch", { normally_closed = true })
+	self:LoadSystem("L_4","Relay","Switch", { normally_closed = true })
+	self:LoadSystem("L_5","Relay","Switch", { normally_closed = true })
 end
 
 
@@ -203,21 +210,22 @@ function ENT:Think()
 	local brightness = (math.min(1,self.Panel["HeadLights1"])*0.50 + 
 						math.min(1,self.Panel["HeadLights2"])*0.25 + 
 						math.min(1,self.Panel["HeadLights3"])*0.25)
-	self:SetLightPower(1, self.Panel["HeadLights3"] > 0.5,brightness)
-	self:SetLightPower(2, self.Panel["HeadLights3"] > 0.5)
-	self:SetLightPower(3, self.Panel["HeadLights3"] > 0.5)
-	self:SetLightPower(4, self.Panel["HeadLights1"] > 0.5)
-	self:SetLightPower(5, self.Panel["HeadLights2"] > 0.5)
-	self:SetLightPower(6, self.Panel["HeadLights2"] > 0.5)
-	self:SetLightPower(7, self.Panel["HeadLights1"] > 0.5)
+	self:SetLightPower(1, (self.Panel["HeadLights3"] > 0.5) and (self.L_4.Value > 0.5),brightness)
+	self:SetLightPower(2, (self.Panel["HeadLights3"] > 0.5) and (self.L_4.Value > 0.5))
+	self:SetLightPower(3, (self.Panel["HeadLights3"] > 0.5) and (self.L_4.Value > 0.5))
+	self:SetLightPower(4, (self.Panel["HeadLights1"] > 0.5) and (self.L_4.Value > 0.5))
+	self:SetLightPower(5, (self.Panel["HeadLights2"] > 0.5) and (self.L_4.Value > 0.5))
+	self:SetLightPower(6, (self.Panel["HeadLights2"] > 0.5) and (self.L_4.Value > 0.5))
+	self:SetLightPower(7, (self.Panel["HeadLights1"] > 0.5) and (self.L_4.Value > 0.5))
 	
 	-- Reverser lights
 	self:SetLightPower(8, self.Panel["RedLightRight"] > 0.5)
 	self:SetLightPower(9, self.Panel["RedLightLeft"] > 0.5)
 	
 	-- Interior/cabin lights
-	self:SetLightPower(10, self.Panel["CabinLight"] > 0.5)
-	self:SetLightPower(12, self.Panel["EmergencyLight"] > 0.5,0.1 + ((self.PowerSupply.XT3_4 > 65.0) and 0.4 or 0))
+	self:SetLightPower(10, (self.Panel["CabinLight"] > 0.5) and (self.L_2.Value > 0.5))
+	self:SetLightPower(12, (self.Panel["EmergencyLight"] > 0.5) and ((self.L_1.Value > 0.5) or (self.L_5.Value > 0.5)),
+		0.1*self.L_5.Value + ((self.PowerSupply.XT3_4 > 65.0) and 0.5 or 0))
 	--self:SetLightPower(12, self.Panel["EmergencyLight"] > 0.5)
 	--self:SetLightPower(13, self.PowerSupply.XT3_4 > 65.0)
 	
@@ -268,6 +276,11 @@ function ENT:Think()
 	self:SetPackedBool(57,self.ALS.Value == 1.0)
 	self:SetPackedBool(58,self.Panel["CabinLight"] > 0.5)
 	self:SetPackedBool(59,self.BPSNon.Value == 1.0)
+	self:SetPackedBool(60,self.L_1.Value == 1.0)
+	self:SetPackedBool(61,self.L_2.Value == 1.0)
+	self:SetPackedBool(62,self.L_3.Value == 1.0)
+	self:SetPackedBool(63,self.L_4.Value == 1.0)
+	self:SetPackedBool(53,self.L_5.Value == 1.0)
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -324,7 +337,7 @@ function ENT:Think()
 	-- LKVC
 	self:SetPackedBool(51,self.KVC.Value < 0.5)
 	-- BPSN
-	self:SetLightPower(24,self.PowerSupply.XT3_1 > 0)
+	self:SetLightPower(24,(self.PowerSupply.XT3_1 <= 0) and (self.Panel["V1"] > 0.5))
 	self:SetPackedBool(52,self.PowerSupply.XT3_1 > 0)
 	
 	-- AV states
@@ -343,9 +356,9 @@ function ENT:Think()
 	self:SetPackedRatio(5, self.Pneumatic.TrainLinePressure/16.0)
 	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
-	self:SetPackedRatio(8, math.abs(self.Electric.I24)/1000.0)	
+	self:SetPackedRatio(8, 0.5 + (self.Electric.I24/500.0))
 	self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
-	self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 100.0)
+	self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 150.0)
 
 	-- Update ARS system
 	self:SetPackedRatio(3, self.ALS_ARS.Speed/100.0)

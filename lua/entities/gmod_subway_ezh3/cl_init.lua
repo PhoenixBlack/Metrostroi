@@ -24,8 +24,8 @@ ENT.ButtonMap["Main"] = {
 		{ID = "VAHToggle",		x=187, y=19, radius=20, tooltip="ВАХ: Включение аварийного хода (неисправность реле педали безопасности)\nVAH: Emergency driving mode (failure of RPB relay)"},
 		{ID = "VADToggle",		x=226, y=19, radius=20, tooltip="ВАД: Включение аварийного закрытия дверей (неисправность реле контроля дверей)\nVAD: Emergency door close override (failure of KD relay)"},
 		
-		{ID = "ARSToggle",		x=187+77, y=19, radius=20, tooltip="Включение системы автоматического регулирования скорости"},
-		{ID = "ALSToggle",		x=226+77, y=19, radius=20, tooltip="Включение системы автоматической локомотивной сигнализации\nAutomatic locomotive signalling (ALS)"},
+		{ID = "ARSToggle",		x=187+77, y=19, radius=20, tooltip="АРС: Включение системы автоматического регулирования скорости\nARS: Automatic speed regulation"},
+		{ID = "ALSToggle",		x=226+77, y=19, radius=20, tooltip="АЛС: Включение системы автоматической локомотивной сигнализации\nALS: Automatic locomotive signalling"},
 		
 		{ID = "OtklAVUToggle",	x=349, y=19, radius=20, tooltip="Отключение автоматического выключения управления (неисправность реле АВУ)\nTurn off automatic control disable relay (failure of AVU relay)"},
 		{ID = "KRZDSet",		x=393, y=19, radius=20, tooltip="КРЗД: Кнопка резервного закрытия дверей\nKRZD: Emergency door closing"},
@@ -196,7 +196,7 @@ ENT.ButtonMap["Help"] = {
 	scale = 1,
 	
 	buttons = {
-		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Show help on driving the train"}, -- NEEDS TRANSLATING
+		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Помощь в возжении поезда\nShow help on driving the train"},
 	}
 }
 
@@ -246,8 +246,8 @@ ENT.ButtonMap["Meters"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{x=22, y=24, w=55, h=45, tooltip="Highvoltage Meter (kV)"}, -- NEEDS TRANSLATING
-		{x=90, y=24, w=58, h=45, tooltip="Total Amperemeter (A)"}, -- NEEDS TRANSLATING
+		{x=22, y=24, w=55, h=45, tooltip="Вольтметр высокого напряжения (кВ)\nHV voltmeter (kV)"},
+		{x=90, y=24, w=58, h=45, tooltip="Амперметр (А)\nTotal ampermeter (A)"},
 	}
 }
 

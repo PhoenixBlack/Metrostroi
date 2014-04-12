@@ -16,6 +16,8 @@ ENT.ButtonMap["Main"] = {
 	
 	buttons = {		
 		{ID = "KVTSet",			x=247, y=33, radius=20, tooltip=""},
+		{ID = "PS8",			x=295, y=33, radius=20, tooltip=""},
+		
 		{ID = "VUD1Toggle",		x=54, y=105, radius=40, tooltip="ВУД: Выключатель управления дверьми\nVUD: Door control toggle (close doors)"},
 		{ID = "KDLSet",			x=50, y=180, radius=20, tooltip="КДЛ: Кнопка левых дверей\nKDL: Left doors open"},
 		{ID = "KDPSet",			x=153, y=180, radius=20, tooltip="КДП: Кнопка правых дверей\nKDP: Right doors open"},
@@ -23,16 +25,23 @@ ENT.ButtonMap["Main"] = {
 		{ID = "KRZDSet",		x=153, y=83, radius=20, tooltip="КРЗД: Кнопка резервного закрытия дверей\nKRZD: Emergency door closing"},
 		{ID = "VozvratRPSet",	x=105, y=132, radius=20, tooltip="Возврат реле перегрузки\nReset overload relay"},
 		
-		{ID = "GreenRPLight",	x=153, y=135, radius=20, tooltip="Green RP light"},
-		{ID = "AVULight",		x=325, y=92, radius=20, tooltip="Green RP light"},
-		{ID = "KVPLight",		x=370, y=92, radius=20, tooltip="Green RP light"},
-		{ID = "SPLight",		x=409, y=30, radius=20, tooltip="Green RP light"},
+		{ID = "GreenRPLight",	x=153, y=135, radius=20, tooltip="РП: Зелёная лампа реле перегрузки\nRP: Green overload relay light (overload relay open on current train)"},
+		{ID = "AVULight",		x=325, y=92, radius=20, tooltip="АВУ: Автоматический выключатель управления\nAVU: Automatic control disabler active"},
+		{ID = "KVPLight",		x=370, y=92, radius=20, tooltip="КВП: Контроль высоковольного преобразователя\nKVP: High-voltage converter control"},
+		{ID = "SPLight",		x=411, y=30, radius=20, tooltip="(placeholder) LSP"},
 		
+		{ID = "PS6",			x=330, y=130, radius=20, tooltip="(placeholder) Converter protection"},
 		{ID = "KSNSet",			x=370, y=130, radius=20,  tooltip="КСН: Кнопка сигнализации неисправности\nKSN: Failure indication button"},
-		{ID = "ARSToggle",		x=238, y=135, radius=20, tooltip="Включение системы автоматического регулирования скорости"},
-		{ID = "ALSToggle",		x=267, y=135, radius=20, tooltip="Включение системы автоматической локомотивной сигнализации\nAutomatic locomotive signalling (ALS)"},
+		{ID = "PS7",			x=420, y=130, radius=20, tooltip="(placeholder) Ring"},
 		
-		{ID = "OtklAVUToggle",	x=283, y=183, radius=20, tooltip="Отключение автоматического выключения управления (неисправность реле АВУ)\nTurn off automatic control disable relay (failure of AVU relay)"},
+		{ID = "ARSToggle",		x=238, y=135, radius=20, tooltip="АРС: Включение системы автоматического регулирования скорости\nARS: Automatic speed regulation"},
+		{ID = "ALSToggle",		x=267, y=135, radius=20, tooltip="АЛС: Включение системы автоматической локомотивной сигнализации\nALS: Automatic locomotive signalling"},
+		
+		{ID = "OtklAVUToggle",	x=283, y=183, radius=20, tooltip="Отключение автоматического выключения управления (неисправность реле АВУ)\nTurn off automatic control disable relay (failure of AVU relay)"},		
+		{ID = "PS2",			x=238, y=183, radius=20, tooltip="(placeholder) Emergency brake toggle"},
+		{ID = "L_1Toggle",		x=320, y=183, radius=20, tooltip="Освещение салона\nWagon lighting"},
+		{ID = "L_2Toggle",		x=355, y=183, radius=20, tooltip="Освещение кабины\nCabin lighting"},
+		{ID = "L_3Toggle",		x=395, y=183, radius=20, tooltip="Освещение пульта\nPanel lighting"},
 	}
 }
 
@@ -50,6 +59,11 @@ ENT.ButtonMap["Front"] = {
 		{ID = "VADToggle",x=170, y=200, radius=20, tooltip="ВАД: Включение аварийного закрытия дверей (неисправность реле контроля дверей)\nVAD: Emergency door close override (failure of KD relay)"},		
 		{ID = "RezMKSet",x=53,  y=98, radius=20, tooltip="Резервное включение мотор-компрессора\nEmergency motor-compressor startup"},
 		{ID = "KRPSet",x=53, y=33, radius=20, tooltip="КРП: Кнопка резервного пуска"},
+		
+		{ID = "L_4Toggle",x=53, y=200, radius=20, tooltip="Выключатель фар\nHeadlights toggle"},
+		{ID = "CabinHeatLight",x=90, y=145, radius=20, tooltip="Контроль печи\nCabin heater active"},
+		{ID = "VDLSet",x=130, y=145, radius=32, tooltip="ВДЛ: Выключатель левых дверей\nVDL: Left doors open"},
+		{ID = "PneumoLight",x=170, y=145, radius=20, tooltip="Контроль пневмотормоза\nPneumatic brake control"},
 	}
 }
 
@@ -64,7 +78,11 @@ ENT.ButtonMap["BPSNFront"] = {
 	buttons = {
 		{x=245,y=60,tooltip="Напряжение цепей управления\nControl circuits voltage",radius=60},
 		{ID = "VMKToggle",x=43,  y=28, radius=20, tooltip="Включение мотор-компрессора\nTurn motor-compressor on"},
-		{ID = "BPSNonToggle",x=83,  y=28, radius=20, tooltip="BPSN"},
+		{ID = "BPSNonToggle",x=83,  y=28, radius=20, tooltip="БПСН: Блок питания собственных нужд\nBPSN: Train power supply"},
+		{ID = "L_5Toggle",x=126, y=28, radius=20, tooltip="Аварийное освещение\nEmergency lighting"},
+		
+		{ID = "PS9", x=83, y=80, radius=20, tooltip="(placeholder) Radio 13V"},
+		{ID = "PS10",x=126, y=80, radius=20, tooltip="(placeholder) ARS 13V"},
 	}
 }
 
@@ -77,26 +95,27 @@ ENT.ButtonMap["ARS"] = {
 	scale = 0.0625/10,
 
 	buttons = {
-		{x=2045,y=406,tooltip="Индикатор скорости\nSpeed indicator",radius=130},
-		{x=2610,y=363,tooltip="РП: Красная лампа реле перегрузки\nRP: Red overload relay light (power circuits failed to assemble)",radius=120},
-		{x=2982,y=363,tooltip="РП: Красная лампа реле перегрузки\nRP: Red overload relay light (power circuits failed to assemble)",radius=120},
-		{x=1070+320*0,y=780,tooltip="ЛхРК: Лампа хода реостатного контроллера\nLhRK: Rheostat controller motion light",radius=120},
-		{x=1070+320*1,y=780,tooltip="КТ: Контроль тормоза\nKT: ARS braking indicator",radius=120},
-		{x=1070+320*2,y=780,tooltip="КВД: Контроль выключения двигателей\nKVD: ARS engine shutdown indicator",radius=120},
-		{x=1070+320*3,y=780,tooltip="НР1: Нулевое реле\nNR1: Zero relay state (high voltage enabled)",radius=120},
-		{x=1070+320*4,y=780,tooltip="ВПР: Контроль включения поездной радиосвязи\nVPR: Train radio equipment enabled",radius=120},
-		{x=1070+320*5,y=780,tooltip="ПЕЧЬ: Индикатор работы печи\nPECH: Cabin heating indicator",radius=120},
-		{x=1070+320*6,y=780,tooltip="АВУ: Автоматический выключатель управления\nAVU: Automatic control disabler active",radius=120},
+		{x=1100+70,y=160+70,tooltip="Индикатор скорости\nSpeed indicator",radius=130},
+		{x=1780+60,y=780+60,tooltip="ЛСН: Лампа сигнализации неисправности\nLSN: Failure indicator light (power circuits failed to assemble)",radius=120},
+		{x=1520+60,y=780+60,tooltip="РП: Красная лампа реле перегрузки\nRP: Red overload relay light (power circuits failed to assemble)",radius=120},
+		{x=1110+60,y=780+60,tooltip="ЛхРК: Лампа хода реостатного контроллера\nLhRK: Rheostat controller motion light",radius=120},
+		{x=2130+60,y=780+60,tooltip="ЛКТ: Контроль тормоза\nLKT: ARS braking indicator",radius=120},
+		{x=2130+60,y=550+60,tooltip="ЛКВД: Контроль выключения двигателей\nLKVD: ARS engine shutdown indicator",radius=120},
+		{x=2540+60,y=100+60,tooltip="ЛКВЦ: Лампа контактора высоковольтных цепей\nLKVC: High voltage not available",radius=120},
+	
+		{x=410+275*0+60+60,y=480,tooltip="ОЧ: Отсутствие частоты АРС\nOCh: No ARS frequency",radius=120},
+		{x=410+275*1+60+60,y=480,tooltip="0: Сигнал АРС остановки\n0: ARS stop signal",radius=120},
+		{x=410+275*2+60+60,y=480,tooltip="40: Ограничение скорости 40 км/ч\nSpeed limit 40 kph",radius=120},
+		{x=410+275*3+60+60,y=480,tooltip="60: Ограничение скорости 60 км/ч\nSpeed limit 60 kph",radius=120},
+		{x=410+275*4+60+60,y=480,tooltip="75: Ограничение скорости 75 км/ч\nSpeed limit 75 kph",radius=120},
+		{x=410+275*5+60+60,y=480,tooltip="80: Ограничение скорости 80 км/ч\nSpeed limit 80 kph",radius=120},
+
+		{x=410+60,y=780+60,tooltip="СД: Сигнализация дверей\nSD: Door state light (doors are open)",radius=120},
+		{x=690+60,y=780+60,tooltip="СД: Сигнализация дверей\nSD: Door state light (doors are open)",radius=120},
 		
-		{x=1070+380*0,y=570,tooltip="ОЧ: Отсутствие частоты АРС\nOCh: No ARS frequency",radius=120},
-		{x=1070+380*1,y=570,tooltip="0: Сигнал АРС остановки\n0: ARS stop signal",radius=120},
-		{x=1070+380*2,y=570,tooltip="40: Ограничение скорости 40 км/ч\nSpeed limit 40 kph",radius=120},
-		{x=1070+380*3,y=570,tooltip="60: Ограничение скорости 60 км/ч\nSpeed limit 60 kph",radius=120},
-		{x=1070+380*4,y=570,tooltip="75: Ограничение скорости 75 км/ч\nSpeed limit 75 kph",radius=120},
-		{x=1070+380*5,y=570,tooltip="80: Ограничение скорости 80 км/ч\nSpeed limit 80 kph",radius=120},
-		
-		{x=1080+380*0,y=363,tooltip="СД: Сигнализация дверей\nSD: Door state light (doors are closed/door circuits are OK)",radius=120},
-		{x=1080+380*1,y=363,tooltip="РП: Зелёная лампа реле перегрузки\nRP: Green overload relay light (overload relay open on current train)",radius=120},
+		{x=2540+60,y=780+60,tooltip="ЛСТ: Лампа сигнализации торможения\nLST: Brakes engaged",radius=120},
+		{x=2540+60,y=330+60,tooltip="ЛВД: Лампа включения двигателей\nLVD: Engines engaged",radius=120},
+		{x=2130+60,y=330+60,tooltip="ЛН: Лампа направления\nLN: Direction signal",radius=120},
 	}
 }
 
@@ -178,28 +197,28 @@ ENT.ButtonMap["Battery"] = {
 
 -- Help panel
 ENT.ButtonMap["Help"] = {
-	pos = Vector(445.0,-36.0,30.0),
-	ang = Angle(40+180,0,0),
+	pos = Vector(422.0,-45.0,-4.5),
+	ang = Angle(0,0,0),
 	width = 20,
 	height = 20,
 	scale = 1,
 	
 	buttons = {
-		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Show help on driving the train"}, -- NEEDS TRANSLATING
+		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Помощь в возжении поезда\nShow help on driving the train"},
 	}
 }
 
 -- Pneumatic instrument panel
 ENT.ButtonMap["PneumaticPanels"] = {
-	pos = Vector(448,-30,16.0),
-	ang = Angle(0,-77,90),
-	width = 140,
-	height = 160,
+	pos = Vector(448.2,-10.5,8.0),
+	ang = Angle(0,-90,56.5),
+	width = 310,
+	height = 120,
 	scale = 0.0625,
 	
 	buttons = {
-		{x=60,y=45,radius=30,tooltip="Давление в тормозных цилиндрах (ТЦ)\nBrake cylinder pressure"},
-		{x=80,y=105,radius=30,tooltip="Давление в магистралях (красная: тормозной, чёрная: напорной)\nPressure in pneumatic lines (red: brake line, black: train line)"},
+		{x=200,y=55,radius=55,tooltip="Давление в тормозных цилиндрах (ТЦ)\nBrake cylinder pressure"},
+		{x=65,y=55,radius=55,tooltip="Давление в магистралях (красная: тормозной, чёрная: напорной)\nPressure in pneumatic lines (red: brake line, black: train line)"},
 	}
 }
 ENT.ButtonMap["DriverValveDisconnect"] = {
@@ -228,15 +247,15 @@ ENT.ButtonMap["DURA"] = {
 }
 
 ENT.ButtonMap["Meters"] = {
-	pos = Vector(449.3,-53,27.5),
+	pos = Vector(448.8,-35.5,24.0),
 	ang = Angle(0,-125,90),
-	width = 170,
-	height = 110,
+	width = 95,
+	height = 150,
 	scale = 0.0625,
 	
 	buttons = {
-		{x=22, y=24, w=55, h=45, tooltip="Highvoltage Meter (kV)"}, -- NEEDS TRANSLATING
-		{x=90, y=24, w=58, h=45, tooltip="Total Amperemeter (A)"}, -- NEEDS TRANSLATING
+		{x=22, y=24, w=55, h=45, tooltip="Вольтметр высокого напряжения (кВ)\nHV voltmeter (kV)"},
+		{x=22, y=85, w=58, h=45, tooltip="Амперметр (А)\nTotal ampermeter (A)"},
 	}
 }
 
@@ -314,39 +333,34 @@ ENT.ClientProps["brake_disconnect"] = {
 --------------------------------------------------------------------------------
 ENT.ClientProps["train_line"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos =Vector(449.00,-16.05,3.40),
+	pos = Vector(449.00,-16.05,3.40),
 	ang = Angle(90+33,0,180+35.5)
 }
 ENT.ClientProps["brake_line"] = {
 	model = "models/metrostroi/81-717/red_arrow.mdl",
-	pos =Vector(448.88,-16.00,3.40),
+	pos = Vector(448.88,-16.00,3.40),
 	ang = Angle(90+33,0,180+35.5)
 }
 ENT.ClientProps["brake_cylinder"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos =Vector(449.0,-24.28,3.40),
+	pos = Vector(449.0,-24.28,3.40),
 	ang = Angle(90+33,0,180+35.5)
 }
 --------------------------------------------------------------------------------
 ENT.ClientProps["ampermeter"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(445.5,-59.5,923.3),
+	pos = Vector(447.10,-38.10,16.00),
 	ang = Angle(90,0,-45+180+80)
 }
 ENT.ClientProps["voltmeter"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(448.1,-55.7,923.3),
+	pos = Vector(447.10,-38.10,19.80),
 	ang = Angle(90,0,-45+180+80)
 }
 ENT.ClientProps["volt1"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(447.10,-38.15,990.4),
-	ang = Angle(90-18,180,7)
-}
-ENT.ClientProps["volt2"] = {
-	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(452.3,-19.4,918.2),
-	ang = Angle(90,0,180)
+	pos = Vector(448.30,15.10,3.10),
+	ang = Angle(90+33,0,180-35.5)
 }
 
 
@@ -453,6 +467,12 @@ Metrostroi.ClientPropForButton("KRP",{
 	model = "models/metrostroi/81-717/button04.mdl",
 	z=4
 })
+Metrostroi.ClientPropForButton("VDL",{
+	panel = "Front",
+	button = "VDLSet",
+	model = "models/metrostroi/81-717/button07.mdl",
+	z=2
+})
 
 Metrostroi.ClientPropForButton("SelectMain",{
 	panel = "DURA",
@@ -489,6 +509,73 @@ Metrostroi.ClientPropForButton("SPLight",{
 	button = "SPLight",
 	model = "models/metrostroi/81-717/light04.mdl",
 })
+Metrostroi.ClientPropForButton("CabinHeatLight",{
+	panel = "Front",
+	button = "CabinHeatLight",
+	model = "models/metrostroi/81-717/light04.mdl",
+})
+Metrostroi.ClientPropForButton("PneumoLight",{
+	panel = "Front",
+	button = "PneumoLight",
+	model = "models/metrostroi/81-717/light04.mdl",
+})
+
+-- Placeholders
+Metrostroi.ClientPropForButton("L_4",{
+	panel = "Front",
+	button = "L_4Toggle",
+	model = "models/metrostroi/81-717/switch04.mdl"
+})
+Metrostroi.ClientPropForButton("PS2",{
+	panel = "Main",
+	button = "PS2",
+	model = "models/metrostroi/81-717/switch04.mdl"
+})
+Metrostroi.ClientPropForButton("L_1",{
+	panel = "Main",
+	button = "L_1Toggle",
+	model = "models/metrostroi/81-717/switch04.mdl"
+})
+Metrostroi.ClientPropForButton("L_2",{
+	panel = "Main",
+	button = "L_2Toggle",
+	model = "models/metrostroi/81-717/switch04.mdl"
+})
+Metrostroi.ClientPropForButton("L_3",{
+	panel = "Main",
+	button = "L_3Toggle",
+	model = "models/metrostroi/81-717/switch04.mdl"
+})
+Metrostroi.ClientPropForButton("PS6",{
+	panel = "Main",
+	button = "PS6",
+	model = "models/metrostroi/81-717/button07.mdl"
+})
+Metrostroi.ClientPropForButton("PS7",{
+	panel = "Main",
+	button = "PS7",
+	model = "models/metrostroi/81-717/button07.mdl"
+})
+Metrostroi.ClientPropForButton("PS8",{
+	panel = "Main",
+	button = "PS8",
+	model = "models/metrostroi/81-717/button10.mdl"
+})
+Metrostroi.ClientPropForButton("L_5",{
+	panel = "BPSNFront",
+	button = "L_5Toggle",
+	model = "models/metrostroi/81-717/switch04.mdl"
+})
+Metrostroi.ClientPropForButton("PS9",{
+	panel = "BPSNFront",
+	button = "PS9",
+	model = "models/metrostroi/81-717/button07.mdl"
+})
+Metrostroi.ClientPropForButton("PS10",{
+	panel = "BPSNFront",
+	button = "PS10",
+	model = "models/metrostroi/81-717/button07.mdl"
+})
 
 
 --------------------------------------------------------------------------------
@@ -522,8 +609,8 @@ Metrostroi.ClientPropForButton("battery",{
 --------------------------------------------------------------------------------
 ENT.ClientProps["book"] = {
 	model = "models/props_lab/binderredlabel.mdl",
-	pos = Vector(449.0,-40.0,45.0),
-	ang = Angle(-135,0,85)
+	pos = Vector(430.0,-53.0,-4.5),
+	ang = Angle(0,50,90)
 }
 
 
@@ -578,15 +665,14 @@ function ENT:Think()
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
 	self:Animate("controller",		self:GetPackedRatio(1),				0.30, 0.70,  384,24)
 	self:Animate("reverser",		1-self:GetPackedRatio(2),			0.25, 0.75,  4,false)
-	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38,0.64)
+	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38, 0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
 
 	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
 	self:Animate("train_line",		self:GetPackedRatio(5),				0.16, 0.84,  256,2,0.01)
 	self:Animate("brake_cylinder",	self:GetPackedRatio(6),	 			0.17, 0.86,  256,2,0.03)
-	self:Animate("voltmeter",		self:GetPackedRatio(7),				0.38, 0.63)
-	self:Animate("ampermeter",		self:GetPackedRatio(8),				0.38, 0.63)
-	self:Animate("volt2",			0, 									0.38, 0.63)
+	self:Animate("voltmeter",		self:GetPackedRatio(7),				0.35, 0.64)
+	self:Animate("ampermeter",		self:GetPackedRatio(8),				0.37, 0.63)
 	
 	self:Animate("headlights",		self:GetPackedBool(1) and 1 or 0, 	0,1, 8, false)
 	self:Animate("VozvratRP",		self:GetPackedBool(2) and 1 or 0, 	0,1, 16, false)
@@ -600,7 +686,7 @@ function ENT:Think()
 	self:Animate("VAD",				self:GetPackedBool(11) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VUD1",			self:GetPackedBool(12) and 1 or 0, 	0,1, 16, false)
 	--self:Animate("VUD2",			self:GetPackedBool(13) and 1 or 0, 	0,1, 16, false)
-	--self:Animate("VDL",				self:GetPackedBool(14) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VDL",				self:GetPackedBool(14) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KDL",				self:GetPackedBool(15) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KDP",				self:GetPackedBool(16) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KRZD",			self:GetPackedBool(17) and 1 or 0, 	0,1, 16, false)
@@ -612,6 +698,11 @@ function ENT:Think()
 	self:Animate("ARS",				self:GetPackedBool(56) and 1 or 0, 	0,1, 16, false)
 	self:Animate("ALS",				self:GetPackedBool(57) and 1 or 0, 	0,1, 16, false)
 	self:Animate("BPSNon",			self:GetPackedBool(59) and 1 or 0, 	0,1, 16, false)
+	self:Animate("L_1",				self:GetPackedBool(60) and 1 or 0, 	0,1, 16, false)
+	self:Animate("L_2",				self:GetPackedBool(61) and 1 or 0, 	0,1, 16, false)
+	self:Animate("L_3",				self:GetPackedBool(62) and 1 or 0, 	0,1, 16, false)
+	self:Animate("L_4",				self:GetPackedBool(63) and 1 or 0, 	0,1, 16, false)
+	self:Animate("L_5",				self:GetPackedBool(53) and 1 or 0, 	0,1, 16, false)	
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do

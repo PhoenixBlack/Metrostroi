@@ -143,7 +143,7 @@ function TRAIN_SYSTEM:Think()
 		if (    self.AttentionPedal) and (Vlimit ~= 0) and (V > Vlimit) then self.Overspeed = true end
 		if (    self.AttentionPedal) and (Vlimit == 0) and (V > 20) then self.Overspeed = true end
 
-		self.Ring = self.Overspeed and (self.Speed > 5)
+		--self.Ring = self.Overspeed and (self.Speed > 5)
 		
 		-- Determine next limit and current limit
 		self.SpeedLimit = Vlimit
@@ -155,7 +155,7 @@ function TRAIN_SYSTEM:Think()
 		if self.Signal0  then self.NextLimit =  0 end
 	else
 		self.Overspeed = true
-		self.Ring = false
+		--self.Ring = false
 	end
 	
 	if EnableARS then
@@ -204,6 +204,7 @@ function TRAIN_SYSTEM:Think()
 		-- Show lamps
 		self.LKT = (self["33G"] > 0.5) or (self["29"] > 0.5)
 		self.LVD = self["33D"] < 0.5
+		self.Ring = self.LVD
 	else
 		if (Train.RPB) and (not self.AttentionPedal) then
 			Train.RPB:TriggerInput("Open",1)
@@ -222,5 +223,6 @@ function TRAIN_SYSTEM:Think()
 		
 		self.LKT = false
 		self.LVD = false
+		self.Ring = false
 	end
 end
