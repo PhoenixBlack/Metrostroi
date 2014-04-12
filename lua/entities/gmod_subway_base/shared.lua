@@ -53,6 +53,7 @@ function ENT:InitializeSounds()
 		"subway_trains/switch_7.wav",
 	}
 	self.SoundNames["switch4"]		= "subway_trains/switch_4.wav"
+	self.SoundNames["switch5"]		= "subway_trains/switch_8.wav"
 
 	self.SoundNames["bpsn1"] 		= "subway_trains/bpsn_1.wav"
 	self.SoundNames["bpsn2"] 		= "subway_trains/bpsn_2.wav"
@@ -62,6 +63,13 @@ function ENT:InitializeSounds()
 	self.SoundNames["release3"]		= "subway_trains/release_3.wav"
 	self.SoundPositions["release2"] = "cabin"
 	self.SoundPositions["release3"] = "cabin"
+	
+	self.SoundNames["horn1"] 		= "subway_trains/horn_1.wav"
+	self.SoundNames["horn1_end"] 	= "subway_trains/horn_2.wav"
+	self.SoundNames["horn2"] 		= "subway_trains/horn_3.wav"
+	self.SoundNames["horn2_end"] 	= "subway_trains/horn_4.wav"
+	self.SoundPositions["horn1"]	= "cabin"
+	self.SoundPositions["horn2"]	= "cabin"
 	
 	self.SoundNames["ring"]			= "subway_trains/ring_1.wav"
 	self.SoundNames["ring_end"]		= "subway_trains/ring_2.wav"
@@ -140,7 +148,7 @@ end
 --------------------------------------------------------------------------------
 -- Sound functions
 --------------------------------------------------------------------------------
-function ENT:SetSoundState(sound,volume,pitch)
+function ENT:SetSoundState(sound,volume,pitch,timeout)
 	if not self.Sounds[sound] then 
 		if self.SoundNames and self.SoundNames[sound] then
 			local name = self.SoundNames[sound]
@@ -169,8 +177,8 @@ function ENT:SetSoundState(sound,volume,pitch)
 
 	local pch = math.floor(math.max(0,math.min(255,100*pitch)) + math.random())
 	self.Sounds[sound]:Play()
-	self.Sounds[sound]:ChangeVolume(math.max(0,math.min(255,2.55*volume)) + (0.001/2.55) + (0.001/2.55)*math.random(),0)
-	self.Sounds[sound]:ChangePitch(pch+1,0)
+	self.Sounds[sound]:ChangeVolume(math.max(0,math.min(255,2.55*volume)) + (0.001/2.55) + (0.001/2.55)*math.random(),timeout or 0)
+	self.Sounds[sound]:ChangePitch(pch+1,timeout or 0)
 end
 
 --[[function ENT:CheckActionTimeout(action,timeout)
