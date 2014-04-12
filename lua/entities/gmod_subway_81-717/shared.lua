@@ -63,4 +63,5 @@ function ENT:InitializeSystems()
 	self:LoadSystem("PowerSupply","BPSN")
 	self:LoadSystem("DURA")
 	self:LoadSystem("ALS_ARS")
+	self:LoadSystem("Horn")
 end

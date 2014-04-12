@@ -51,7 +51,7 @@ function ENT:Initialize()
 		[KEY_A] = "KDLSet",
 		[KEY_D] = "KDPSet",
 		[KEY_V] = "VUD1Set",
-		[KEY_L] = "VUSToggle",
+		[KEY_L] = "HornEngage",
 		
 		[KEY_SPACE] = "PBSet",
 
@@ -320,11 +320,28 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
+	-- Special logic
+	if (button == "VDLSet") or (button == "KDLSet") or (button == "KDPSet") then
+		self.VUD1:TriggerInput("Open",1)
+		self.VUD2:TriggerInput("Open",1)
+	end
+	if (button == "VUD1Set") or (button == "VUD1Toggle") or
+	   (button == "VUD2Set") or (button == "VUD2Toggle") then
+		self.VDL:TriggerInput("Open",1)
+		self.KDL:TriggerInput("Open",1)
+		self.KDP:TriggerInput("Open",1)
+	end
+	
 	-- Special sounds
 	if button == "PBSet" then self:PlayOnce("switch","cabin") return end
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
 	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
 	if button == "DURASelectAlternate" then self:PlayOnce("switch","cabin") return end
+	if button == "VUD1Set" then self:PlayOnce("switch2","cabin") return end
+	if button == "VDLSet" then self:PlayOnce("switch3","cabin",0.7) return end
+	if button == "KDLSet" then self:PlayOnce("switch3","cabin",0.7) return end
+	if button == "KDPSet" then self:PlayOnce("switch3","cabin",0.7) return end
+	
 	if button == "DriverValveDisconnectToggle" then
 		if self.DriverValveDisconnect.Value == 1.0 then
 			self:PlayOnce("pneumo_disconnect2","cabin",0.9)
