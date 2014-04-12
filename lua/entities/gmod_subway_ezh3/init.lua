@@ -26,8 +26,8 @@ function ENT:Initialize()
 	self.DriverSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
 	
 	-- Create bogeys
-	self.FrontBogey = self:CreateBogey(Vector( 325-10,0,-75),Angle(0,180,0),true)
-	self.RearBogey  = self:CreateBogey(Vector(-325-10,0,-75),Angle(0,0,0),false)
+	self.FrontBogey = self:CreateBogey(Vector( 325-10,0,-80),Angle(0,180,0),true)
+	self.RearBogey  = self:CreateBogey(Vector(-325-10,0,-80),Angle(0,0,0),false)
 	
 	-- Initialize key mapping
 	self.KeyMap = {

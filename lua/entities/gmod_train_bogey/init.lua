@@ -45,7 +45,7 @@ function ENT:Initialize()
 	self.MotorPower = 0.0
 	self.Speed = 0
 	self.Acceleration = 0
-	self.PneumaticBrakeForce = 60000.0
+	self.PneumaticBrakeForce = 100000.0
 	
 	self.Variables = {}
 	
@@ -315,7 +315,7 @@ function ENT:Think()
 	if self.BrakeCylinderPressure < 0.05 then pneumaticForce = 0 end
 	
 	-- Compensate forward friction
-	local compensateA = self.Speed / 175
+	local compensateA = self.Speed / 160
 	local compensateF = sign * self:GetPhysicsObject():GetMass() * compensateA
 	-- Apply sideways friction
 	local sideSpeed = -self:GetVelocity():Dot(self:GetAngles():Right()) * 0.06858

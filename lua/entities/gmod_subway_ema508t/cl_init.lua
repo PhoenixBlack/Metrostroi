@@ -96,26 +96,26 @@ end
 for i=0,3 do
 	for k=0,1 do
 		ENT.ClientProps["door"..i.."x"..k.."a"] = {
-			model = "models/metrostroi/81/81-717_door3.mdl",
+			model = "models/metrostroi/e/em508_door1.mdl",
 			pos = GetDoorPosition(i,k,0),
 			ang = Angle(0,180*k,0)
 		}
 		ENT.ClientProps["door"..i.."x"..k.."b"] = {
-			model = "models/metrostroi/81/81-717_door4.mdl",
+			model = "models/metrostroi/e/em508_door2.mdl",
 			pos = GetDoorPosition(i,k,1),
 			ang = Angle(0,180*k,0)
 		}
 	end
 end
 table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/81/81-717_door2.mdl",
-	pos = Vector(455.5,-2.4,-7.5),
-	ang = Angle(0,180,0)
+	model = "models/metrostroi/e/em508_door5.mdl",
+	pos = Vector(455.5,-2.4,-5),
+	ang = Angle(0,0,0)
 })
 table.insert(ENT.ClientProps,{
-	model = "models/metrostroi/81/81-717_door2.mdl",
-	pos = Vector(-479.5,-3.0,-7.5),
-	ang = Angle(0,0,0)
+	model = "models/metrostroi/e/em508_door5.mdl",
+	pos = Vector(-479.5,-3.0,-5),
+	ang = Angle(0,180,0)
 })
 
 
