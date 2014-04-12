@@ -4,7 +4,7 @@
 -- Console commands and convars
 --------------------------------------------------------------------------------
 concommand.Add("metrostroi_train_manual", function(ply, _, args)
-	local w = ScrW() * 2/3
+--[[	local w = ScrW() * 2/3
 	local h = ScrH() * 2/3
 	local browserWindow = vgui.Create("DFrame")
 	browserWindow:SetTitle("Train Manual")
@@ -20,7 +20,8 @@ concommand.Add("metrostroi_train_manual", function(ply, _, args)
 	browser:SetPos(10, 25)
 	browser:SetSize(w - 20, h - 35)
 
-	browser:OpenURL("http://phoenixblack.github.io/Metrostroi/manual.html")
+	browser:OpenURL]]--
+	gui.OpenURL("http://phoenixblack.github.io/Metrostroi/manual.html")
 end)
 
 
@@ -733,7 +734,7 @@ hook.Add("CalcView", "Metrostroi_TrainView", function(ply,pos,ang,fov,znear,zfar
 		if trainAng.y > 0 then
 			return {
 				origin = train:LocalToWorld(Vector(441,70+dy,34)),
-				angles = -train:GetAngles() + Angle(2,-5,0) + Angle(0,180,0),
+				angles = train:GetAngles() + Angle(2,-5,0) + Angle(0,180,0),
 				fov = 20,
 				znear = znear,
 				zfar = zfar
@@ -741,7 +742,7 @@ hook.Add("CalcView", "Metrostroi_TrainView", function(ply,pos,ang,fov,znear,zfar
 		else
 			return {
 				origin = train:LocalToWorld(Vector(441,-70-dy,34)),
-				angles = -train:GetAngles() + Angle(2,5,0) + Angle(0,180,0),
+				angles = train:GetAngles() + Angle(2,5,0) + Angle(0,180,0),
 				fov = 20,
 				znear = znear,
 				zfar = zfar

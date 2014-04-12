@@ -40,6 +40,6 @@ function TRAIN_SYSTEM:ClientThink(dT)
 	self.Active = active
 	
 	-- Play horn sound
-	if not self.Active then self.Volume = math.max(0,self.Volume - 2.0*dT) end
+	if not self.Active then self.Volume = math.max(0,self.Volume - math.max(0,2.0*dT)) end
 	self.Train:SetSoundState("horn2",self.Volume,1)
 end

@@ -245,7 +245,54 @@ ENT.ButtonMap["DURA"] = {
 		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip="DURA Toggle Channel"}, -- NEEDS TRANSLATING
 	}
 }
-
+ENT.ButtonMap["Reverser"] = {
+	pos = Vector(436.0,-30.0,-7),
+	ang = Angle(0,180,90),
+	width = 180,
+	height = 150,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "KVReverserUp",x=10,y=0,w=160,h=70, tooltip=""},
+		{ID = "KVReverserDown",x=10,y=80,w=160,h=70, tooltip=""},
+	}
+}
+ENT.ButtonMap["Controller"] = {
+	pos = Vector(440.0,24.0,-7),
+	ang = Angle(0,-90,0),
+	width = 180,
+	height = 390,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "KVControllerUp",x=10,y=0,w=160,h=190, tooltip=""},
+		{ID = "KVControllerDown",x=10,y=200,w=160,h=190, tooltip=""},
+	}
+}
+ENT.ButtonMap["Controller"] = {
+	pos = Vector(440.0,24.0,-7),
+	ang = Angle(0,-90,0),
+	width = 180,
+	height = 390,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "KVControllerUp",x=10,y=0,w=160,h=190, tooltip=""},
+		{ID = "KVControllerDown",x=10,y=200,w=160,h=190, tooltip=""},
+	}
+}
+ENT.ButtonMap["DriversValve"] = {
+	pos = Vector(429.0,-14.0,-7),
+	ang = Angle(0,-90,0),
+	width = 100,
+	height = 200,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "PneumaticBrakeDown",x=0,y=0,w=100,h=100, tooltip=""},
+		{ID = "PneumaticBrakeUp",x=0,y=100,w=100,h=100, tooltip=""},
+	}
+}
 ENT.ButtonMap["Meters"] = {
 	pos = Vector(448.8,-35.5,24.0),
 	ang = Angle(0,-125,90),
@@ -738,14 +785,21 @@ function ENT:Think()
 	
 	-- Brake-related sounds
 	local brakeLinedPdT = self:GetPackedRatio(9)
+	local dT = self.DeltaTime
+	self.BrakeLineRamp1 = self.BrakeLineRamp1 or 0
+
 	if (brakeLinedPdT > -0.001)
-	then self:SetSoundState("release2",0,0)
-	else self:SetSoundState("release2",-0.3*brakeLinedPdT,1.0)
+	then self.BrakeLineRamp1 = self.BrakeLineRamp1 + 2.0*(0-self.BrakeLineRamp1)*dT
+	else self.BrakeLineRamp1 = self.BrakeLineRamp1 + 2.0*((-0.4*brakeLinedPdT)-self.BrakeLineRamp1)*dT
 	end
+	self:SetSoundState("release2",self.BrakeLineRamp1,1.0)
+
+	self.BrakeLineRamp2 = self.BrakeLineRamp2 or 0
 	if (brakeLinedPdT < 0.001)
-	then self:SetSoundState("release3",0,0)
-	else self:SetSoundState("release3",0.02*brakeLinedPdT,1.0)
+	then self.BrakeLineRamp2 = self.BrakeLineRamp2 + 2.0*(0-self.BrakeLineRamp2)*dT
+	else self.BrakeLineRamp2 = self.BrakeLineRamp2 + 2.0*(0.02*brakeLinedPdT-self.BrakeLineRamp2)*dT
 	end
+	self:SetSoundState("release3",self.BrakeLineRamp2,1.0)
 
 	-- Compressor
 	local state = self:GetPackedBool(20)
