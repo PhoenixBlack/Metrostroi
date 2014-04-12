@@ -173,14 +173,21 @@ function ENT:Think()
 	
 	-- Brake-related sounds
 	local brakeLinedPdT = self:GetPackedRatio(9)
+	local dT = self.DeltaTime
+	self.BrakeLineRamp1 = self.BrakeLineRamp1 or 0
+
 	if (brakeLinedPdT > -0.001)
-	then self:SetSoundState("release2",0,0)
-	else self:SetSoundState("release2",-0.3*brakeLinedPdT,1.0)
+	then self.BrakeLineRamp1 = self.BrakeLineRamp1 + 2.0*(0-self.BrakeLineRamp1)*dT
+	else self.BrakeLineRamp1 = self.BrakeLineRamp1 + 2.0*((-0.4*brakeLinedPdT)-self.BrakeLineRamp1)*dT
 	end
+	self:SetSoundState("release2",self.BrakeLineRamp1,1.0)
+
+	self.BrakeLineRamp2 = self.BrakeLineRamp2 or 0
 	if (brakeLinedPdT < 0.001)
-	then self:SetSoundState("release3",0,0)
-	else self:SetSoundState("release3",0.02*brakeLinedPdT,1.0)
+	then self.BrakeLineRamp2 = self.BrakeLineRamp2 + 2.0*(0-self.BrakeLineRamp2)*dT
+	else self.BrakeLineRamp2 = self.BrakeLineRamp2 + 2.0*(0.02*brakeLinedPdT-self.BrakeLineRamp2)*dT
 	end
+	self:SetSoundState("release3",self.BrakeLineRamp2,1.0)
 
 	-- Compressor
 	local state = self:GetPackedBool(20)

@@ -307,10 +307,10 @@ function ENT:Think()
 		self.FrontBogey.MotorPower = self.Engines.BogeyMoment
 		
 		-- Apply brakes
-		self.FrontBogey.PneumaticBrakeForce = 140000.0
+		self.FrontBogey.PneumaticBrakeForce = 100000.0
 		self.FrontBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.FrontBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-		self.RearBogey.PneumaticBrakeForce = 140000.0
+		self.RearBogey.PneumaticBrakeForce = 100000.0
 		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
@@ -323,7 +323,7 @@ function ENT:OnButtonPress(button)
 	-- Special logic
 	if (button == "VDLSet") or (button == "KDLSet") or (button == "KDPSet") then
 		self.VUD1:TriggerInput("Open",1)
-		self.VUD2:TriggerInput("Open",1)
+		--self.VUD2:TriggerInput("Open",1)
 	end
 	if (button == "VUD1Set") or (button == "VUD1Toggle") or
 	   (button == "VUD2Set") or (button == "VUD2Toggle") then
