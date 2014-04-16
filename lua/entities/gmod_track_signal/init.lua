@@ -159,6 +159,8 @@ function ENT:ARSLogic()
 end
 
 function ENT:Think()
+	self.ARSOnly = true
+
 	-- Do no interesting logic if there's no traffic light involved
 	if self:GetTrafficLights() == 0 then
 		self:ARSLogic()

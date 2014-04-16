@@ -154,13 +154,17 @@ function ENT:Think()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
 	
+	-- Read networked variables
+	self:RecvPackedData()
+
+	-- Simulate systems
 	if self.Systems then
 		for k,v in pairs(self.Systems) do
 			v:ClientThink(self.DeltaTime)
 		end
 	end
 	
-	-- Reset CS ents
+	-- Reset CSEnts
 	if CurTime() - (self.ClientEntsResetTimer or 0) > 10.0 then
 		self.ClientEntsResetTimer = CurTime()
 		self:RemoveCSEnts()

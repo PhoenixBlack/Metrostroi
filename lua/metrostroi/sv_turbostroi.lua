@@ -2,14 +2,19 @@
 -- Simulation acceleration DLL support
 --------------------------------------------------------------------------------
 if not TURBOSTROI then
+	local FPS = 33
+	local messageTimeout = 0
+	local messageCounter = 0
 	local dataCache = {}
 	local inputCache = {}
 	local function updateTrains(trains)
+		local recvMessage = Turbostroi.RecvMessage
+
 		-- Get data packets from simulation
-		for _,train in pairs(trains) do
+		for _,train in pairs(trains) do			
 			local id,system,name,index,value
 			while true do
-				id,system,name,index,value = Turbostroi.RecvMessage(train)
+				id,system,name,index,value = recvMessage(train)
 				if id == 1 then
 					if train.Systems[system] then
 						train.Systems[system][name] = value
@@ -31,6 +36,7 @@ if not TURBOSTROI then
 				end
 
 				if not id then break end
+				messageCounter = messageCounter + 1
 			end
 		end
 		
@@ -68,7 +74,7 @@ if not TURBOSTROI then
 			if not Turbostroi then return end
 			
 			-- Proceed with the think loop
-			Turbostroi.SetSimulationFPS(33)
+			Turbostroi.SetSimulationFPS(FPS)
 			Turbostroi.SetTargetTime(CurTime())
 			Turbostroi.Think()
 				
@@ -79,6 +85,13 @@ if not TURBOSTROI then
 				
 			-- HACK
 			GLOBAL_SKIP_TRAIN_SYSTEMS = nil
+			
+			-- Print stats
+			if false and ((CurTime() - messageTimeout) > 1.0) then
+				messageTimeout = CurTime()
+				print(Format("Metrostroi: %d messages per second (%d per tick)",messageCounter,messageCounter / FPS))
+				messageCounter = 0
+			end
 		end)
 	end
 	return
@@ -273,7 +286,7 @@ function DataExchange()
 				local value = (system[name] or 0)
 				if DataCache[sys_name..name] ~= value then
 					DataCache[sys_name..name] = value
-					
+
 					SendMessage(1,sys_name,name,0,tonumber(value) or 0)
 				end
 			end

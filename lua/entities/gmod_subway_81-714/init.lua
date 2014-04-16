@@ -179,6 +179,9 @@ function ENT:Think()
 		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
+	
+	-- Send networked variables
+	self:SendPackedData()
 	return retVal
 end
 
@@ -193,6 +196,8 @@ function ENT:OnCouple(train,isfront)
 	end
 end
 function ENT:OnButtonPress(button)
+	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
+	
 	-- Generic button or switch sound
 	if string.find(button,"Set") then
 		self:PlayOnce("switch")
