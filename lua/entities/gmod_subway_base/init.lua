@@ -979,6 +979,9 @@ function ENT:Think()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
 	
+	-- Read networked variables
+	self:RecvPackedData()
+	
 	-- Calculate train acceleration
 	--[[self.PreviousVelocity = self.PreviousVelocity or self:GetVelocity()
 	local accelerationVector = 0.01905*(self:GetPhysicsObject():GetVelocity() - self.PreviousVelocity) / self.DeltaTime
@@ -998,17 +1001,10 @@ function ENT:Think()
 		local a = math.AngleDifference(self.FrontBogey:GetAngles().y,self.RearBogey:GetAngles().y+180)
 		self.TurnRadius = (self.BogeyDistance/2)/math.sin(math.rad(a/2))
 		
-		--If we're pretty much going straight, correct massive values
+		-- If we're pretty much going straight, correct massive values
 		if math.abs(self.TurnRadius) > 1e4 then
 			self.TurnRadius = 0 
-		end
-		
-		--[[ -- Debug output
-			local right = self:GetAngles():Right()
-			right.z = 0
-			right:Normalize()
-			debugoverlay.Line(self:GetPos(),self:GetPos()+right*-self.TurnRadius,1,Color(255,0,0),true)
-		--]]		
+		end	
 	end
 
 	-- Process the keymap for modifiers 
@@ -1016,9 +1012,8 @@ function ENT:Think()
 	if not self.KeyMods and self.KeyMap then
 		self:ProcessKeyMap()
 	end
-	
+
 	-- Keyboard input is done via PlayerButtonDown/Up hooks that call ENT:OnKeyEvent
-	
 	-- Joystick input
 	if IsValid(self.DriverSeat) then
 		local ply = self.DriverSeat:GetPassenger(0) 
@@ -1028,11 +1023,13 @@ function ENT:Think()
 			if joystick then self:HandleJoystickInput(ply) end
 		end
 	end
-	
+
 	if Turbostroi then
 		-- Simulate systems which don't need to be simulated with turbostroi
 		for k,v in pairs(self.Systems) do
-			if v.Think then v:Think(self.DeltaTime / (v.SubIterations or 1),i) end
+			if v.DontAccelerateSimulation then
+				v:Think(self.DeltaTime / (v.SubIterations or 1),i)
+			end
 		end
 	else
 		-- Run iterations on systems simulation
@@ -1070,36 +1067,40 @@ function ENT:Think()
 	end
 	
 	-- Wire outputs
-	--self.PreviousWireIOValue = self.PreviousWireIOValue or {}
+	local triggerOutput = self.TriggerOutput
 	for _,name in pairs(self.WireIOSystems) do
 		local system = self.Systems[name]
 		if system and system.OutputsList then
 			for _,name in pairs(system.OutputsList) do
 				local varname = (system.Name or "")..name
 				if type(system[name]) ==  "boolean" then
-					self:TriggerOutput(varname,system[name] and 1 or 0)
+					triggerOutput(self,varname,system[name] and 1 or 0)
 				else
-					self:TriggerOutput(varname,tonumber(system[name]) or 0)
+					triggerOutput(self,varname,tonumber(system[name]) or 0)
 				end
 			end
 		end
 	end
 	
-	-- Write to train wires
+	-- Write and read train wires
+	local readTrainWire = self.ReadTrainWire
+	local writeTrainWire = self.WriteTrainWire
 	for k,v in pairs(self.TrainWireOverrides) do
-		if v > 0 then self:WriteTrainWire(k,v) end
+		if v > 0 then writeTrainWire(self,k,v) end
+	end
+	for i=1,32 do
+		triggerOutput(self,"TrainWire"..i,readTrainWire(self,i))
 	end
 	
 	-- Add interesting debug variables
-	for i=1,32 do
+	--[[for i=1,32 do
 		self.DebugVars["TW"..i] = self:ReadTrainWire(i)
-		self:TriggerOutput("TrainWire"..i,self.DebugVars["TW"..i])
 	end
 	for k,v in pairs(self.Systems) do
 		for _,output in pairs(v.OutputsList) do
 			self.DebugVars[(v.Name or "")..output] = v[output] or 0
 		end
-	end
+	end]]--
 	
 	-- Calculate own speed and acceleration
 	local speed,acceleration = 0,0
@@ -1107,12 +1108,12 @@ function ENT:Think()
 		speed = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
 		acceleration = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2
 	end
-	self.DebugVars["Speed"] = speed
-	self.DebugVars["Acceleration"] = acceleration
 	
-	-- Save it
+	-- Update speed and acceleration
 	self.Speed = speed
-	self.Acceleration = acceleration	
+	self.Acceleration = acceleration
+	--self.DebugVars["Speed"] = speed
+	--self.DebugVars["Acceleration"] = acceleration
 
 	-- Go to next think
 	self:NextThink(CurTime()+0.01)

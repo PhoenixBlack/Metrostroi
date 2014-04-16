@@ -307,57 +307,88 @@ function ENT:SetupDataTables()
 end
 
 --------------------------------------------------------------------------------
+-- Prepare networking functions
+--------------------------------------------------------------------------------
+function ENT:SendPackedData()
+	self:SetPackedInt0(self._PackedInt[1])
+	self:SetPackedInt1(self._PackedInt[2])
+	self:SetPackedInt2(self._PackedInt[3])
+	self:SetPackedInt3(self._PackedInt[4])
+	
+	self:SetPackedVec0(self._PackedVec[1])
+	self:SetPackedVec1(self._PackedVec[2])
+	self:SetPackedVec2(self._PackedVec[3])
+	self:SetPackedVec3(self._PackedVec[4])
+end
+
+function ENT:RecvPackedData()
+	self._PackedInt = self._PackedInt or {}
+	self._PackedInt[1] = self:GetPackedInt0()
+	self._PackedInt[2] = self:GetPackedInt1()
+	self._PackedInt[3] = self:GetPackedInt2()
+	self._PackedInt[4] = self:GetPackedInt3()
+
+	self._PackedVec = self._PackedVec or {}
+	self._PackedVec[1] = self:GetPackedVec0()
+	self._PackedVec[2] = self:GetPackedVec1()
+	self._PackedVec[3] = self:GetPackedVec2()
+	self._PackedVec[4] = self:GetPackedVec3()
+end
+
+-- Quick shortcuts
+local bitlshift = bit.lshift
+local bitbnot = bit.bnot
+local bitbor = bit.bor
+local bitband = bit.band
+
+--------------------------------------------------------------------------------
 -- Set/get tightly packed float (for speed, pneumatic gauges, etc)
 --------------------------------------------------------------------------------
 function ENT:SetPackedRatio(vecn,ratio)
-	local int = 0
-	if vecn >= 3 then int = 1 vecn = vecn-3 end
+	local int = 1
 	if vecn >= 3 then int = 2 vecn = vecn-3 end
 	if vecn >= 3 then int = 3 vecn = vecn-3 end
-		
-	local vector = self["GetPackedVec"..int](self)
-	if vecn == 0 then vector.x = ratio end
-	if vecn == 1 then vector.y = ratio end
-	if vecn == 2 then vector.z = ratio end
-	self["SetPackedVec"..int](self,vector)		
+	if vecn >= 3 then int = 4 vecn = vecn-3 end
+
+	if vecn == 0 then self._PackedVec[int].x = ratio end
+	if vecn == 1 then self._PackedVec[int].y = ratio end
+	if vecn == 2 then self._PackedVec[int].z = ratio end
 end
 
 function ENT:GetPackedRatio(vecn)	
-	local int = 0
-	if vecn >= 3 then int = 1 vecn = vecn-3 end
+	local int = 1
 	if vecn >= 3 then int = 2 vecn = vecn-3 end
 	if vecn >= 3 then int = 3 vecn = vecn-3 end
-		
-	local vector = self["GetPackedVec"..int](self)
-	if vecn == 0 then return vector.x end
-	if vecn == 1 then return vector.y end
-	if vecn == 2 then return vector.z end
+	if vecn >= 3 then int = 4 vecn = vecn-3 end
+
+	if vecn == 0 then return self._PackedVec[int].x end
+	if vecn == 1 then return self._PackedVec[int].y end
+	if vecn == 2 then return self._PackedVec[int].z end
 end
 
 --------------------------------------------------------------------------------
 -- Set/get tightly packed boolean (for gauges, lights)
 --------------------------------------------------------------------------------
 function ENT:SetPackedBool(idx,value)
-	local int = 0
-	if idx >= 32 then int = 1 idx = idx-32 end
+	local int = 1
 	if idx >= 32 then int = 2 idx = idx-32 end
 	if idx >= 32 then int = 3 idx = idx-32 end
+	if idx >= 32 then int = 4 idx = idx-32 end
 	
 	-- Pack value
-	local packed_value = bit.lshift(value and 1 or 0,idx)
-	local mask = bit.bnot(bit.lshift(1,idx))
-	
+	local packed_value = bitlshift(value and 1 or 0,idx)
+	local mask = bitbnot(bitlshift(1,idx))
+
 	-- Create total packed integer
-	local new_int2 = bit.bor(bit.band(self["GetPackedInt"..int](self),mask),packed_value)
-	self["SetPackedInt"..int](self,new_int2)
+	self._PackedInt[int] = bitbor(bitband(self._PackedInt[int],mask),packed_value)
 end
 
 function ENT:GetPackedBool(idx)
-	local int = 0
-	if idx >= 32 then int = 1 idx = idx-32 end
+	local int = 1
 	if idx >= 32 then int = 2 idx = idx-32 end
 	if idx >= 32 then int = 3 idx = idx-32 end
+	if idx >= 32 then int = 4 idx = idx-32 end
 	
-	local mask = bit.lshift(1,idx)
-	return bit.band(self["GetPackedInt"..int](self),mask) ~= 0
+	local mask = bitlshift(1,idx)
+	return bitband(self._PackedInt[int],mask) ~= 0
 end

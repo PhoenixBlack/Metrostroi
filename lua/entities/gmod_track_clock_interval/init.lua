@@ -34,17 +34,18 @@ function ENT:Think()
 		end
 	end
 
-	-- React when there is train, but there was no train before
+	-- If only sensing train for the first time, reset
 	self.SensingTime = self.SensingTime or (os.time())
-	if sensingTrain then
+	if sensingTrain and (not self.IntervalReset) then
+		self:SetIntervalResetTime(os.time()-1396011937)
 		self.SensingTime = os.time()
-		self.IntervalReset = false
-	else
-		if (os.time() - self.SensingTime > 2.0) and (not self.IntervalReset) then
-			self:SetIntervalResetTime(os.time()-1396011937)
-			self.IntervalReset = true
-		end
+		self.IntervalReset = true
 	end
-	self:NextThink(CurTime() + 0.5)
+	
+	-- If not sensing anything for more than 3 seconds, expect something again
+	if (not sensingTrain) and (os.time() - self.SensingTime > 3.0) then
+		self.IntervalReset = false
+	end
+	self:NextThink(CurTime() + 0.25)
 	return true
 end

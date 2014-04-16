@@ -314,6 +314,9 @@ function ENT:Think()
 		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
+
+	-- Send networked variables
+	self:SendPackedData()
 	return retVal
 end
 
