@@ -105,7 +105,11 @@ function TRAIN_SYSTEM:UpdatePressures(Train,dT)
 	local rearBrakeOpen = Train.RearBrakeLineIsolation.Value == 0
 
 	-- Check if both valve on this train and connected train are open
-	if Train.FrontTrain then 
+	if Train.FrontTrain then
+		Train.FrontTrain.FrontBrakeLineIsolation = Train.FrontTrain.FrontBrakeLineIsolation or
+			{ Value = 1 }
+		Train.FrontTrain.RearBrakeLineIsolation = Train.FrontTrain.RearBrakeLineIsolation or
+			{ Value = 1 }
 		if Train.FrontTrain.FrontTrain == Train then -- Nose to nose
 			frontBrakeOpen = frontBrakeOpen and (Train.FrontTrain.FrontBrakeLineIsolation.Value == 0)
 		else -- Rear to nose
@@ -113,6 +117,10 @@ function TRAIN_SYSTEM:UpdatePressures(Train,dT)
 		end
 	end
 	if Train.RearTrain then
+		Train.RearTrain.FrontBrakeLineIsolation = Train.RearTrain.FrontBrakeLineIsolation or
+			{ Value = 1 }
+		Train.RearTrain.RearBrakeLineIsolation = Train.RearTrain.RearBrakeLineIsolation or
+			{ Value = 1 }
 		if Train.RearTrain.FrontTrain == Train then -- Back to back
 			rearBrakeOpen = rearBrakeOpen and (Train.RearTrain.FrontBrakeLineIsolation.Value == 0)
 		else -- Back to nose

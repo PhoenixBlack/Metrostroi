@@ -204,7 +204,7 @@ function Metrostroi.AddARSSubSection(node,source)
 	local ent = ents.Create("gmod_track_signal")
 	if not IsValid(ent) then return end
 	
-	local tr = Metrostroi.RerailGetTrackData(node.pos-Vector(0,0,112) - node.dir*32,node.dir)
+	local tr = Metrostroi.RerailGetTrackData(node.pos - node.dir*32,node.dir)
 	if not tr then return end
 	
 	ent:SetPos(tr.centerpos - tr.up * 9.5)
@@ -843,8 +843,7 @@ concommand.Add("metrostroi_track_main", function(ply, _, args)
 		local switches = Metrostroi.GetTrackSwitches(v.node1,v.x,v.forward)
 		for _,switch in pairs(switches) do
 			print("Found switch:",switch,switch.TrackPosition.x)
-			switch:SendSignal("main",1)
-			switch:SendSignal("main",2)
+			switch:SendSignal("main",tonumber(args[1]) or 1)
 		end
 	end
 end)
@@ -858,8 +857,7 @@ concommand.Add("metrostroi_track_alt", function(ply, _, args)
 		local switches = Metrostroi.GetTrackSwitches(v.node1,v.x,v.forward)
 		for _,switch in pairs(switches) do
 			print("Found switch:",switch,switch.TrackPosition.x)
-			switch:SendSignal("alt",1)
-			switch:SendSignal("alt",2)
+			switch:SendSignal("alt",tonumber(args[1]) or 1)
 		end
 	end
 end)
