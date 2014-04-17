@@ -24,11 +24,11 @@ function ENT:Initialize()
 	-- Seats
 	if self.TrainType == "81-717" then 
 		self.DriverSeat = self:CreateSeat("driver",Vector(410,-2,-23))
-		self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28))
-		self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-35,-28))
+		--self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28))
+		--self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-35,-28))
 	end
 	
-	for i=1,17 do
+	for i=1,1 do --17
 		local pos = Vector(280-(i-1)*30-math.floor((i-1)/5)*80,-47,-32)
 		local p1 = self:CreateSeat("passenger",pos,Angle(0,90,0))
 		pos.y = -pos.y
@@ -114,31 +114,56 @@ function ENT:Initialize()
 			ent:Spawn()
 		end
 	end
+
+	-- Type
+	self:SetNWString("TrainType",self.TrainType)
 end
 
-concommand.Add("metrostroi_spawn_ai", function(ply, _, args)
+concommand.Add("metrostroi_ai_spawn", function(ply, _, args)
 	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
-	for k,v in pairs(Metrostroi.Stations) do
-		for k2,v2 in pairs(v) do
-			local x = v2.node_end.x-20
-			local p = v2.node_end.path.id
 
-			if (p <= 2) then
-				print(x,p)
-
-				local ent = ents.Create("gmod_subway_ai")
-				ent.Position = x
-				ent.PathID = p
-				ent:Spawn()
+	local pathid = tonumber(args[2]) or 1
+	local trainCounter = tonumber(args[1]) or 1
+	local prevEnt
+	timer.Create("BLAH TIMER"..pathid,1.0,0,function()
+		if prevEnt then
+			if (pathid == 1) and (prevEnt.Position < 260) then
+				return
+			end
+			if (pathid == 2) and (prevEnt.Position < 960) then
+				return
 			end
 		end
-	end
+		if trainCounter < 1 then return end
+
+		local ent = ents.Create("gmod_subway_ai")
+		ent.Position = 150
+		ent.PathID = pathid
+		ent:Spawn()
+		prevEnt = ent
+		trainCounter = trainCounter - 1
+		print("Spawning AI trains (path "..pathid.."), left: "..trainCounter)
+	end)
 end)
 
-concommand.Add("metrostroi_clear_ai", function(ply, _, args)
+concommand.Add("metrostroi_ai_clear", function(ply, _, args)
 	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
 	for k,v in pairs(ents.FindByClass("gmod_subway_ai")) do
 		SafeRemoveEntity(v)
+		if args[1] then print("Removed one") return end
+	end
+	timer.Create("BLAH TIMER",1.0,0,function()
+	end)
+end)
+
+concommand.Add("metrostroi_ai_info", function(ply, _, args)
+	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
+	for k,v in pairs(ents.FindByClass("gmod_subway_ai")) do
+		if not v.TrainHead then
+			print(Format("Train to [%03d][%02d] (%.0f m %.02f km/h, left %0.3f m)",
+				v.TargetStation or 0,v.TargetPlatform or 0,v.Position,v.Speed,
+				(v.PlatformEdgeX or 0) - v.Position))
+		end
 	end
 end)
 
@@ -153,33 +178,57 @@ function ENT:DoAI(dT)
 	if self.Schedule and (#self.Schedule == 0) then
 		self.Schedule = nil
 	end
-	if not self.Schedule then
-		print(self.PathID,"NEW SCHEDULE")
+	if (not self.Schedule) and (not self.NoStation) then
 		self.Schedule = Metrostroi.GenerateSchedule("Line1_Platform"..self.PathID)
 		self.StopTimer = 10
 	end
 	
 	-- See if must move to next station
-	if (Metrostroi.ServerTime() > (self.Schedule[1][3]*60)) and (self.StopTimer < 0) then
-		table.remove(self.Schedule,1)
-		self.StopTimer = 10
+	if self.Schedule then
+		if ((Metrostroi.ServerTime() > (self.Schedule[1][3]*60)) and (self.StopTimer < 0)) or
+		   (self.StopTimer < -200) then
+			table.remove(self.Schedule,1)
+			self.StopTimer = 10
+		end
 	end
 
 	-- Get current target station info
 	local platformEdgeX
-	if self.Schedule[1] then
+	if self.Schedule and self.Schedule[1] then
 		local targetStation = self.Schedule[1][1]
 		local targetPlatform = self.Schedule[1][2]
 		local stationData = Metrostroi.Stations[targetStation]
 		local platformData
 		if stationData then platformData = stationData[targetPlatform] end
-		if platformData then platformEdgeX = platformData.x_end end
+		if platformData then 
+			platformEdgeX = math.max(platformData.x_end,platformData.x_start)
+		end
+		if platformData and platformData.node_end then
+			if platformData.node_end.path.id ~= self.PathID then
+				print("WRONG PATH")
+				platformEdgeX = nil
+			end
+		end
+		self.TargetStation = targetStation
+		self.TargetPlatform = targetPlatform
+	else
+		self.NoStation = true
+	end
+	self.PlatformEdgeX = platformEdgeX
+
+	if platformEdgeX then
+		if self.Position > platformEdgeX then
+			print("Overrun!",self.Position,platformEdgeX)
+			table.remove(self.Schedule,1)
+			self.StopTimer = 10
+		end
 	end
 	
 	-- Get current information on driving
 	local speedLimit = self.ALS_ARS.SpeedLimit
 	local nextLimit = self.ALS_ARS.NextLimit
 	local targetSpeed = nextLimit
+	if nextLimit == 0 then targetSpeed = speedLimit end
 	
 	-- Move at slow speed to next red light or blocked section
 	if targetSpeed == 0 then targetSpeed = 20 end
@@ -192,11 +241,19 @@ function ENT:DoAI(dT)
 	if platformEdgeX and (platformEdgeX > self.Position)  then
 		local dX = platformEdgeX - self.Position
 		if dX < 100 then
-			targetSpeed = math.min(targetSpeed,55) * (math.max(0.0,math.min(1.0,(dX-11)/90))^0.5)
+			targetSpeed = math.min(targetSpeed,55) * (math.max(0.0,math.min(1.0,(dX-12)/90))^0.5)
+			if dX > 18 then targetSpeed = math.max(targetSpeed,20) end
 			if self.Speed < 1 then
 				self.StopTimer = self.StopTimer - dT
 			end
 		end
+	end
+
+	-- Wait for schedule start
+	if (self.PathID == 1) and (self.Position < 250) and
+		(self.Schedule) and (self.Schedule[1]) then
+		local dT = self.Schedule[1][3]*60 - Metrostroi.ServerTime()
+		if dT > 90 then targetSpeed = 0 end
 	end
 	
 	-- Reached target speed, stop accelerating
@@ -258,8 +315,8 @@ function ENT:DoPhysics(dT)
 	if self.Braking then		motorPower = -1.0 end
 	
 	local motorForce = 0
-	if motorPower > 0 then motorForce = 1.6*motorPower end
-	if motorPower < 0 then motorForce = -1.6*math.abs(motorPower) * math.max(-1.0,math.min(1.0,0.25*self.Velocity)) end
+	if motorPower > 0 then motorForce = 1.4*motorPower end
+	if motorPower < 0 then motorForce = -1.5*math.abs(motorPower) * math.max(-1.0,math.min(1.0,0.25*self.Velocity)) end
 
 	-- Brake code
 	local brakeForce = 0
@@ -291,11 +348,11 @@ function ENT:Think()
 	self.PrevTime = CurTime()
 	
 	self:RecvPackedData()
-	self:NextThink(CurTime()+0.01)
+	self:NextThink(CurTime()+0.10)
 	
 	-- Simulate equipment specific to trains
 	local dT = self.DeltaTime
-	if self.TrainType == "81-717" then
+	if (self.TrainType == "81-717") and (not self.TrainHead) then
 		self.ALS_ARS:Think(dT,1)
 	end
 
@@ -306,12 +363,14 @@ function ENT:Think()
 		self.Velocity = 0
 		self.PathID = 2
 		self.Schedule = nil
+		self.NoStation = false
 	end
 	if (self.Position > 11180-10) and (self.PathID == 2) then
 		self.Position = 100
 		self.Velocity = 0
 		self.PathID = 1
 		self.Schedule = nil
+		self.NoStation = false
 	end
 	--self.Position = 11000
 	--self.Velocity = 0
@@ -330,6 +389,7 @@ function ENT:Think()
 		self.PathID = self.TrainHead.PathID
 		self.Position = self.TrainHead.Position - 18.6*(self.TrainIndex-1)
 		self.Velocity = self.TrainHead.Velocity
+		self.MotorPower = self.TrainHead.MotorPower
 	end
 
 
@@ -345,27 +405,56 @@ function ENT:Think()
 		self:SetLightPower(7, self.TrainHead == nil)
 		self:SetLightPower(8, self.TrainHead ~= nil)
 		self:SetLightPower(9, self.TrainHead ~= nil)
-		self:SetLightPower(10, true)
-		self:SetLightPower(12, true)
+		self:SetLightPower(10, (CurTime() % 60) > 0.1)
+		self:SetLightPower(12, (CurTime() % 60) > 0.1)
 	end
 	if self.TrainType == "81-714" then
-		self:SetLightPower(12, true)
+		self:SetLightPower(12, (CurTime() % 60) > 0.1)
 	end
 	-- Pneumatic brakes
 	self.PneumaticPressure = self.PneumaticPressure or 0
 	self.PneumaticPressure_dPdT = self.PneumaticPressure_dPdT or 0
 	if self.Pneumo 
-	then self.PneumaticPressure_dPdT = 0.75*(1.5 - self.PneumaticPressure)
-	else self.PneumaticPressure_dPdT = 0.75*(0.0 - self.PneumaticPressure)
+	then self.PneumaticPressure_dPdT = 0.65*(1.5 - self.PneumaticPressure)
+	else self.PneumaticPressure_dPdT = 0.65*(0.0 - self.PneumaticPressure)
 	end
 	self.PneumaticPressure = self.PneumaticPressure + self.PneumaticPressure_dPdT*dT
 	--print(self.PneumaticPressure,self.PneumaticPressure_dPdT)
 
 	-- Minor state
-	self.LeftDoorsOpen = self.Speed < 1
-	self.RightDoorsOpen = self.Speed < 1
+	if self.TrainHead then
+		self.LeftDoorsOpen = self.TrainHead.LeftDoorsOpen
+		self.RightDoorsOpen = self.TrainHead.RightDoorsOpen
+	else
+		self.LeftDoorsOpen = self.StopTimer and (self.StopTimer < 9)
+		self.RightDoorsOpen = self.StopTimer and (self.StopTimer < 9)
+	end
+	if self.LeftDoorsOpen ~= self.PrevLeftDoorsOpen then
+		self.PrevLeftDoorsOpen = self.LeftDoorsOpen
+		if self.LeftDoorsOpen then
+			self:PlayOnce("door_open1")
+		else
+			self:PlayOnce("door_close1")
+		end
+	end
+	if self.RightDoorsOpen ~= self.PrevRightDoorsOpen then
+		self.PrevRightDoorsOpen = self.RightDoorsOpen
+		if self.RightDoorsOpen then
+			self:PlayOnce("door_open1")
+		else
+			self:PlayOnce("door_close1")
+		end
+	end
+	self:SetPackedBool(21,self.LeftDoorsOpen)
+	self:SetPackedBool(22,self.LeftDoorsOpen)
+	self:SetPackedBool(23,self.LeftDoorsOpen)
+	self:SetPackedBool(24,self.LeftDoorsOpen)
+	self:SetPackedBool(25,self.RightDoorsOpen)
+	self:SetPackedBool(26,self.RightDoorsOpen)
+	self:SetPackedBool(27,self.RightDoorsOpen)
+	self:SetPackedBool(28,self.RightDoorsOpen)
 	self:SetPackedBool(52,1)
-	self:SetPackedBool(39,self.ALS_ARS.LVD and (not self.TrainHead))		
+	self:SetPackedBool(39,self.ALS_ARS.LVD and (not self.TrainHead))
 	
 	-- Update state of all objects and sounds
 	self.Speed = math.abs(self.Velocity/0.277778)
@@ -388,12 +477,12 @@ function ENT:Think()
 		end
 
 		if self.TrainHead then dir = -dir end
-		local trace = {
+		--[[local trace = {
 			start = vec,
 			endpos = vec + Vector(0,0,-384),
 			mask = MASK_NPCWORLDSTATIC
 		}
-		local result = util.TraceLine(trace)
+		local result = util.TraceLine(trace)]]--
 		local rollAngle = Angle(0,0,0)--Angle(0,0,(180.0/math.pi)*math.acos(result.HitNormal.z))
 
 		self:SetPos(vec)
@@ -401,23 +490,29 @@ function ENT:Think()
 	end
 
 	-- Update information about restrictions in driving
-	if node and (not self.TrainHead) then
-		self.RedLightDistance = nil
-
-		-- Check ARS signal/traffic light being red
-		local nextARS = Metrostroi.GetARSJoint(node,self.Position,true)
-		if nextARS and nextARS:GetRed() then
-			local arsOffset = (nextARS.ARSOffset or self.Position)
-			local dX = math.abs(arsOffset - self.Position)
-			self.RedLightDistance = dX
-		end
-
-		-- Find other trains on the same line
-		if not self.RedLightDistance then
-			for k,v in pairs(ents.FindByClass("gmod_subway_ai")) do
-				if (v.PathID == self.PathID) and (v ~= self) and (v.Position > self.Position) then
-					self.RedLightDistance = math.abs(v.Position - self.Position)
-				end 
+	self.RestrictionTimeout = self.RestrictionTimeout or 0
+	if (CurTime() - self.RestrictionTimeout) > 0.50 then
+		self.RestrictionTimeout = CurTime()
+		if node and (not self.TrainHead) then
+			self.RedLightDistance = nil
+	
+			-- Check ARS signal/traffic light being red
+			local nextARS = Metrostroi.GetARSJoint(node,self.Position,true)
+			if nextARS and nextARS:GetRed() then
+				local arsOffset = (nextARS.ARSOffset or self.Position)
+				local dX = math.abs(arsOffset - self.Position)
+				if (not self.PlatformEdgeX) or (arsOffset < self.PlatformEdgeX) then
+					self.RedLightDistance = dX
+				end
+			end
+	
+			-- Find other trains on the same line
+			if not self.RedLightDistance then
+				for k,v in pairs(ents.FindByClass("gmod_subway_ai")) do
+					if (v.PathID == self.PathID) and (v ~= self) and (v.Position > self.Position) then
+						self.RedLightDistance = math.abs(v.Position - self.Position)
+					end 
+				end
 			end
 		end
 	end

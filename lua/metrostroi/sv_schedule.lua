@@ -8,7 +8,7 @@ Metrostroi.ScheduleRoutes = {
 		{111,1},
 		{112,1},
 		{113,1},
-		{114,1},
+		{115,1},
 		{116,1},
 		{117,1},
 		{118,2},
@@ -17,7 +17,7 @@ Metrostroi.ScheduleRoutes = {
 		{118,1},
 		{117,2},
 		{116,2},
-		{114,2},
+		{115,2},
 		{113,2},
 		{112,2},
 		{111,2},
@@ -28,8 +28,8 @@ Metrostroi.SchedulesInitialized = false
 -- List of all time intervals in which schedules must be generated
 -- 		{ start_time, end_time, route_name, train_interval, 
 Metrostroi.ScheduleConfiguration = {
-	{ "0:00", "24:00", "Line1_Platform1", "1:30" },
-	{ "0:00", "24:00", "Line1_Platform2", "1:30" },
+	{ "0:00", "24:00", "Line1_Platform1", "3:00" },
+	{ "0:00", "24:00", "Line1_Platform2", "3:00" },
 }
 
 -- Current server time
@@ -38,9 +38,9 @@ function Metrostroi.ServerTime()
 end
 
 -- Departure time of last train from first station
-Metrostroi.DepartureTime = {}
+Metrostroi.DepartureTime = Metrostroi.DepartureTime or {}
 -- Schedule counter
-Metrostroi.ScheduleID = 0
+Metrostroi.ScheduleID = Metrostroi.ScheduleID or 0
 
 
 --------------------------------------------------------------------------------
@@ -127,6 +127,10 @@ function Metrostroi.GenerateSchedule(routeID)
 	local paddingTime = timeToSec("1:30")
 	-- Current server time
 	local serverTime = Metrostroi.ServerTime()/60
+	-- hack
+	if routeID == "Line1_Platform2" then
+		paddingTime = timeToSec("3:00")
+	end
 	
 	-- Determine schedule configuration
 	local interval
@@ -158,14 +162,14 @@ function Metrostroi.GenerateSchedule(routeID)
 	local currentTime = Metrostroi.DepartureTime[routeID]
 	for id,stationData in ipairs(Metrostroi.ScheduleRoutes[routeID]) do
 		-- Calculate stop time
-		local stopTime = 15
-		if not stationData.TravelTime then stopTime = 0 end
+		local stopTime = 25 --15
+--		if not stationData.TravelTime then stopTime = 0 end
 		
 		-- Add entry
 		schedule[#schedule+1] = {
 			stationData[1],				-- Station
 			stationData[2],				-- Platform
-			currentTime+stopTime/60,	-- Departure time
+			currentTime+stopTime/60,		-- Departure time
 			currentTime,				-- Arrival time
 		}
 		
@@ -186,7 +190,7 @@ function Metrostroi.GenerateSchedule(routeID)
 	schedule.EndStation = schedule[#schedule][1]
 	schedule.StartTime = schedule[1][2]
 	schedule.EndTime = schedule[#schedule][2]
-	
+
 	-- Print result
 	print(Format("--- %03d --- From %03d to %03d --------------------",
 		schedule.ScheduleID,schedule.StartStation,schedule.EndStation))
@@ -196,6 +200,9 @@ function Metrostroi.GenerateSchedule(routeID)
 	return schedule
 end
 
---[[concommand.Add("metrostroi_schedule", function(ply, _, args)
+concommand.Add("metrostroi_schedule1", function(ply, _, args)
+	Metrostroi.GenerateSchedule("Line1_Platform1")
+end)
+concommand.Add("metrostroi_schedule2", function(ply, _, args)
 	Metrostroi.GenerateSchedule("Line1_Platform2")
-end)]]--
+end)
