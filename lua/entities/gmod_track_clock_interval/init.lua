@@ -11,6 +11,14 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
+	-- Time sync
+	self.Timeout = self.Timeout or 0
+	if (self.Timeout - CurTime()) > 60.0 then
+		self.Timeout = CurTime()
+		self:SetNWFloat("T0",os.time()-1396011937)
+		self:SetNWFloat("T1",CurTime())
+	end
+
 	-- Check if train passes the sign
 	local sensingTrain = false
 	for ray=0,6 do
@@ -43,7 +51,7 @@ function ENT:Think()
 	end
 	
 	-- If not sensing anything for more than 3 seconds, expect something again
-	if (not sensingTrain) and (os.time() - self.SensingTime > 3.0) then
+	if (not sensingTrain) and (os.time() - self.SensingTime > 7.0) then
 		self.IntervalReset = false
 	end
 	self:NextThink(CurTime() + 0.25)

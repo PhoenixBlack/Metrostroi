@@ -153,8 +153,20 @@ end
 -- Return XYZ for given position on path
 --------------------------------------------------------------------------------
 function Metrostroi.GetTrackPosition(path,x)
-	-- Find offset on path
-	for nodeID,node in ipairs(path) do
+	-- Build a lookup
+	if not path.GetTrackPosition then
+		path.GetTrackPosition = {}
+		for nodeID,node in ipairs(path) do
+			if not path.GetTrackPosition[math.floor(node.x/500)] then
+				path.GetTrackPosition[math.floor(node.x/500)] = nodeID
+			end
+		end
+	end
+
+	-- Find offset on path path.GetTrackPosition[math.floor(x/200)] or 
+	local startNodeID = 1
+	for nodeID=startNodeID,#path do
+		local node = path[nodeID]
 		if (node.x < x) and (path[nodeID+1]) and (path[nodeID+1].x > x) then
 			local dir1 = node.dir
 			local dir2 = path[nodeID+1].dir
