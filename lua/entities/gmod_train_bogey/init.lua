@@ -18,13 +18,17 @@ function ENT:Initialize()
 	else
 		self:SetModel("models/metrostroi/metro/metro_bogey.mdl")
 	end
-	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
+	if not self.NoPhysics then
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+	end
 	self:SetUseType(SIMPLE_USE)
 	
 	-- Set proper parameters for the bogey
-	self:GetPhysicsObject():SetMass(5000)
+	if IsValid(self:GetPhysicsObject()) then
+		self:GetPhysicsObject():SetMass(5000)
+	end
 	
 	-- Store coupling point offset
 	self.CouplingPointOffset = Vector(-162,0,13)
@@ -79,9 +83,14 @@ function ENT:InitializeWheels()
 		--wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-10)))
 		--wheels:SetAngles(self:GetAngles() + Angle(0,90,0))
 		wheels.WheelType = self.BogeyType
+		wheels.NoPhysics = self.NoPhysics
 		wheels:Spawn()
 
-		constraint.Weld(self,wheels,0,0,0,1,0)
+		if self.NoPhysics then
+			wheels:SetParent(self)
+		else
+			constraint.Weld(self,wheels,0,0,0,1,0)
+		end
 	end
 	if CPPI then wheels:CPPISetOwner(self:CPPIGetOwner()) end
 	wheels:SetNWEntity("TrainBogey",self)
@@ -265,11 +274,15 @@ function ENT:Think()
 	self.PrevTime = self.PrevTime or CurTime()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
-	
 
-	-- Skip logic
-	if not (self.Wheels and self.Wheels:IsValid() and self.Wheels:GetPhysicsObject():IsValid()) then
-		return
+	-- Skip physics related stuff
+	if (not (self.Wheels and self.Wheels:IsValid() and self.Wheels:GetPhysicsObject():IsValid()))
+		or (self.NoPhysics) then
+		self:SetMotorPower(self.MotorPower or 0)
+		self:SetSpeed(self.Speed or 0)
+		self:SetdPdT(self.BrakeCylinderPressure_dPdT or 0)
+		self:NextThink(CurTime())
+		return true
 	end
 
 	-- Get speed of bogey in km/h

@@ -11,9 +11,11 @@ function ENT:Initialize()
 	else
 		self:SetModel("models/metrostroi/metro/metro_wheels.mdl")	
 	end
-	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
+	if not self.NoPhysics then
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+	end
 end
 
 function ENT:PhysicsCollide(data,physobj)
