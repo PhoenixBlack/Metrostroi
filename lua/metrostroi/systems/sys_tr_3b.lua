@@ -33,11 +33,15 @@ function TRAIN_SYSTEM:Think()
 	-- Check contact states
 	self.PlayTime = self.PlayTime or { 0, 0, 0, 0 }
 	self.ContactStates = self.ContactStates or { false, false, false, false }
-	self.NextStates = self.NextStates or {}
-	self.NextStates[1] = self:CheckContact(self.Train.FrontBogey,Vector(0,-61,-14),Vector(0,-1,0))
-	self.NextStates[2] = self:CheckContact(self.Train.FrontBogey,Vector(0, 61,-14),Vector(0, 1,0))
-	self.NextStates[3] = self:CheckContact(self.Train.RearBogey,Vector(0, -61,-14),Vector(0,-1,0))
-	self.NextStates[4] = self:CheckContact(self.Train.RearBogey,Vector(0,  61,-14),Vector(0, 1,0))
+	self.NextStates = self.NextStates or { false,false,false,false }
+	self.CheckTimeout = self.CheckTimeout or 0
+	if (CurTime() - self.CheckTimeout) > 0.25 then
+		self.CheckTimeout = CurTime()
+		self.NextStates[1] = self:CheckContact(self.Train.FrontBogey,Vector(0,-61,-14),Vector(0,-1,0))
+		self.NextStates[2] = self:CheckContact(self.Train.FrontBogey,Vector(0, 61,-14),Vector(0, 1,0))
+		self.NextStates[3] = self:CheckContact(self.Train.RearBogey,Vector(0, -61,-14),Vector(0,-1,0))
+		self.NextStates[4] = self:CheckContact(self.Train.RearBogey,Vector(0,  61,-14),Vector(0, 1,0))
+	end
 	
 	-- Detect changes in contact states
 	for i=1,4 do

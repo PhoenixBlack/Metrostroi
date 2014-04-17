@@ -80,7 +80,9 @@ if not TURBOSTROI then
 				
 			-- Update all types of trains
 			for k,v in pairs(Metrostroi.TrainClasses) do
-				updateTrains(ents.FindByClass(v))
+				if v ~= "gmod_subway_ai" then
+					updateTrains(ents.FindByClass(v))
+				end
 			end
 				
 			-- HACK

@@ -10,9 +10,11 @@ function ENT:Initialize()
 	if self:GetModel() == "models/error.mdl" then
 		self:SetModel("models/props_lab/reciever01a.mdl")
 	end
-	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
+	if not self.NoPhysics then
+		self:PhysicsInit(SOLID_VPHYSICS)
+		self:SetMoveType(MOVETYPE_VPHYSICS)
+		self:SetSolid(SOLID_VPHYSICS)
+	end
 	self:SetUseType(SIMPLE_USE)
 	
 	-- Possible number of train wires
@@ -133,7 +135,7 @@ function ENT:Initialize()
 	self.Acceleration = 0
 	
 	-- Initialize train
-	if Turbostroi then
+	if Turbostroi and (not self.NoPhysics) then
 		Turbostroi.InitializeTrain(self)
 	end
 	
@@ -147,7 +149,9 @@ function ENT:Initialize()
 	self:SetPassengerCount(0)
 	
 	-- Get default train mass
-	self.NormalMass = self:GetPhysicsObject():GetMass()
+	if IsValid(self:GetPhysicsObject()) then
+		self.NormalMass = self:GetPhysicsObject():GetMass()
+	end
 end
 
 -- Remove entity
@@ -607,6 +611,7 @@ function ENT:CreateBogey(pos,ang,forward,type)
 	bogey:SetPos(self:LocalToWorld(pos))
 	bogey:SetAngles(self:GetAngles() + ang)
 	bogey.BogeyType = type
+	bogey.NoPhysics = self.NoPhysics
 	bogey:Spawn()
 
 	-- Assign ownership
@@ -617,9 +622,13 @@ function ENT:CreateBogey(pos,ang,forward,type)
 	bogey:SetNWEntity("TrainEntity", self)
 
 	-- Constraint bogey to the train
-	constraint.Axis(bogey,self,0,0,
-		Vector(0,0,0),Vector(0,0,0),
-		0,0,0,1,Vector(0,0,1),false)
+	if self.NoPhysics then
+		bogey:SetParent(self)
+	else
+		constraint.Axis(bogey,self,0,0,
+			Vector(0,0,0),Vector(0,0,0),
+			0,0,0,1,Vector(0,0,1),false)
+	end
 
 	-- Add to cleanup list
 	table.insert(self.TrainEntities,bogey)
@@ -993,7 +1002,9 @@ function ENT:Think()
 	--self:SetTrainAngularVelocity(math.pi*self:GetPhysicsObject():GetAngleVelocity()/180)
 	
 	-- Apply mass of passengers
-	self:GetPhysicsObject():SetMass(self.NormalMass + 80*self:GetPassengerCount())
+	if self.NormalMass then
+		self:GetPhysicsObject():SetMass(self.NormalMass + 80*self:GetPassengerCount())
+	end
 	
 	-- Calculate turn information, unused right now
 	if self.FrontBogey and self.RearBogey then
@@ -1116,7 +1127,7 @@ function ENT:Think()
 	--self.DebugVars["Acceleration"] = acceleration
 
 	-- Go to next think
-	self:NextThink(CurTime()+0.01)
+	self:NextThink(CurTime()+0.05)
 	return true
 end
 

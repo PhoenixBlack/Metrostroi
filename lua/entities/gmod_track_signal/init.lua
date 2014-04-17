@@ -83,6 +83,8 @@ function ENT:ARSLogic()
 	local node
 	if pos then node = pos.node1 end
 	if node and pos then
+		self.ARSOffset = pos.x
+
 		-- Check if there is a train anywhere on the isolated area
 		local nextARS = Metrostroi.GetARSJoint(node,pos.x,    pos.forward)
 		local prevARS = Metrostroi.GetARSJoint(node,pos.x,not pos.forward)

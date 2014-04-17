@@ -150,6 +150,22 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Return XYZ for given position on path
+--------------------------------------------------------------------------------
+function Metrostroi.GetTrackPosition(path,x)
+	-- Find offset on path
+	for nodeID,node in ipairs(path) do
+		if (node.x < x) and (path[nodeID+1]) and (path[nodeID+1].x > x) then
+			local dir1 = node.dir
+			local dir2 = path[nodeID+1].dir
+			local t = (x - node.x)/node.length
+			return (node.pos+node.vec*t),dir1*(1-t)+dir2*t,node
+		end
+	end
+end
+
+
+--------------------------------------------------------------------------------
 -- Update list of signal entities and signal positions on track
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateSignalEntities()
