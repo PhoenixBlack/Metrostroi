@@ -14,6 +14,8 @@ function ENT:Initialize()
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetMoveType(MOVETYPE_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
+	else
+		self:SetSolid(SOLID_VPHYSICS)
 	end
 	self:SetUseType(SIMPLE_USE)
 	
@@ -654,10 +656,10 @@ function ENT:CreateSeatEntity(seat_info)
 	if CPPI then seat:CPPISetOwner(self:CPPIGetOwner()) end
 	
 	-- Hide the entity visually
-	--if seat_info.type ~= "instructor" then
-		--seat:SetColor(Color(0,0,0,0))
-		--seat:SetRenderMode(RENDERMODE_TRANSALPHA)
-	--end
+	if seat_info.type == "passenger" then
+		seat:SetColor(Color(0,0,0,0))
+		seat:SetRenderMode(RENDERMODE_TRANSALPHA)
+	end
 
 	-- Set some shared information about the seat
 	self:SetNWEntity("seat_"..seat_info.type,seat)
@@ -688,7 +690,7 @@ function ENT:CreateSeat(type,offset,angle)
 	table.insert(self.Seats,seat_info)
 	
 	-- If needed, create an entity for this seat
-	if (type == "driver") or (type == "instructor") then
+	if (type == "driver") or (type == "instructor") or (type == "passenger") then
 		return self:CreateSeatEntity(seat_info)
 	end
 end

@@ -38,6 +38,19 @@ function ENT:Think()
 		end
 	end
 	
+	-- ARS/ringer alert
+	local state = self:GetPackedBool(39)
+	self.PreviousAlertState = self.PreviousAlertState or false
+	if self.PreviousAlertState ~= state then
+		self.PreviousAlertState = state
+		if state then
+			self:SetSoundState("ring",0.20,1)
+		else
+			self:SetSoundState("ring",0,0)
+			self:PlayOnce("ring_end","cabin",0.45)		
+		end
+	end
+	
 	-- DIP sound
 	self:SetSoundState("bpsn1",self:GetPackedBool(52) and 1 or 0,1.0)
 end
