@@ -1255,7 +1255,7 @@ BaseNetwork = {
 											-- for purely rheostat braking the rheostat must be powered by circuitry
 											-- which otherwise indicates ready state of thyristor controller
 											
-	{	"2Zh",	"2A",	"ThyristorBU5_6","81_717" },
+	{	"2Zh",	"2A",	"ThyristorBU5_6","81_714" },
 	
 	{	"2A",	"2B",	"!PS,PT1" },
 	{	"2B",	"2G",	"!RK1-17" },
