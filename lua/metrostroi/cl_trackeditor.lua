@@ -60,8 +60,10 @@ net.Receive("metrostroi_trackeditor_message",function(len,ply)
 		MessageLabel:SetText(ServerMessage)
 	end
 end)
-
-
+local ShowPaths=true
+concommand.Add("metrostroi_trackeditor_togglenodes",function()
+	ShowPaths=not ShowPaths
+end)
 local function OpenConfigWindow()
 	
 	local function AddButton(parent,cmd,label,tooltip)
@@ -88,7 +90,7 @@ local function OpenConfigWindow()
 	--Main frame
 	local Frame = vgui.Create("DFrame")
 	Frame:SetPos(surface.ScreenWidth()/5,surface.ScreenHeight()/3)
-	Frame:SetSize(250,350)
+	Frame:SetSize(250,400)
 	Frame:SetTitle("Metrostroi Track Recorder")
 	Frame:SetVisible(true)
 	Frame:SetDraggable(true)
@@ -140,6 +142,9 @@ local function OpenConfigWindow()
 	MessageLabel = AddLabel(Frame,"")
 	MessageLabel:Dock(TOP)
 	
+	local b3=AddButton(Frame,"metrostroi_trackeditor_togglenodes","Hide/Show Nodes","Toggle if node lines are shown or not.")
+	b3:Dock(TOP)
+	
 	List = vgui.Create("DListView",Frame)
 	List:DockMargin(2,2,2,2)
 	List:Dock(FILL)
@@ -153,24 +158,25 @@ local function OpenConfigWindow()
 	
 	Frame:SizeToContents()
 	Frame:MakePopup()
-	
 end
 concommand.Add("metrostroi_trackeditor",OpenConfigWindow,nil,"GUI for track editor")
 
 
 
 hook.Add("PostDrawTranslucentRenderables","metrostroi_trackeditor_draw",function()
-	for k,path in pairs(Paths) do
-	
-		local lastnode = nil
-		local col = Either(k==SelectedPath,SelectedColor,DeSelectedColor)
+	if ShowPaths then
+		for k,path in pairs(Paths) do
 		
-		for k2,node in pairs(path) do
-			if lastnode then
-				render.DrawLine(node,lastnode,col,false)
+			local lastnode = nil
+			local col = Either(k==SelectedPath,SelectedColor,DeSelectedColor)
+			
+			for k2,node in pairs(path) do
+				if lastnode then
+					render.DrawLine(node,lastnode,col,false)
+				end
+				render.DrawWireframeSphere(node,10,2,2,col,false)
+				lastnode = node
 			end
-			render.DrawWireframeSphere(node,10,2,2,col,false)
-			lastnode = node
 		end
 	end
 end)
