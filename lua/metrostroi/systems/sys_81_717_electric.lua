@@ -168,7 +168,7 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 		self.ThyristorState = 0.0
 	else
 		-- Generate control signal
-		local T = 200.0 -- amps
+		local T = 250.0 + 100*Train.YAR_13A.WeightLoadRatio -- amps
 		local I = Current
 		local dI = (Current - PrevCurrent)/dT
 		local A = (T-I)*0.05
