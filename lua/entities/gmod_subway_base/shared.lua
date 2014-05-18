@@ -67,7 +67,7 @@ function ENT:InitializeSounds()
 	self.SoundNames["horn1"] 		= "subway_trains/horn_1.wav"
 	self.SoundNames["horn1_end"] 	= "subway_trains/horn_2.wav"
 	self.SoundNames["horn2"] 		= "subway_trains/horn_3.wav"
-	self.SoundNames["horn2_end"] 	= "subway_trains/horn_4.wav"
+	self.SoundNames["horn2_end"] 	= "subway_trains/horn_4a.wav"
 	self.SoundPositions["horn1"]	= "cabin"
 	self.SoundPositions["horn2"]	= "cabin"
 	

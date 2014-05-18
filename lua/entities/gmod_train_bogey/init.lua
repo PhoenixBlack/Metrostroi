@@ -275,6 +275,8 @@ function ENT:Think()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
 
+	self:SetNWEntity("TrainWheels",self.Wheels)
+
 	-- Skip physics related stuff
 	if (not (self.Wheels and self.Wheels:IsValid() and self.Wheels:GetPhysicsObject():IsValid()))
 		or (self.NoPhysics) then
@@ -347,7 +349,7 @@ function ENT:Think()
 	
 	-- Calculate brake squeal
 	local k = ((self.SquealSensitivity or 0.5) - 0.5)*2
-	local brakeSqueal = (math.abs(pneumaticForce)/(50000*(1+0.8*k)))^2
+	local brakeSqueal = (math.abs(pneumaticForce)/(40000*(1+0.8*k)))^2
 
 	-- Send parameters to client
 	self:SetMotorPower(motorPower)
