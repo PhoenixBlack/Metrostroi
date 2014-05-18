@@ -10,6 +10,10 @@ function ENT:ReinitializeSounds()
 	self.SoundNames["run2"]			= "subway_trains/run_2.wav"
 	self.SoundNames["run3"]			= "subway_trains/run_3.wav"
 	self.SoundNames["release"]		= "subway_trains/release_1.wav"
+	self.SoundNames["brake1"]		= "subway_trains/brake_1.wav"
+	self.SoundNames["brake2"]		= "subway_trains/brake_2.wav"
+	self.SoundNames["brake3"]		= "subway_trains/brake_3.wav"
+	self.SoundNames["brake4"]		= "subway_trains/brake_4.wav"
 	
 	-- Remove old sounds
 	if self.Sounds then
@@ -78,20 +82,9 @@ function ENT:Think()
 		local motorPitch = 0.01+1.7*motorPchRamp
 		
 		self:SetSoundState("engine",startVolRamp*powerVolRamp,motorPitch)
-		
-		--local lowVolRamp = math.max(0.0,1.0 - (speed - 1.0) / 25.0)
-		--self:SetSoundState("engine_low",8*startVolRamp*powerVolRamp*lowVolRamp,2.0*motorPitch)
 	else
 		self:SetSoundState("engine",0,0)
 	end
-	
-	-- Stress engine sound
---	if (math.abs(motorPower) > 0) and (speed < 5) then
---		local volRamp = 1.0 -- - math.max(0.0,math.min(1.0,speed/5))
---		self:SetSoundState("engine",volRamp*0.1,0.5)
---	else
---		self:SetSoundState("engine",0,0)
---	end
 	
 	-- Run sound
 	if speed > 0.01 then
@@ -127,5 +120,26 @@ function ENT:Think()
 		self:SetSoundState("release",volRamp,1.0)
 	else
 		self:SetSoundState("release",0.0,0.0)
+	end
+	
+	-- Brake squeal sound
+	local squealSound = self:GetNWInt("SquealSound",0)
+	local brakeSqueal = math.max(0.0,math.min(1.2,self:GetBrakeSqueal()))
+	if brakeSqueal > 0.0 then
+		if squealSound == 0 then
+			self:SetSoundState("brake1",brakeSqueal,1)
+		elseif squealSound == 1 then
+			self:SetSoundState("brake2",brakeSqueal,1)
+		elseif squealSound == 2 then
+			self:SetSoundState("brake2",brakeSqueal*0.1,1)
+			self:SetSoundState("brake3",brakeSqueal*1.0,1)
+		elseif squealSound == 3 then
+			self:SetSoundState("brake4",brakeSqueal,1)		
+		end
+	else
+		self:SetSoundState("brake1",0,0)
+		self:SetSoundState("brake2",0,0)
+		self:SetSoundState("brake3",0,0)
+		self:SetSoundState("brake4",0,0)
 	end
 end

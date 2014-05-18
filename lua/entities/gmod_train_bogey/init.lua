@@ -37,7 +37,7 @@ function ENT:Initialize()
 	if Wire_CreateInputs then
 		self.Inputs = Wire_CreateInputs(self,{
 			"BrakeCylinderPressure",
-			"MotorPower", "MotorForce", "MotorReversed" })
+			"MotorCommand", "MotorForce", "MotorReversed" })
 		self.Outputs = Wire_CreateOutputs(self,{
 			"Speed", "BrakeCylinderPressure"
 		})
@@ -111,7 +111,7 @@ end
 function ENT:TriggerInput(iname, value)
 	if iname == "BrakeCylinderPressure" then
 		self.BrakeCylinderPressure = value
-	elseif iname == "MotorPower" then
+	elseif iname == "MotorCommand" then
 		self.MotorPower = value
 	elseif iname == "MotorForce" then
 		self.MotorForce = value
@@ -328,7 +328,7 @@ function ENT:Think()
 	if self.BrakeCylinderPressure < 0.05 then pneumaticForce = 0 end
 	
 	-- Compensate forward friction
-	local compensateA = self.Speed / 160
+	local compensateA = self.Speed / 105
 	local compensateF = sign * self:GetPhysicsObject():GetMass() * compensateA
 	-- Apply sideways friction
 	local sideSpeed = -self:GetVelocity():Dot(self:GetAngles():Right()) * 0.06858
@@ -345,10 +345,15 @@ function ENT:Think()
 	else self:GetPhysicsObject():ApplyForceCenter(-self:GetAngles():Forward()*force + self:GetAngles():Right()*side_force)
 	end
 	
+	-- Calculate brake squeal
+	local k = ((self.SquealSensitivity or 0.5) - 0.5)*2
+	local brakeSqueal = (math.abs(pneumaticForce)/(50000*(1+0.8*k)))^2
+
 	-- Send parameters to client
 	self:SetMotorPower(motorPower)
 	self:SetSpeed(absSpeed)
 	self:SetdPdT(self.BrakeCylinderPressure_dPdT)
+	self:SetBrakeSqueal(brakeSqueal)
 	self:NextThink(CurTime())
 	
 	-- Trigger outputs

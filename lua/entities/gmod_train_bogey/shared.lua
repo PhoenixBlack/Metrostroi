@@ -14,4 +14,5 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Float", 0, "Speed")
 	self:NetworkVar("Float", 1, "MotorPower")
 	self:NetworkVar("Float", 2, "dPdT")
+	self:NetworkVar("Float", 3, "BrakeSqueal")
 end

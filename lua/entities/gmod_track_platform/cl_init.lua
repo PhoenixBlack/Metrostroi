@@ -152,6 +152,13 @@ function ENT:Think()
 	local platformEnd = self:GetNWVector("PlatformEnd")
 	local stationCenter = self:GetNWVector("StationCenter")
 	
+	-- Platforms with tracks in middle
+	local dot = (stationCenter - platformStart):Cross(platformEnd - platformStart)
+	if dot.z > 0.0 then
+		local a,b = platformStart,platformEnd
+		platformStart,platformEnd = b,a
+	end
+	
 	-- If platform is defined and pool is not
 	--print(entStart,entEnd,self.Pool)
 	local dataReady = (self:GetNWFloat("X0",-1) >= 0) and (self:GetNWFloat("Sigma",-1) > 0)
