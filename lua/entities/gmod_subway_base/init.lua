@@ -620,6 +620,10 @@ function ENT:CreateBogey(pos,ang,forward,type)
 	if CPPI then bogey:CPPISetOwner(self:CPPIGetOwner()) end
 	
 	-- Some shared general information about the bogey
+	self.SquealSound = self.SquealSound or math.floor(4*math.random())
+	self.SquealSensitivity = self.SquealSensitivity or math.random()
+	bogey.SquealSensitivity = self.SquealSensitivity
+	bogey:SetNWInt("SquealSound",self.SquealSound)
 	bogey:SetNWBool("IsForwardBogey", forward)
 	bogey:SetNWEntity("TrainEntity", self)
 
