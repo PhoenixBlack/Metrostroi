@@ -9,6 +9,7 @@ function ENT:ReinitializeSounds()
 	self.SoundNames["run1"]			= "subway_trains/run_1.wav"
 	self.SoundNames["run2"]			= "subway_trains/run_2.wav"
 	self.SoundNames["run3"]			= "subway_trains/run_3.wav"
+	self.SoundNames["run4"]			= "subway_trains/run_4a.mp3"
 	self.SoundNames["release"]		= "subway_trains/release_1.wav"
 	self.SoundNames["brake1"]		= "subway_trains/brake_1.wav"
 	self.SoundNames["brake2"]		= "subway_trains/brake_2.wav"
@@ -102,10 +103,12 @@ function ENT:Think()
 		self:SetSoundState("run1",0.0,0.0)
 		self:SetSoundState("run2",startVolRamp*(1-bleedVolRamp),speedPitch2)
 		self:SetSoundState("run3",startVolRamp*(  bleedVolRamp),speedPitch3)
+		self:SetSoundState("run4",0,0) --startVolRamp*3.0,math.min(1.0,speed/30)+math.max(0.0,(speed-60.0)/40))
 	else
 		self:SetSoundState("run1",0,0)
 		self:SetSoundState("run2",0,0)
 		self:SetSoundState("run3",0,0)
+		self:SetSoundState("run4",0,0)
 	end
 	
 	-- Brake release sound
@@ -131,14 +134,16 @@ function ENT:Think()
 	local squealSound = self:GetNWInt("SquealSound",0)
 	local brakeSqueal = math.max(0.0,math.min(1.2,self:GetBrakeSqueal()))
 	local brakeRamp = math.min(1.0,math.max(0.0,speed/8.0))
-	if squealSound == 0 then squealSound = 2 end
+	if squealSound == 0 then squealSound = 1 end
 	if squealSound == 3 then squealSound = 2 end
 --	squealSound = 3
 	if brakeSqueal > 0.0 then
 		if squealSound == 0 then
 			self:SetSoundState("brake1",brakeSqueal*(0.10+0.90*brakeRamp),1+0.06*(1.0-brakeRamp))
 		elseif squealSound == 1 then
-			self:SetSoundState("brake2",brakeSqueal*(0.10+0.90*brakeRamp),1+0.06*(1.0-brakeRamp))
+			local fadeRamp = math.min(1.0,math.max(0.0,(speed-0.0)/16.0))
+			self:SetSoundState("brake2",brakeSqueal*(0.10+0.90*brakeRamp)*fadeRamp,1+0.06*(1.0-brakeRamp))
+			self:SetSoundState("brake4",brakeSqueal*(0.10+0.90*brakeRamp)*(1-fadeRamp),1+0.10*(1.0-brakeRamp))
 		elseif squealSound == 2 then
 			self:SetSoundState("brake2",brakeSqueal*0.07*(0.10+0.90*brakeRamp),1+0.06*(1.0-brakeRamp))
 			self:SetSoundState("brake3",brakeSqueal*1.0*brakeRamp,1)
@@ -161,8 +166,8 @@ local D1true = 0
 local D2true = 0
 local prevTime
 hook.Add("PostDrawOpaqueRenderables", "metrostroi-draw-stopmarker",function()
-	prevTime = prevTime or CurTime()
-	local dT = math.max(0.001,CurTime() - prevTime)
+	prevTime = prevTime or RealTime()
+	local dT = math.max(0.001,RealTime() - prevTime)
 	prevTime = CurTime()
 
 	-- Get seat and train
@@ -172,27 +177,29 @@ hook.Add("PostDrawOpaqueRenderables", "metrostroi-draw-stopmarker",function()
 	if not IsValid(train) then return end
 
 	-- Calculate acceleration
-	local V = train:GetVelocity():Length()*0.01905 --0.277778*0.06858
+	local V = train:GetNWFloat("V",train:GetVelocity():Length()*0.01905)*0.277778
 	local newA = (V - prevV)/dT
 	prevV = V
 
 	-- Calculate marker position
-	A = A + (newA - A)*1.0*dT
+	A = train:GetNWFloat("A",A + (newA - A)*1.0*dT)
 	local T1 = math.abs(V/(A+1e-8))
 	local T2 = math.abs(V/(1.2+1e-8))
 	local D1 = T1*V + (T1^2)*A/2
 	local D2 = T2*V + (T2^2)*A/2
 
 	-- Smooth out D	
-	D1 = math.min(200,math.max(0,D1))*0.90
-	D2 = math.min(200,math.max(0,D2))*0.90
-	D1true = D1true + (D1 - D1true)*8.0*dT
-	D2true = D2true + (D2 - D2true)*8.0*dT
+	D1 = math.min(200,math.max(0,D1))*0.65
+	D2 = math.min(200,math.max(0,D2))*0.70
+	D1true = D1true + (D1 - D1true)*12.0*dT
+	D2true = D2true + (D2 - D2true)*12.0*dT
 	local offset1 = D1true/0.01905
 	local offset2 = D2true/0.01905
 
 	-- Draw marker
 	if A > -0.1 then return end
+--	if D1 > 195 then return end
+	if D2 > 195 then return end
 	local base_pos1 = train:LocalToWorld(Vector(500+offset1,80,10))
 	cam.Start3D2D(base_pos1,train:LocalToWorldAngles(Angle(0,-90,90)),1.0)
 		surface.SetDrawColor(255,255,255)

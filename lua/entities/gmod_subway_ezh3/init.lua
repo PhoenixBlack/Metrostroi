@@ -315,6 +315,10 @@ function ENT:Think()
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
 
+	-- Temporary hacks
+	self:SetNWFloat("V",self.Speed)
+	self:SetNWFloat("A",self.Acceleration)
+
 	-- Send networked variables
 	self:SendPackedData()
 	return retVal

@@ -150,9 +150,9 @@ end
 -- Default think function
 --------------------------------------------------------------------------------
 function ENT:Think()
-	self.PrevTime = self.PrevTime or CurTime()
-	self.DeltaTime = (CurTime() - self.PrevTime)
-	self.PrevTime = CurTime()
+	self.PrevTime = self.PrevTime or RealTime()
+	self.DeltaTime = (RealTime() - self.PrevTime)
+	self.PrevTime = RealTime()
 	
 	-- Read networked variables
 	self:RecvPackedData()
@@ -391,6 +391,22 @@ function ENT:DrawSchedule(panel)
 	for i=(rowtall+1)*3,h,rowtall+1 do		
 		DrawRect(0,i,w,1)
 	end
+
+	-- HACK get schedule from train
+	local N = self:GetNWInt("_schedule_N")
+	Schedule = {
+		stations = {},
+		total = math.floor(self:GetNWInt("_schedule_duration")/5+0.5)*5,
+		interval = self:GetNWInt("_schedule_interval"),
+		routenumber = self:GetNWInt("_schedule_id"),
+		pathnumber = self:GetNWInt("_schedule_path"),
+	}
+	for i=1,N do
+		Schedule.stations[i] = {
+			self:GetNWString("_schedule_"..i.."_5"),
+			math.floor(self:GetNWInt("_schedule_"..i.."_3")*60/5)*5
+		}
+	end
 	
 	--Text
 	local t = Schedule
@@ -441,8 +457,8 @@ end
 -- Default rendering function
 --------------------------------------------------------------------------------
 function ENT:Draw()
-	self.dT = CurTime() - (self.PrevTime or CurTime())
-	self.PrevTime = CurTime()
+	self.dT = RealTime() - (self.PrevTime2 or RealTime())
+	self.PrevTime2 = RealTime()
 
 	-- Draw model
 	self:DrawModel()

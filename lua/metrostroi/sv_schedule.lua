@@ -3,34 +3,15 @@
 --------------------------------------------------------------------------------
 -- List of all unique routes that can be used in schedule generation
 -- 		{ station, platform }
-Metrostroi.ScheduleRoutes = {
-	["Line1_Platform1"] = {
-		{111,1},
-		{112,1},
-		{113,1},
-		{115,1},
-		{116,1},
-		{117,1},
-		{118,2},
-	},
-	["Line1_Platform2"] = {
-		{118,1},
-		{117,2},
-		{116,2},
-		{115,2},
-		{113,2},
-		{112,2},
-		{111,2},
-	},
-}
+Metrostroi.ScheduleRoutes = Metrostroi.ScheduleRoutes or {}
 Metrostroi.SchedulesInitialized = false
 
 -- List of all time intervals in which schedules must be generated
 -- 		{ start_time, end_time, route_name, train_interval, 
-Metrostroi.ScheduleConfiguration = {
-	{ "0:00", "24:00", "Line1_Platform1", "3:00" },
-	{ "0:00", "24:00", "Line1_Platform2", "3:00" },
-}
+Metrostroi.ScheduleConfiguration = Metrostroi.ScheduleConfiguration or {}
+
+-- List of station names
+Metrostroi.StationNames = Metrostroi.StationNames or {}
 
 -- Current server time
 function Metrostroi.ServerTime()
@@ -81,7 +62,7 @@ local function prepareRouteData(routeData,name)
 			-- Calculate travel time between two nodes
 			local travelTime,travelDistance = Metrostroi.GetTravelTime(start_node,end_node)
 			-- Add time for startup and slowdown
-			travelTime = travelTime + 20
+			travelTime = travelTime + 40
 			
 			-- Remember stats
 			routeData.Duration = routeData.Duration + travelTime
@@ -156,6 +137,8 @@ function Metrostroi.GenerateSchedule(routeID)
 	Metrostroi.ScheduleID = Metrostroi.ScheduleID + 1
 	local schedule = {
 		ScheduleID = Metrostroi.ScheduleID,
+		Interval = interval,
+		Duration = Metrostroi.ScheduleRoutes[routeID].Duration,
 	}
 	
 	-- Fill out all stations
@@ -198,6 +181,17 @@ function Metrostroi.GenerateSchedule(routeID)
 		print(Format("\t%03d   %s",d[1],d.arrivalTimeStr))
 	end
 	return schedule
+end
+
+function Metrostroi.LoadSchedulesData(data)
+	Metrostroi.ScheduleRoutes = data.Routes
+	Metrostroi.ScheduleConfiguration = data.Configuration
+	Metrostroi.StationNames = data.StationNames
+	Metrostroi.SchedulesInitialized = false
+
+	timer.Simple(60.0,function()
+		Metrostroi.InitializeSchedules()
+	end)
 end
 
 concommand.Add("metrostroi_schedule1", function(ply, _, args)

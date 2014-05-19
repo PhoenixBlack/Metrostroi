@@ -587,11 +587,11 @@ function Metrostroi.GetTravelTime(src,dest)
 		local ars_speed
 		local ars_joint = Metrostroi.GetARSJoint(node,node.x+0.01,false)
 		if ars_joint then
-			if ars_joint:GetActiveSignalsBit(14) then ars_speed = 20 end
-			if ars_joint:GetActiveSignalsBit(13) then ars_speed = 40 end
-			if ars_joint:GetActiveSignalsBit(12) then ars_speed = 60 end
-			if ars_joint:GetActiveSignalsBit(11) then ars_speed = 70 end
-			if ars_joint:GetActiveSignalsBit(10) then ars_speed = 80 end
+			if ars_joint:GetNominalSignalsBit(14) then ars_speed = 20 end
+			if ars_joint:GetNominalSignalsBit(13) then ars_speed = 40 end
+			if ars_joint:GetNominalSignalsBit(12) then ars_speed = 60 end
+			if ars_joint:GetNominalSignalsBit(11) then ars_speed = 70 end
+			if ars_joint:GetNominalSignalsBit(10) then ars_speed = 80 end
 		end
 		if ars_speed then travel_speed = ars_speed end
 		--print(Format("[%03d] %.2f m   V = %02d km/h",node.id,node.length,ars_speed or 0))
@@ -770,6 +770,11 @@ function Metrostroi.Load(name,keep_signs)
 		-- Add additional ARS sections
 		Metrostroi.UpdateARSSections()
 	end)
+
+	-- Load schedules data
+	print("Metrostroi: Loading schedules configuration...")
+	local sched_data = util.JSONToTable(file.Read(string.format("metrostroi_data/sched_%s.txt",name)))
+	if sched_data then Metrostroi.LoadSchedulesData(sched_data) end
 end
 
 
