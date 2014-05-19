@@ -186,6 +186,7 @@ end
 addBitField("Settings")
 addBitField("TrafficLights")
 addBitField("ActiveSignals")
+addBitField("NominalSignals")
 
 
 --------------------------------------------------------------------------------

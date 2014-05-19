@@ -41,6 +41,25 @@ end
 function ENT:InitializeSounds()
 	self.SoundPositions = {} -- Positions (used clientside)
 	self.SoundNames = {}
+	self.SoundNames["zombie"]	= {
+		"npc/zombie/zombie_voice_idle1.wav",
+		"npc/zombie/zombie_voice_idle2.wav",
+		"npc/zombie/zombie_voice_idle3.wav",
+		"npc/zombie/zombie_voice_idle4.wav",
+		"npc/zombie/zombie_voice_idle5.wav",
+		"npc/zombie/zombie_voice_idle6.wav",
+		"npc/zombie/zombie_voice_idle7.wav",
+		"npc/zombie/zombie_voice_idle8.wav",
+		"npc/zombie/zombie_voice_idle9.wav",
+		"npc/zombie/zombie_voice_idle10.wav",
+		"npc/zombie/zombie_voice_idle11.wav",
+		"npc/zombie/zombie_voice_idle12.wav",
+		"npc/zombie/zombie_voice_idle13.wav",
+		"npc/zombie/zombie_voice_idle14.wav",
+	}
+	self.SoundNames["zombie_loop"]	= "npc/zombie/moan_loop4.wav"
+	self.SoundPositions["zombie_loop"] = "cabin"
+
 	self.SoundNames["switch"]	= "subway_trains/switch_1.wav"
 	self.SoundNames["switch1"]	= "subway_trains/switch_1.wav"
 	self.SoundNames["switch2"]	= {
@@ -149,6 +168,7 @@ end
 -- Sound functions
 --------------------------------------------------------------------------------
 function ENT:SetSoundState(sound,volume,pitch,timeout)
+	--if sound == "ring" then sound = "zombie_loop" end
 	if not self.Sounds[sound] then 
 		if self.SoundNames and self.SoundNames[sound] then
 			local name = self.SoundNames[sound]
@@ -191,6 +211,7 @@ end
 end
 ]]--
 function ENT:PlayOnce(soundid,location,range,pitch)
+	--soundid = "zombie"
 	--if self:CheckActionTimeout(soundid,self.SoundTimeout[soundid] or 0.0) then return end
 
 	-- Pick wav file

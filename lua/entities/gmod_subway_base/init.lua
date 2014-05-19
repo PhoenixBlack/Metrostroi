@@ -312,6 +312,71 @@ function ENT:ReadCell(Address)
 	if self.HighspeedLayout[Address] then
 		return self.HighspeedLayout[Address]()
 	end
+	if (Address >= 49152) and (Address < 49152+8192) then
+		local x = (Address - (49152+64))
+		local entryID = math.floor(x/4)
+		local varID = x%4
+
+		if self.Schedule then
+			if (entryID >= 0) then
+				local entry = self.Schedule[entryID+1]
+				if entry then
+					if varID >= 2 then
+						return (entry[varID+1] or 0)*60
+					else
+						return entry[varID+1] or 0
+					end
+				end
+			end
+			if Address == 49152 then return #self.Schedule end
+			if Address == 49153 then return self.Schedule.ScheduleID end
+			if Address == 49154 then return self.Schedule.Interval end
+			if Address == 49155 then return self.Schedule.Duration end
+			if Address == 49156 then return self.Schedule.StartStation end
+			if Address == 49157 then return self.Schedule.EndStation end
+			if Address == 49158 then return self.Schedule.StartTime*60 end
+			if Address == 49159 then return self.Schedule.EndTime*60 end
+		end
+
+		local pos = Metrostroi.TrainPositions[self]
+		if (Address >= 49160) and (Address <= 49162) and pos and pos[1] then
+			pos = pos[1]
+
+			-- Get stations
+			local current,next,prev = 0,0,0
+			local x1,x2 = 1e9,0
+			for stationID,stationData in pairs(Metrostroi.Stations) do
+				for platformID,platformData in pairs(stationData) do
+					if (platformData.node_start.path == pos.path) and 
+						(platformData.x_start < pos.x) and 
+						(platformData.x_end > pos.x) then
+						current = stationID
+					end
+					if (platformData.node_start.path == pos.path) and 
+						(platformData.x_end > pos.x) then
+						if platformData.x_end < x1 then
+							x1 = platformData.x_end
+							next = stationID
+						end
+					end
+					if (platformData.node_start.path == pos.path) and 
+						(platformData.x_start < pos.x) then
+						if platformData.x_start > x2 then
+							x2 = platformData.x_end
+							prev = stationID
+						end
+					end
+				end
+			end
+
+			if Address == 49160 then return current end
+			if Address == 49161 then return next end
+			if Address == 49162 then return prev end
+			if Address == 49163 then return x1 - pos.x end
+		end
+		return 0
+	end
+
 	if (Address >= 57344) and (Address < 57344+4096) then
 		local x = (Address - 57344)
 		local lineID = math.floor(x/800)

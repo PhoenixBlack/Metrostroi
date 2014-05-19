@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+﻿--------------------------------------------------------------------------------
 -- Токоприёмник контактного рельса (ТР-3Б)
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("TR_3B")
@@ -56,6 +56,27 @@ function TRAIN_SYSTEM:Think()
 				local volume = 0.60
 				if dt < 1.0 then volume = 0.50 end
 				self.Train:PlayOnce("tr","front_bogey",volume,math.random(90,120))
+
+				if state and (math.random() > 0.50) then
+					local effectdata = EffectData()
+					if i == 1 then effectdata:SetOrigin(self.Train.FrontBogey:LocalToWorld(Vector(0,-70,-18))) end
+					if i == 2 then effectdata:SetOrigin(self.Train.FrontBogey:LocalToWorld(Vector(0, 70,-18))) end
+					if i == 3 then effectdata:SetOrigin(self.Train.RearBogey:LocalToWorld( Vector(0,-70,-18))) end
+					if i == 4 then effectdata:SetOrigin(self.Train.RearBogey:LocalToWorld( Vector(0, 70,-18))) end
+					effectdata:SetNormal(Vector(0,0,-1))
+					util.Effect("stunstickimpact", effectdata, true, true)
+
+					local light = ents.Create("light_dynamic")
+					light:SetPos(effectdata:GetOrigin())
+					light:SetKeyValue("_light","100 220 255")
+					light:SetKeyValue("style", 0)
+					light:SetKeyValue("distance", 256)
+					light:SetKeyValue("brightness", 5)
+					light:Spawn()
+					light:Fire("TurnOn","","0")
+
+					timer.Simple(0.1,function() SafeRemoveEntity(light) end)
+				end
 			end
 		end
 	end

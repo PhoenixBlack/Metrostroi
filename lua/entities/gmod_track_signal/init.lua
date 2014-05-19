@@ -6,6 +6,13 @@ function ENT:Initialize()
 	self:SetModel("models/metrostroi/signals/ars_box.mdl")
 	self.Sprites = {}
 	Metrostroi.UpdateSignalEntities()
+
+	timer.Simple(15.0,function()
+		self.NominalSignals = self:GetActiveSignals()
+		self.GetNominalSignals = function(self)
+			return self.NominalSignals
+		end
+	end)
 end
 
 function ENT:OnRemove()
