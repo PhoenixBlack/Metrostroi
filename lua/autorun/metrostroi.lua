@@ -100,7 +100,7 @@ if SERVER then
 	
 
 	-- Alpha tester stuff
-	hook.Add("PlayerInitialSpawn", "Metrostroi_PlayerConnect", function(ply)
+	--[[hook.Add("PlayerInitialSpawn", "Metrostroi_PlayerConnect", function(ply)
 		local name = ply:GetName()
 	
 		local testers = file.Read("alpha_testers.txt") or ""
@@ -111,7 +111,7 @@ if SERVER then
 		end
 		table.insert(tbl,name)
 		file.Write("alpha_testers.txt",string.Implode("\r\n",tbl))
-	end)
+	end]]--
 else
 	-- Load all clientside files
 	local files = file.Find("metrostroi/cl_*.lua","LUA")
