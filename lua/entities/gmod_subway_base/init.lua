@@ -771,7 +771,7 @@ function ENT:IsWrenchPresent()
 	for k,v in pairs(self.Seats) do
 		if IsValid(v.entity) and v.entity.GetPassenger and
 			((v.type == "driver") or (v.type == "instructor")) then
-			local player = self.DriverSeat:GetPassenger(0)
+			local player = v.entity:GetPassenger(0)
 			if player and player:IsValid() then return true end
 		end
 	end
