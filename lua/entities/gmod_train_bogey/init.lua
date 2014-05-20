@@ -355,7 +355,7 @@ function ENT:Think()
 	self:SetMotorPower(motorPower)
 	self:SetSpeed(absSpeed)
 	self:SetdPdT(self.BrakeCylinderPressure_dPdT)
-	self:SetBrakeSqueal(brakeSqueal)
+	self:SetBrakeSqueal(self.BrakeSqueal or brakeSqueal)
 	self:NextThink(CurTime())
 	
 	-- Trigger outputs

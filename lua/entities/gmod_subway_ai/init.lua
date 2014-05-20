@@ -42,9 +42,18 @@ function ENT:Initialize()
 		table.insert(self.LeftDoorPositions,Vector(353.0 - 35*0.5 - 231*i,65,-1.8))
 		table.insert(self.RightDoorPositions,Vector(353.0 - 35*0.5 - 231*i,-65,-1.8))
 	end
+	
+	-- Find SOME sort of route
+	local route
+	for k,v in pairs(Metrostroi.AIConfiguration) do
+		if not route then route = k end
+	end
 
 	-- Initial setup
-	self.PathID = self.PathID or 1
+	if not self.Route then self.Route = route end
+	if (not self.PathID) and (route) and Metrostroi.AIConfiguration[route] then
+		self.PathID = Metrostroi.AIConfiguration[route].Path
+	end
 	self.Position = self.Position or 100
 	self.Velocity = 0
 	self.RheostatPosition = 0
@@ -119,13 +128,13 @@ function ENT:Initialize()
 	self:SetNWString("TrainType",self.TrainType)
 end
 
-concommand.Add("metrostroi_ai_spawn", function(ply, _, args)
+--[[concommand.Add("metrostroi_ai_spawn", function(ply, _, args)
 	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
 
 	local pathid = tonumber(args[2]) or 1
 	local trainCounter = tonumber(args[1]) or 1
 	local prevEnt
-	timer.Create("BLAH TIMER"..pathid,1.0,0,function()
+	timer.Create("metrostroi-ai-spawntimer-"..pathid,1.0,0,function()
 		if prevEnt then
 			if (pathid == 1) and (prevEnt.Position < 260) then
 				return
@@ -152,9 +161,8 @@ concommand.Add("metrostroi_ai_clear", function(ply, _, args)
 		SafeRemoveEntity(v)
 		if args[1] then print("Removed one") return end
 	end
-	timer.Create("BLAH TIMER",1.0,0,function()
-	end)
-end)
+	--timer.Create("metrostroi-ai-spawntimer",1.0,0,function()end)
+end)]]--
 
 concommand.Add("metrostroi_ai_info", function(ply, _, args)
 	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
@@ -179,13 +187,13 @@ function ENT:DoAI(dT)
 		self.Schedule = nil
 	end
 	if (not self.Schedule) and (not self.NoStation) then
-		self.Schedule = Metrostroi.GenerateSchedule("Line1_Platform"..self.PathID)
+		self.Schedule = Metrostroi.GenerateSchedule(self.Route)
 		self.StopTimer = 10
 	end
 	
 	-- See if must move to next station
 	if self.Schedule then
-		if ((Metrostroi.ServerTime() > (self.Schedule[1][3]*60)) and (self.StopTimer < 0)) or
+		if ((Metrostroi.ServerTime()+10000 > (self.Schedule[1][3]*60)) and (self.StopTimer < 0)) or
 		   (self.StopTimer < -200) then
 			table.remove(self.Schedule,1)
 			self.StopTimer = 10
@@ -205,7 +213,7 @@ function ENT:DoAI(dT)
 		end
 		if platformData and platformData.node_end then
 			if platformData.node_end.path.id ~= self.PathID then
-				print("WRONG PATH")
+				--print("WRONG PATH")
 				platformEdgeX = nil
 			end
 		end
@@ -218,7 +226,7 @@ function ENT:DoAI(dT)
 
 	if platformEdgeX then
 		if self.Position > platformEdgeX then
-			print("Overrun!",self.Position,platformEdgeX)
+			--print("Overrun!",self.Position,platformEdgeX)
 			table.remove(self.Schedule,1)
 			self.StopTimer = 10
 		end
@@ -286,7 +294,7 @@ function ENT:DoAI(dT)
 	
 	-- Apply pneumatic brakes if overspeeding much or stopped
 	self.Pneumo = false
-	if (self.Speed < 5) and (not self.Accelerating) then
+	if (self.Speed < 7) and (not self.Accelerating) then
 		self.Pneumo = true
 	end
 	if (self.Speed > (targetSpeed+5)) then
@@ -315,22 +323,23 @@ function ENT:DoPhysics(dT)
 	if self.Braking then		motorPower = -1.0 end
 	
 	local motorForce = 0
-	if motorPower > 0 then motorForce = 1.4*motorPower end
-	if motorPower < 0 then motorForce = -1.5*math.abs(motorPower) * math.max(-1.0,math.min(1.0,0.25*self.Velocity)) end
+	if motorPower > 0 then motorForce = 1.25*motorPower end
+	if motorPower < 0 then motorForce = -1.3*math.abs(motorPower) * math.max(-1.0,math.min(1.0,0.25*self.Velocity)) end
 
 	-- Brake code
 	local brakeForce = 0
 	if self.Pneumo then
-		brakeForce = -2.0*math.max(-1.0,math.min(1.0,3.0*self.Velocity))
+		brakeForce = -1.4*math.max(-1.0,math.min(1.0,3.0*self.Velocity))
 		slopeFactor = slopeFactor*math.max(-1.0,math.min(1.0,3.0*self.Velocity))
 	end
+	self.PneumoForce = brakeForce
 
 	-- Integrate position and velocity
 	self.Acceleration = 0
 		+motorForce
 		+brakeForce
-		-self.Velocity*0.0075
-		+slopeFactor*1.6
+		-self.Velocity*0.0045
+		+slopeFactor*1.52
 	self.Velocity = self.Velocity + dT*self.Acceleration
 	self.Position = self.Position + dT*self.Velocity
 	--print(Format("%.2f/%.2f km/h  %.0f m  A-%s B-%s P-%s",
@@ -357,22 +366,19 @@ function ENT:Think()
 	end
 
 	-- Select path
+	if (not self.PathID) or (not self.Route) then return true end
 	local path = Metrostroi.Paths[self.PathID]
-	if (self.Position > 10910-10) and (self.PathID == 1) then
-		self.Position = 100
+	local config = Metrostroi.AIConfiguration[self.Route]
+	if self.Position > config.EndPosition then		
+		self.Route = config.NextRoute
+		config = Metrostroi.AIConfiguration[self.Route]
+		self.PathID = config.Path
+		self.Position = config.SpawnPosition
 		self.Velocity = 0
-		self.PathID = 2
+		
 		self.Schedule = nil
 		self.NoStation = false
 	end
-	if (self.Position > 11180-10) and (self.PathID == 2) then
-		self.Position = 100
-		self.Velocity = 0
-		self.PathID = 1
-		self.Schedule = nil
-		self.NoStation = false
-	end
-	--self.Position = 11000
 	--self.Velocity = 0
 
 	----------------------------------------------------------------------------
@@ -386,10 +392,12 @@ function ENT:Think()
 			return
 		end
 
+		self.Route = self.TrainHead.Route
 		self.PathID = self.TrainHead.PathID
 		self.Position = self.TrainHead.Position - 18.6*(self.TrainIndex-1)
 		self.Velocity = self.TrainHead.Velocity
 		self.MotorPower = self.TrainHead.MotorPower
+		self.PneumoForce = self.TrainHead.PneumoForce
 	end
 
 
@@ -419,7 +427,6 @@ function ENT:Think()
 	else self.PneumaticPressure_dPdT = 0.65*(0.0 - self.PneumaticPressure)
 	end
 	self.PneumaticPressure = self.PneumaticPressure + self.PneumaticPressure_dPdT*dT
-	--print(self.PneumaticPressure,self.PneumaticPressure_dPdT)
 
 	-- Minor state
 	if self.TrainHead then
@@ -464,6 +471,8 @@ function ENT:Think()
 	self.RearBogey.MotorPower = self.MotorPower
 	self.FrontBogey.BrakeCylinderPressure_dPdT = -self.PneumaticPressure_dPdT
 	self.RearBogey.BrakeCylinderPressure_dPdT = -self.PneumaticPressure_dPdT
+	self.FrontBogey.BrakeSqueal = math.min(1,(3*math.abs(self.PneumoForce or 0))^1)
+	self.RearBogey.BrakeSqueal = math.min(1,(3*math.abs(self.PneumoForce or 0))^1)
 	
 
 	----------------------------------------------------------------------------

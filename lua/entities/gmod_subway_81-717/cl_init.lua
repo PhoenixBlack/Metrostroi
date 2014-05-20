@@ -667,8 +667,8 @@ ENT.ClientProps["book"] = {
 -- Add doors
 local function GetDoorPosition(i,k,j)
 	if j == 0 
-	then return Vector(351.0 - 34*k     - 231*i,-65*(1-2*k),-1.8)
-	else return Vector(351.0 - 34*(1-k) - 231*i,-65*(1-2*k),-1.8)
+	then return Vector(351.0 - 34*k     - 231*i,-65*(1-2*k)-2,-1.8)
+	else return Vector(351.0 - 34*(1-k) - 231*i,-65*(1-2*k)-2,-1.8)
 	end
 end
 for i=0,3 do

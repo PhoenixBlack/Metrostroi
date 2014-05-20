@@ -13,6 +13,9 @@ Metrostroi.ScheduleConfiguration = Metrostroi.ScheduleConfiguration or {}
 -- List of station names
 Metrostroi.StationNames = Metrostroi.StationNames or {}
 
+-- AI train behavior configuration
+Metrostroi.AIConfiguration = Metrostroi.AIConfiguration or {}
+
 -- Current server time
 function Metrostroi.ServerTime()
 	return (os.time() % 86400)
@@ -187,9 +190,10 @@ function Metrostroi.LoadSchedulesData(data)
 	Metrostroi.ScheduleRoutes = data.Routes
 	Metrostroi.ScheduleConfiguration = data.Configuration
 	Metrostroi.StationNames = data.StationNames
+	Metrostroi.AIConfiguration = data.AIConfiguration
 	Metrostroi.SchedulesInitialized = false
 
-	timer.Simple(60.0,function()
+	timer.Simple(40.0,function()
 		Metrostroi.InitializeSchedules()
 	end)
 end
