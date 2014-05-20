@@ -99,8 +99,8 @@ function Metrostroi.GetPositionOnTrack(pos,ang,opts)
 	
 	-- Size of box which envelopes region of space that counts as being on track
 	local X_PAD = 0
-	local Y_PAD = 384/2
-	local Z_PAD = 256/2
+	local Y_PAD = opts.y_pad or opts.radius or 384/2
+	local Z_PAD = opts.z_pad or 256/2
 	
 	-- Find position on any track
 	local results = {}
