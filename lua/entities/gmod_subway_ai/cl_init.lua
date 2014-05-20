@@ -5,7 +5,8 @@ ENT.ClientPropsInitialized = false
 
 --------------------------------------------------------------------------------
 function ENT:Props81717()
-	if self.ClientPropsInitialized then return end
+	if self.PropsInit then return end
+	self.PropsInit = true
 
 	local function GetDoorPosition(i,k,j)
 		if j == 0 
