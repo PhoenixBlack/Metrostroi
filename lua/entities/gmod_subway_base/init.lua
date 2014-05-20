@@ -353,16 +353,16 @@ function ENT:ReadCell(Address)
 						current = stationID
 					end
 					if (platformData.node_start.path == pos.path) and 
-						(platformData.x_end > pos.x) then
-						if platformData.x_end < x1 then
-							x1 = platformData.x_end
+						(platformData.x_start > pos.x) then
+						if platformData.x_start < x1 then
+							x1 = platformData.x_start
 							next = stationID
 						end
 					end
 					if (platformData.node_start.path == pos.path) and 
 						(platformData.x_start < pos.x) then
 						if platformData.x_start > x2 then
-							x2 = platformData.x_end
+							x2 = platformData.x_start
 							prev = stationID
 						end
 					end
