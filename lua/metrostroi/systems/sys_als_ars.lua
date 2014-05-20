@@ -183,8 +183,8 @@ function TRAIN_SYSTEM:Think()
 		end		
 		-- Check use of valve #1 during overspeed
 		self.PV1Timer = self.PV1Timer or -1e9
-		if ((CurTime() - self.PV1Timer) < 0.6) then self.PneumaticBrake1 = false end
-		if ((CurTime() - self.PV1Timer) < 0.5) then self.PneumaticBrake1 = true end
+		if ((CurTime() - self.PV1Timer) < 0.45) then self.PneumaticBrake1 = false end
+		if ((CurTime() - self.PV1Timer) < 0.35) then self.PneumaticBrake1 = true end
 		
 		-- ARS signals
 		local Ebrake,Pbrake1,Pbrake2 = 

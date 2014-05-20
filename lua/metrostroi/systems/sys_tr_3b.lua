@@ -30,6 +30,11 @@ function TRAIN_SYSTEM:CheckContact(ent,pos,dir)
 end
 
 function TRAIN_SYSTEM:Think()
+	-- Don't do logic if train is broken
+	if (not IsValid(self.Train.FrontBogey)) or (not IsValid(self.Train.RearBogey)) then
+		return
+	end
+
 	-- Check contact states
 	self.PlayTime = self.PlayTime or { 0, 0, 0, 0 }
 	self.ContactStates = self.ContactStates or { false, false, false, false }
