@@ -5,6 +5,8 @@ CreateConVar("metrostroi_debugger_update_interval",1,FCVAR_ARCHIVE,"Seconds betw
 
 if SERVER then return end
 
+CreateClientConVar("metrostroi_stop_helper",0,true)
+
 CreateClientConVar("metrostroi_drawdebug",0,true)
 CreateClientConVar("metrostroi_debugger_data_timeout",2,true,false)
 
