@@ -6,11 +6,13 @@ function ENT:Initialize()
 	self:SetModel("models/metrostroi/signals/ars_box.mdl")
 	self.Sprites = {}
 	Metrostroi.UpdateSignalEntities()
-
-	timer.Simple(15.0,function()
-		self.NominalSignals = self:GetActiveSignals()
-		self.GetNominalSignals = function(self)
-			return self.NominalSignals
+	
+	-- Setup nominal signals (give it few seconds to establish)
+	self.NominalSignals = 0
+	self.GetNominalSignals = function(self) return self.NominalSignals end
+	timer.Simple(7.0,function()
+		if IsValid(self) and self.GetActiveSignals then
+			self.NominalSignals = self:GetActiveSignals()
 		end
 	end)
 end
