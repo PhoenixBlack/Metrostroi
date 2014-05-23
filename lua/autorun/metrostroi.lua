@@ -30,7 +30,7 @@ if SERVER then
 	resource_AddDir("models/metrostroi/tatra_t3")
 	
 	resource_AddDir("sound/subway_trains")
-	--resource_AddDir("sound/subway_announcer")
+	resource_AddDir("sound/subway_announcer")
 end
 
 
@@ -97,21 +97,6 @@ if SERVER then
 	-- Add all system files
 	local files = file.Find("metrostroi/systems/sys_*.lua","LUA")
 	for _,filename in pairs(files) do AddCSLuaFile("metrostroi/systems/"..filename) end
-	
-
-	-- Alpha tester stuff
-	--[[hook.Add("PlayerInitialSpawn", "Metrostroi_PlayerConnect", function(ply)
-		local name = ply:GetName()
-	
-		local testers = file.Read("alpha_testers.txt") or ""
-		local tbl = string.Explode("\r\n",testers)
-	
-		for k,v in pairs(tbl) do
-			if v == name then return end
-		end
-		table.insert(tbl,name)
-		file.Write("alpha_testers.txt",string.Implode("\r\n",tbl))
-	end]]--
 else
 	-- Load all clientside files
 	local files = file.Find("metrostroi/cl_*.lua","LUA")
