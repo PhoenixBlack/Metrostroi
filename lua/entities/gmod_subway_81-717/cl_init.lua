@@ -110,8 +110,8 @@ ENT.ButtonMap["ARS"] = {
 		{x=410+275*4+60+60,y=480,tooltip="75: Ограничение скорости 75 км/ч\nSpeed limit 75 kph",radius=120},
 		{x=410+275*5+60+60,y=480,tooltip="80: Ограничение скорости 80 км/ч\nSpeed limit 80 kph",radius=120},
 
-		{x=410+60,y=780+60,tooltip="СД: Сигнализация дверей\nSD: Door state light (doors are open)",radius=120},
-		{x=690+60,y=780+60,tooltip="СД: Сигнализация дверей\nSD: Door state light (doors are open)",radius=120},
+		{x=410+60,y=780+60,tooltip="ЛСД: Сигнализация дверей\nLSD: Door state light (doors are closed)",radius=120},
+		{x=690+60,y=780+60,tooltip="ЛСД: Сигнализация дверей\nLSD: Door state light (doors are closed)",radius=120},
 		
 		{x=2540+60,y=780+60,tooltip="ЛСТ: Лампа сигнализации торможения\nLST: Brakes engaged",radius=120},
 		{x=2540+60,y=330+60,tooltip="ЛВД: Лампа включения двигателей\nLVD: Engines engaged",radius=120},
@@ -204,7 +204,7 @@ ENT.ButtonMap["Help"] = {
 	scale = 1,
 	
 	buttons = {
-		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Помощь в возжении поезда\nShow help on driving the train"},
+		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Помощь в вождении поезда\nShow help on driving the train"},
 	}
 }
 
@@ -253,8 +253,8 @@ ENT.ButtonMap["Reverser"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "KVReverserUp",x=10,y=0,w=160,h=70, tooltip=""},
-		{ID = "KVReverserDown",x=10,y=80,w=160,h=70, tooltip=""},
+		{ID = "KVReverserDown",x=10,y=0,w=160,h=70, tooltip=""},
+		{ID = "KVReverserUp",x=10,y=80,w=160,h=70, tooltip=""},
 	}
 }
 ENT.ButtonMap["Controller"] = {
@@ -365,7 +365,7 @@ ENT.ClientProps["brake"] = {
 ENT.ClientProps["controller"] = {
 	model = "models/metrostroi/81-717/controller.mdl",
 	pos = Vector(430,17.0,-13.6),
-	ang = Angle(0,0,0)
+	ang = Angle(0,180,0)
 }
 ENT.ClientProps["reverser"] = {
 	model = "models/metrostroi/81-717/reverser.mdl",
@@ -710,8 +710,8 @@ function ENT:Think()
 
 	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
-	self:Animate("controller",		self:GetPackedRatio(1),				0.30, 0.70,  384,24)
-	self:Animate("reverser",		1-self:GetPackedRatio(2),			0.25, 0.75,  4,false)
+	self:Animate("controller",		1-self:GetPackedRatio(1),			0.30, 0.70,  384,24)
+	self:Animate("reverser",		self:GetPackedRatio(2),				0.25, 0.75,  4,false)
 	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38, 0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
 
@@ -828,7 +828,8 @@ function ENT:Think()
 	end
 	
 	-- DIP sound
-	self:SetSoundState("bpsn1",self:GetPackedBool(52) and 1 or 0,1.0)
+	self:SetSoundState("bpsn2",self:GetPackedBool(52) and 1 or 0,1.0)
+	--self:SetSoundState("bpsn1",0,1.0)
 end
 
 function ENT:Draw()
@@ -931,7 +932,7 @@ function ENT:Draw()
 			surface.DrawRect(295*10,73*10,17*10,9*10)
 		end]]--
 		
-		b = self:Animate("light_SD",1-(self:GetPackedBool(40) and 1 or 0),0,1,5,false)
+		b = self:Animate("light_SD",(self:GetPackedBool(40) and 1 or 0),0,1,5,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)

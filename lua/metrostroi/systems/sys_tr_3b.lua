@@ -58,8 +58,8 @@ function TRAIN_SYSTEM:Think()
 				local dt = CurTime() - self.PlayTime[i]
 				self.PlayTime[i] = CurTime()
 
-				local volume = 0.60
-				if dt < 1.0 then volume = 0.50 end
+				local volume = 0.63
+				if dt < 1.0 then volume = 0.53 end
 				self.Train:PlayOnce("tr","front_bogey",volume,math.random(90,120))
 
 				if state and (math.random() > 0.50) then

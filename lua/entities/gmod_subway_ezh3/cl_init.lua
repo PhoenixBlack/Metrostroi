@@ -196,7 +196,7 @@ ENT.ButtonMap["Help"] = {
 	scale = 1,
 	
 	buttons = {
-		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Помощь в возжении поезда\nShow help on driving the train"},
+		{ID = "ShowHelp", x=10, y=10, radius=15, tooltip="Помощь в вождении поезда\nShow help on driving the train"},
 	}
 }
 
