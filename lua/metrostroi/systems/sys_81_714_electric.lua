@@ -301,8 +301,8 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	-- Calculate power and heating
 	self.P1 = (self.IR1^2) * self.R1
 	self.P2 = (self.IR2^2) * self.R2
-	self.T1 = self.T1 + self.P1 * 5e-4 * dT - (self.T1 - 25)*0.0001
-	self.T2 = self.T2 + self.P2 * 5e-4 * dT - (self.T2 - 25)*0.0001
+	self.T1 = self.T1 + self.P1 * 2e-4 * dT - (self.T1 - 25)*0.0002
+	self.T2 = self.T2 + self.P2 * 2e-4 * dT - (self.T2 - 25)*0.0002
 end
 
 
