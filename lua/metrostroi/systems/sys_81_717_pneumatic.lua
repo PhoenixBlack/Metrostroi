@@ -235,7 +235,7 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	-- 4 Reservoir open to atmosphere, brake line equalizes with reservoir
 	if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("ReservoirPressure", 0.0,0.40)--0.35)
+		equalizePressure("ReservoirPressure", 0.0,0.425)--0.35)
 		self.BrakeLinePressure = self.ReservoirPressure
 		self.BrakeLinePressure_dPdT = self.ReservoirPressure_dPdT
 	end
@@ -264,13 +264,12 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	-- Valve #1
 	if self.Train.PneumaticNo1.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.32, 1.00, 4.00)
-		--equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure * 0.70, 0.50)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.22, 1.00, 4.00)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
 	-- Valve #2
 	if self.Train.PneumaticNo2.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.45, 1.00, 4.00)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.32, 1.00, 4.00)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
 	
@@ -286,7 +285,7 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	----------------------------------------------------------------------------
 	-- Pressure triggered relays
-	Train.AVT:TriggerInput("Open", self.BrakeCylinderPressure > 2.8) -- 1.8 - 2.0
+	Train.AVT:TriggerInput("Open", self.BrakeCylinderPressure > 2.0) -- 1.8 - 2.0
 	Train.AVT:TriggerInput("Close",self.BrakeCylinderPressure < 1.2) -- 0.9 - 1.5
 	Train.AK:TriggerInput( "Open", self.TrainLinePressure > 8.2)
 	Train.AK:TriggerInput( "Close",self.TrainLinePressure < 6.3)

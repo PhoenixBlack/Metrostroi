@@ -58,6 +58,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- Thyristor contrller
 	self.Train:LoadSystem("ThyristorBU5_6","Relay")
 	self.ThyristorResistance = 1e9
+	self.ThyristorState = 0.0
 end
 
 
@@ -69,9 +70,9 @@ function TRAIN_SYSTEM:Outputs()
 	return { "R1","R2","R3","Rs1","Rs2","Itotal","I13","I24","IRT2",
 			 "Ustator13","Ustator24","Ishunt13","Istator13","Ishunt24","Istator24",
 			 "T1", "T2", "P1", "P2",
-			 "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V" }
+			 "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V",
+			 "ThyristorResistance", "ThyristorState" }
 end
-
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
 end
@@ -121,7 +122,6 @@ end
 
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
-	local KSH1,KSH2 = 0,0
 	local SDRK_Shunt = 1.0
 	self.Triggers = { -- FIXME
 		["LK5"]			= function(V) end,
@@ -165,10 +165,10 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 	
 	-- Update thyristor controller signal
 	if not Active then
-		self.ThyristorState = 0.0
+		self.ThyristorState = 0.00
 	else
 		-- Generate control signal
-		local T = 200.0 + 100.0*Train.YAR_13A.WeightLoadRatio + 90.0*Train:ReadTrainWire(2) -- amps
+		local T = 200.0 + (100.0*Train.YAR_13A.WeightLoadRatio + 60.0)*Train:ReadTrainWire(2) -- amps
 		local I = Current
 		local dI = (Current - PrevCurrent)/dT
 		local A = (T-I)*0.05
@@ -182,18 +182,18 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 
 		-- Generate resistance
 		local keypoints = {
-			0.10,0.015,
-			0.20,0.036,
-			0.30,0.050,
-			0.40,0.094,
-			0.50,0.139,
-			0.60,0.200,
-			0.70,0.329,
-			0.80,0.545,
-			0.90,1.204,
+			0.10,0.008,
+			0.20,0.018,
+			0.30,0.030,
+			0.40,0.047,
+			0.50,0.070,
+			0.60,0.105,
+			0.70,0.165,
+			0.80,0.280,
+			0.90,0.650,
 			1.00,15.00,
-		} --math.min(1.00,math.max(0.00,
-		local TargetField = ((0.20 + 0.80*self.ThyristorState))
+		}
+		local TargetField = 0.20 + 0.80*self.ThyristorState
 		local Found = false
 		for i=1,#keypoints/2 do
 			local X1,Y1 = keypoints[(i-1)*2+1],keypoints[(i-1)*2+2]
@@ -211,7 +211,7 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 	end
 	
 	-- Allow or deny using manual brakes
-	Train.ThyristorBU5_6:TriggerInput("Set",self.ThyristorState > 0.95)	
+	Train.ThyristorBU5_6:TriggerInput("Set",self.ThyristorState > 0.75)	
 	-- Set resistance
 	self.ThyristorResistance = Resistance + 1e9 * (Active and 0 or 1)
 end
@@ -245,7 +245,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	-- Shunt resistance
 	self.Rs1 = Train.ResistorBlocks.S1(Train) + 1e9*(1 - Train.KSH1.Value)
 	self.Rs2 = Train.ResistorBlocks.S2(Train) + 1e9*(1 - Train.KSH2.Value)
-	
+
 	-- Thyristor contrller
 	self.Rs1 = ((self.ThyristorResistance^-1) + (self.Rs1^-1))^-1
 	self.Rs2 = ((self.ThyristorResistance^-1) + (self.Rs2^-1))^-1
@@ -264,7 +264,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
 		self:SolvePS(Train)
 	elseif Train.PositionSwitch.SelectedPosition == 2 then -- PS
-		self:SolvePP(Train)
+		self:SolvePP(Train,Train.RheostatController.SelectedPosition == 18)
 	else
 		self:SolvePT(Train)
 	end
@@ -296,13 +296,13 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.IR2 = self.I24
 	
 	-- Calculate current through RT2 relay
-	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_v"])
+	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_contactor"])
 	
 	-- Calculate power and heating
 	self.P1 = (self.IR1^2) * self.R1
 	self.P2 = (self.IR2^2) * self.R2
-	self.T1 = self.T1 + self.P1 * 5e-4 * dT - (self.T1 - 25)*0.0001
-	self.T2 = self.T2 + self.P2 * 5e-4 * dT - (self.T2 - 25)*0.0001
+	self.T1 = self.T1 + self.P1 * 2e-4 * dT - (self.T1 - 25)*0.0002
+	self.T2 = self.T2 + self.P2 * 2e-4 * dT - (self.T2 - 25)*0.0002
 end
 
 
@@ -325,10 +325,13 @@ function TRAIN_SYSTEM:SolvePS(Train)
 	self.I24 = self.Itotal
 end
 
-function TRAIN_SYSTEM:SolvePP(Train)
+function TRAIN_SYSTEM:SolvePP(Train,inTransition)
+	-- Temporary hack for transition to parallel circuits
+	local extraR = inTransition and 0.909 or 0.00
+	
 	-- Calculate total resistance of each branch
-	local Rtotal13 = self.Ranchor13 + self.Rstator13 + self.R1
-	local Rtotal24 = self.Ranchor24 + self.Rstator24 + self.R2
+	local Rtotal13 = self.Ranchor13 + self.Rstator13 + self.R1 + extraR
+	local Rtotal24 = self.Ranchor24 + self.Rstator24 + self.R2 + extraR
 	
 	-- Calculate current through engines 13, 24
 	self.I13 = (self.Power750V - Train.Engines.E13) / Rtotal13
