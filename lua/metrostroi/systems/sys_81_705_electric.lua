@@ -68,7 +68,6 @@ function TRAIN_SYSTEM:Outputs()
 			 "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V" }
 end
 
-
 function TRAIN_SYSTEM:TriggerInput(name,value)
 end
 
@@ -203,7 +202,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
 		self:SolvePS(Train)
 	elseif Train.PositionSwitch.SelectedPosition == 2 then -- PS
-		self:SolvePP(Train)
+		self:SolvePP(Train,Train.RheostatController.SelectedPosition == 18)
 	else
 		self:SolvePT(Train)
 	end
@@ -235,7 +234,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.IR2 = self.I24
 	
 	-- Calculate current through RT2 relay
-	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_v"])
+	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_contactor"])
 	
 	-- Calculate power and heating
 	self.P1 = (self.IR1^2) * self.R1
@@ -264,11 +263,14 @@ function TRAIN_SYSTEM:SolvePS(Train)
 	self.I24 = self.Itotal
 end
 
-function TRAIN_SYSTEM:SolvePP(Train)
-	-- Calculate total resistance of each branch
-	local Rtotal13 = self.Ranchor13 + self.Rstator13 + self.R1
-	local Rtotal24 = self.Ranchor24 + self.Rstator24 + self.R2
+function TRAIN_SYSTEM:SolvePP(Train,inTransition)
+	-- Temporary hack for transition to parallel circuits
+	local extraR = inTransition and 0.909 or 0.00
 	
+	-- Calculate total resistance of each branch
+	local Rtotal13 = self.Ranchor13 + self.Rstator13 + self.R1 + extraR
+	local Rtotal24 = self.Ranchor24 + self.Rstator24 + self.R2 + extraR
+
 	-- Calculate current through engines 13, 24
 	self.I13 = (self.Power750V - Train.Engines.E13) / Rtotal13
 	self.I24 = (self.Power750V - Train.Engines.E24) / Rtotal24

@@ -100,12 +100,12 @@ function ENT:Think()
 		local speedPitch2 = (speed / 60)
 		local speedPitch3 = math.min(1.2, 0.4 + 0.6 * (speed / 60))
 		
-		self:SetSoundState("run1",0.0,0.0)
+		--self:SetSoundState("run1",0.0,0.0)
 		self:SetSoundState("run2",startVolRamp*(1-bleedVolRamp),speedPitch2)
 		self:SetSoundState("run3",startVolRamp*(  bleedVolRamp),speedPitch3)
 		self:SetSoundState("run4",0,0) --startVolRamp*3.0,math.min(1.0,speed/30)+math.max(0.0,(speed-60.0)/40))
 	else
-		self:SetSoundState("run1",0,0)
+		--self:SetSoundState("run1",0,0)
 		self:SetSoundState("run2",0,0)
 		self:SetSoundState("run3",0,0)
 		self:SetSoundState("run4",0,0)
@@ -136,7 +136,6 @@ function ENT:Think()
 	local brakeRamp = math.min(1.0,math.max(0.0,speed/8.0))
 	if squealSound == 0 then squealSound = 1 end
 	if squealSound == 3 then squealSound = 2 end
---	squealSound = 3
 	if brakeSqueal > 0.0 then
 		if squealSound == 0 then
 			self:SetSoundState("brake1",brakeSqueal*(0.10+0.90*brakeRamp),1+0.06*(1.0-brakeRamp))

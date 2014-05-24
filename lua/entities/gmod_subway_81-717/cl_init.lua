@@ -820,10 +820,10 @@ function ENT:Think()
 	if self.PreviousAlertState ~= state then
 		self.PreviousAlertState = state
 		if state then
-			self:SetSoundState("ring",0.20,1)
+			self:SetSoundState("ring2",0.20,1)
 		else
-			self:SetSoundState("ring",0,0)
-			self:PlayOnce("ring_end","cabin",0.45)		
+			self:SetSoundState("ring2",0,0)
+			self:PlayOnce("ring2_end","cabin",0.45)		
 		end
 	end
 	

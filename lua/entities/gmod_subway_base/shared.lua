@@ -73,6 +73,8 @@ function ENT:InitializeSounds()
 	}
 	self.SoundNames["switch4"]		= "subway_trains/switch_4.wav"
 	self.SoundNames["switch5"]		= "subway_trains/switch_8.wav"
+	self.SoundNames["switch6"]		= "subway_trains/switch_9.wav"
+	self.SoundNames["switch6_off"]	= "subway_trains/switch_10.wav"
 
 	self.SoundNames["bpsn1"] 		= "subway_trains/bpsn_1.wav"
 	self.SoundNames["bpsn2"] 		= "subway_trains/bpsn_2.wav"
@@ -94,6 +96,16 @@ function ENT:InitializeSounds()
 	self.SoundNames["ring_end"]		= "subway_trains/ring_2.wav"
 	self.SoundPositions["ring"] 	= "cabin"
 	self.SoundPositions["ring_end"] = "cabin"
+	
+	self.SoundNames["ring1"]		= "subway_trains/ring_1.wav"
+	self.SoundNames["ring1_end"]	= "subway_trains/ring_2.wav"
+	self.SoundPositions["ring1"] 	= "cabin"
+	self.SoundPositions["ring1_end"]= "cabin"
+	
+	self.SoundNames["ring2"]		= "subway_trains/ring_3.wav"
+	self.SoundNames["ring2_end"]	= "subway_trains/ring_4.wav"
+	self.SoundPositions["ring2"] 	= "cabin"
+	self.SoundPositions["ring2_end"]= "cabin"
 	
 	self.SoundNames["dura1"]		= "subway_trains/dura_alarm_1.wav"
 	self.SoundNames["dura2"]		= "subway_trains/dura_alarm_2.wav"

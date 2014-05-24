@@ -81,8 +81,8 @@ function TRAIN_SYSTEM:Think()
 	
 	-- RUT operation
 	self.RUTCurrent = math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24)
-	self.RUTTarget = 260 + 100*self.WeightLoadRatio
-	if Train.PositionSwitch.SelectedPosition >= 3 then self.RUTTarget = 180 end
+	self.RUTTarget = 250 + 150*self.WeightLoadRatio
+	--if Train.PositionSwitch.SelectedPosition >= 3 then self.RUTTarget = 180 end
 	
 	if Train.RUTpod > 0.5 
 	then Train.RUT:TriggerInput("Close",1.0)

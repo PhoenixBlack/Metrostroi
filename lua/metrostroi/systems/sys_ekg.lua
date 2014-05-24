@@ -13,6 +13,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- Resistance value of all contactors
 	for k,v in ipairs(self.Configuration[1]) do self[k] = 1e15 end
 	for k,v in ipairs(self.Configuration[1]) do self[k.."_v"] = 0 end
+	for k,v in ipairs(self.Configuration[1]) do self[k.."_contactor"] = 0 end
 	
 	-- Rate of rotation (positions per second
 	self.RotationRate = self.RotationRate or (1.0/0.15)
@@ -40,7 +41,7 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:Outputs()
-	return { "Position", "Velocity", "MotorState", "MotorCoilState", "RKM","RKP" }
+	return { "Position", "Velocity", "MotorState", "MotorCoilState", "RKM1", "RKM2", "RKP" }
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
@@ -64,12 +65,12 @@ function TRAIN_SYSTEM:Think(dT)
 	local position = math.floor(self.Position+0.5)
 	if position < 1 then position = 1 end
 	if position > self.MaxPosition then position = self.MaxPosition end
-	self.SelectedPosition = position
 	
 	-- Lock contacts as defined in the configuration
 	for k,v in ipairs(self.Configuration[position]) do 
 		self[k] = 1e-15 + 1e15 * (1-v)
 		self[k.."_v"] = v
+		self[k.."_contactor"] = v
 	end
 	
 	-- Start or stop motor rotation
@@ -103,4 +104,7 @@ function TRAIN_SYSTEM:Think(dT)
 	self.RKM1 = ((f < -0.30) or  (f > 0.30)) and 1 or 0
 	self.RKM2 = ((f < -0.40) or  (f > 0.40)) and 1 or 0
 	self.RKP  = ((f > -0.10) and (f < 0.10)) and 1 or 0
+	
+	-- Update position readout
+	if self.RKP == 1 then self.SelectedPosition = position end
 end

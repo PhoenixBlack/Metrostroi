@@ -340,7 +340,7 @@ function ENT:OnButtonPress(button)
 	end
 	
 	-- Special sounds
-	if button == "PBSet" then self:PlayOnce("switch","cabin") return end
+	if button == "PBSet" then self:PlayOnce("switch6","cabin") return end
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
 	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
 	if button == "DURASelectAlternate" then self:PlayOnce("switch","cabin") return end
@@ -368,6 +368,7 @@ function ENT:OnButtonPress(button)
 	end
 end
 function ENT:OnButtonRelease(button)
+	if button == "PBSet" then self:PlayOnce("switch6_off","cabin") return end
 	if (button == "PneumaticBrakeDown") and (self.Pneumatic.DriverValvePosition == 1) then
 		self.Pneumatic:TriggerInput("BrakeSet",2)
 	end
