@@ -1,5 +1,71 @@
 ﻿include("shared.lua")
 
+
+surface.CreateFont("MetrostroiSubway_LargeText", {
+  font = "Arial",
+  size = 100,
+  weight = 500,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false
+})
+surface.CreateFont("MetrostroiSubway_SmallText", {
+  font = "Arial",
+  size = 70,
+  weight = 1000,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false
+})
+surface.CreateFont("MetrostroiSubway_LargeText2", {
+  font = "Arial",
+  size = 86,
+  weight = 1000,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false
+})
+surface.CreateFont("MetrostroiSubway_LargeText3", {
+  font = "Arial",
+  size = 66,
+  weight = 1000,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false
+})
+
 --------------------------------------------------------------------------------
 -- Console commands and convars
 --------------------------------------------------------------------------------

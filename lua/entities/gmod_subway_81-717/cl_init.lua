@@ -850,13 +850,16 @@ function ENT:Draw()
 		local d2 = math.floor(speed / 10) % 10
 		self:DrawDigit((110+0) *10,	16*10, d2, 0.85, 0.70)
 		self:DrawDigit((110+11)*10,	16*10, d1, 0.85, 0.70)
-		
+
 		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
-			surface.SetDrawColor(255,120,50)
+			--surface.SetDrawColor(255,120,50)
+			surface.SetDrawColor(255,40,20)
 			surface.DrawRect(178*10,78*10,17*10,9*10)
 			surface.DrawRect(152*10,78*10,17*10,9*10)
+			draw.DrawText("ЛСН","MetrostroiSubway_LargeText2",178*10+5,78*10-5,Color(0,0,0,245))
+			draw.DrawText("РП","MetrostroiSubway_LargeText2",152*10+30,78*10-5,Color(0,0,0,245))
 		end
 		
 		--b = self:Animate("light_gRP",self:GetPackedBool(36) and 1 or 0,0,1,15,false)
@@ -871,20 +874,33 @@ function ENT:Draw()
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(213*10,78*10,17*10,9*10)
+			draw.DrawText("ЛКТ","MetrostroiSubway_LargeText2",213*10+5,78*10-5,Color(0,0,0,245))
 		end			
 		
 		b = self:Animate("light_KVD",self:GetPackedBool(48) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
-			surface.SetDrawColor(255,120,50)
+			--surface.SetDrawColor(255,120,50)
+			surface.SetDrawColor(255,40,20)
 			surface.DrawRect(213*10,55*10,17*10,9*10)
+			draw.DrawText("ЛКВД","MetrostroiSubway_LargeText3",213*10+5,55*10+5,Color(0,0,0,245))
 		end
 		
 		b = self:Animate("light_LhRK",self:GetPackedBool(33) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
-			surface.SetDrawColor(255,120,50)
+			surface.SetDrawColor(255,160,20)
 			surface.DrawRect(111*10,78*10,17*10,9*10)
+			--draw.DrawText("ЛхРК","MetrostroiSubway_LargeText3",111*10+5,78*10+5,Color(0,0,0,245))
+			draw.DrawText("РК","MetrostroiSubway_LargeText2",111*10+30,78*10-5,Color(0,0,0,245))
+		end
+		
+		b = self:Animate("light_LRS",self:GetPackedBool(54) and 1 or 0,0,1,15,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(50,255,50)
+			surface.DrawRect(254*10,55*10,17*10,9*10)
+			draw.DrawText("РС","MetrostroiSubway_LargeText2",254*10+35,55*10-5,Color(0,0,0,245))
 		end
 		
 		b = self:Animate("light_LST",self:GetPackedBool(49) and 1 or 0,0,1,15,false)
@@ -892,6 +908,7 @@ function ENT:Draw()
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(254*10,78*10,17*10,9*10)
+			draw.DrawText("ЛСТ","MetrostroiSubway_LargeText2",254*10+5,78*10-5,Color(0,0,0,245))
 		end
 		
 		b = self:Animate("light_LVD",self:GetPackedBool(50) and 1 or 0,0,1,15,false)
@@ -899,13 +916,16 @@ function ENT:Draw()
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(254*10,33*10,17*10,9*10)
+			draw.DrawText("ЛВД","MetrostroiSubway_LargeText2",254*10+5,33*10-5,Color(0,0,0,245))
 		end
 		
 		b = self:Animate("light_LKVC",1-(self:GetPackedBool(34) and 1 or 0),0,1,5,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
-			surface.SetDrawColor(255,120,50)
+			--surface.SetDrawColor(255,120,50)
+			surface.SetDrawColor(255,40,20)
 			surface.DrawRect(254*10,10*10,17*10,9*10)
+			draw.DrawText("ЛКВЦ","MetrostroiSubway_LargeText3",254*10+5,10*10+5,Color(0,0,0,245))
 		end
 		
 		--[[b = self:Animate("light_NR1",self:GetPackedBool(34) and 1 or 0,0,1,15,false)
@@ -938,28 +958,35 @@ function ENT:Draw()
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(41*10,78*10,17*10,9*10)
 			surface.DrawRect(69*10,78*10,17*10,9*10)
+			draw.DrawText("ЛСД","MetrostroiSubway_LargeText2",41*10+5,78*10-5,Color(0,0,0,245))
+			draw.DrawText("ЛСД","MetrostroiSubway_LargeText2",69*10+5,78*10-5,Color(0,0,0,245))
 		end
 	
 		------------------------------------------------------------------------
 		b = self:Animate("light_OCh",self:GetPackedBool(41) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
-			surface.SetDrawColor(255,120,50)
+			--surface.SetDrawColor(255,120,50)
+			surface.SetDrawColor(255,40,20)
 			surface.DrawRect((41+27.5*0)*10,48*10,17*10,9*10)
+			draw.DrawText("ОЧ","MetrostroiSubway_LargeText2",(41+27.5*0)*10+30,48*10-5,Color(0,0,0,245))
 		end
 		
 		b = self:Animate("light_0",self:GetPackedBool(42) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
-			surface.SetDrawColor(255,120,50)
+			--surface.SetDrawColor(255,120,50)
+			surface.SetDrawColor(255,40,20)
 			surface.DrawRect((41+27.5*1)*10,48*10,17*10,9*10)
+			draw.DrawText("0","MetrostroiSubway_LargeText",(41+27.5*1)*10+60,48*10-5,Color(0,0,0,245))
 		end
 		
 		b = self:Animate("light_40",self:GetPackedBool(43) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
-			surface.SetDrawColor(255,120,50)
+			surface.SetDrawColor(255,160,20)
 			surface.DrawRect((41+27.5*2)*10,48*10,17*10,9*10)
+			draw.DrawText("40","MetrostroiSubway_LargeText",(41+27.5*2)*10+35,48*10-5,Color(0,0,0,245))
 		end
 			
 		b = self:Animate("light_60",self:GetPackedBool(44) and 1 or 0,0,1,15,false)
@@ -967,6 +994,7 @@ function ENT:Draw()
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect((41+27.5*3)*10,48*10,17*10,9*10)
+			draw.DrawText("60","MetrostroiSubway_LargeText",(41+27.5*3)*10+35,48*10-5,Color(0,0,0,245))
 		end
 			
 		b = self:Animate("light_70",self:GetPackedBool(45) and 1 or 0,0,1,15,false)
@@ -974,6 +1002,7 @@ function ENT:Draw()
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect((41+27.5*4)*10,48*10,17*10,9*10)
+			draw.DrawText("70","MetrostroiSubway_LargeText",(41+27.5*4)*10+35,48*10-5,Color(0,0,0,245))
 		end
 			
 		b = self:Animate("light_80",self:GetPackedBool(46) and 1 or 0,0,1,15,false)
@@ -981,6 +1010,7 @@ function ENT:Draw()
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect((41+27.5*5)*10,48*10,17*10,9*10)
+			draw.DrawText("80","MetrostroiSubway_LargeText",(41+27.5*5)*10+35,48*10-5,Color(0,0,0,245))
 		end
 		
 		surface.SetAlphaMultiplier(1.0)
