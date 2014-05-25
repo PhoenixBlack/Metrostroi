@@ -300,7 +300,7 @@ function ENT:Think()
 	-- DIP/power
 	self:SetPackedBool(32,self.Panel["V1"] > 0.5)
 	-- LxRK
-	self:SetPackedBool(33,self.RheostatController.MotorCoilState ~= 0.0)
+	self:SetPackedBool(33,self:ReadTrainWire(2) > 0.5)--self.RheostatController.MotorCoilState ~= 0.0)
 	-- NR1
 	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP
@@ -342,6 +342,10 @@ function ENT:Think()
 	-- BPSN
 	self:SetLightPower(24,(self.PowerSupply.XT3_1 <= 0) and (self.Panel["V1"] > 0.5))
 	self:SetPackedBool(52,self.PowerSupply.XT3_1 > 0)
+	-- LRS
+	self:SetPackedBool(54,(self.Panel["V1"] > 0.5) and 
+		(self.ALS.Value > 0.5) and 
+		(self.ALS_ARS.NextLimit >= self.ALS_ARS.SpeedLimit))
 	
 	-- AV states
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -386,10 +390,10 @@ function ENT:Think()
 		self.FrontBogey.MotorPower = self.Engines.BogeyMoment
 		
 		-- Apply brakes
-		self.FrontBogey.PneumaticBrakeForce = 80000.0
+		self.FrontBogey.PneumaticBrakeForce = 65000.0
 		self.FrontBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.FrontBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-		self.RearBogey.PneumaticBrakeForce = 80000.0
+		self.RearBogey.PneumaticBrakeForce = 65000.0
 		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
