@@ -168,3 +168,12 @@ concommand.Add("metrostroi_get_schedule", function(ply, _, args)
 		end
 	end
 end)
+
+
+
+--------------------------------------------------------------------------------
+-- Does current map have any sort of metrostroi support
+--------------------------------------------------------------------------------
+function Metrostroi.MapHasFullSupport()
+	return (#Metrostroi.Paths > 0)
+end
