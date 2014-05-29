@@ -37,7 +37,8 @@ function ENT:Initialize()
 	if Wire_CreateInputs then
 		self.Inputs = Wire_CreateInputs(self,{
 			"BrakeCylinderPressure",
-			"MotorCommand", "MotorForce", "MotorReversed" })
+			"MotorCommand", "MotorForce", "MotorReversed",
+			"DisableSound" })
 		self.Outputs = Wire_CreateOutputs(self,{
 			"Speed", "BrakeCylinderPressure"
 		})
@@ -50,6 +51,7 @@ function ENT:Initialize()
 	self.Speed = 0
 	self.Acceleration = 0
 	self.PneumaticBrakeForce = 100000.0
+	self.DisableSound = 0
 	
 	self.Variables = {}
 	
@@ -117,6 +119,8 @@ function ENT:TriggerInput(iname, value)
 		self.MotorForce = value
 	elseif iname == "MotorReversed" then
 		self.Reversed = value > 0.5
+	elseif iname == "DisableSound" then
+		self.DisableSound = math.max(0,math.min(3,math.floor(value)))
 	end
 end
 
@@ -352,10 +356,16 @@ function ENT:Think()
 	local brakeSqueal = (math.abs(pneumaticForce)/(40000*(1+0.8*k)))^2
 
 	-- Send parameters to client
-	self:SetMotorPower(motorPower)
-	self:SetSpeed(absSpeed)
-	self:SetdPdT(self.BrakeCylinderPressure_dPdT)
-	self:SetBrakeSqueal(self.BrakeSqueal or brakeSqueal)
+	if self.DisableSound < 1 then
+		self:SetMotorPower(motorPower)
+	end
+	if self.DisableSound < 2 then
+		self:SetdPdT(self.BrakeCylinderPressure_dPdT)
+		self:SetBrakeSqueal(self.BrakeSqueal or brakeSqueal)
+	end
+	if self.DisableSound < 3 then
+		self:SetSpeed(absSpeed)
+	end
 	self:NextThink(CurTime())
 	
 	-- Trigger outputs
