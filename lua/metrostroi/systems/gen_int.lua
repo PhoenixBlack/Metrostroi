@@ -644,7 +644,8 @@ BaseNetwork = {
 	----------------------------------------------------------------------------
 	-- KV-70 controller section
 	{	"10",		"8",		"KV70[10-8]" },
-	{	"FR1",		"8",		"!RPB" },
+	{	"FR1",		"8'",		"!RPB" },
+	{	"8'",		"8",		"!VAH" }, -- Hack: better compatibility with different maps
 	{	"8",		"0",		"#TW[8]" },
 	
 	{	"10AS",		"U2",		"KV70[U2-10AS]" },

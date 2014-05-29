@@ -1077,6 +1077,14 @@ function ENT:Think()
 		self:GetPhysicsObject():SetMass(self.NormalMass + 80*self:GetPassengerCount())
 	end
 	
+	-- Hack for VAH switch on non-supported maps so you don't have to hold space all the time
+	if (not self.VAHHack) and (not Metrostroi.MapHasFullSupport()) then
+		self.VAHHack = true
+		if self.VAH then
+			self.VAH:TriggerInput("Close",1)
+		end
+	end
+	
 	-- Calculate turn information, unused right now
 	--[[if self.FrontBogey and self.RearBogey then
 		self.BogeyDistance = self.BogeyDistance or self.FrontBogey:GetPos():Distance(self.RearBogey:GetPos())

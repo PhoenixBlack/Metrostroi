@@ -86,7 +86,9 @@ function TRAIN_SYSTEM:Think()
 		end
 	end
 
-	if (not (GetConVarNumber("metrostroi_train_requirethirdrail") > 0)) and (not string.find(game.GetMap(),"gm_metrostroi")) then
+
+	if (not (GetConVarNumber("metrostroi_train_requirethirdrail") > 0)) or 
+	   (not Metrostroi.MapHasFullSupport()) then
 		self.Main750V = 750
 		return 
 	end
