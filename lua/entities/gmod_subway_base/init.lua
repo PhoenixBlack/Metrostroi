@@ -339,7 +339,7 @@ function ENT:ReadCell(Address)
 		end
 
 		local pos = Metrostroi.TrainPositions[self]
-		if (Address >= 49160) and (Address <= 49162) and pos and pos[1] then
+		if (Address >= 49160) and (Address <= 49163) and pos and pos[1] then
 			pos = pos[1]
 
 			-- Get stations
@@ -797,6 +797,23 @@ function ENT:SetLightPower(index,power,brightness)
 	-- Check if light already glowing
 	if (power and (self.GlowingLights[index])) and 
 	   (brightness == self.LightBrightness[index]) then return end
+
+	-- If light already glowing and only brightness changed
+	if (power and (self.GlowingLights[index])) and 
+	   (brightness ~= self.LightBrightness[index]) then
+		local light = self.GlowingLights[index]
+		if (lightData[1] == "glow") or (lightData[1] == "light") then
+			local brightness = brightness * (lightData.brightness or 0.5)
+			light:SetKeyValue("rendercolor",
+				Format("%i %i %i",
+					lightData[4].r*brightness,
+					lightData[4].g*brightness,
+					lightData[4].b*brightness
+				)
+			)
+			return
+		end
+	end
 	
 	-- Turn off light
 	SafeRemoveEntity(self.GlowingLights[index])

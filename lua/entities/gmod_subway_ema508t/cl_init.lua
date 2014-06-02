@@ -194,13 +194,11 @@ function ENT:Think()
 	self.PreviousCompressorState = self.PreviousCompressorState or false
 	if self.PreviousCompressorState ~= state then
 		self.PreviousCompressorState = state
-		if state then
-			self:SetSoundState("compressor",1,1)
-		else
-			self:SetSoundState("compressor",0,0)
+		if not state then
 			self:PlayOnce("compressor_end",nil,0.75)		
 		end
 	end
+	self:SetSoundState("compressor",state and 1 or 0,1)
 	
 	-- DIP sound
 	self:SetSoundState("bpsn1",self:GetPackedBool(52) and 1 or 0,1.0)

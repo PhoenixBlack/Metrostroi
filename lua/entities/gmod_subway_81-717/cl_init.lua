@@ -32,7 +32,7 @@ ENT.ButtonMap["Main"] = {
 		
 		{ID = "PS6",			x=330, y=130, radius=20, tooltip="(placeholder) Converter protection"},
 		{ID = "KSNSet",			x=370, y=130, radius=20,  tooltip="КСН: Кнопка сигнализации неисправности\nKSN: Failure indication button"},
-		{ID = "PS7",			x=420, y=130, radius=20, tooltip="(placeholder) Ring"},
+		{ID = "DIPoffSet",		x=420, y=130, radius=20, tooltip="Звонок\nRing"},
 		
 		{ID = "ARSToggle",		x=238, y=135, radius=20, tooltip="АРС: Включение системы автоматического регулирования скорости\nARS: Automatic speed regulation"},
 		{ID = "ALSToggle",		x=267, y=135, radius=20, tooltip="АЛС: Включение системы автоматической локомотивной сигнализации\nALS: Automatic locomotive signalling"},
@@ -116,6 +116,7 @@ ENT.ButtonMap["ARS"] = {
 		{x=2540+60,y=780+60,tooltip="ЛСТ: Лампа сигнализации торможения\nLST: Brakes engaged",radius=120},
 		{x=2540+60,y=330+60,tooltip="ЛВД: Лампа включения двигателей\nLVD: Engines engaged",radius=120},
 		{x=2130+60,y=330+60,tooltip="ЛН: Лампа направления\nLN: Direction signal",radius=120},
+		{x=2540+60,y=550+60,tooltip="Л: \nLRS: Speed equality light (next segment speed limit equal or greater to current)",radius=120},
 	}
 }
 
@@ -598,9 +599,9 @@ Metrostroi.ClientPropForButton("PS6",{
 	button = "PS6",
 	model = "models/metrostroi/81-717/button07.mdl"
 })
-Metrostroi.ClientPropForButton("PS7",{
+Metrostroi.ClientPropForButton("DIPoff",{
 	panel = "Main",
-	button = "PS7",
+	button = "DIPoffSet",
 	model = "models/metrostroi/81-717/button07.mdl"
 })
 Metrostroi.ClientPropForButton("PS8",{
@@ -806,13 +807,11 @@ function ENT:Think()
 	self.PreviousCompressorState = self.PreviousCompressorState or false
 	if self.PreviousCompressorState ~= state then
 		self.PreviousCompressorState = state
-		if state then
-			self:SetSoundState("compressor",1,1)
-		else
-			self:SetSoundState("compressor",0,0)
+		if not state then
 			self:PlayOnce("compressor_end",nil,0.75)		
 		end
 	end
+	self:SetSoundState("compressor",state and 1 or 0,1)
 	
 	-- ARS/ringer alert
 	local state = self:GetPackedBool(39)

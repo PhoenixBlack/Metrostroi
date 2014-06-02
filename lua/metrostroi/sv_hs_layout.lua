@@ -839,4 +839,9 @@ Metrostroi.TrainHighspeedInterface = {
 { 837, "Electric", "ThyristorState" },
 { 838, "RheostatController", "RKM2" },
 { 839, "PositionSwitch", "RKM2" },
+{ 840, "Electric", "Urotor13" },
+{ 841, "Electric", "Urotor24" },
+{ 842, "Electric", "U13" },
+{ 843, "Electric", "U24" },
+{ 844, "Electric", "Utotal" },
 }

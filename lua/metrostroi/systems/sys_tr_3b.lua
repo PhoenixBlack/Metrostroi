@@ -35,6 +35,43 @@ function TRAIN_SYSTEM:Think()
 		return
 	end
 
+	-- Draw overheat of the engines FIXME
+	if false then
+		local temperature = 25
+		if self.Train.Electric then
+			temperature = (self.Train.Electric.T1 or self.Train.Electric.T2 or 25)
+		end
+
+		local smoke_intensity = (temperature - 600)/200.0
+		local light_intensity = (temperature - 380)/100.0
+
+		-- Generate smoke
+		--[[self.PrevSmokeTime = self.PrevSmokeTime or CurTime()
+		if (intensity > 0.0) and (CurTime() - self.PrevSmokeTime > 0.3+4.0*(1-intensity)) then
+			self.PrevSmokeTime = CurTime()
+
+			ParticleEffect("generic_smoke",
+				self.Train:LocalToWorld(Vector(100*math.random(),40,-80)),
+				Angle(0,0,0),self.Train)
+		end]]--
+		
+		-- Generate glow
+		self.Train.Lights = self.Train.Lights or {}
+		if not self.Train.Lights["overheat_glow1"] then
+			for i=1,8 do
+				self.Train.Lights["overheat_glow"..i] = 
+					{ "light", Vector(-10+((i-1)/8)*135,40,-75), Angle(0,0,0), Color(255,50,0), scale = 1 }
+			end			
+		end
+		self.PrevLightTime = self.PrevLightTime or CurTime()
+		if (CurTime() - self.PrevLightTime) > 1.0 then
+			self.PrevLightTime = CurTime()
+			for i=1,8 do			
+				self.Train:SetLightPower("overheat_glow"..i, light_intensity > 0, light_intensity)
+			end
+		end
+	end
+
 	-- Check contact states
 	self.PlayTime = self.PlayTime or { 0, 0, 0, 0 }
 	self.ContactStates = self.ContactStates or { false, false, false, false }
@@ -86,7 +123,7 @@ function TRAIN_SYSTEM:Think()
 		end
 	end
 
-
+	-- Non-metrostroi maps
 	if (not (GetConVarNumber("metrostroi_train_requirethirdrail") > 0)) or 
 	   (not Metrostroi.MapHasFullSupport()) then
 		self.Main750V = 750

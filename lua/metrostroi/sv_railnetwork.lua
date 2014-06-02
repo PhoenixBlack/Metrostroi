@@ -868,7 +868,7 @@ concommand.Add("metrostroi_pos_info", function(ply, _, args)
 end)
 
 concommand.Add("metrostroi_track_main", function(ply, _, args)
-	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
+	if (not ply:IsValid()) then return end
 	
 	-- Trigger all track switches
 	local results = Metrostroi.GetPositionOnTrack(ply:GetPos(),ply:GetAimVector():Angle())
@@ -882,7 +882,7 @@ concommand.Add("metrostroi_track_main", function(ply, _, args)
 end)
 
 concommand.Add("metrostroi_track_alt", function(ply, _, args)
-	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
+	if (not ply:IsValid()) then return end
 
 	-- Trigger all track switches
 	local results = Metrostroi.GetPositionOnTrack(ply:GetPos(),ply:GetAimVector():Angle())
