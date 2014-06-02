@@ -48,6 +48,8 @@ function TRAIN_SYSTEM:Initialize()
 	self.T2 = 25
 	self.P1 = 0
 	self.P2 = 0
+	self.Overheat1 = 0
+	self.Overheat2 = 0
 	
 	-- Need many iterations for engine simulation to converge
 	self.SubIterations = 16
@@ -66,6 +68,7 @@ function TRAIN_SYSTEM:Outputs()
 			 "Ustator13","Ustator24","Ishunt13","Istator13","Ishunt24","Istator24",
 			 "Uanchor13","Uanchor24","U13","U24","Utotal",
 			 "T1", "T2", "P1", "P2",
+			 "Overheat1","Overheat2",
 			 "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V" }
 end
 
@@ -248,6 +251,10 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.P2 = (self.IR2^2)*self.R2
 	self.T1 = self.T1 + self.P1*K*dT - (self.T1-25)*H*dT
 	self.T2 = self.T2 + self.P2*K*dT - (self.T2-25)*H*dT
+	self.Overheat1 = math.min(1-1e-12,
+		self.Overheat1 + math.max(0,(math.max(0,self.T1-750.0)/600.0)^2)*dT )
+	self.Overheat2 = math.min(1-1e-12,
+		self.Overheat2 + math.max(0,(math.max(0,self.T2-750.0)/600.0)^2)*dT )
 end
 
 
