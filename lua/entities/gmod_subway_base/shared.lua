@@ -89,8 +89,11 @@ function ENT:InitializeSounds()
 	self.SoundNames["horn1_end"] 	= "subway_trains/horn_2.wav"
 	self.SoundNames["horn2"] 		= "subway_trains/horn_3.wav"
 	self.SoundNames["horn2_end"] 	= "subway_trains/horn_4a.wav"
+	self.SoundNames["horn3"] 		= "subway_trains/horn_5.wav"
+	self.SoundNames["horn3_end"] 	= "subway_trains/horn_6.wav"
 	self.SoundPositions["horn1"]	= "cabin"
 	self.SoundPositions["horn2"]	= "cabin"
+	self.SoundPositions["horn3"]	= "cabin"
 	
 	self.SoundNames["ring"]			= "subway_trains/ring_1.wav"
 	self.SoundNames["ring_end"]		= "subway_trains/ring_2.wav"
@@ -121,6 +124,8 @@ function ENT:InitializeSounds()
 		"subway_trains/pneumo_4.wav",
 		"subway_trains/pneumo_5.wav",
 	}
+	self.SoundNames["pneumo_reverser"] = "subway_trains/pneumo_6.wav"
+	self.SoundNames["pneumo_switch_on"] = "subway_trains/pneumo_7.wav"
 	
 	self.SoundNames["door_close1"] = {
 		"subway_trains/door_close_2.wav",

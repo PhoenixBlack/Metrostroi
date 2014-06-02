@@ -40,7 +40,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- Стоп-реле (СР1)
 	self.Train:LoadSystem("SR1","Relay","RM3000")
 	-- Реле контроля реверсоров
-	self.Train:LoadSystem("RKR","Relay","RM3000")
+	self.Train:LoadSystem("RKR","Relay","RM3000",{ rkr = true })
 	-- Реле ускорения, торможения (РУТ)
 	self.Train:LoadSystem("RUT","Relay","R-52B")
 	
