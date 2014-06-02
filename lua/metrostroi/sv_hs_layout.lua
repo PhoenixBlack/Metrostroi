@@ -844,4 +844,6 @@ Metrostroi.TrainHighspeedInterface = {
 { 842, "Electric", "U13" },
 { 843, "Electric", "U24" },
 { 844, "Electric", "Utotal" },
+{ 845, "Electric", "Overheat1" },
+{ 846, "Electric", "Overheat2" },
 }

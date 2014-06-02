@@ -39,36 +39,38 @@ function TRAIN_SYSTEM:Initialize()
 		["L40-L63"]	= 1.000,
 	}
 	self.ResistorTemperatures = {
-		["P3-P4"]	= "T1",
-		["P4-P5"]	= "T1",
-		["P5-P6"]	= "T1",
-		["P6-P7"]	= "T1",
-		["P7-P8"]	= "T1",
-		["P8-P9"]	= "T1",
-		["P9-P10"]	= "T1",
-		["P10-P11"]	= "T1",
-		["P11-P12"]	= "T1",
-		["P12-P13"]	= "T1",
-		["P1-P3"]	= "T1",
-		["P3-P14"]	= "T1",
-		["P13-P42"]	= "T1",
+		["P3-P4"]	= 1,
+		["P4-P5"]	= 1,
+		["P5-P6"]	= 1,
+		["P6-P7"]	= 1,
+		["P7-P8"]	= 1,
+		["P8-P9"]	= 1,
+		["P9-P10"]	= 1,
+		["P10-P11"]	= 1,
+		["P11-P12"]	= 1,
+		["P12-P13"]	= 1,
+		["P1-P3"]	= 1,
+		["P3-P14"]	= 1,
+		["P13-P42"]	= 1,
 		
-		["P16-P17"]	= "T2",
-		["P17-P18"]	= "T2",
-		["P18-P19"]	= "T2",
-		["P19-P20"]	= "T2",
-		["P20-P21"]	= "T2",
-		["P21-P22"]	= "T2",
-		["P22-P23"]	= "T2",
-		["P23-P24"]	= "T2",
-		["P24-P25"]	= "T2",
-		["P25-P26"]	= "T2",
-		["P17-P76"]	= "T2",
-		["P76-P27"]	= "T2",
+		["P16-P17"]	= 2,
+		["P17-P18"]	= 2,
+		["P18-P19"]	= 2,
+		["P19-P20"]	= 2,
+		["P20-P21"]	= 2,
+		["P21-P22"]	= 2,
+		["P22-P23"]	= 2,
+		["P23-P24"]	= 2,
+		["P24-P25"]	= 2,
+		["P25-P26"]	= 2,
+		["P17-P76"]	= 2,
+		["P76-P27"]	= 2,
 	}
+	self.Overheating = {}
 	
 	for k,v in pairs(self.Resistors) do
 		self[k] = v
+		self.Overheating[k] = 0
 	end
 end
 
@@ -79,9 +81,12 @@ function TRAIN_SYSTEM:Think(dT)
 	-- Update resistances
 	if self.Train.Electric then
 		for k,v in pairs(self.ResistorTemperatures) do
-			local T = self.Train.Electric[v] or 25
-			self[k] = self.Resistors[k]+a*(T-25)
-			--print(k,T,self.Resistors[k],self[k])
+			-- Get temperature
+			local T = self.Train.Electric["T"..v] or 25
+			local O = self.Train.Electric["Overheat"..v] or 0
+
+			-- Calculate new resistance
+			self[k] = self.Resistors[k]*(1.0 + a*(T-25) - math.log(1-O))
 		end
 	end
 end
