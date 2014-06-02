@@ -605,9 +605,9 @@ BaseNetwork = {
 	{	"U0a",		"0",		"#I[GreenRP]" }, -- Simulate 10AN wire properly (see addtonodes)
 
 	{	"U0",		"s3",		"DIPon", "Ezh3" },
-	{	"U0",		"s10",		"DIPoff", "Ezh3" },
+	{	"U0",		"s10",		"DIPoff" },
 	{	"s3",		"0",		"#TW[27]", "Ezh3" },
-	{	"s10",		"0",		"#TW[28]", "Ezh3" },
+	{	"s10",		"0",		"#TW[28]" },
 	
 	{	"U0",		"s3",		"BPSNon", "81_717" },
 	{	"s3",		"0",		"#TW[27]", "81_717" },
@@ -751,6 +751,7 @@ BaseNetwork = {
 	{	"C3",		"11B",		"!NR" },
 	{	"11B",		"0",		"#I[Ring]" },
 	{	"27A",		"11B",		"1", "Ezh3" },
+	{	"TW[28]",	"11B",		"1", "81_717" },
 	
 	{	"TW[23]",	"23A",		"A23" },
 	{	"23A",		"22A",		"1" },
