@@ -12,4 +12,6 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("LK3","Relay","PK-162")
 	-- Линейный контактор (ЛК4)
 	self.Train:LoadSystem("LK4","Relay","PK-162")
+	-- Линейный контактор (ЛК5)
+	self.Train:LoadSystem("LK5","Relay","PK-162")
 end

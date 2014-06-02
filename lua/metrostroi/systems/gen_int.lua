@@ -786,7 +786,7 @@ BaseNetwork = {
 	{	"1E",	"1Ya",	"KSB2" },
 	{	"1Ya",	"1Yu",	"KSB1" },
 	{	"1Yu",	"1L",	"!PS,PT1" },
-	{	"1L",	"1Zh",	"LK2" }, -- Usually LK5
+	{	"1L",	"1Zh",	"LK5" },
 	{	"1G",	"1Zh",	"LK3" },
 		
 	{	"1Zh",	"1K",	"!PS,PP" },
@@ -1068,7 +1068,6 @@ Diodes = {
 	{ "D8", "15A" },
 }
 SpecialTriggers = {
-	"LK5",
 	"KSH1",
 	"KSH2",
 	"KSB1",
@@ -1124,7 +1123,6 @@ Diodes = {
 	{ "12A", "32A" },
 }
 SpecialTriggers = {
-	"LK5",
 	"KPP",
 	"RPvozvrat",
 	"RRTuderzh",
@@ -1229,7 +1227,7 @@ BaseNetwork = {
 	{	"1E",	"1Ya",	"KSB2" },
 	{	"1Ya",	"1Yu",	"KSB1" },
 	{	"1Yu",	"1L",	"!PS,PT1" },
-	{	"1L",	"1Zh",	"LK2" }, -- Usually LK5
+	{	"1L",	"1Zh",	"LK5" },
 	{	"1G",	"1Zh",	"LK3" },
 		
 	{	"1Zh",	"1K",	"!PS,PP" },
@@ -1484,7 +1482,6 @@ Diodes = {
 	{ "12A", "32A" },
 }
 SpecialTriggers = {
-	"LK5",
 	"KPP",
 	"RPvozvrat",
 	"RRTuderzh",

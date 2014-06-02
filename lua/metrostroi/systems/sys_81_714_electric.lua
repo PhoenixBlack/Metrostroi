@@ -69,6 +69,7 @@ end
 function TRAIN_SYSTEM:Outputs()
 	return { "R1","R2","R3","Rs1","Rs2","Itotal","I13","I24","IRT2",
 			 "Ustator13","Ustator24","Ishunt13","Istator13","Ishunt24","Istator24",
+			 "Uanchor13","Uanchor24","U13","U24","Utotal",
 			 "T1", "T2", "P1", "P2",
 			 "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V",
 			 "ThyristorResistance", "ThyristorState" }
@@ -124,7 +125,6 @@ end
 function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 	local SDRK_Shunt = 1.0
 	self.Triggers = { -- FIXME
-		["LK5"]			= function(V) end,
 		["KPP"]			= function(V) Train.KPP:TriggerInput("Close",V) end,
 
 		["RPvozvrat"]	= function(V) Train.RPvozvrat:TriggerInput("Open",V) end,
@@ -155,7 +155,7 @@ end
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 	-- General state
-	local Active = ((Train.KSB1.Value > 0) or (Train.KSB2.Value > 0)) and (Train.LK2.Value == 1.0)
+	local Active = ((Train.KSB1.Value > 0) or (Train.KSB2.Value > 0)) and (Train.LK5.Value == 1.0)
 	local Current = math.abs(self.Itotal)
 	local PrevCurrent = self.ThyristorPrevCurrent or Current
 	self.ThyristorPrevCurrent = Current
@@ -220,8 +220,9 @@ end
 
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
-	-- Ослабление резистором Л1-Л2
-	self.ExtraResistance = (1-Train.LK2.Value) * Train.KF_47A["L2-L4"]
+	-- Ослабление резистором Л1-Л2, Л12-Л13
+	self.ExtraResistanceLK5 = Train.KF_47A["L2-L4"  ]*(1-Train.LK5.Value)
+	self.ExtraResistanceLK2 = Train.KF_47A["L12-L13"]*(1-Train.LK2.Value)
 	
 	-- Вычисление сопротивления в резисторах реостатного контроллера
 	Train.ResistorBlocks.InitializeResistances_81_705(Train)
@@ -269,12 +270,16 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 		self:SolvePT(Train)
 	end
 	
-
+	-- Calculate extra information
+	self.Uanchor13 = self.I13 * self.Ranchor13
+	self.Uanchor24 = self.I24 * self.Ranchor24
 	
+
+
 	----------------------------------------------------------------------------
 	-- Calculate current through stator and shunt
 	self.Ustator13 = self.I13 * self.Rstator13
-	self.Ustator24 = self.I24 * self.Rstator24	
+	self.Ustator24 = self.I24 * self.Rstator24
 	
 	self.Ishunt13  = self.Ustator13 / self.Rs1
 	self.Istator13 = self.Ustator13 / self.Ranchor13 -- FIXME: use stators own resistance
@@ -299,10 +304,12 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_contactor"])
 	
 	-- Calculate power and heating
-	self.P1 = (self.IR1^2) * self.R1
-	self.P2 = (self.IR2^2) * self.R2
-	self.T1 = self.T1 + self.P1 * 2e-4 * dT - (self.T1 - 25)*0.0002
-	self.T2 = self.T2 + self.P2 * 2e-4 * dT - (self.T2 - 25)*0.0002
+	local K = 12.0*1e-5 * 6.0
+	local H = (10.00+(5.00*Train.Engines.Speed/80.0))*1e-3
+	self.P1 = (self.IR1^2)*self.R1
+	self.P2 = (self.IR2^2)*self.R2
+	self.T1 = self.T1 + self.P1*K*dT - (self.T1-25)*H*dT
+	self.T2 = self.T2 + self.P2*K*dT - (self.T2-25)*H*dT
 end
 
 
@@ -312,17 +319,17 @@ end
 function TRAIN_SYSTEM:SolvePS(Train)
 	-- Calculate total resistance of the entire series circuit
 	local Rtotal = self.Ranchor13 + self.Ranchor24 + self.Rstator13 + self.Rstator24 +
-		self.R1 + self.R2 + self.R3
+		self.R1 + self.R2 + self.R3 + self.ExtraResistanceLK5
 		
 	-- Calculate total current
-	self.Itotal = (self.Power750V - Train.Engines.E13 - Train.Engines.E24) / Rtotal
-	
-	-- Circuit must be closed
-	if Train.LK1.Value == 0.0 then self.Itotal = 0 end
+	self.Utotal = (self.Power750V - Train.Engines.E13 - Train.Engines.E24)*Train.LK1.Value
+	self.Itotal = self.Utotal / Rtotal
 	
 	-- Calculate current through engines 13, 24
 	self.I13 = self.Itotal
 	self.I24 = self.Itotal
+	self.U13 = self.Utotal / 2
+	self.U24 = self.Utotal / 2
 end
 
 function TRAIN_SYSTEM:SolvePP(Train,inTransition)
@@ -330,29 +337,32 @@ function TRAIN_SYSTEM:SolvePP(Train,inTransition)
 	local extraR = inTransition and 0.909 or 0.00
 	
 	-- Calculate total resistance of each branch
-	local Rtotal13 = self.Ranchor13 + self.Rstator13 + self.R1 + extraR
-	local Rtotal24 = self.Ranchor24 + self.Rstator24 + self.R2 + extraR
+	local Rtotal13 = self.Ranchor13 + self.Rstator13 + self.R1 + extraR + self.ExtraResistanceLK5
+	local Rtotal24 = self.Ranchor24 + self.Rstator24 + self.R2 + extraR + self.ExtraResistanceLK5
 	
 	-- Calculate current through engines 13, 24
-	self.I13 = (self.Power750V - Train.Engines.E13) / Rtotal13
-	self.I24 = (self.Power750V - Train.Engines.E24) / Rtotal24
-	
-	-- Circuit must be closed
-	if Train.LK1.Value == 0.0 then self.I13,self.I24 = 0,0 end
+	self.U13 = (self.Power750V - Train.Engines.E13)*Train.LK1.Value
+	self.U24 = (self.Power750V - Train.Engines.E24)*Train.LK1.Value
+	self.I13 = self.U13 / Rtotal13
+	self.I24 = self.U24 / Rtotal24
 	
 	-- Calculate total current
+	self.Utotal = (self.U13 + self.U24)/2
 	self.Itotal = self.I13 + self.I24
 end
 
 function TRAIN_SYSTEM:SolvePT(Train)
 	-- Calculate total resistance of the entire braking circuit
 	local Rtotal = self.Ranchor13 + self.Ranchor24 + self.Rstator13 + self.Rstator24 +
-		self.R1 + self.R2 + self.R3
+		self.R1 + self.R2 + self.R3 + self.ExtraResistanceLK2
 	
 	-- Calculate total current
-	self.Itotal = (self.Power750V*Train.LK1.Value - 0.5*(Train.Engines.E13+Train.Engines.E24)) / Rtotal
+	self.Utotal = self.Power750V*Train.LK1.Value - 0.5*(Train.Engines.E13+Train.Engines.E24)
+	self.Itotal = self.Utotal / Rtotal
 	
 	-- Calculate current through engines 13, 24
+	self.U13 = self.Utotal
+	self.U24 = self.Utotal
 	self.I13 = self.Itotal / 2
 	self.I24 = self.Itotal / 2
 end

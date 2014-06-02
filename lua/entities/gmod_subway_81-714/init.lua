@@ -106,6 +106,21 @@ function ENT:Think()
 	
 	self.Electric:TriggerInput("TrainMode",1)
 
+	-- Interior/cabin lights
+--	self:SetLightPower(10, (self.Panel["CabinLight"] > 0.5))
+	self:SetLightPower(12, self.PowerSupply.XT3_4 > 65.0)
+--	self:SetLightPower(13, self.PowerSupply.XT3_4 > 65.0)
+	
+	-- Side lights
+	self:SetLightPower(15, self.Panel["TrainDoors"] > 0.5)
+	self:SetLightPower(19, self.Panel["TrainDoors"] > 0.5)
+	
+	self:SetLightPower(16, self.Panel["GreenRP"] > 0.5)
+	self:SetLightPower(20, self.Panel["GreenRP"] > 0.5)
+	
+	self:SetLightPower(17, self.Panel["TrainBrakes"] > 0.5)
+	self:SetLightPower(21, self.Panel["TrainBrakes"] > 0.5)
+
 	-- Switch and button states
 	self:SetPackedBool(0,self:IsWrenchPresent())
 	self:SetPackedBool(5,self.GV.Value == 1.0)
