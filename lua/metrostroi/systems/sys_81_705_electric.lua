@@ -245,16 +245,16 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_contactor"])
 	
 	-- Calculate power and heating
-	local K = 12.0*1e-5 * 6.0
+	local K = 12.0*1e-5 * 4.0
 	local H = (10.00+(5.00*Train.Engines.Speed/80.0))*1e-3
 	self.P1 = (self.IR1^2)*self.R1
 	self.P2 = (self.IR2^2)*self.R2
 	self.T1 = self.T1 + self.P1*K*dT - (self.T1-25)*H*dT
 	self.T2 = self.T2 + self.P2*K*dT - (self.T2-25)*H*dT
 	self.Overheat1 = math.min(1-1e-12,
-		self.Overheat1 + math.max(0,(math.max(0,self.T1-750.0)/600.0)^2)*dT )
+		self.Overheat1 + math.max(0,(math.max(0,self.T1-750.0)/400.0)^2)*dT )
 	self.Overheat2 = math.min(1-1e-12,
-		self.Overheat2 + math.max(0,(math.max(0,self.T2-750.0)/600.0)^2)*dT )
+		self.Overheat2 + math.max(0,(math.max(0,self.T2-750.0)/400.0)^2)*dT )
 end
 
 
