@@ -161,7 +161,30 @@
 	
 	<p>These eight variables are located at offset <kbd>57344 + (lineID-1)*800 + stationID*8</kbd>, where for example for station 216 (line 2, station #16) the offset would be <kbd>57344 + 1*800 + 16*8 = 58272</kbd></p>
 	
+	<p>There is also information about current schedule. <b>All times are in seconds</b>. Each entry in the schedule is:</p>
 	<table class="listing">
+	<tr><td><kbd>0</kbd></td><td>Arrival station</td></tr>
+	<tr><td><kbd>1</kbd></td><td>Arrival platform</td></tr>
+	<tr><td><kbd>2</kbd></td><td>Departure time</td></tr>
+	<tr><td><kbd>3</kbd></td><td>Arrival time</td></tr>
+	</table>
+	
+	<p>All entries are located at offset <kbd>49152+64 + entryID*4</kbd>. All times in the schedules are in seconds, starting from midnight.</p>
+
+	<table class="listing">
+	<tr><td><kbd>49152</kbd></td><td>Number of entries in schedule</td></tr>
+	<tr><td><kbd>49153</kbd></td><td>Schedule ID</td></tr>
+	<tr><td><kbd>49154</kbd></td><td>Schedule interval</td></tr>
+	<tr><td><kbd>49155</kbd></td><td>Schedule duration</td></tr>
+	<tr><td><kbd>49156</kbd></td><td>Start station</td></tr>
+	<tr><td><kbd>49157</kbd></td><td>End station</td></tr>
+	<tr><td><kbd>49158</kbd></td><td>Schedule start time</td></tr>
+	<tr><td><kbd>49159</kbd></td><td>Schedule end time</td></tr>
+	<tr><td><kbd>49160</kbd></td><td>Current station ID</td></tr>
+	<tr><td><kbd>49161</kbd></td><td>Next station ID</td></tr>
+	<tr><td><kbd>49162</kbd></td><td>Previous station ID</td></tr>
+	<tr><td><kbd>49163</kbd></td><td>Distance to next station</td></tr>
+	
 	<tr><td><kbd>65504</kbd></td><td>Train position (X - offset from line start)</td></tr>
 	<tr><td><kbd>65505</kbd></td><td>Train position (Y - horizontal offset from track)</td></tr>
 	<tr><td><kbd>65506</kbd></td><td>Train position (Z - vertical offset from track)</td></tr>
@@ -1051,6 +1074,15 @@
 	<tr><td><kbd>961</kbd></td><td>VozvratRP.Toggle                     </td></tr>
 	<tr><td><kbd>962</kbd></td><td>VozvratRP.Value                      </td></tr>
 	<tr><td><kbd>963</kbd></td><td>YAR_13A.WeightLoadRatio              </td></tr>
+	<tr><td><kbd>964</kbd></td><td>Electric.ThyristorResistance         </td></tr>
+	<tr><td><kbd>965</kbd></td><td>Electric.ThyristorState              </td></tr>
+	<tr><td><kbd>966</kbd></td><td>RheostatController.RKM2              </td></tr>
+	<tr><td><kbd>967</kbd></td><td>PositionSwitch.RKM2                  </td></tr>
+	<tr><td><kbd>968</kbd></td><td>Electric.Uanchor13                   </td></tr>
+	<tr><td><kbd>969</kbd></td><td>Electric.Uanchor24                   </td></tr>
+	<tr><td><kbd>970</kbd></td><td>Electric.U13                         </td></tr>
+	<tr><td><kbd>971</kbd></td><td>Electric.U24                         </td></tr>
+	<tr><td><kbd>972</kbd></td><td>Electric.Utotal                      </td></tr>
 	</table>
 
 </article>
