@@ -127,6 +127,17 @@ function ENT:InitializeSounds()
 	self.SoundNames["pneumo_reverser"] = "subway_trains/pneumo_6.wav"
 	self.SoundNames["pneumo_switch_on"] = "subway_trains/pneumo_7.wav"
 	
+	self.SoundNames["relay_open"] = {
+		"subway_trains/relay_1.wav",
+	}
+	self.SoundNames["relay_close"] = {
+		"subway_trains/relay_2.wav",
+		"subway_trains/relay_3.wav",
+	}
+	self.SoundNames["relay_close2"] = {
+		"subway_trains/relay_4.wav",
+		"subway_trains/relay_5.wav",
+	}
 	self.SoundNames["door_close1"] = {
 		"subway_trains/door_close_2.wav",
 		"subway_trains/door_close_3.wav",

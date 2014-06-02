@@ -180,14 +180,12 @@ function TRAIN_SYSTEM:Think(dT)
 		FailSim.Age(self,1)
 
 		-- Electropneumatic relays make this sound
-		if self.pneumatic and (self.Value == 0.0) then
-			self.Train:PlayOnce("pneumo_switch",nil,0.6)
-		end
-		if self.pneumatic and (self.Value == 1.0) then
-			self.Train:PlayOnce("pneumo_switch_on",nil,0.6)
-		end
-		if self.rkr then
-			self.Train:PlayOnce("pneumo_reverser",nil,0.9)
-		end
+		if self.pneumatic and (self.Value == 0.0) then		self.Train:PlayOnce("pneumo_switch",nil,0.6)		end
+		if self.pneumatic and (self.Value == 1.0) then		self.Train:PlayOnce("pneumo_switch_on",nil,0.55)	end
+		if self.rkr then									self.Train:PlayOnce("pneumo_reverser",nil,0.9)		end
+		if self.in_cabin and (self.Value == 0.0) then		self.Train:PlayOnce("relay_open","cabin",0.5)		end
+		if self.in_cabin and (self.Value == 1.0) then		self.Train:PlayOnce("relay_close","cabin",0.5)		end
+		if self.in_cabin_alt and (self.Value == 0.0) then	self.Train:PlayOnce("relay_open","cabin",0.5)		end
+		if self.in_cabin_alt and (self.Value == 1.0) then	self.Train:PlayOnce("relay_close2","cabin",0.5)		end
 	end
 end
