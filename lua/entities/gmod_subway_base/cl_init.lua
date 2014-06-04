@@ -818,17 +818,21 @@ hook.Add("CalcView", "Metrostroi_TrainView", function(ply,pos,ang,fov,znear,zfar
 		if trainAng.y >  180 then trainAng.y = trainAng.y - 360 end
 		if trainAng.y < -180 then trainAng.y = trainAng.y + 360 end
 		if trainAng.y > 0 then
+			local target_ang = (train:GetAngles() + Angle(2,-5,0))
+			target_ang:RotateAroundAxis(train:GetAngles():Up(),180)
 			return {
-				origin = train:LocalToWorld(Vector(441,70,34)),
-				angles = train:GetAngles() + Angle(2,-5,0) + Angle(0,180,0),
+				origin = train:LocalToWorld(Vector(441,70,30)),
+				angles = target_ang,
 				fov = 20,
 				znear = znear,
 				zfar = zfar
 			}
 		else
+			local target_ang = (train:GetAngles() + Angle(2,5,0))
+			target_ang:RotateAroundAxis(train:GetAngles():Up(),180)
 			return {
-				origin = train:LocalToWorld(Vector(441,-70,34)),
-				angles = train:GetAngles() + Angle(2,5,0) + Angle(0,180,0),
+				origin = train:LocalToWorld(Vector(441,-70,30)),
+				angles = target_ang,
 				fov = 20,
 				znear = znear,
 				zfar = zfar

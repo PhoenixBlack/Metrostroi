@@ -181,7 +181,7 @@ end
 -- Update list of signal entities and signal positions on track
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateSignalEntities()
-	local options = { z_pad = 512 }
+	local options = { z_pad = 256 }
 	if Metrostroi.IgnoreEntityUpdates then return end
 	Metrostroi.SignalEntitiesForNode = {}
 	

@@ -11,7 +11,7 @@ function ENT:Initialize()
 	self.NominalSignals = 0
 	self.NoNominalSignals = true
 	self.GetNominalSignals = function(self) return self.NominalSignals end
-	timer.Simple(7.0,function()
+	timer.Simple(12.0,function()
 		if IsValid(self) and self.GetActiveSignals then
 			self.NoNominalSignals = false
 			self.NominalSignals = self:GetActiveSignals()
@@ -101,6 +101,7 @@ function ENT:ARSLogic()
 	if pos then node = pos.node1 end
 	if node and pos then
 		self.ARSOffset = pos.x
+		self.ARSPath = pos.path.id
 
 		-- Check if there is a train anywhere on the isolated area
 		local nextARS = Metrostroi.GetARSJoint(node,pos.x,    pos.forward)
@@ -140,14 +141,23 @@ function ENT:ARSLogic()
 		end
 		
 		-- Reset to zero when traffic light is red
-		if nextARS and nextARS:GetRed() then speedLimit = 0 end
+		self.NextRed = false
+		if nextARS and nextARS:GetRed() then
+			self.NextRed = true
+			speedLimit = 0
+		end
+
+		-- Reset to zero when next section is also at zero
+		if nextARS and nextARS.NextRed then
+			speedLimit = 0
+		end
 
 		-- Reset active signals
 		for i=10,15 do self:SetActiveSignalsBit(i,false) end
 
 		-- If speed limit in next section is less, create smooth stop for train
 		if nextARS and ((nextARS.SpeedLimit or 0) < speedLimit) then
-			if nextARS.SpeedLimit ==  0 then speedLimit = 40 self:SetActiveSignalsBit(14,true) end
+			if nextARS.SpeedLimit == 0  then speedLimit = 40 self:SetActiveSignalsBit(14,true) end
 			if nextARS.SpeedLimit == 40 then speedLimit = 60 self:SetActiveSignalsBit(13,true) end
 			if nextARS.SpeedLimit == 60 then speedLimit = 70 self:SetActiveSignalsBit(12,true) end
 			if nextARS.SpeedLimit == 70 then speedLimit = 80 self:SetActiveSignalsBit(11,true) end
