@@ -787,9 +787,9 @@ hook.Add("CalcView", "Metrostroi_TrainView", function(ply,pos,ang,fov,znear,zfar
 	local train = seat:GetNWEntity("TrainEntity")
 	if (not train) or (not train:IsValid()) then return end
 	
-	local hack = string.find(train:GetClass(),"81")
-	local dy = 0
-	if hack then dy = 3 end
+	--local hack = string.find(train:GetClass(),"81")
+	--local dy = 0
+	--if hack then dy = 3 end
 	
 	--[[-- Get acceleration in the train
 	local headPos = train:WorldToLocal(pos)
@@ -819,7 +819,7 @@ hook.Add("CalcView", "Metrostroi_TrainView", function(ply,pos,ang,fov,znear,zfar
 		if trainAng.y < -180 then trainAng.y = trainAng.y + 360 end
 		if trainAng.y > 0 then
 			return {
-				origin = train:LocalToWorld(Vector(441,70+dy,34)),
+				origin = train:LocalToWorld(Vector(441,70,34)),
 				angles = train:GetAngles() + Angle(2,-5,0) + Angle(0,180,0),
 				fov = 20,
 				znear = znear,
@@ -827,7 +827,7 @@ hook.Add("CalcView", "Metrostroi_TrainView", function(ply,pos,ang,fov,znear,zfar
 			}
 		else
 			return {
-				origin = train:LocalToWorld(Vector(441,-70-dy,34)),
+				origin = train:LocalToWorld(Vector(441,-70,34)),
 				angles = train:GetAngles() + Angle(2,5,0) + Angle(0,180,0),
 				fov = 20,
 				znear = znear,

@@ -34,8 +34,8 @@ function ENT:Initialize()
 	self.ExtraSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
 	
 	-- Create bogeys
-	self.FrontBogey = self:CreateBogey(Vector( 325-20,0,-75),Angle(0,180,0),true)
-	self.RearBogey  = self:CreateBogey(Vector(-325-10,0,-75),Angle(0,0,0),false)
+	self.FrontBogey = self:CreateBogey(Vector( 325-20,0,-80),Angle(0,180,0),true)
+	self.RearBogey  = self:CreateBogey(Vector(-325-10,0,-80),Angle(0,0,0),false)
 	
 	-- Initialize key mapping
 	self.KeyMap = {
@@ -89,7 +89,7 @@ function ENT:Initialize()
 		{	Pos = Vector(154,62.5,-65),
 			Radius = 16,
 			ID = "GVToggle" },
-		{	Pos = Vector(398.0,-56.0,25.0),
+		{	Pos = Vector(398.0,-56.0+1.5,25.0),
 			Radius = 16,
 			ID = "VBToggle" },
 	}
@@ -119,22 +119,26 @@ function ENT:Initialize()
 			--[13] = { "dynamiclight",	Vector(-250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
 			
 			-- Side lights
-			[14] = { "light",			Vector(-50, 68, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[15] = { "light",			Vector(4,   68, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[16] = { "light",			Vector(1,   68, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[17] = { "light",			Vector(-2,  68, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[14] = { "light",			Vector(-50, 68, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[15] = { "light",			Vector(4,   68, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[16] = { "light",			Vector(1,   68, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[17] = { "light",			Vector(-2,  68, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 			
-			[18] = { "light",			Vector(-50, -69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[19] = { "light",			Vector(5,   -69, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[20] = { "light",			Vector(2,   -69, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[21] = { "light",			Vector(-1,  -69, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[18] = { "light",			Vector(-50, -69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[19] = { "light",			Vector(5,   -69, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[20] = { "light",			Vector(2,   -69, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[21] = { "light",			Vector(-1,  -69, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 
 			-- Green RP
-			[22] = { "light",			Vector(439.8,12.5-9.6,-6.1), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
+			[22] = { "light",			Vector(439.8,12.5+1.5-9.6,-6.1), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
 			-- AVU
-			[23] = { "light",			Vector(441.6,12.5-20.3,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[23] = { "light",			Vector(441.6,12.5+1.5-20.3,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 			-- LKTP
-			[24] = { "light",			Vector(441.6,12.5-23.0,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[24] = { "light",			Vector(441.6,12.5+1.5-23.0,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			-- Pneumatic brake
+			[25] = { "light",			Vector(438.7,-26.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			-- Cabin heating
+			[26] = { "light",			Vector(438.7,-21.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 		}
 	else
 		self.Lights = {
@@ -160,22 +164,26 @@ function ENT:Initialize()
 			--[13] = { "dynamiclight",	Vector(-250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
 			
 			-- Side lights
-			[14] = { "light",			Vector(-50, 68, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[15] = { "light",			Vector(4,   68, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[16] = { "light",			Vector(1,   68, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[17] = { "light",			Vector(-2,  68, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[14] = { "light",			Vector(-50, 68, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[15] = { "light",			Vector(4,   68, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[16] = { "light",			Vector(1,   68, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[17] = { "light",			Vector(-2,  68, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 			
-			[18] = { "light",			Vector(-50, -69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[19] = { "light",			Vector(5,   -69, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[20] = { "light",			Vector(2,   -69, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-			[21] = { "light",			Vector(-1,  -69, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[18] = { "light",			Vector(-50, -69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[19] = { "light",			Vector(5,   -69, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[20] = { "light",			Vector(2,   -69, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+			[21] = { "light",			Vector(-1,  -69, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 			
 			-- Green RP
-			[22] = { "light",			Vector(439.8,12.5-9.6,-6.1), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
+			[22] = { "light",			Vector(439.8,12.5+1.5-9.6,-6.1), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
 			-- AVU
-			[23] = { "light",			Vector(441.6,12.5-20.3,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[23] = { "light",			Vector(441.6,12.5+1.5-20.3,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 			-- LKTP
-			[24] = { "light",			Vector(441.6,12.5-23.0,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[24] = { "light",			Vector(441.6,12.5+1.5-23.0,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			-- Pneumatic brake
+			[25] = { "light",			Vector(438.7,-26.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			-- Cabin heating
+			[26] = { "light",			Vector(438.7,-21.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 		}
 	end
 	
@@ -208,6 +216,10 @@ function ENT:Think()
 
 	-- Check if wrench was pulled out
 	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end
+	
+	-- TEST
+	--self:SetLightPower(25,(CurTime() % 0.5) > 0.1)
+	--self:SetLightPower(26,(CurTime() % 0.5) > 0.1)
 
 	-- Headlights
 	local brightness = (math.min(1,self.Panel["HeadLights1"])*0.50 + 
@@ -241,6 +253,7 @@ function ENT:Think()
 	
 	self:SetLightPower(17, self.Panel["TrainBrakes"] > 0.5)
 	self:SetLightPower(21, self.Panel["TrainBrakes"] > 0.5)
+	self:SetLightPower(25, self.Panel["TrainBrakes"] > 0.5)
 	
 	-- Switch and button states
 	self:SetPackedBool(0,self:IsWrenchPresent())
@@ -309,7 +322,8 @@ function ENT:Think()
 	self:SetPackedBool(36,self.Panel["GreenRP"] > 0.5)
 	self:SetLightPower(22,self.Panel["GreenRP"] > 0.5)
 	-- Cabin heating
-	self:SetPackedBool(37,self.Panel["KUP"] > 0.5)	
+	self:SetPackedBool(37,self.Panel["KUP"] > 0.5)
+	self:SetLightPower(26,self.Panel["KUP"] > 0.5)
 	-- AVU
 	self:SetPackedBool(38,self.Panel["AVU"] > 0.5)
 	self:SetLightPower(23,self.Panel["AVU"] > 0.5)
@@ -401,6 +415,15 @@ function ENT:Think()
 	-- Temporary hacks
 	self:SetNWFloat("V",self.Speed)
 	self:SetNWFloat("A",self.Acceleration)
+	
+        for i=1,32 do
+		self.DebugVars["TW"..i] = self:ReadTrainWire(i)
+	end
+	for k,v in pairs(self.Systems) do
+		for _,output in pairs(v.OutputsList) do
+			self.DebugVars[(v.Name or "")..output] = v[output] or 0
+		end
+	end
 
 	-- Send networked variables
 	self:SendPackedData()

@@ -97,7 +97,7 @@ function erf(x)
     return sign*y
 end
 local function CDF(x,x0,sigma) return 0.5 * (1 + erf((x - x0)/math.sqrt(2*sigma^2))) end
-local function merge(t1,t2) for k,v in pairs(t2) do t1[k] = v end end
+local function merge(t1,t2) for k,v in pairs(t2) do table.insert(t1,v) end end
 
 function ENT:PopulationCount()
 	local totalCount = self.WindowEnd - self.WindowStart
@@ -112,7 +112,7 @@ function ENT:Think()
 	-- Find all potential trains
 	local trains = {}
 	for k,v in pairs(Metrostroi.TrainClasses) do
-		merge(trains,ents.FindByClass(v)) 
+		merge(trains,ents.FindByClass(v))
 	end
 	
 	-- Send update to client
@@ -129,11 +129,13 @@ function ENT:Think()
 	local boardingDoorList = {}
 	for k,v in pairs(trains) do
 		local platform_distance	= ((platformStart-v:GetPos()) - ((platformStart-v:GetPos()):Dot(platformNorm))*platformNorm):Length()
+		local vertical_distance = math.abs(v:GetPos().z - platformStart.z)
 		local train_start		= (v:GetPos() + v:GetAngles():Forward()*480 - platformStart):Dot(platformDir) / (platformDir:Length()^2)
 		local train_end			= (v:GetPos() - v:GetAngles():Forward()*480 - platformStart):Dot(platformDir) / (platformDir:Length()^2)
 		local left_side			= train_start > train_end
 		local doors_open 		= (left_side and v.LeftDoorsOpen) or ((not left_side) and v.RightDoorsOpen)
 		
+		if vertical_distance > 192 then doors_open = false end		
 		if (train_start < 0) and (train_end < 0) then doors_open = false end
 		if (train_start > 1) and (train_end > 1) then doors_open = false end
 		
@@ -198,17 +200,21 @@ function ENT:Think()
 	
 	-- Add passengers
 	if (not self.PlatformLast) and (#boardingDoorList == 0) then
-		local target = 50*self.PopularityIndex --300
+		local target = GetConVarNumber("metrostroi_passengers_scale",50)*self.PopularityIndex --300
 		
-		local growthDelta = math.max(0,(target-self:PopulationCount())*0.005)
-		if growthDelta < 1.0 then -- Accumulate fractional rate
-			self.GrowthAccumulation = (self.GrowthAccumulation or 0) + growthDelta
-			if self.GrowthAccumulation > 1.0 then
-				growthDelta = 1
-				self.GrowthAccumulation = self.GrowthAccumulation - 1.0
+		if target <= 0 then
+			self.WindowEnd = self.WindowStart
+		else
+			local growthDelta = math.max(0,(target-self:PopulationCount())*0.005)
+			if growthDelta < 1.0 then -- Accumulate fractional rate
+				self.GrowthAccumulation = (self.GrowthAccumulation or 0) + growthDelta
+				if self.GrowthAccumulation > 1.0 then
+					growthDelta = 1
+					self.GrowthAccumulation = self.GrowthAccumulation - 1.0
+				end
 			end
+			self.WindowEnd = (self.WindowEnd + math.floor(growthDelta+0.5)) % self:PoolSize()
 		end
-		self.WindowEnd = (self.WindowEnd + math.floor(growthDelta+0.5)) % self:PoolSize()
 	end
 	
 	-- Send boarding list FIXME make this nicer
