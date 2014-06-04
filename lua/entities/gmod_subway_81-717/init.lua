@@ -23,9 +23,9 @@ function ENT:Initialize()
 	self:SetPos(self:GetPos() + Vector(0,0,140))
 	
 	-- Create seat entities
-	self.DriverSeat = self:CreateSeat("driver",Vector(410,-2,-23))
-	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28))
-	self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-35,-28))
+	self.DriverSeat = self:CreateSeat("driver",Vector(410,0,-23))
+	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,37,-28))
+	self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-33,-28))
 
 	-- Hide seats
 	self.DriverSeat:SetColor(Color(0,0,0,0))
