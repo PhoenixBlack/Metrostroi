@@ -9,9 +9,11 @@ function ENT:Initialize()
 	
 	-- Setup nominal signals (give it few seconds to establish)
 	self.NominalSignals = 0
+	self.NoNominalSignals = true
 	self.GetNominalSignals = function(self) return self.NominalSignals end
 	timer.Simple(7.0,function()
 		if IsValid(self) and self.GetActiveSignals then
+			self.NoNominalSignals = false
 			self.NominalSignals = self:GetActiveSignals()
 		end
 	end)
@@ -64,20 +66,25 @@ function ENT:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 	-- Red if track occupied, switch section is blocked (occupied), or always red
 	self:SetRed(trackOccupied or switchBlocked or self:GetAlwaysRed())
 	
+	-- Use normal logic or ARS-only logic
+	self:SetBlue(self.ARSOnly and not (self:GetRed()))
+	local blueLight = self.ARSOnly and 
+		(self:GetTrafficLightsBit(3) or self:GetTrafficLightsBit(7) or self.ARSNoGreen)
+	
 	-- Yellow if next light is red or switch set to alternate
-	self:SetYellow(nextRed or switchAlternate)
+	self:SetYellow((nextRed and (not blueLight)) or switchAlternate)
 	-- Second yellow is switch set to alternate and not red
 	self:SetSecondYellow(switchAlternate and (not self:GetRed()))
 	
 	-- Green if not alternate path selected and not red
-	self:SetGreen(not (self:GetRed() or switchAlternate) )
+	self:SetGreen( not (self:GetRed() or switchBlocked or blueLight) )
 	
 	-- Mirror green with yellow, if signal does not have green on it
 	--[[if not (
-		self:GetTrafficLightsBit(0) or
-		self:GetTrafficLightsBit(2) or
-		self:GetTrafficLightsBit(7) or
-		self:GetTrafficLightsBit(8)) then
+		self:GetTrafficLightsBit(1) or
+		self:GetTrafficLightsBit(3) or
+		self:GetTrafficLightsBit(6) or
+		self:GetTrafficLightsBit(7)) then
 		self:SetYellow(self:GetGreen())
 	end]]--
 end
@@ -99,7 +106,7 @@ function ENT:ARSLogic()
 		local nextARS = Metrostroi.GetARSJoint(node,pos.x,    pos.forward)
 		local prevARS = Metrostroi.GetARSJoint(node,pos.x,not pos.forward)
 
-		-- Default ARS signals
+		-- Get nominal ARS signals
 		local ARS80 = self:GetSettingsBit(0)
 		local ARS70 = self:GetSettingsBit(1)
 		local ARS60 = self:GetSettingsBit(2)
@@ -107,74 +114,67 @@ function ENT:ARSLogic()
 		local ARS0  = self:GetSettingsBit(4)
 		local ARSsp = self:GetSettingsBit(5)
 		
-		-- Reset to zero when traffic light is red
-		if nextARS and nextARS:GetRed() then
-			ARS80 = false
-			ARS70 = false
-			ARS60 = false
-			ARS40 = false
-			ARS0 = true
+		local ARSdata = true
+		if not (ARS80 or ARS70 or ARS60 or ARS40 or ARS0 or ARSsp) then -- Section without nominal values
+			if self.NoNominalSignals == false then
+				ARS0 = self:GetNominalSignalsBit(14)
+				ARS40 = self:GetNominalSignalsBit(13)
+				ARS60 = self:GetNominalSignalsBit(12)
+				ARS70 = self:GetNominalSignalsBit(11)
+				ARS80 = self:GetNominalSignalsBit(10)
+			else
+				ARSdata = false
+			end
 		end
+		
+		-- Get default ARS speed limit
+		local speedLimit = 0
+		if ARS40 then speedLimit = 40 end
+		if ARS60 then speedLimit = 60 end
+		if ARS70 then speedLimit = 70 end
+		if ARS80 then speedLimit = 80 end
+		
+		-- If ARS data is invalid, use next speed limit
+		if (not ARSdata) and prevARS then
+			speedLimit = prevARS.SpeedLimit or 0
+		end
+		
+		-- Reset to zero when traffic light is red
+		if nextARS and nextARS:GetRed() then speedLimit = 0 end
 
-		-- Previous section feeds signals to this section
+		-- Reset active signals
 		for i=10,15 do self:SetActiveSignalsBit(i,false) end
 
-		-- Does this section have default set of signals defined
-		local speedLimit = self.SpeedLimit
-		if ARS80 or ARS70 or ARS60 or ARS40 or ARS0 or ARSsp then
-			self:SetActiveSignalsBit(10,ARS80)
-			self:SetActiveSignalsBit(11,ARS70)
-			self:SetActiveSignalsBit(12,ARS60)
-			self:SetActiveSignalsBit(13,ARS40)
-			self:SetActiveSignalsBit(14,ARS0)
-			self:SetActiveSignalsBit(15,ARSsp)
-		elseif prevARS then			
-			-- Read speed limit from previous section
-			speedLimit = prevARS.SpeedLimit or 0
-			
-			-- If speed limit in next section is less, create smooth stop for train
-			if nextARS and ((nextARS.SpeedLimit or 0) < speedLimit) then
-				if nextARS.SpeedLimit ==  0 then speedLimit = 40 end
-				if nextARS.SpeedLimit == 40 then speedLimit = 60 end
-				if nextARS.SpeedLimit == 60 then speedLimit = 70 end
-				if nextARS.SpeedLimit == 70 then speedLimit = 80 end
-			end
-			
-			-- Create signal based on new target speed limit
-			if speedLimit ==  0 then self:SetActiveSignalsBit(14,true) end
-			if speedLimit == 40 then self:SetActiveSignalsBit(13,true) end
-			if speedLimit == 60 then self:SetActiveSignalsBit(12,true) end
-			if speedLimit == 70 then self:SetActiveSignalsBit(11,true) end
-			if speedLimit == 80 then self:SetActiveSignalsBit(10,true) end
-		else
-			-- No signals: error
-			for i=10,15 do self:SetActiveSignalsBit(i,false) end
+		-- If speed limit in next section is less, create smooth stop for train
+		if nextARS and ((nextARS.SpeedLimit or 0) < speedLimit) then
+			if nextARS.SpeedLimit ==  0 then speedLimit = 40 self:SetActiveSignalsBit(14,true) end
+			if nextARS.SpeedLimit == 40 then speedLimit = 60 self:SetActiveSignalsBit(13,true) end
+			if nextARS.SpeedLimit == 60 then speedLimit = 70 self:SetActiveSignalsBit(12,true) end
+			if nextARS.SpeedLimit == 70 then speedLimit = 80 self:SetActiveSignalsBit(11,true) end
 		end
-
-		-- Add signal about next speed limit
-		if nextARS and ((nextARS.SpeedLimit or 0) < (speedLimit or 0)) then
-			if nextARS.SpeedLimit ==  0 then self:SetActiveSignalsBit(14,true) end
-			if nextARS.SpeedLimit == 40 then self:SetActiveSignalsBit(13,true) end
-			if nextARS.SpeedLimit == 60 then self:SetActiveSignalsBit(12,true) end
-			if nextARS.SpeedLimit == 70 then self:SetActiveSignalsBit(11,true) end
-		end
+			
+		-- Create signal based on new target speed limit
+		if speedLimit ==  0 then self:SetActiveSignalsBit(14,true) end
+		if speedLimit == 40 then self:SetActiveSignalsBit(13,true) end
+		if speedLimit == 60 then self:SetActiveSignalsBit(12,true) end
+		if speedLimit == 70 then self:SetActiveSignalsBit(11,true) end
+		if speedLimit == 80 then self:SetActiveSignalsBit(10,true) end
 		
 		-- Generate speed limit in this ARS section
-		self.SpeedLimit = 0
-		if self:GetActiveSignalsBit(13) then self.SpeedLimit = 40 end
-		if self:GetActiveSignalsBit(12) then self.SpeedLimit = 60 end
-		if self:GetActiveSignalsBit(11) then self.SpeedLimit = 70 end
-		if self:GetActiveSignalsBit(10) then self.SpeedLimit = 80 end
-		
-		--self:SetActiveSignalsBit(15,(CurTime() % 2.0) > 1.0)
+		self.SpeedLimit = speedLimit
+		--if self:GetActiveSignalsBit(13) then self.SpeedLimit = 40 end
+		--if self:GetActiveSignalsBit(12) then self.SpeedLimit = 60 end
+		--if self:GetActiveSignalsBit(11) then self.SpeedLimit = 70 end
+		--if self:GetActiveSignalsBit(10) then self.SpeedLimit = 80 end
 	end
 end
 
 function ENT:Think()
-	self.ARSOnly = true
+	self.ARSOnly = GetConVarNumber("metrostroi_arsmode") > 0.5
+	self.ARSNoGreen = GetConVarNumber("metrostroi_arsmode_nogreen") > 0.5
 
 	-- Do no interesting logic if there's no traffic light involved
-	if self:GetTrafficLights() == 0 then
+	if (self:GetTrafficLights() == 0) and (self.ARSOnly == false) then
 		self:ARSLogic()
 		self:NextThink(CurTime() + 1.00)
 		return true
@@ -192,7 +192,7 @@ function ENT:Think()
 		if pos then node = pos.node1 end
 		if node and pos then
 			-- Check if there is a train anywhere on the isolated area
-			local trackOccupied = Metrostroi.IsTrackOccupied(node,pos.x,pos.forward)
+			local trackOccupied = Metrostroi.IsTrackOccupied(node,pos.x,pos.forward,self.ARSOnly and "ars" or "light")
 			local nextLight = Metrostroi.GetNextTrafficLight(node,pos.x,pos.forward)
 			local nextRed = false
 			if nextLight then nextRed = nextLight:GetRed() end

@@ -181,12 +181,13 @@ end
 -- Update list of signal entities and signal positions on track
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateSignalEntities()
+	local options = { z_pad = 512 }
 	if Metrostroi.IgnoreEntityUpdates then return end
 	Metrostroi.SignalEntitiesForNode = {}
 	
 	local entities = ents.FindByClass("gmod_track_signal")
 	for k,v in pairs(entities) do
-		local pos = Metrostroi.GetPositionOnTrack(v:GetPos(),v:GetAngles() - Angle(0,90,0))[1]
+		local pos = Metrostroi.GetPositionOnTrack(v:GetPos(),v:GetAngles() - Angle(0,90,0),options)[1]
 		if pos then -- FIXME make it select proper path
 			Metrostroi.SignalEntitiesForNode[pos.node1] = 
 				Metrostroi.SignalEntitiesForNode[pos.node1] or {}
@@ -196,6 +197,8 @@ function Metrostroi.UpdateSignalEntities()
 			Metrostroi.SignalEntityPositions[v] = pos
 			v.TrackPosition = pos
 			v.TrackX = pos.x
+		--else
+			--print("position not found",k,v)
 		end
 	end	
 end
@@ -258,7 +261,7 @@ function Metrostroi.UpdateARSSections()
 	Metrostroi.ARSSubSectionCount = 0
 
 	print("Metrostroi: Updating ARS subsections...")
-	Metrostroi.IgnoreEntityUpdates = false
+	Metrostroi.IgnoreEntityUpdates = true
 	for k,v in pairs(Metrostroi.SignalEntityPositions) do
 		-- Find signal which sits BEFORE this signal
 		local signal = Metrostroi.GetNextTrafficLight(v.node1,v.x,not v.forward,true)
@@ -286,7 +289,7 @@ function Metrostroi.UpdateARSSections()
 			end
 		end
 	end
-	Metrostroi.IgnoreEntityUpdates = true
+	Metrostroi.IgnoreEntityUpdates = false
 	Metrostroi.UpdateSignalEntities()
 	
 	print(Format("Metrostroi: Added %d ARS rail joints",Metrostroi.ARSSubSectionCount))
