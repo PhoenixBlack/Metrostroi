@@ -13,3 +13,6 @@ CreateClientConVar("metrostroi_debugger_data_timeout",2,true,false)
 CreateClientConVar("metrostroi_tooltip_delay",0,true)
 
 CreateClientConVar("metrostroi_passengers_scale",50,true)
+
+CreateClientConVar("metrostroi_arsmode",1,true)
+CreateClientConVar("metrostroi_arsmode_nogreen",0,true)
