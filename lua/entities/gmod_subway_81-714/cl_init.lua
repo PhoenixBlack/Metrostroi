@@ -23,49 +23,49 @@ ENT.ButtonMap["RearPneumatic"] = {
 ENT.ClientPropsInitialized = false
 ENT.ClientProps["train_line"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(449.00,-16.05,3.40),
-	ang = Angle(90+33,0,180+35.5)
+	pos = Vector(447.10,-14.4,58),
+	ang = Angle(90,0,180)
 }
 ENT.ClientProps["brake_line"] = {
 	model = "models/metrostroi/81-717/red_arrow.mdl",
-	pos =Vector(448.88,-16.00,3.40),
-	ang = Angle(90+33,0,180+35.5)
+	pos = Vector(447.00,-14.4,58),
+	ang = Angle(90,0,180)
 }
 ENT.ClientProps["brake_cylinder"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos =Vector(449.0,-24.28,3.40),
-	ang = Angle(90+33,0,180+35.5)
+	pos =Vector(447.10,-18.8,57.9),
+	ang = Angle(90,0,180)
 }
 --------------------------------------------------------------------------------
 ENT.ClientProps["ampermeter"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(445.5,-59.5,23.3),
-	ang = Angle(90,0,-45+180+80)
+	pos = Vector(447.00,11.0,57.3),
+	ang = Angle(90,0,180)
 }
 ENT.ClientProps["voltmeter"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(448.1,-55.7,23.3),
-	ang = Angle(90,0,-45+180+80)
+	pos = Vector(447.00,15.5,57.3),
+	ang = Angle(90,0,180)
 }
 ENT.ClientProps["volt1"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(447.10,-38.15,0.4),
-	ang = Angle(90-18,180,7)
+	pos = Vector(447.00,-9.7,58),
+	ang = Angle(90,0,180)
 }
 --------------------------------------------------------------------------------
 ENT.ClientProps["battery"] = {
 	model = "models/metrostroi/81-717/switch01.mdl",
-	pos = Vector(446.0,-3.0,55),
+	pos = Vector(446.0,0.0,55),
 	ang = Angle(90,0,180)
 }
 ENT.ClientProps["gv"] = {
 	model = "models/metrostroi/81-717/gv.mdl",
-	pos = Vector(154,62.5,-65),
+	pos = Vector(154,62.5+1.5,-65),
 	ang = Angle(180,0,-90)
 }
 ENT.ClientProps["gv_wrench"] = {
 	model = "models/metrostroi/81-717/reverser.mdl",
-	pos = Vector(154,62.5,-65),
+	pos = Vector(154,62.5+1.5,-65),
 	ang = Angle(-50,0,0)
 }
 --------------------------------------------------------------------------------
@@ -89,8 +89,8 @@ end]]--
 -- Add doors
 local function GetDoorPosition(i,k,j)
 	if j == 0 
-	then return Vector(351.0 - 34*k     - 231*i,-65*(1-2*k)-3,-2.8)
-	else return Vector(351.0 - 34*(1-k) - 231*i,-65*(1-2*k)-3,-2.8)
+	then return Vector(351.0 - 34*k     - 231*i,-65*(1-2*k),-2.8)
+	else return Vector(351.0 - 34*(1-k) - 231*i,-65*(1-2*k),-2.8)
 	end
 end
 for i=0,3 do
@@ -109,12 +109,12 @@ for i=0,3 do
 end
 table.insert(ENT.ClientProps,{
 	model = "models/metrostroi/81/81-717_door2.mdl",
-	pos = Vector(455.5,-2.4,-7.5),
+	pos = Vector(455.5,0.5,-7.5),
 	ang = Angle(0,180,0)
 })
 table.insert(ENT.ClientProps,{
 	model = "models/metrostroi/81/81-717_door2.mdl",
-	pos = Vector(-479.5,-3.0,-7.5),
+	pos = Vector(-479.5,0.0,-7.5),
 	ang = Angle(0,0,0)
 })
 

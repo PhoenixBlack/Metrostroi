@@ -8,7 +8,7 @@ ENT.ButtonMap = {}
 
 -- Main panel
 ENT.ButtonMap["Main"] = {
-	pos = Vector(446.2,12.5,-0.5),
+	pos = Vector(446.2,14.0,-0.5),
 	ang = Angle(0,-90,44),
 	width = 460,
 	height = 230,
@@ -29,6 +29,8 @@ ENT.ButtonMap["Main"] = {
 		{ID = "AVULight",		x=325, y=92, radius=20, tooltip="АВУ: Автоматический выключатель управления\nAVU: Automatic control disabler active"},
 		{ID = "KVPLight",		x=370, y=92, radius=20, tooltip="КВП: Контроль высоковольного преобразователя\nKVP: High-voltage converter control"},
 		{ID = "SPLight",		x=411, y=30, radius=20, tooltip="(placeholder) LSP"},
+		{ID = "PS20",			x=247, y=84, radius=20, tooltip="(placeholder) VN"},
+		{ID = "PS21",			x=295, y=84, radius=20, tooltip="(placeholder) DAU ARS"},
 		
 		{ID = "PS6",			x=330, y=130, radius=20, tooltip="(placeholder) Converter protection"},
 		{ID = "KSNSet",			x=370, y=130, radius=20, tooltip="КСН: Кнопка сигнализации неисправности\nKSN: Failure indication button"},
@@ -47,7 +49,7 @@ ENT.ButtonMap["Main"] = {
 
 -- Front panel
 ENT.ButtonMap["Front"] = {
-	pos = Vector(444.2,-17,1.8),
+	pos = Vector(444.2,-15.5,1.8),
 	ang = Angle(0,-90,56.5),
 	width = 220,
 	height = 250,
@@ -55,8 +57,8 @@ ENT.ButtonMap["Front"] = {
 	
 	buttons = {
 		{ID = "VUSToggle",x=90, y=200, radius=20, tooltip="ВУС: Выключатель усиленого света ходовых фар\nVUS: Head lights bright/dim"},
-		{ID = "VAHToggle",x=127, y=200, radius=20, tooltip="ВАХ: Включение аварийного хода (неисправность реле педали безопасности)\nVAH: Emergency driving mode (failure of RPB relay)"},
-		{ID = "VADToggle",x=170, y=200, radius=20, tooltip="ВАД: Включение аварийного закрытия дверей (неисправность реле контроля дверей)\nVAD: Emergency door close override (failure of KD relay)"},		
+		{ID = "VAHToggle",x=170, y=200, radius=20, tooltip="ВАХ: Включение аварийного хода (неисправность реле педали безопасности)\nVAH: Emergency driving mode (failure of RPB relay)"},
+		{ID = "VADToggle",x=127, y=200, radius=20, tooltip="ВАД: Включение аварийного закрытия дверей (неисправность реле контроля дверей)\nVAD: Emergency door close override (failure of KD relay)"},		
 		{ID = "RezMKSet",x=53,  y=98, radius=20, tooltip="Резервное включение мотор-компрессора\nEmergency motor-compressor startup"},
 		{ID = "KRPSet",x=53, y=33, radius=20, tooltip="КРП: Кнопка резервного пуска"},
 		
@@ -69,7 +71,7 @@ ENT.ButtonMap["Front"] = {
 
 -- BPSN panel
 ENT.ButtonMap["BPSNFront"] = {
-	pos = Vector(448.2,29.5,8.0),
+	pos = Vector(448.2,31.0,8.0),
 	ang = Angle(0,-90,56.5),
 	width = 310,
 	height = 120,
@@ -88,7 +90,7 @@ ENT.ButtonMap["BPSNFront"] = {
 
 -- ARS/Speedometer panel
 ENT.ButtonMap["ARS"] = {
-	pos = Vector(448.28,9.5,7.82),
+	pos = Vector(448.28,11.0,7.82),
 	ang = Angle(0,-90-0.2,56.3),
 	width = 300*10,
 	height = 110*10,
@@ -122,70 +124,70 @@ ENT.ButtonMap["ARS"] = {
 
 -- AV panel
 ENT.ButtonMap["AV"] = {
-	pos = Vector(394.0,-53.5,44.5),
+	pos = Vector(387.0,-8.0,44.5),
 	ang = Angle(0,90,90),
 	width = 520,
 	height = 550,
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "A61Toggle", x=16+44*0,  y=110+129*0, radius=30, tooltip="A61 Управление 6ым поездным проводом\nTrain wire 6 control"},
-		{ID = "A55Toggle", x=16+44*1,  y=110+129*0, radius=30, tooltip="A55 Управление проводом 10АС\nTrain wire 10AS control"},
-		{ID = "A54Toggle", x=16+44*2,  y=110+129*0, radius=30, tooltip="A54 Управление проводом 10АК\nTrain wire 10AK control"},
-		{ID = "A56Toggle", x=16+44*3,  y=110+129*0, radius=30, tooltip="A56 Включение аккумуляторной батареи\nTurn on battery power to control circuits"},
-		{ID = "A27Toggle", x=16+44*4,  y=110+129*0, radius=30, tooltip="A27 Turn on DIP and lighting"},
-		{ID = "A21Toggle", x=16+44*5,  y=110+129*0, radius=30, tooltip="A21 Door control"},
-		{ID = "A10Toggle", x=16+44*6,  y=110+129*0, radius=30, tooltip="A10 Motor-compressor control"},
-		{ID = "A53Toggle", x=16+44*7,  y=110+129*0, radius=30, tooltip="A53 KVC power supply"},
-		{ID = "A43Toggle", x=16+44*8,  y=110+129*0, radius=30, tooltip="A43 ARS 12V power supply"},
-		{ID = "A45Toggle", x=16+44*9,  y=110+129*0, radius=30, tooltip="A45 ARS train wire 10AU"},
-		{ID = "A42Toggle", x=16+44*10, y=110+129*0, radius=30, tooltip="A42 ARS 75V power supply"},
-		{ID = "A41Toggle", x=16+44*11, y=110+129*0, radius=30, tooltip="A41 ARS braking"},		
+		{ID = "A61Toggle", x=16+51*0,  y=60+165*0, radius=30, tooltip="A61 Управление 6ым поездным проводом\nTrain wire 6 control"},
+		{ID = "A55Toggle", x=16+51*1,  y=60+165*0, radius=30, tooltip="A55 Управление проводом 10АС\nTrain wire 10AS control"},
+		{ID = "A54Toggle", x=16+51*2,  y=60+165*0, radius=30, tooltip="A54 Управление проводом 10АК\nTrain wire 10AK control"},
+		{ID = "A56Toggle", x=16+51*3,  y=60+165*0, radius=30, tooltip="A56 Включение аккумуляторной батареи\nTurn on battery power to control circuits"},
+		{ID = "A27Toggle", x=16+51*4,  y=60+165*0, radius=30, tooltip="A27 Turn on DIP and lighting"},
+		{ID = "A21Toggle", x=16+51*5,  y=60+165*0, radius=30, tooltip="A21 Door control"},
+		{ID = "A10Toggle", x=16+51*6,  y=60+165*0, radius=30, tooltip="A10 Motor-compressor control"},
+		{ID = "A53Toggle", x=16+51*7,  y=60+165*0, radius=30, tooltip="A53 KVC power supply"},
+		{ID = "A43Toggle", x=16+51*8,  y=60+165*0, radius=30, tooltip="A43 ARS 12V power supply"},
+		{ID = "A45Toggle", x=16+51*9,  y=60+165*0, radius=30, tooltip="A45 ARS train wire 10AU"},
+		{ID = "A42Toggle", x=16+51*10, y=60+165*0, radius=30, tooltip="A42 ARS 75V power supply"},
+		{ID = "A41Toggle", x=16+51*11, y=60+165*0, radius=30, tooltip="A41 ARS braking"},		
 		------------------------------------------------------------------------
-		{ID = "VUToggle",  x=16+44*0,  y=110+129*1, radius=30, tooltip="VU  Train control"},
-		{ID = "A64Toggle", x=16+44*1,  y=110+129*1, radius=30, tooltip="A64 Cabin lighting"},
-		{ID = "A63Toggle", x=16+44*2,  y=110+129*1, radius=30, tooltip="A63 IGLA/BIS"},
-		{ID = "A50Toggle", x=16+44*3,  y=110+129*1, radius=30, tooltip="A50 Turn on DIP and lighting"},
-		{ID = "A51Toggle", x=16+44*4,  y=110+129*1, radius=30, tooltip="A51 Turn off DIP and lighting"},
-		{ID = "A23Toggle", x=16+44*5,  y=110+129*1, radius=30, tooltip="A23 Emergency motor-compressor turn on"},
-		{ID = "A14Toggle", x=16+44*6,  y=110+129*1, radius=30, tooltip="A14 Train wire 18"},
-		{ID = "A75Toggle", x=16+44*7,  y=110+129*1, radius=30, tooltip="A75 Cabin heating"},
-		{ID = "A1Toggle",  x=16+44*8,  y=110+129*1, radius=30, tooltip="A1  XOD-1"},
-		{ID = "A2Toggle",  x=16+44*9,  y=110+129*1, radius=30, tooltip="A2  XOD-2"},
-		{ID = "A3Toggle",  x=16+44*10, y=110+129*1, radius=30, tooltip="A3  XOD-3"},
-		{ID = "A17Toggle", x=16+44*11, y=110+129*1, radius=30, tooltip="A17 Reset overload relay"},
+		{ID = "VUToggle",  x=16+51*0,  y=60+165*1, radius=30, tooltip="VU  Train control"},
+		{ID = "A64Toggle", x=16+51*1,  y=60+165*1, radius=30, tooltip="A64 Cabin lighting"},
+		{ID = "A63Toggle", x=16+51*2,  y=60+165*1, radius=30, tooltip="A63 IGLA/BIS"},
+		{ID = "A50Toggle", x=16+51*3,  y=60+165*1, radius=30, tooltip="A50 Turn on DIP and lighting"},
+		{ID = "A51Toggle", x=16+51*4,  y=60+165*1, radius=30, tooltip="A51 Turn off DIP and lighting"},
+		{ID = "A23Toggle", x=16+51*5,  y=60+165*1, radius=30, tooltip="A23 Emergency motor-compressor turn on"},
+		{ID = "A14Toggle", x=16+51*6,  y=60+165*1, radius=30, tooltip="A14 Train wire 18"},
+		{ID = "A75Toggle", x=16+51*7,  y=60+165*1, radius=30, tooltip="A75 Cabin heating"},
+		{ID = "A1Toggle",  x=16+51*8,  y=60+165*1, radius=30, tooltip="A1  XOD-1"},
+		{ID = "A2Toggle",  x=16+51*9,  y=60+165*1, radius=30, tooltip="A2  XOD-2"},
+		{ID = "A3Toggle",  x=16+51*10, y=60+165*1, radius=30, tooltip="A3  XOD-3"},
+		{ID = "A17Toggle", x=16+51*11, y=60+165*1, radius=30, tooltip="A17 Reset overload relay"},
 		------------------------------------------------------------------------
-		{ID = "A62Toggle", x=16+44*0,  y=110+129*2, radius=30, tooltip="A62 Radio communications"},
-		{ID = "A29Toggle", x=16+44*1,  y=110+129*2, radius=30, tooltip="A29 Radio broadcasting"},
-		{ID = "A5Toggle",  x=16+44*2,  y=110+129*2, radius=30, tooltip="A5  "},
-		{ID = "A6Toggle",  x=16+44*3,  y=110+129*2, radius=30, tooltip="A6  T-1"},
-		{ID = "A8Toggle",  x=16+44*4,  y=110+129*2, radius=30, tooltip="A8  Pneumatic valves #1, #2"},
-		{ID = "A20Toggle", x=16+44*5,  y=110+129*2, radius=30, tooltip="A20 Drive/brake circuit control, train wire 20"},
-		{ID = "A25Toggle", x=16+44*6,  y=110+129*2, radius=30, tooltip="A25 Manual electric braking"},
-		{ID = "A22Toggle", x=16+44*7,  y=110+129*2, radius=30, tooltip="A22 Turn on KK"},
-		{ID = "A30Toggle", x=16+44*8,  y=110+129*2, radius=30, tooltip="A30 Rheostat controller motor power"},
-		{ID = "A39Toggle", x=16+44*9,  y=110+129*2, radius=30, tooltip="A39 Emergency control"},
-		{ID = "A44Toggle", x=16+44*10, y=110+129*2, radius=30, tooltip="A44 Emergency train control"},
-		{ID = "A80Toggle", x=16+44*11, y=110+129*2, radius=30, tooltip="A80 Power circuit mode switch motor power"},
+		{ID = "A62Toggle", x=16+51*0,  y=60+165*2, radius=30, tooltip="A62 Radio communications"},
+		{ID = "A29Toggle", x=16+51*1,  y=60+165*2, radius=30, tooltip="A29 Radio broadcasting"},
+		{ID = "A5Toggle",  x=16+51*2,  y=60+165*2, radius=30, tooltip="A5  "},
+		{ID = "A6Toggle",  x=16+51*3,  y=60+165*2, radius=30, tooltip="A6  T-1"},
+		{ID = "A8Toggle",  x=16+51*4,  y=60+165*2, radius=30, tooltip="A8  Pneumatic valves #1, #2"},
+		{ID = "A20Toggle", x=16+51*5,  y=60+165*2, radius=30, tooltip="A20 Drive/brake circuit control, train wire 20"},
+		{ID = "A25Toggle", x=16+51*6,  y=60+165*2, radius=30, tooltip="A25 Manual electric braking"},
+		{ID = "A22Toggle", x=16+51*7,  y=60+165*2, radius=30, tooltip="A22 Turn on KK"},
+		{ID = "A30Toggle", x=16+51*8,  y=60+165*2, radius=30, tooltip="A30 Rheostat controller motor power"},
+		{ID = "A39Toggle", x=16+51*9,  y=60+165*2, radius=30, tooltip="A39 Emergency control"},
+		{ID = "A44Toggle", x=16+51*10, y=60+165*2, radius=30, tooltip="A44 Emergency train control"},
+		{ID = "A80Toggle", x=16+51*11, y=60+165*2, radius=30, tooltip="A80 Power circuit mode switch motor power"},
 		------------------------------------------------------------------------
-		{ID = "A65Toggle", x=16+44*0,  y=110+129*3, radius=30, tooltip="A65 Interior lighting"},
-		--{ID = "A00Toggle", x=16+44*1,  y=110+129*3, radius=30, tooltip="A00"},
-		{ID = "A24Toggle", x=16+44*2,  y=110+129*3, radius=30, tooltip="A24 Battery charging"},
-		{ID = "A32Toggle", x=16+44*3,  y=110+129*3, radius=30, tooltip="A32 Open right doors"},
-		{ID = "A31Toggle", x=16+44*4,  y=110+129*3, radius=30, tooltip="A31 Open left doors"},
-		{ID = "A16Toggle", x=16+44*5,  y=110+129*3, radius=30, tooltip="A16 Close doors"},
-		{ID = "A13Toggle", x=16+44*6,  y=110+129*3, radius=30, tooltip="A13 Door alarm"},
-		{ID = "A12Toggle", x=16+44*7,  y=110+129*3, radius=30, tooltip="A12 Emergency door close"},
-		{ID = "A7Toggle",  x=16+44*8,  y=110+129*3, radius=30, tooltip="A7  Red lamp"},
-		{ID = "A9Toggle",  x=16+44*9,  y=110+129*3, radius=30, tooltip="A9  Red lamp"},
-		{ID = "A46Toggle", x=16+44*10, y=110+129*3, radius=30, tooltip="A46 White lamp"},
-		{ID = "A47Toggle", x=16+44*11, y=110+129*3, radius=30, tooltip="A47 White lamp"},
+		{ID = "A65Toggle", x=16+44*0,  y=60+165*3, radius=30, tooltip="A65 Interior lighting"},
+		--{ID = "A00Toggle", x=16+51*1,  y=60+165*3, radius=30, tooltip="A00"},
+		{ID = "A24Toggle", x=16+51*2,  y=60+165*3, radius=30, tooltip="A24 Battery charging"},
+		{ID = "A32Toggle", x=16+51*3,  y=60+165*3, radius=30, tooltip="A32 Open right doors"},
+		{ID = "A31Toggle", x=16+51*4,  y=60+165*3, radius=30, tooltip="A31 Open left doors"},
+		{ID = "A16Toggle", x=16+51*5,  y=60+165*3, radius=30, tooltip="A16 Close doors"},
+		{ID = "A13Toggle", x=16+51*6,  y=60+165*3, radius=30, tooltip="A13 Door alarm"},
+		{ID = "A12Toggle", x=16+51*7,  y=60+165*3, radius=30, tooltip="A12 Emergency door close"},
+		{ID = "A7Toggle",  x=16+51*8,  y=60+165*3, radius=30, tooltip="A7  Red lamp"},
+		{ID = "A9Toggle",  x=16+51*9,  y=60+165*3, radius=30, tooltip="A9  Red lamp"},
+		{ID = "A46Toggle", x=16+51*10, y=60+165*3, radius=30, tooltip="A46 White lamp"},
+		{ID = "A47Toggle", x=16+51*11, y=60+165*3, radius=30, tooltip="A47 White lamp"},
 	}
 }
 
 -- Battery panel
 ENT.ButtonMap["Battery"] = {
-	pos = Vector(398.0,-56.0,25.0),
+	pos = Vector(398.0,-54.5,25.0),
 	ang = Angle(0,90,90),
 	width = 140,
 	height = 260,
@@ -198,7 +200,7 @@ ENT.ButtonMap["Battery"] = {
 
 -- Help panel
 ENT.ButtonMap["Help"] = {
-	pos = Vector(422.0,-45.0,-4.5),
+	pos = Vector(422.0,-43.5,-4.5),
 	ang = Angle(0,0,0),
 	width = 20,
 	height = 20,
@@ -211,7 +213,7 @@ ENT.ButtonMap["Help"] = {
 
 -- Pneumatic instrument panel
 ENT.ButtonMap["PneumaticPanels"] = {
-	pos = Vector(448.2,-10.5,8.0),
+	pos = Vector(448.2,-9.0,8.0),
 	ang = Angle(0,-90,56.5),
 	width = 310,
 	height = 120,
@@ -223,7 +225,7 @@ ENT.ButtonMap["PneumaticPanels"] = {
 	}
 }
 ENT.ButtonMap["DriverValveDisconnect"] = {
-	pos = Vector(410.0,-28.0,-38),
+	pos = Vector(410.0,-26.5,-38),
 	ang = Angle(0,0,0),
 	width = 200,
 	height = 90,
@@ -234,7 +236,7 @@ ENT.ButtonMap["DriverValveDisconnect"] = {
 	}
 }
 ENT.ButtonMap["DURA"] = {
-	pos = Vector(412.5,-58.0,-2.6),
+	pos = Vector(412.5,-56.5,-2.6),
 	ang = Angle(0,0,0),
 	width = 240,
 	height = 80,
@@ -247,7 +249,7 @@ ENT.ButtonMap["DURA"] = {
 	}
 }
 ENT.ButtonMap["Reverser"] = {
-	pos = Vector(436.0,-30.0,-7),
+	pos = Vector(436.0,-28.5,-7),
 	ang = Angle(0,180,90),
 	width = 180,
 	height = 150,
@@ -259,7 +261,7 @@ ENT.ButtonMap["Reverser"] = {
 	}
 }
 ENT.ButtonMap["Controller"] = {
-	pos = Vector(440.0,24.0,-7),
+	pos = Vector(440.0,25.5,-7),
 	ang = Angle(0,-90,0),
 	width = 180,
 	height = 390,
@@ -271,7 +273,7 @@ ENT.ButtonMap["Controller"] = {
 	}
 }
 ENT.ButtonMap["Controller"] = {
-	pos = Vector(440.0,24.0,-7),
+	pos = Vector(440.0,25.5,-7),
 	ang = Angle(0,-90,0),
 	width = 180,
 	height = 390,
@@ -283,7 +285,7 @@ ENT.ButtonMap["Controller"] = {
 	}
 }
 ENT.ButtonMap["DriversValve"] = {
-	pos = Vector(429.0,-14.0,-7),
+	pos = Vector(429.0,-12.5,-7),
 	ang = Angle(0,-90,0),
 	width = 100,
 	height = 200,
@@ -295,7 +297,7 @@ ENT.ButtonMap["DriversValve"] = {
 	}
 }
 ENT.ButtonMap["Meters"] = {
-	pos = Vector(448.8,-35.5,24.0),
+	pos = Vector(448.8,-34.0,24.0),
 	ang = Angle(0,-125,90),
 	width = 95,
 	height = 150,
@@ -315,7 +317,7 @@ local rowtall = 30 -- Row height, includes -only- the usable space and not any l
 
 local rowamount = 16 -- How many rows to show (total)
 ENT.ButtonMap["Schedule"] = {
-	pos = Vector(452.5,31.0,35),
+	pos = Vector(452.5,32.5,35),
 	ang = Angle(0,-60,90),
 	width = (col1w + 2 + (1 + col2w) * 3),
 	height = (rowtall+1)*rowamount+1,
@@ -360,54 +362,54 @@ ENT.ButtonMap["RearPneumatic"] = {
 ENT.ClientPropsInitialized = false
 ENT.ClientProps["brake"] = {
 	model = "models/metrostroi/81-717/brake.mdl",
-	pos = Vector(425.6,-24.8,-9.3),
+	pos = Vector(425.6,-24.8+1.5,-9.3),
 	ang = Angle(0,180,0)
 }
 ENT.ClientProps["controller"] = {
 	model = "models/metrostroi/81-717/controller.mdl",
-	pos = Vector(430,17.0,-13.6),
+	pos = Vector(430,17.0+1.5,-13.6),
 	ang = Angle(0,180,0)
 }
 ENT.ClientProps["reverser"] = {
 	model = "models/metrostroi/81-717/reverser.mdl",
-	pos = Vector(433.8,-30.5,-12.8),
+	pos = Vector(433.8,-30.5+1.5,-12.8),
 	ang = Angle(90,0,0)
 }
 ENT.ClientProps["brake_disconnect"] = {
 	model = "models/metrostroi/81-717/uava.mdl",
-	pos = Vector(419.6,-31.0,-38),
+	pos = Vector(419.6,-31.0+1.5,-38),
 	ang = Angle(0,0,0)
 }
 --------------------------------------------------------------------------------
 ENT.ClientProps["train_line"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(449.00,-16.05,3.40),
+	pos = Vector(449.00,-16.05+1.5,3.40),
 	ang = Angle(90+33,0,180+35.5)
 }
 ENT.ClientProps["brake_line"] = {
 	model = "models/metrostroi/81-717/red_arrow.mdl",
-	pos = Vector(448.88,-16.00,3.40),
+	pos = Vector(448.88,-16.00+1.5,3.40),
 	ang = Angle(90+33,0,180+35.5)
 }
 ENT.ClientProps["brake_cylinder"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(449.0,-24.28,3.40),
+	pos = Vector(449.0,-24.28+1.5,3.40),
 	ang = Angle(90+33,0,180+35.5)
 }
 --------------------------------------------------------------------------------
 ENT.ClientProps["ampermeter"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(447.10,-38.10,16.00),
+	pos = Vector(447.10,-38.10+1.5,16.00),
 	ang = Angle(90,0,-45+180+80)
 }
 ENT.ClientProps["voltmeter"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(447.10,-38.10,19.80),
+	pos = Vector(447.10,-38.10+1.5,19.80),
 	ang = Angle(90,0,-45+180+80)
 }
 ENT.ClientProps["volt1"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(448.30,15.10,3.10),
+	pos = Vector(448.30,15.10+1.5,3.10),
 	ang = Angle(90+33,0,180-35.5)
 }
 
@@ -422,7 +424,7 @@ Metrostroi.ClientPropForButton("headlights",{
 })
 ENT.ClientProps["dura"] = {
 	model = "models/metrostroi/81-717/dura.mdl",
-	pos = Vector(420.0,-58.3,-5.0),
+	pos = Vector(420.0,-58.3+1.5,-5.0),
 	ang = Angle(0,0,90)
 }
 --------------------------------------------------------------------------------
@@ -624,17 +626,27 @@ Metrostroi.ClientPropForButton("PS10",{
 	button = "PS10",
 	model = "models/metrostroi/81-717/button07.mdl"
 })
+Metrostroi.ClientPropForButton("PS20",{
+	panel = "Main",
+	button = "PS20",
+	model = "models/metrostroi/81-717/switch04.mdl"
+})
+Metrostroi.ClientPropForButton("PS21",{
+	panel = "Main",
+	button = "PS21",
+	model = "models/metrostroi/81-717/switch04.mdl"
+})
 
 
 --------------------------------------------------------------------------------
 ENT.ClientProps["gv"] = {
 	model = "models/metrostroi/81-717/gv.mdl",
-	pos = Vector(154,62.5,-65),
+	pos = Vector(154,62.5+1.5,-65),
 	ang = Angle(180,0,-90)
 }
 ENT.ClientProps["gv_wrench"] = {
 	model = "models/metrostroi/81-717/reverser.mdl",
-	pos = Vector(154,62.5,-65),
+	pos = Vector(154,62.5+1.5,-65),
 	ang = Angle(-50,0,0)
 }
 --------------------------------------------------------------------------------
@@ -642,7 +654,7 @@ for x=0,11 do
 	for y=0,3 do
 		ENT.ClientProps["a"..(x+12*y)] = {
 			model = "models/metrostroi/81-717/circuit_breaker.mdl",
-			pos = Vector(393.8,-52.5+x*2.75,37.5-y*8),
+			pos = Vector(386.3,-7.5+x*3.26,40.4-y*10.2),
 			ang = Angle(90,0,0)
 		}
 	end
@@ -657,7 +669,7 @@ Metrostroi.ClientPropForButton("battery",{
 --------------------------------------------------------------------------------
 ENT.ClientProps["book"] = {
 	model = "models/props_lab/binderredlabel.mdl",
-	pos = Vector(430.0,-53.0,-4.5),
+	pos = Vector(430.0,-53.0+1.5,-4.5),
 	ang = Angle(0,50,90)
 }
 
@@ -668,8 +680,8 @@ ENT.ClientProps["book"] = {
 -- Add doors
 local function GetDoorPosition(i,k,j)
 	if j == 0 
-	then return Vector(351.0 - 34*k     - 231*i,-65*(1-2*k)-2,-1.8)
-	else return Vector(351.0 - 34*(1-k) - 231*i,-65*(1-2*k)-2,-1.8)
+	then return Vector(351.0 - 34*k     - 231*i,-65*(1-2*k),-1.8)
+	else return Vector(351.0 - 34*(1-k) - 231*i,-65*(1-2*k),-1.8)
 	end
 end
 for i=0,3 do
@@ -688,17 +700,17 @@ for i=0,3 do
 end
 table.insert(ENT.ClientProps,{
 	model = "models/metrostroi/81/81-717_door2.mdl",
-	pos = Vector(-481.0,-2.0,-5.5),
+	pos = Vector(-481.0,-0.5,-5.5),
 	ang = Angle(0,0,0)
 })
 table.insert(ENT.ClientProps,{
 	model = "models/metrostroi/81/81-717_door1.mdl",
-	pos = Vector(373.0,43.5,5.-5.5),
+	pos = Vector(373.0,45.0,5.-5.5),
 	ang = Angle(0,0,0)
 })
 table.insert(ENT.ClientProps,{
 	model = "models/metrostroi/81/81-717_door5.mdl",
-	pos = Vector(424.3,63.5,-2.8),
+	pos = Vector(424.3,65.0,-2.8),
 	ang = Angle(0,0,0)
 })
 

@@ -41,6 +41,7 @@ function ENT:SetSprite(index,active,model,scale,brightness,pos,color)
 			)
 		)
 		sprite:SetKeyValue("rendermode", 9) -- 9: WGlow, 3: Glow
+		sprite:SetKeyValue("renderfx", 14)
 		sprite:SetKeyValue("model", model)
 		sprite:SetKeyValue("scale", scale)
 		sprite:SetKeyValue("spawnflags", 1)
@@ -231,7 +232,7 @@ function ENT:Think()
 				
 				-- Overall glow
 				self:SetSprite(k..light.."b",state,
-					"models/metrostroi_signals/signal_sprite_002.vmt",0.25,0.5,
+					"models/metrostroi_signals/signal_sprite_002.vmt",0.25,0.6,
 					self.BasePosition + offset + data[1],data[2])
 				index = index + 1
 				
