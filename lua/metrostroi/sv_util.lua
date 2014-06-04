@@ -134,6 +134,18 @@ end
 
 concommand.Add("metrostroi_train_count", function(ply, _, args)
 	print("Trains on server: "..Metrostroi.TrainCount())
+	if CPPI then
+		local N = {}
+		for k,v in pairs(Metrostroi.TrainClasses) do
+			local ents = ents.FindByClass(v)
+			for k2,v2 in pairs(ents) do
+				N[v2:CPPIGetOwner()] = (N[v2:CPPIGetOwner()] or 0) + 1
+			end
+		end
+		for k,v in pairs(N) do
+			print(k,"Trains count: "..v)
+		end
+	end
 end)
 
 

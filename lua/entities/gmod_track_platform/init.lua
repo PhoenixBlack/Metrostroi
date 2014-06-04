@@ -164,12 +164,12 @@ function ENT:Think()
 			if not left_side then door_count = #v.RightDoorPositions end
 			
 			-- Get maximum boarding rate for normal russian subway train doors
-			local max_boarding_rate = 3.0 * door_count * dT
+			local max_boarding_rate = 1.0 * door_count * dT
 			-- Get boarding rate based on passenger density
 			local boarding_rate = math.min(max_boarding_rate,passenger_count)
 			if self.PlatformLast then boarding_rate = 0 end
 			-- Get rate of leaving
-			local leaving_rate = 3.0 * door_count * dT
+			local leaving_rate = 1.0 * door_count * dT
 			if v.PassengersToLeave == 0 then leaving_rate = 0 end
 			
 			-- Board these passengers into train

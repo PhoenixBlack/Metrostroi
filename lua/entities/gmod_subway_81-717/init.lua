@@ -99,12 +99,12 @@ function ENT:Initialize()
 		self.Lights = {
 			-- Head
 			[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0), Color(176,161,132), fov = 100 },
-			[2] = { "glow",				Vector(460, 51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2 },
-			[3] = { "glow",				Vector(460,-51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2 },
-			[4] = { "glow",				Vector(460,-8, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-			[5] = { "glow",				Vector(460,-8, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-			[6] = { "glow",				Vector(460, 2, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-			[7] = { "glow",				Vector(460, 2, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
+			[2] = { "glow",				Vector(460, 51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
+			[3] = { "glow",				Vector(460,-51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
+			[4] = { "glow",				Vector(460,-8, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[5] = { "glow",				Vector(460,-8, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[6] = { "glow",				Vector(460, 2, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[7] = { "glow",				Vector(460, 2, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
 			
 			-- Reverse
 			[8] = { "light",			Vector(458,-45, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
@@ -144,12 +144,12 @@ function ENT:Initialize()
 		self.Lights = {
 			-- Head
 			[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0), Color(176,161,132), fov = 100 },
-			[2] = { "glow",				Vector(460, 51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2 },
-			[3] = { "glow",				Vector(460,-51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2 },
-			[4] = { "glow",				Vector(460,-18,-23), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-			[5] = { "glow",				Vector(460,-7, -23), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-			[6] = { "glow",				Vector(460, 7, -23), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
-			[7] = { "glow",				Vector(460, 18,-23), Angle(0,0,0), Color(255,255,255), brightness = 0.3 },
+			[2] = { "glow",				Vector(460, 51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
+			[3] = { "glow",				Vector(460,-51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
+			[4] = { "glow",				Vector(460,-18,-23), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[5] = { "glow",				Vector(460,-7, -23), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[6] = { "glow",				Vector(460, 7, -23), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[7] = { "glow",				Vector(460, 18,-23), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
 			
 			-- Reverse
 			[8] = { "light",			Vector(458,-45, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
@@ -216,10 +216,6 @@ function ENT:Think()
 
 	-- Check if wrench was pulled out
 	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end
-	
-	-- TEST
-	--self:SetLightPower(25,(CurTime() % 0.5) > 0.1)
-	--self:SetLightPower(26,(CurTime() % 0.5) > 0.1)
 
 	-- Headlights
 	local brightness = (math.min(1,self.Panel["HeadLights1"])*0.50 + 
@@ -415,15 +411,6 @@ function ENT:Think()
 	-- Temporary hacks
 	self:SetNWFloat("V",self.Speed)
 	self:SetNWFloat("A",self.Acceleration)
-	
-        for i=1,32 do
-		self.DebugVars["TW"..i] = self:ReadTrainWire(i)
-	end
-	for k,v in pairs(self.Systems) do
-		for _,output in pairs(v.OutputsList) do
-			self.DebugVars[(v.Name or "")..output] = v[output] or 0
-		end
-	end
 
 	-- Send networked variables
 	self:SendPackedData()

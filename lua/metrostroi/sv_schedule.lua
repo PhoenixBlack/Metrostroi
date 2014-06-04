@@ -193,7 +193,7 @@ function Metrostroi.LoadSchedulesData(data)
 	Metrostroi.AIConfiguration = data.AIConfiguration
 	Metrostroi.SchedulesInitialized = false
 
-	timer.Simple(40.0,function()
+	timer.Simple(45.0,function()
 		Metrostroi.InitializeSchedules()
 	end)
 end

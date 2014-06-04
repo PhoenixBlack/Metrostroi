@@ -90,7 +90,7 @@ function ENT:Draw()
 			surface.SetDrawColor(self:GetNoARS() and 255 or 125, 125, 0, 255)
 			surface.DrawRect(0, 0, 256, 320)
 
-			draw.DrawText("Joint Information:","Trebuchet24",5,0,Color(0,0,0,255))
+			draw.DrawText("Joint Information ("..self:EntIndex().."):","Trebuchet24",5,0,Color(0,0,0,255))
 			draw.DrawText("Always red: "..				(self:GetAlwaysRed() and "Yes" or "No"),"Trebuchet24",			15, 20,Color(0,0,0,255))
 			draw.DrawText("Red when alternate: "..		(self:GetRedWhenAlternate() and "Yes" or "No"),"Trebuchet24",	15, 40,Color(0,0,0,255))
 			draw.DrawText("Red when main: "..			(self:GetRedWhenMain() and "Yes" or "No"),"Trebuchet24",		15, 60,Color(0,0,0,255))
