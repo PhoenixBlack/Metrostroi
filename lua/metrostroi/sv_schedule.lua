@@ -12,6 +12,8 @@ Metrostroi.ScheduleConfiguration = Metrostroi.ScheduleConfiguration or {}
 
 -- List of station names
 Metrostroi.StationNames = Metrostroi.StationNames or {}
+Metrostroi.StationTitles = Metrostroi.StationTitles or {}
+Metrostroi.StationNamesConfiguration = Metrostroi.StationNamesConfiguration or {}
 
 -- AI train behavior configuration
 Metrostroi.AIConfiguration = Metrostroi.AIConfiguration or {}
@@ -187,10 +189,12 @@ function Metrostroi.GenerateSchedule(routeID)
 end
 
 function Metrostroi.LoadSchedulesData(data)
-	Metrostroi.ScheduleRoutes = data.Routes
-	Metrostroi.ScheduleConfiguration = data.Configuration
-	Metrostroi.StationNames = data.StationNames
-	Metrostroi.AIConfiguration = data.AIConfiguration
+	Metrostroi.ScheduleRoutes = data.Routes or {}
+	Metrostroi.ScheduleConfiguration = data.Configuration or {}
+	Metrostroi.StationNames = data.StationNames or {}
+	Metrostroi.StationTitles = data.StationTitles or {}
+	Metrostroi.AIConfiguration = data.AIConfiguration or {}
+	Metrostroi.StationNamesConfiguration = data.StationNamesConfiguration or {}
 	Metrostroi.SchedulesInitialized = false
 
 	timer.Simple(45.0,function()
