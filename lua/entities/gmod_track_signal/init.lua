@@ -67,7 +67,7 @@ function ENT:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 	self:SetRed(trackOccupied or switchBlocked or self:GetAlwaysRed())
 	
 	-- Use normal logic or ARS-only logic
-	self:SetBlue(self.ARSOnly and not (self:GetRed()))
+	self:SetBlue(self.ARSOnly and (not self:GetRed()) and (not switchAlternate))
 	local blueLight = self.ARSOnly and 
 		(self:GetTrafficLightsBit(3) or self:GetTrafficLightsBit(7) or self.ARSNoGreen)
 	
