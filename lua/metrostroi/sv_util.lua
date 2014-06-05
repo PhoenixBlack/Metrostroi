@@ -148,6 +148,36 @@ concommand.Add("metrostroi_train_count", function(ply, _, args)
 	end
 end)
 
+concommand.Add("metrostroi_time", function(ply, _, args)
+	if IsValid(ply) then
+		ply:PrintMessage(HUD_PRINTCONSOLE, "Time on server is "..
+			Format("%02d:%02d:%02d",
+				math.floor(os.time()/3600)%24,
+				math.floor(os.time()/60)%60,
+				math.floor(os.time())%60))
+
+		local t = (os.time()/60)%(60*24)
+		local printed = false
+		local train = ply:GetTrain()
+		if IsValid(train) and train.Schedule then
+			for k,v in ipairs(train.Schedule) do
+				local prefix = ""
+				if (not printed) and (t < v[3]) then
+					prefix = ">>>>"
+					printed = true
+				end
+				ply:PrintMessage(HUD_PRINTCONSOLE, 
+					Format(prefix.."\t[%03d][%s] %02d:%02d:%02d",v[1],
+						Metrostroi.StationNames[v[1]] or "N/A",
+						math.floor(v[3]/60)%24,
+						math.floor(v[3])%60,
+						math.floor(v[3]*60)%60))
+				
+			end
+		end
+	end
+end)
+
 
 
 

@@ -108,7 +108,7 @@ end
 function ENT:Think()
 	-- Rate of boarding
 	local dT = 0.25
-	
+
 	-- Find all potential trains
 	local trains = {}
 	for k,v in pairs(Metrostroi.TrainClasses) do
@@ -126,6 +126,10 @@ function ENT:Think()
 	local platformDir   = platformEnd-platformStart
 	local platformNorm	= platformDir:GetNormalized()
 
+	-- Platforms with tracks in middle
+	local dot = (self:GetPos() - platformStart):Cross(platformEnd - platformStart)
+	local swap_side = dot.z > 0.0
+
 	local boardingDoorList = {}
 	for k,v in pairs(trains) do
 		local platform_distance	= ((platformStart-v:GetPos()) - ((platformStart-v:GetPos()):Dot(platformNorm))*platformNorm):Length()
@@ -133,6 +137,7 @@ function ENT:Think()
 		local train_start		= (v:GetPos() + v:GetAngles():Forward()*480 - platformStart):Dot(platformDir) / (platformDir:Length()^2)
 		local train_end			= (v:GetPos() - v:GetAngles():Forward()*480 - platformStart):Dot(platformDir) / (platformDir:Length()^2)
 		local left_side			= train_start > train_end
+		if swap_side then left_side = not left_side end
 		local doors_open 		= (left_side and v.LeftDoorsOpen) or ((not left_side) and v.RightDoorsOpen)
 		
 		if vertical_distance > 192 then doors_open = false end		
