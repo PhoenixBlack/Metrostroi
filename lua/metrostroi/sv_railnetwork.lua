@@ -782,6 +782,10 @@ function Metrostroi.Load(name,keep_signs)
 	else
 		print("Metrostroi: Could not load schedules configuration!")
 	end
+	
+	-- Initialize signs
+	print("Metrostroi: Initializing signs...")
+	Metrostroi.InitializeSigns()
 end
 
 
