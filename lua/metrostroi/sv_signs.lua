@@ -1,0 +1,110 @@
+--------------------------------------------------------------------------------
+-- Signs in tunnels and on stations
+--------------------------------------------------------------------------------
+Metrostroi.Signs = Metrostroi.Signs or {}
+
+
+
+--------------------------------------------------------------------------------
+-- Helper for commonly used trace
+--------------------------------------------------------------------------------
+local function trace(pos,dir,col)
+	local tr = util.TraceLine({
+		start = pos,
+		endpos = pos+dir,
+		mask = MASK_NPCWORLDSTATIC
+	})
+	timer.Simple(0.01,function()
+		local t = 3
+		debugoverlay.Line(tr.StartPos,tr.HitPos,t,col or Color(0,0,255),true)
+		debugoverlay.Sphere(tr.StartPos,2,t,Color(0,255,255),true)
+		debugoverlay.Sphere(tr.HitPos,2,t,Color(255,0,0),true)
+	end)
+	return tr
+end
+
+
+--------------------------------------------------------------------------------
+-- Create station name signs
+--------------------------------------------------------------------------------
+function Metrostroi.AddStationSign(ent)
+	local platformStart	= ent.PlatformStart
+	local platformEnd	= ent.PlatformEnd
+	local platformDir   = platformEnd-platformStart
+	local platformN		= (platformDir:Angle()-Angle(0,90,0)):Forward()
+	local platformD		= platformDir:GetNormalized()
+
+	local N = 2
+	local X = { 0.25, 0.75 }
+	for i=1,N do
+		local pos = (platformStart + platformDir*X[i]) + Vector(0,0,64)
+		local tr = trace(pos,platformN*384)
+		
+		local sign = ents.Create("gmod_track_sign")
+		if IsValid(sign) then
+			if tr.Hit then
+				sign:SetPos(tr.HitPos)
+				sign:SetAngles(tr.HitNormal:Angle())
+			else
+				sign:SetPos(tr.HitPos)
+				sign:SetAngles(-platformN:Angle())
+			end
+			sign:Spawn()
+			
+			sign:SetNWString("Type","station")
+			sign:SetNWString("Name",Metrostroi.StationNames[ent.StationIndex])
+			sign:SetNWInt("ID",ent.StationIndex)
+			sign:SetNWInt("Platform",ent.PlatformIndex)
+
+			-- Get stations list
+			local stationList = {}
+			local path1 = math.floor(ent.StationIndex/100)
+			for k,v in pairs(Metrostroi.StationNames) do
+				local path2 = math.floor(k/100)
+				if path1 == path2 then
+					table.insert(stationList,k)
+				end
+			end
+			
+			-- Sort stations list
+			table.sort(stationList, function(a, b) return a < b end)
+			
+			-- Send stations list
+			sign:SetNWInt("StationList#",#stationList)
+			for k,v in ipairs(stationList) do
+				sign:SetNWInt("StationList"..k.."[ID]",v)
+				sign:SetNWString("StationList"..k.."[Name1]",Metrostroi.StationTitles[v])
+				sign:SetNWString("StationList"..k.."[Name2]",Metrostroi.StationNames[v])
+				sign:SetNWInt("StationList"..k.."[R]",(Metrostroi.StationNamesConfiguration[v] or {})[1])
+				sign:SetNWInt("StationList"..k.."[G]",(Metrostroi.StationNamesConfiguration[v] or {})[2])
+				sign:SetNWInt("StationList"..k.."[B]",(Metrostroi.StationNamesConfiguration[v] or {})[3])
+				--sign:SetNWInt("StationList"..k.."[R]",(Metrostroi.StationNamesConfiguration[v.ID] or {})[1])
+			end			
+			
+			--[[sign:MakeStationSign(
+				Metrostroi.StationTitles[ent.StationIndex] or Metrostroi.StationNames[ent.StationIndex],
+				Metrostroi.StationNames[ent.StationIndex])]]--
+			table.insert(Metrostroi.Signs,sign)
+		end
+	end
+end
+
+
+--------------------------------------------------------------------------------
+-- Create all signs
+--------------------------------------------------------------------------------
+function Metrostroi.InitializeSigns()
+	-- Clear old signs
+	for k,v in pairs(Metrostroi.Signs) do
+		SafeRemoveEntity(v)
+	end
+	Metrostroi.Signs = {}
+	
+	-- Add sign for every station name
+	local entities = ents.FindByClass("gmod_track_platform")
+	for k,v in pairs(entities) do
+		Metrostroi.AddStationSign(v)
+	end
+end
+
+Metrostroi.InitializeSigns()

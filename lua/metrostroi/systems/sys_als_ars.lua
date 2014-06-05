@@ -54,9 +54,10 @@ function TRAIN_SYSTEM:Inputs()
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
+	local Train = self.Train
 	if name == "AttentionPedal" then
 		self.AttentionPedal = value > 0.5
-		if Train.PB then
+		if Train and Train.PB then
 			Train.PB:TriggerInput("Set",value)
 		end
 	end
