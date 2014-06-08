@@ -62,12 +62,24 @@ function Metrostroi.AddStationSign(ent)
 			for k,v in pairs(Metrostroi.StationNames) do
 				local path2 = math.floor(k/100)
 				if path1 == path2 then
-					table.insert(stationList,k)
+					local R = (Metrostroi.StationNamesConfiguration[k] or {})[1] or 0
+					local G = (Metrostroi.StationNamesConfiguration[k] or {})[2] or 0
+					local B = (Metrostroi.StationNamesConfiguration[k] or {})[3] or 0
+					if (R > 200) or (G > 200) or (B > 200) then
+						if ((ent.PlatformIndex == 2) and (ent.StationIndex >= k)) or
+						   ((ent.PlatformIndex == 1) and (ent.StationIndex <= k)) then
+							table.insert(stationList,k)
+						end
+					end
 				end
 			end
 			
 			-- Sort stations list
-			table.sort(stationList, function(a, b) return a < b end)
+			if ent.PlatformIndex == 2 then
+				table.sort(stationList, function(a, b) return a < b end)
+			else
+				table.sort(stationList, function(a, b) return a > b end)
+			end
 			
 			-- Send stations list
 			sign:SetNWInt("StationList#",#stationList)
@@ -107,4 +119,4 @@ function Metrostroi.InitializeSigns()
 	end
 end
 
---Metrostroi.InitializeSigns()
+Metrostroi.InitializeSigns()

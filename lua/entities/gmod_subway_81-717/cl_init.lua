@@ -20,7 +20,7 @@ ENT.ButtonMap["Main"] = {
 		
 		{ID = "VUD1Toggle",		x=54, y=105, radius=40, tooltip="ВУД: Выключатель управления дверьми\nVUD: Door control toggle (close doors)"},
 		{ID = "KDLSet",			x=50, y=180, radius=20, tooltip="КДЛ: Кнопка левых дверей\nKDL: Left doors open"},
-		{ID = "KDPSet",			x=153, y=180, radius=20, tooltip="КДП: Кнопка правых дверей\nKDP: Right doors open"},
+		{ID = "VDLSet",			x=153, y=180, radius=20, tooltip="ВДЛ: Выключатель левых дверей\nVDL: Left doors open"},
 		{ID = "DoorSelectToggle",x=105, y=183, radius=20, tooltip="Выбор стороны открытия дверей\nSelect side on which doors will open"},
 		{ID = "KRZDSet",		x=153, y=83, radius=20, tooltip="КРЗД: Кнопка резервного закрытия дверей\nKRZD: Emergency door closing"},
 		{ID = "VozvratRPSet",	x=105, y=132, radius=20, tooltip="Возврат реле перегрузки\nReset overload relay"},
@@ -64,7 +64,8 @@ ENT.ButtonMap["Front"] = {
 		
 		{ID = "L_4Toggle",x=53, y=200, radius=20, tooltip="Выключатель фар\nHeadlights toggle"},
 		{ID = "CabinHeatLight",x=90, y=145, radius=20, tooltip="Контроль печи\nCabin heater active"},
-		{ID = "VDLSet",x=130, y=145, radius=32, tooltip="ВДЛ: Выключатель левых дверей\nVDL: Left doors open"},
+		{ID = "KDPSet",x=130, y=145, radius=32, tooltip="КДП: Кнопка правых дверей\nKDP: Right doors open"},
+		
 		{ID = "PneumoLight",x=170, y=145, radius=20, tooltip="Контроль пневмотормоза\nPneumatic brake control"},
 	}
 }
@@ -497,9 +498,9 @@ Metrostroi.ClientPropForButton("KDL",{
 	model = "models/metrostroi/81-717/button08.mdl",
 })
 Metrostroi.ClientPropForButton("KDP",{
-	panel = "Main",
+	panel = "Front",
 	button = "KDPSet",
-	model = "models/metrostroi/81-717/button08.mdl",
+	model = "models/metrostroi/81-717/button07.mdl",
 })
 Metrostroi.ClientPropForButton("KVT",{
 	panel = "Main",
@@ -518,9 +519,9 @@ Metrostroi.ClientPropForButton("KRP",{
 	z=4
 })
 Metrostroi.ClientPropForButton("VDL",{
-	panel = "Front",
+	panel = "Main",
 	button = "VDLSet",
-	model = "models/metrostroi/81-717/button07.mdl",
+	model = "models/metrostroi/81-717/button08.mdl",
 	z=2
 })
 
