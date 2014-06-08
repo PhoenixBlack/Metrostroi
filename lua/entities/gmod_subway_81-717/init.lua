@@ -139,6 +139,10 @@ function ENT:Initialize()
 			[25] = { "light",			Vector(438.7,-26.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 			-- Cabin heating
 			[26] = { "light",			Vector(438.7,-21.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			-- Door left open (#1)
+			[27] = { "light",			Vector(437.8,4.4,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
+			-- Door left open (#2)
+			[28] = { "light",			Vector(437.8,10.8,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 		}
 	else
 		self.Lights = {
@@ -184,6 +188,10 @@ function ENT:Initialize()
 			[25] = { "light",			Vector(438.7,-26.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 			-- Cabin heating
 			[26] = { "light",			Vector(438.7,-21.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			-- Door left open (#1)
+			[27] = { "light",			Vector(437.8,4.4,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
+			-- Door left open (#2)
+			[28] = { "light",			Vector(437.8,10.8,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 		}
 	end
 	
@@ -239,6 +247,10 @@ function ENT:Think()
 		0.1*self.L_5.Value + ((self.PowerSupply.XT3_4 > 65.0) and 0.5 or 0))
 	--self:SetLightPower(12, self.Panel["EmergencyLight"] > 0.5)
 	--self:SetLightPower(13, self.PowerSupply.XT3_4 > 65.0)
+	
+	-- Door button lights
+	self:SetLightPower(27, self.Panel["HeadLights2"] > 0.5)
+	self:SetLightPower(28, self.Panel["HeadLights2"] > 0.5)
 	
 	-- Side lights
 	self:SetLightPower(15, self.Panel["TrainDoors"] > 0.5)
@@ -342,7 +354,7 @@ function ENT:Think()
 	-- KT
 	self:SetPackedBool(47,self.ALS_ARS.LKT)
 	-- KVD
-	self:SetPackedBool(48,self.ALS_ARS.LVD)
+	self:SetPackedBool(48,self:ReadTrainWire(21) > 0.5)--self.ALS_ARS.LVD)
 	-- LST
 	self:SetPackedBool(49,self:ReadTrainWire(6) > 0.5)
 	-- LVD
@@ -379,7 +391,7 @@ function ENT:Think()
 
 	-- Update ARS system
 	self:SetPackedRatio(3, self.ALS_ARS.Speed/100.0)
-	if self.ALS_ARS.Ring == true then
+	if (self.ALS_ARS.Ring == true) or (self:ReadTrainWire(21) > 0) then
 		self:SetPackedBool(39,true)
 	end
 	
@@ -409,8 +421,8 @@ function ENT:Think()
 	end
 	
 	-- Temporary hacks
-	self:SetNWFloat("V",self.Speed)
-	self:SetNWFloat("A",self.Acceleration)
+	--self:SetNWFloat("V",self.Speed)
+	--self:SetNWFloat("A",self.Acceleration)
 
 	-- Send networked variables
 	self:SendPackedData()

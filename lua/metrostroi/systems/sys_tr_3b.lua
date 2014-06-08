@@ -29,7 +29,7 @@ function TRAIN_SYSTEM:CheckContact(ent,pos,dir)
 	return result.Hit
 end
 
-function TRAIN_SYSTEM:Think()
+function TRAIN_SYSTEM:Think(dT)
 	-- Don't do logic if train is broken
 	if (not IsValid(self.Train.FrontBogey)) or (not IsValid(self.Train.RearBogey)) then
 		return
@@ -63,6 +63,10 @@ function TRAIN_SYSTEM:Think()
 		self.NextStates[4] = self:CheckContact(self.Train.RearBogey,Vector(0,  61,-14),Vector(0, 1,0))
 	end
 	
+	-- Voltage spikes
+	self.VoltageDrop = self.VoltageDrop or 0
+	self.VoltageDrop = math.max(-30,math.min(30,self.VoltageDrop + (0 - self.VoltageDrop)*10*dT))
+	
 	-- Detect changes in contact states
 	for i=1,4 do
 		local state = self.NextStates[i]
@@ -70,6 +74,10 @@ function TRAIN_SYSTEM:Think()
 			self.ContactStates[i] = state
 			
 			if true then --state then
+				if state then
+					self.VoltageDrop = -30*(0.5 + 0.5*math.random())
+				end
+				
 				local dt = CurTime() - self.PlayTime[i]
 				self.PlayTime[i] = CurTime()
 
@@ -111,6 +119,6 @@ function TRAIN_SYSTEM:Think()
 	-- Detect voltage
 	self.Main750V = 0
 	for i=1,4 do
-		if self.ContactStates[i] then self.Main750V = 750 end
+		if self.ContactStates[i] then self.Main750V = 750 + self.VoltageDrop end
 	end
 end
