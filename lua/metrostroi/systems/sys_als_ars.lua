@@ -154,6 +154,12 @@ function TRAIN_SYSTEM:Think()
 		if self.Signal60 then self.NextLimit = 60 end
 		if self.Signal40 then self.NextLimit = 40 end
 		if self.Signal0  then self.NextLimit =  0 end
+
+		if not EnableARS then
+			self.ElectricBrake = false
+			self.PneumaticBrake1 = false
+			self.PneumaticBrake2 = true
+		end
 	else
 		self.Overspeed = true
 		--self.Ring = false
@@ -213,7 +219,7 @@ function TRAIN_SYSTEM:Think()
 		if (Train.RPB) and (not self.AttentionPedal) then
 			Train.RPB:TriggerInput("Open",1)
 		end
-		self.ElectricBrake = false
+		self.ElectricBrake = true
 		self.PneumaticBrake1 = false
 		self.PneumaticBrake2 = true
 	
@@ -228,5 +234,22 @@ function TRAIN_SYSTEM:Think()
 		self.LKT = false
 		self.LVD = false
 		self.Ring = false
+	end
+	
+	-- ARS signalling train wires
+	if EnableALS and EnableARS then
+		self.Train:WriteTrainWire(21,self.LVD and 1 or 0)--self.LKT and 1 or 0)
+	end
+	
+	-- ARS anti-door-closing
+	if EnableARS then
+		local SD = self.Train:ReadTrainWire(15)
+		if (SD < 1.0) and (self.Speed > 6.0) then
+			self["31"] = 1
+			self["32"] = 1
+		else
+			self["31"] = 0
+			self["32"] = 0
+		end
 	end
 end

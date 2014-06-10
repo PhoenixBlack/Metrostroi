@@ -10,6 +10,7 @@ function ENT:ReinitializeSounds()
 	self.SoundNames["run2"]			= "subway_trains/run_2.wav"
 	self.SoundNames["run3"]			= "subway_trains/run_3.wav"
 	self.SoundNames["run4"]			= "subway_trains/run_4a.mp3"
+	self.SoundNames["run5"]			= "subway_announcer/00_00.mp3"
 	self.SoundNames["release"]		= "subway_trains/release_1.wav"
 	self.SoundNames["brake1"]		= "subway_trains/brake_1.wav"
 	self.SoundNames["brake2"]		= "subway_trains/brake_2.wav"
@@ -104,11 +105,13 @@ function ENT:Think()
 		self:SetSoundState("run2",startVolRamp*(1-bleedVolRamp),speedPitch2)
 		self:SetSoundState("run3",startVolRamp*(  bleedVolRamp),speedPitch3)
 		self:SetSoundState("run4",0,0) --startVolRamp*3.0,math.min(1.0,speed/30)+math.max(0.0,(speed-60.0)/40))
+		self:SetSoundState("run5",0,0) --startVolRamp*3.0,math.min(1.0,speed/30)+math.max(0.0,(speed-60.0)/40))
 	else
 		--self:SetSoundState("run1",0,0)
 		self:SetSoundState("run2",0,0)
 		self:SetSoundState("run3",0,0)
 		self:SetSoundState("run4",0,0)
+		self:SetSoundState("run5",0,0)
 	end
 	
 	-- Brake release sound

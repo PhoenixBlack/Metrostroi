@@ -49,7 +49,7 @@ ENT.ClientProps["voltmeter"] = {
 }
 ENT.ClientProps["volt1"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
-	pos = Vector(447.00,-9.7,58),
+	pos = Vector(447.00,-9.4,57.9),
 	ang = Angle(90,0,180)
 }
 --------------------------------------------------------------------------------
