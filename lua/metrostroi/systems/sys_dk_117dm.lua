@@ -55,14 +55,11 @@ end
 
 function TRAIN_SYSTEM:Think(dT)
 	local Train = self.Train
-	local minimumFlux = 0.2 -- Set some minimum flux to simulate random fluctuation which can excite the field
-	local Iste = 0 -- Подмагничивание при низких токах
+	local minimumFlux = 0.01 -- Set some minimum flux to simulate random fluctuation which can excite the field
 
 	-- Calculate magnetic flux in the engine
-	currentMagneticFlux13 = (1.0/40.0) * 100.0*(1-math.exp(-2.5*(Train.Electric.Istator13+Iste)/100))
-	currentMagneticFlux24 = (1.0/40.0) * 100.0*(1-math.exp(-2.5*(Train.Electric.Istator24+Iste)/100))
-	--currentMagneticFlux13 = (1.0/40.0) * Train.Electric.Istator13
-	--currentMagneticFlux24 = (1.0/40.0) * Train.Electric.Istator24
+	currentMagneticFlux13 = (1.0/40.0) * 100.0*(1-math.exp(-2.5*Train.Electric.Istator13/100))
+	currentMagneticFlux24 = (1.0/40.0) * 100.0*(1-math.exp(-2.5*Train.Electric.Istator24/100))
 	currentMagneticFlux13 = math.min(5.0,math.max(minimumFlux,currentMagneticFlux13))
 	currentMagneticFlux24 = math.min(5.0,math.max(minimumFlux,currentMagneticFlux24))
 	
