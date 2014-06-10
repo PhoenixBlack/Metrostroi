@@ -299,10 +299,17 @@ end
 --------------------------------------------------------------------------------
 -- Scans an isolated track segment and for every useable segment calls func
 --------------------------------------------------------------------------------
+local check_table = {}
 function Metrostroi.ScanTrack(itype,node,func,x,dir,checked)
 	-- Check if this node was already scanned
 	if not node then return end
-	if not checked then checked = {} end
+	if not checked then 
+		--checked = {}
+		for k,v in pairs(check_table) do
+			check_table[k] = nil
+		end
+		checked = check_table
+	end
 	if checked[node] then return end	
 	checked[node] = true
 
@@ -510,8 +517,8 @@ end
 -- Update train positions
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateTrainPositions()
-	Metrostroi.TrainPositions = {}
-	Metrostroi.TrainsForNode = {}
+	Metrostroi.TrainPositions = Metrostroi.TrainPositions or {}
+	Metrostroi.TrainsForNode = Metrostroi.TrainsForNode or {}
 
 	-- Query all train types
 	for _,class in pairs(Metrostroi.TrainClasses) do
@@ -531,7 +538,7 @@ function Metrostroi.UpdateTrainPositions()
 		end
 	end
 end
-timer.Create("Metrostroi_TrainPositionTimer",0.25,0,Metrostroi.UpdateTrainPositions)
+timer.Create("Metrostroi_TrainPositionTimer",0.50,0,Metrostroi.UpdateTrainPositions)
 
 
 --------------------------------------------------------------------------------

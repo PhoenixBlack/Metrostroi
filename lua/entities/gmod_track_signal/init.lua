@@ -193,7 +193,7 @@ function ENT:Think()
 	-- Traffic light logic
 	self.PrevTime = self.PrevTime or 0
 	if (CurTime() - self.PrevTime) > 1.0 then
-		self.PrevTime = CurTime()
+		self.PrevTime = CurTime()+0.2*math.random()
 		self:ARSLogic()
 		
 		-- Get position of the traffic light
