@@ -29,6 +29,10 @@ function ENT:Initialize()
 	self:InitializeSystems()
 	-- Initialize highspeed interface
 	self:InitializeHighspeedLayout()
+	-- Add telemetry recording module if required
+	if GetConVarNumber("metrostroi_write_telemetry") == 1 then
+		self:LoadSystem("Telemetry")
+	end
 	
 	-- Prop-protection related
 	if CPPI and self.Owner then
@@ -231,6 +235,21 @@ end
 
 -- The debugger will call this
 function ENT:GetDebugVars()
+	-- Train wires
+	for i=1,32 do
+		self.DebugVars["TW"..i] = self:ReadTrainWire(i)
+	end
+	
+	-- System variables
+	for k,v in pairs(self.Systems) do
+		for _,output in pairs(v.OutputsList) do
+			self.DebugVars[(v.Name or "")..output] = v[output] or 0
+		end
+	end
+	
+	-- Speed/acceleration
+	self.DebugVars["Speed"] = speed
+	self.DebugVars["Acceleration"] = acceleration
 	return self.DebugVars 
 end
 
@@ -249,11 +268,11 @@ end
 --------------------------------------------------------------------------------
 -- Initialize highspeed layout
 function ENT:InitializeHighspeedLayout()
-	local layout = ""
+	--local layout = ""
 	self.HighspeedLayout = {}
 	for k,v in pairs(Metrostroi.TrainHighspeedInterface) do
 		local offset = v[1] + 128
-		if self.Systems[v[2]] then
+		if self.Systems[v[2] ] then
 			self.HighspeedLayout[offset] = function(value)
 				if value then
 					self.Systems[v[2] ]:TriggerInput(v[3],value)
@@ -263,9 +282,9 @@ function ENT:InitializeHighspeedLayout()
 			end
 		end
 		
-		layout = layout.."["..offset.."]\t"..v[2].."."..v[3].."\r\n"
+		--layout = layout.."["..offset.."]\t"..v[2].."."..v[3].."\r\n"
 	end
-	file.Write("hs_layout.txt",layout)
+	--file.Write("hs_layout.txt",layout)
 	
 	--[[local str = ""
 	local offset = 0
@@ -278,8 +297,9 @@ function ENT:InitializeHighspeedLayout()
 			str = str.."{ "..offset..", \""..k.."\", \""..v.OutputsList[i].."\" },\r\n"
 			offset = offset + 1
 		end
+		str = str..k.."\r\n"
 	end
-	file.Write("hs_layout.txt",str)]]--
+	file.Write("hs_layout3.txt",str)]]--
 end
 
 function ENT:UpdateWagonList()
@@ -1201,16 +1221,6 @@ function ENT:Think()
 		triggerOutput(self,"TrainWire"..i,readTrainWire(self,i))
 	end
 	
-	-- Add interesting debug variables
-	--[[for i=1,32 do
-		self.DebugVars["TW"..i] = self:ReadTrainWire(i)
-	end
-	for k,v in pairs(self.Systems) do
-		for _,output in pairs(v.OutputsList) do
-			self.DebugVars[(v.Name or "")..output] = v[output] or 0
-		end
-	end]]--
-	
 	-- Calculate own speed and acceleration
 	local speed,acceleration = 0,0
 	if IsValid(self.FrontBogey) and IsValid(self.RearBogey) then
@@ -1221,8 +1231,6 @@ function ENT:Think()
 	-- Update speed and acceleration
 	self.Speed = speed
 	self.Acceleration = acceleration
-	--self.DebugVars["Speed"] = speed
-	--self.DebugVars["Acceleration"] = acceleration
 
 	-- Go to next think
 	self:NextThink(CurTime()+0.05)
