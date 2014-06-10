@@ -286,7 +286,7 @@ function ENT:Think()
 	
 	-- Update ARS system
 	self:SetPackedRatio(3, self.ALS_ARS.Speed/100.0)
-	if self.ALS_ARS.Ring == true then
+	if (self.ALS_ARS.Ring == true) or (self:ReadTrainWire(21) > 0) then
 		self:SetPackedBool(39,true)
 	end
 	
@@ -316,8 +316,8 @@ function ENT:Think()
 	end
 
 	-- Temporary hacks
-	self:SetNWFloat("V",self.Speed)
-	self:SetNWFloat("A",self.Acceleration)
+	--self:SetNWFloat("V",self.Speed)
+	--self:SetNWFloat("A",self.Acceleration)
 
 	-- Send networked variables
 	self:SendPackedData()

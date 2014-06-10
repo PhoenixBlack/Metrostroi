@@ -50,7 +50,7 @@ function ENT:Initialize()
 end
 
 function ENT:Draw()
-	local pos = self:LocalToWorld(Vector(0,0,16))
+	local pos = self:LocalToWorld(Vector(4,0,16))
 	local ang = self:LocalToWorldAngles(Angle(0,90,90))
 	cam.Start3D2D(pos, ang, 0.50)
 		--surface.SetDrawColor(255,255,255,255)
@@ -65,36 +65,37 @@ function ENT:Draw()
 			color = Color(0,0,0,255)})
 	cam.End3D2D()
 	
-	local pos = self:LocalToWorld(Vector(0,0,-32))
+	local pos = self:LocalToWorld(Vector(4,0,-32))
 	local ang = self:LocalToWorldAngles(Angle(0,90,90))
 	cam.Start3D2D(pos, ang, 0.25)
 		local N = self:GetNWInt("StationList#")
 		local W = 320
 		local H = 55
-		local P1 = 4
-		local P2 = 4
+		local P1 = -2
+		local P2 = 3
 		local X = -N*W*0.5
 		for i=1,N do
-			local x = 0
-			if self:GetNWInt("Platform") == 1 then
-				x = X+W*((N-i))
-			else
-				x = X+W*(i-1)			
-			end
+			local x = X+W*(i-1)
 			local ID = self:GetNWInt("StationList"..i.."[ID]")
 			local currentStation = (self:GetNWInt("ID") == ID)
 			
-			surface.SetDrawColor(0,0,0,255)
-			surface.DrawRect(x+P1,0,W-P1*2,H)
+			local R1 = self:GetNWInt("StationList"..i.."[R]")*0.80+0.1
+			local G1 = self:GetNWInt("StationList"..i.."[G]")*0.80+0.1
+			local B1 = self:GetNWInt("StationList"..i.."[B]")*0.80+0.1
+			local R2 = 255*0.8
+			local G2 = 255*0.8
+			local B2 = 0
 
 			if currentStation then
-				surface.SetDrawColor(255,255,255,255)
-			else
-				surface.SetDrawColor(
-					self:GetNWInt("StationList"..i.."[R]")*0.80+0.1,
-					self:GetNWInt("StationList"..i.."[G]")*0.80+0.1,
-					self:GetNWInt("StationList"..i.."[B]")*0.80,255)
+				local R,G,B = R2,G2,B2
+				R2,G2,B2 = R1,G1,B1
+				R1,G1,B1 = R,G,B
 			end
+
+			surface.SetDrawColor(0,0,0,255)
+			surface.DrawRect(x+P1,0,W-P1*2,H)
+			
+			surface.SetDrawColor(R1,G1,B1,255)
 			surface.DrawRect(x+P1+P2,0+P2,W-P1*2-P2*2,H-P2*2)
 			
 			draw.Text({

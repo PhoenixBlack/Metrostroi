@@ -245,7 +245,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_contactor"])
 	
 	-- Calculate power and heating
-	local K = 12.0*1e-5 * 4.0
+	local K = 12.0*1e-5 * 3.25
 	local H = (10.00+(5.00*Train.Engines.Speed/80.0))*1e-3
 	self.P1 = (self.IR1^2)*self.R1
 	self.P2 = (self.IR2^2)*self.R2

@@ -166,7 +166,7 @@ function ENT:Think()
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
 	self:SetPackedRatio(8, math.abs(self.Electric.I24)/1000.0)	
 	self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
-	--self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 100.0)
+	self:SetPackedRatio(10,(self.VB.Value * self.Battery.Voltage) / 120.0)
 
 	-- RUT test
 	local weightRatio = 2.00*math.max(0,math.min(1,(self:GetPassengerCount()/300)))
