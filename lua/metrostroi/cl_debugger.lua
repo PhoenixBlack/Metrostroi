@@ -143,13 +143,6 @@ Debugger.DisplayGroups["Control Relays"] = {
 	Ents = {"#gmod_subway_base"}
 }
 
-Debugger.DisplayGroups["Cabin Relays"] = {
-	Data = {
-		{"RperValue","%.0f","on/off"},
-	},
-	Ents = {"#gmod_subway_base"}
-}
-
 Debugger.DisplayGroups["Train Wires"] = {
 	Data = {
 		{"TW1", "%d", "level"},
@@ -266,7 +259,7 @@ Debugger.DisplayGroups["Engines"] = {
 
 Debugger.DisplayGroups["RK & PS"] = {
 	Data = {
-		{"RheostatControllerRheostatController","",""},
+		{"Rheostat","Controller:",""},
 	
 		{"RheostatControllerMotorState","%.1f","state"},
 		{"RheostatControllerMotorCoilState","%.1f","state"},
@@ -278,16 +271,13 @@ Debugger.DisplayGroups["RK & PS"] = {
 		{"RheostatControllerRKM2","%.1f","state"},
 		{"RheostatControllerRKP","%.1f","state"},
 		
-		{"PositionSwitchPositionSwitch","",""},
+		{"Position","Switch:",""},
 	
 		{"PositionSwitchMotorState","%.1f","state"},
 		{"PositionSwitchMotorCoilState","%.1f","state"},
 
 		{"PositionSwitchPosition","%.2f","position"},
 		{"PositionSwitchVelocity","%.2f","1/sec"},
-
-		{"PositionSwitchRKM1","%.1f","state"},
-		{"PositionSwitchRKM2","%.1f","state"},
 		{"PositionSwitchRKP","%.1f","state"},
 	},
 	
@@ -506,7 +496,7 @@ surface.CreateFont( "DebugBoxText", {
 local function getDisplayGroupWidth(displaygroup,entid)
 	local width = 0
 	for k,v in pairs(displaygroup.Data) do
-		local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
+		local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0) or 0)
 		width = width + 5 + math.max(
 			surface.GetTextSize(v[4] or v[1]),
 			surface.GetTextSize(v2),
@@ -538,7 +528,7 @@ local function drawBox(x,y,displaygroup,entid)
 		surface.SetTextPos(x+localx,y+5)
 		surface.DrawText(v[4] or v[1])
 		
-		local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0))
+		local v2 = string.format(v[2],tonumber(GetEntVar(entid,v[1]) or 0) or 0)
 		surface.SetTextPos(x+localx,y+20)
 		surface.DrawText(v2)
 		
