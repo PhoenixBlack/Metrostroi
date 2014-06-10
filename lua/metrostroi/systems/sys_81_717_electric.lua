@@ -151,7 +151,6 @@ function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 		["ReverserBackward"]	= function(V) Train.RKR:TriggerInput("Close",V) end,
 	}
 	Train.InternalCircuits.Solve81_717(Train,self.Triggers)
-	print("SDRK: "..SDRK_Shunt)
 end
 
 
