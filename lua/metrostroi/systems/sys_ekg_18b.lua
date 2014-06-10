@@ -15,6 +15,9 @@ function TRAIN_SYSTEM:Initialize()
 	self.WrapsAround = true
 	Metrostroi.BaseSystems["EKG"].Initialize(self)
 	
+	-- Rate of rotation (positions per second
+	self.RotationRate = 1.0/0.20
+	
 	-- Реле РПУ
 	self.Train:LoadSystem("RPU","Relay","RPU-3")
 end

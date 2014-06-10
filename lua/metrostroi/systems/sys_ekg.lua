@@ -16,7 +16,7 @@ function TRAIN_SYSTEM:Initialize()
 	for k,v in ipairs(self.Configuration[1]) do self[k.."_contactor"] = 0 end
 	
 	-- Rate of rotation (positions per second
-	self.RotationRate = self.RotationRate or (1.0/0.15)
+	self.RotationRate = self.RotationRate or (1.0/0.12)
 	self.OverrideRate = self.OverrideRate or {}
 	
 	-- Initialize motor state and position

@@ -1094,7 +1094,7 @@ SpecialTriggers = {
 }
 ExtraStatements = {
 [[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],
-[[Triggers["SDRK_Shunt"]( 1.0 - 0.25*C((RK >= 2) and (RK <= 7))*C(P == 1)*Train.LK2.Value )]]
+[[Triggers["SDRK_Shunt"]( 1.0 - (0.20+0.20*C((RK >= 2) and (RK <= 7))*C(P == 1))*Train.LK2.Value )]]
 }
 
 GenerateSourceHeader()
@@ -1145,7 +1145,7 @@ SpecialTriggers = {
 }
 ExtraStatements = {
 [[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],
-[[Triggers["SDRK_Shunt"]( 1.0 - 0.25*C((RK >= 2) and (RK <= 7))*C(P == 1)*Train.LK2.Value )]]
+[[Triggers["SDRK_Shunt"]( 1.0 - (0.20+0.20*C((RK >= 2) and (RK <= 7))*C(P == 1))*Train.LK2.Value )]]
 }
 Simplify("81_717")
 
@@ -1504,7 +1504,7 @@ SpecialTriggers = {
 }
 ExtraStatements = {
 [[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],
-[[Triggers["SDRK_Shunt"]( 1.0 - 0.25*C((RK >= 2) and (RK <= 7))*C(P == 1)*Train.LK2.Value )]]
+[[Triggers["SDRK_Shunt"]( 1.0 - (0.20+0.20*C((RK >= 2) and (RK <= 7))*C(P == 1))*Train.LK2.Value )]]
 }
 Simplify("81_714")
 
