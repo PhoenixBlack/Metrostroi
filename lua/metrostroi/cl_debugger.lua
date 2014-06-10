@@ -38,7 +38,37 @@ Debugger.DisplayGroups["Train State"] = {
 	},
 	
 	Ents = {"#gmod_subway_base"}
-	
+}
+
+Debugger.DisplayGroups["ARS/ALS"] = {
+	Data = {
+		{"ALSValue",			"%.0f","on/off"},
+		{"ARSValue",			"%.0f","on/off"},
+		
+		{"ALS_ARS2",			"%.0f",""},
+		{"ALS_ARS8",			"%.0f",""},
+		{"ALS_ARS20",			"%.0f",""},
+		{"ALS_ARS29",			"%.0f",""},
+		{"ALS_ARS33D",			"%.0f",""},
+		{"ALS_ARS33G",			"%.0f",""},
+		{"ALS_ARS33Zh",			"%.0f",""},
+		
+		{"ALS_ARSSpeed",		"%.1f","km/h"},
+		{"ALS_ARSSpeedLimit",	"%.1f","km/h"},
+		{"ALS_ARSNextLimit",	"%.1f","km/h"},
+		
+		{"ALS_ARSSignal80",		"%.0f",""},
+		{"ALS_ARSSignal70",		"%.0f",""},
+		{"ALS_ARSSignal60",		"%.0f",""},
+		{"ALS_ARSSignal40",		"%.0f",""},
+		{"ALS_ARSSignal0",		"%.0f",""},
+		{"ALS_ARSSpecial",		"%.0f",""},
+		{"ALS_ARSNoFreq",		"%.0f",""},
+		{"ALS_ARSRing",			"%.0f",""},
+	},
+
+	Ents = {"#gmod_subway_base"},
+	ignore_prefix = "ALS_ARS",
 }
 
 Debugger.DisplayGroups["Power Relays"] = {
@@ -49,6 +79,8 @@ Debugger.DisplayGroups["Power Relays"] = {
 		{"LK2Value","%.0f","on/off"},
 		{"LK3Value","%.0f","on/off"},
 		{"LK4Value","%.0f","on/off"},
+		{"LK5Value","%.0f","on/off"},
+		
 		{"KSH1Value","%.0f","on/off"},
 		{"KSH2Value","%.0f","on/off"},
 		{"TR1Value","%.0f","on/off"},
@@ -70,7 +102,6 @@ Debugger.DisplayGroups["Power Relays"] = {
 	},
 
 	Ents = {"#gmod_subway_base"}
-	
 }
 
 Debugger.DisplayGroups["Control Relays"] = {
@@ -98,9 +129,25 @@ Debugger.DisplayGroups["Control Relays"] = {
 		{"RKRValue","%.0f","on/off"},
 		
 		{"RperValue","%.0f","on/off"},
+		
+		{"Cabin","Relays:",""},
+		
+		{"Cabin","Relays:",""},
+		{"R1_5Value","%.0f","on/off"},
+		{"K6Value","%.0f","on/off"},
+		{"RVTValue","%.0f","on/off"},
+		{"RPBValue","%.0f","on/off"},
+		{"KDValue","%.0f","on/off"},
+	},
+	ignore_suffix = "Value",
+	Ents = {"#gmod_subway_base"}
+}
+
+Debugger.DisplayGroups["Cabin Relays"] = {
+	Data = {
+		{"RperValue","%.0f","on/off"},
 	},
 	Ents = {"#gmod_subway_base"}
-	
 }
 
 Debugger.DisplayGroups["Train Wires"] = {
@@ -141,7 +188,6 @@ Debugger.DisplayGroups["Train Wires"] = {
 	},
 	
 	Ents = {"#gmod_subway_base"}
-	
 }
 
 Debugger.DisplayGroups["Pneumatic System"] = {
@@ -155,14 +201,18 @@ Debugger.DisplayGroups["Pneumatic System"] = {
 		{"PneumaticNo2Value","%.0f","on/off"},
 	},
 	
-	
 	ignore_prefix = "Pneumatic",
 	Ents = {"#gmod_subway_base"}
-	
 }
 
 Debugger.DisplayGroups["Electric System"] = {
 	Data = {
+		{"PowerSupplyDIP-01K","",""},
+
+		{"PowerSupplyXT3.1","%.2f","V"},
+		{"PowerSupplyXT3.4","%.2f","V"},
+		{"PowerSupplyXT1.2","%.2f","V"},
+
 		{"ElectricMain750V","%.2f","V"},
 		{"ElectricPower750V","%.2f","V"},
 		{"ElectricAux750V","%.2f","V"},
@@ -192,24 +242,8 @@ Debugger.DisplayGroups["Electric System"] = {
 		{"ElectricT2","%.2f","degC"},
 	},
 	
-	
-	ignore_prefix = "Electric",
+	ignore_prefix = {"Electric","PowerSupply"},
 	Ents = {"#gmod_subway_base"}
-	
-}
-
-Debugger.DisplayGroups["DIP-01K"] = {
-	Data = {
-		{"PowerSupplyDIP-01K","",""},
-
-		{"PowerSupplyXT3.1","%.2f","V"},
-		{"PowerSupplyXT3.4","%.2f","V"},
-		{"PowerSupplyXT1.2","%.2f","V"},
-	},
-	
-	ignore_prefix = "PowerSupply",
-	Ents = {"#gmod_subway_base"}
-	
 }
 
 Debugger.DisplayGroups["Engines"] = {
@@ -226,13 +260,11 @@ Debugger.DisplayGroups["Engines"] = {
 		{"EnginesFieldReduction24","%.2f","%"},		
 	},
 	
-	
 	ignore_prefix = "Engines",
 	Ents = {"#gmod_subway_base"}
-	
 }
 
-Debugger.DisplayGroups["Rheostat Controller"] = {
+Debugger.DisplayGroups["RK & PS"] = {
 	Data = {
 		{"RheostatControllerRheostatController","",""},
 	
@@ -245,16 +277,7 @@ Debugger.DisplayGroups["Rheostat Controller"] = {
 		{"RheostatControllerRKM1","%.1f","state"},
 		{"RheostatControllerRKM2","%.1f","state"},
 		{"RheostatControllerRKP","%.1f","state"},
-	},
-	
-	
-	ignore_prefix = "RheostatController",
-	Ents = {"#gmod_subway_base"}
-	
-}
-
-Debugger.DisplayGroups["Position Switch"] = {
-	Data = {
+		
 		{"PositionSwitchPositionSwitch","",""},
 	
 		{"PositionSwitchMotorState","%.1f","state"},
@@ -269,9 +292,8 @@ Debugger.DisplayGroups["Position Switch"] = {
 	},
 	
 	
-	ignore_prefix = "PositionSwitch",
+	ignore_prefix = {"RheostatController","PositionSwitch"},
 	Ents = {"#gmod_subway_base"}
-	
 }
 
 Debugger.DisplayGroups["DURA"] = {
@@ -286,10 +308,8 @@ Debugger.DisplayGroups["DURA"] = {
 		{"DURADistanceToLight","%.1f","m"},
 	},
 	
-	
 	ignore_prefix = "DURA",
 	Ents = {"#gmod_subway_base"}
-	
 }
 
 Debugger.DisplayGroups["Bogey"] = {
@@ -298,18 +318,34 @@ Debugger.DisplayGroups["Bogey"] = {
 		{"Acceleration","%6.2f","","m/s2"},
 	},
 	
-	
 	Ents = {"gmod_train_bogey"}
-	
 }
 
+
+
+
+--------------------------------------------------------------------------------
 local function ProccessGroup(group)
 	group.Enabled = true
 	
-	local prefix = group.ignore_prefix
+	local prefixes = group.ignore_prefix
+	local suffix = group.ignore_suffix
+	if type(prefixes) ~= "table" then
+		prefixes = { prefixes }
+	end
+	
 	for k,v in pairs(group.Data) do
-		if not v[4] and prefix then
-			v[4] = string.Right(v[1],string.len(v[1])-string.len(prefix))
+		if not v[4] then
+			for _,prefix in pairs(prefixes) do
+				if string.find(v[1],prefix) then
+					v[4] = string.Right(v[1],string.len(v[1])-string.len(prefix))
+				end
+			end
+			if suffix then
+				if string.find(v[1],suffix) then
+					v[4] = string.sub(v[1],1,string.len(v[1])-string.len(suffix))
+				end			
+			end
 		end
 	end
 end
