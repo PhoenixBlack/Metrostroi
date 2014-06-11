@@ -75,69 +75,74 @@ Debugger.DisplayGroups["Power Relays"] = {
 	Data = {
 		{"RKRValue","%.0f","0-fwd/1-rev"},
 
-		{"LK1Value","%.0f","on/off"},
-		{"LK2Value","%.0f","on/off"},
-		{"LK3Value","%.0f","on/off"},
-		{"LK4Value","%.0f","on/off"},
-		{"LK5Value","%.0f","on/off"},
+		{"LK1Value","%.0f",""},
+		{"LK2Value","%.0f",""},
+		{"LK3Value","%.0f",""},
+		{"LK4Value","%.0f",""},
+		{"LK5Value","%.0f",""},
 		
-		{"KSH1Value","%.0f","on/off"},
-		{"KSH2Value","%.0f","on/off"},
-		{"TR1Value","%.0f","on/off"},
-		{"TR2Value","%.0f","on/off"},
+		{"KSH1Value","%.0f",""},
+		{"KSH2Value","%.0f",""},
+		{"TR1Value","%.0f",""},
+		{"TR2Value","%.0f",""},
 		
-		{"RKTTValue","%.0f","on/off"},
-		{"RUTValue","%.0f","on/off"},
-		{"DR1Value","%.0f","on/off"},
-		{"DR2Value","%.0f","on/off"},
+		{"RKTTValue","%.0f",""},
+		{"RUTValue","%.0f",""},
+		{"DR1Value","%.0f",""},
+		{"DR2Value","%.0f",""},
 		
-		{"RPLValue","%.0f","on/off"},
-		{"RP1_3Value","%.0f","on/off"},
-		{"RP2_4Value","%.0f","on/off"},
-		{"RPvozvratValue","%.0f","on/off"},
+		{"RPLValue","%.0f",""},
+		{"RP1_3Value","%.0f",""},
+		{"RP2_4Value","%.0f",""},
+		{"RPvozvratValue","%.0f",""},
 		
-		{"RZ_1Value","%.0f","on/off"},
-		{"RZ_2Value","%.0f","on/off"},
-		{"RZ_3Value","%.0f","on/off"},
+		{"RZ_1Value","%.0f",""},
+		{"RZ_2Value","%.0f",""},
+		{"RZ_3Value","%.0f",""},
 	},
 
+	ignore_suffix = "Value",
 	Ents = {"#gmod_subway_base"}
 }
 
 Debugger.DisplayGroups["Control Relays"] = {
 	Data = {
-		{"RDValue","%.0f","on/off"},
-		{"RVOValue","%.0f","on/off"},
-		{"RVZValue","%.0f","on/off"},
-		{"RT2Value","%.0f","on/off"},
-		{"RRValue","%.0f","on/off"},
+		--{"RVOValue","%.0f",""},
+		--{"RVZValue","%.0f",""},
+		--{"RT2Value","%.0f",""},
+		--{"RRValue","%.0f",""},
+		--{"RSUValue","%.0f",""},
+
+		{"Xod","relays:",""},
+		{"NRValue","%.0f",""},
+		{"RKRValue","%.0f",""},
+		{"RperValue","%.0f",""},
 		
-		{"NRValue","%.0f","on/off"},
-		{"RSUValue","%.0f","on/off"},
+		{"Tormoz","relays:",""},
+		{"RUPValue","%.0f",""},
 		
-		{"RPLValue","%.0f","on/off"},
-		{"RP1_3Value","%.0f","on/off"},
-		{"RP2_4Value","%.0f","on/off"},
-		{"RPvozvratValue","%.0f","on/off"},
-		
-		{"RV1Value","%.0f","on/off"},
-		{"RV2Value","%.0f","on/off"},
-		
-		{"RRTValue","%.0f","on/off"},
-		{"RRP1Value","%.0f","on/off"},
-		{"SR1Value","%.0f","on/off"},
-		{"RKRValue","%.0f","on/off"},
-		
-		{"RperValue","%.0f","on/off"},
+		{"RK","relays:",""},
+		{"RRTValue","%.0f",""},
+		{"RUTValue","%.0f",""},
+		{"SR1Value","%.0f",""},
+		{"RV1Value","%.0f",""},
 		
 		{"Cabin","Relays:",""},
+		{"R1_5Value","%.0f",""},
+		{"K6Value","%.0f",""},
+		{"RVTValue","%.0f",""},
+		{"RPBValue","%.0f",""},
+		{"KDValue","%.0f",""},
 		
-		{"Cabin","Relays:",""},
-		{"R1_5Value","%.0f","on/off"},
-		{"K6Value","%.0f","on/off"},
-		{"RVTValue","%.0f","on/off"},
-		{"RPBValue","%.0f","on/off"},
-		{"KDValue","%.0f","on/off"},
+		{"RV2Value","%.0f",""},
+		
+		{"Other:","",""},
+		{"AVTValue","%.0f",""},
+		
+		{"RPLValue","%.0f",""},
+		{"RP1_3Value","%.0f",""},
+		{"RP2_4Value","%.0f",""},
+		{"RPvozvratValue","%.0f",""},
 	},
 	ignore_suffix = "Value",
 	Ents = {"#gmod_subway_base"}
@@ -192,25 +197,62 @@ Debugger.DisplayGroups["Pneumatic System"] = {
 		{"PneumaticTrainLinePressure",		"%.3f", "atm"},
 		{"PneumaticNo1Value","%.0f","on/off"},
 		{"PneumaticNo2Value","%.0f","on/off"},
+		
+		{"Pneumatic","latches:",""},
+		{"AKValue","%.0f",""},
+		{"AVUValue","%.0f",""},
+		{"AVTValue","%.0f",""},
+		{"BPTValue","%.0f",""},
+		{"BDValue","%.0f",""},
+		
+		{"Door","control:",""},
+		{"VDOLValue","%.0f",""},
+		{"VDOPValue","%.0f",""},
+		{"VDZValue","%.0f",""},
+	
 	},
 	
 	ignore_prefix = "Pneumatic",
+	ignore_suffix = "Value",
 	Ents = {"#gmod_subway_base"}
 }
 
-Debugger.DisplayGroups["Electric System"] = {
+Debugger.DisplayGroups["Electric System (1)"] = {
 	Data = {
-		{"PowerSupplyDIP-01K","",""},
+		{"GVValue","%.0f","on/off"},
+		
+		{"DIP-01K:","",""},
 
 		{"PowerSupplyXT3.1","%.2f","V"},
 		{"PowerSupplyXT3.4","%.2f","V"},
 		{"PowerSupplyXT1.2","%.2f","V"},
 
+		{"Volts:","",""},
+		
 		{"ElectricMain750V","%.2f","V"},
 		{"ElectricPower750V","%.2f","V"},
 		{"ElectricAux750V","%.2f","V"},
 		{"ElectricAux80V","%.2f","V"},
 		
+		{"ElectricR1","%.3g","Ohm"},
+		{"ElectricR2","%.3g","Ohm"},
+		{"ElectricR3","%.3g","Ohm"},
+		{"ElectricRs1","%.3g","Ohm"},
+		{"ElectricRs2","%.3g","Ohm"},
+		
+		{"ElectricP1","%.1f","W"},
+		{"ElectricP2","%.1f","W"},
+		{"ElectricT1","%.2f","degC"},
+		{"ElectricT2","%.2f","degC"},
+	},
+	
+	ignore_prefix = {"Electric","PowerSupply"},
+	ignore_suffix = "Value",
+	Ents = {"#gmod_subway_base"}
+}
+
+Debugger.DisplayGroups["Electric System (2)"] = {
+	Data = {
 		{"ElectricI13","%.2f","A"},
 		{"ElectricI24","%.2f","A"},
 		{"ElectricItotal","%.2f","A"},
@@ -236,6 +278,7 @@ Debugger.DisplayGroups["Electric System"] = {
 	},
 	
 	ignore_prefix = {"Electric","PowerSupply"},
+	ignore_suffix = "Value",
 	Ents = {"#gmod_subway_base"}
 }
 
@@ -259,26 +302,26 @@ Debugger.DisplayGroups["Engines"] = {
 
 Debugger.DisplayGroups["RK & PS"] = {
 	Data = {
-		{"Rheostat","Controller:",""},
+		{"Rheostat","controller:",""},
 	
-		{"RheostatControllerMotorState","%.1f","state"},
-		{"RheostatControllerMotorCoilState","%.1f","state"},
+		{"RheostatControllerMotorState","%.1f",""},
+		{"RheostatControllerMotorCoilState","%.1f",""},
 		
 		{"RheostatControllerPosition","%.2f","position"},
 		{"RheostatControllerVelocity","%.2f","1/sec"},
 		
-		{"RheostatControllerRKM1","%.1f","state"},
-		{"RheostatControllerRKM2","%.1f","state"},
-		{"RheostatControllerRKP","%.1f","state"},
+		{"RheostatControllerRKM1","%.1f",""},
+		{"RheostatControllerRKM2","%.1f",""},
+		{"RheostatControllerRKP","%.1f",""},
 		
-		{"Position","Switch:",""},
+		{"Position","switch:",""},
 	
-		{"PositionSwitchMotorState","%.1f","state"},
-		{"PositionSwitchMotorCoilState","%.1f","state"},
+		{"PositionSwitchMotorState","%.1f",""},
+		{"PositionSwitchMotorCoilState","%.1f",""},
 
 		{"PositionSwitchPosition","%.2f","position"},
 		{"PositionSwitchVelocity","%.2f","1/sec"},
-		{"PositionSwitchRKP","%.1f","state"},
+		{"PositionSwitchRKP","%.1f",""},
 	},
 	
 	
@@ -288,13 +331,13 @@ Debugger.DisplayGroups["RK & PS"] = {
 
 Debugger.DisplayGroups["DURA"] = {
 	Data = {
-		{"DURASwitchBlocked","%.0f","state"},
-		{"DURASelectedAlternate","%.0f","state"},
-		{"DURASelectingAlternate","%.0f","state"},
-		{"DURASelectingMain","%.0f","state"},
+		{"DURASwitchBlocked","%.0f",""},
+		{"DURASelectedAlternate","%.0f",""},
+		{"DURASelectingAlternate","%.0f",""},
+		{"DURASelectingMain","%.0f",""},
 		
-		{"DURANextLightRed","%.0f","state"},
-		{"DURANextLightYellow","%.0f","state"},
+		{"DURANextLightRed","%.0f",""},
+		{"DURANextLightYellow","%.0f",""},
 		{"DURADistanceToLight","%.1f","m"},
 	},
 	
