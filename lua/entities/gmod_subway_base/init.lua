@@ -248,8 +248,8 @@ function ENT:GetDebugVars()
 	end
 	
 	-- Speed/acceleration
-	self.DebugVars["Speed"] = speed
-	self.DebugVars["Acceleration"] = acceleration
+	self.DebugVars["Speed"] = self.Speed
+	self.DebugVars["Acceleration"] = self.Acceleration
 	return self.DebugVars 
 end
 

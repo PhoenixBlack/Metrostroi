@@ -55,11 +55,11 @@ end
 
 function TRAIN_SYSTEM:Think(dT)
 	local Train = self.Train
-	local minimumFlux = 0.01 -- Set some minimum flux to simulate random fluctuation which can excite the field
+	local minimumFlux = 0.1 -- Set some minimum flux to simulate random fluctuation which can excite the field
 
 	-- Calculate magnetic flux in the engine
-	currentMagneticFlux13 = (1.0/40.0) * 100.0*(1-math.exp(-2.5*Train.Electric.Istator13/100))
-	currentMagneticFlux24 = (1.0/40.0) * 100.0*(1-math.exp(-2.5*Train.Electric.Istator24/100))
+	currentMagneticFlux13 = (1.0/40.0)*70.0*(1-math.exp(-3.5*Train.Electric.Istator13/100))
+	currentMagneticFlux24 = (1.0/40.0)*70.0*(1-math.exp(-3.5*Train.Electric.Istator24/100))
 	currentMagneticFlux13 = math.min(5.0,math.max(minimumFlux,currentMagneticFlux13))
 	currentMagneticFlux24 = math.min(5.0,math.max(minimumFlux,currentMagneticFlux24))
 	
@@ -78,8 +78,8 @@ function TRAIN_SYSTEM:Think(dT)
 	self.E24 = math.max(-2000,math.min(2000,self.E24))
 
 	-- Calculate engine force (moment)
-	self.Moment13 = (1.0/400.0) * Train.Electric.I13 * self.MagneticFlux13
-	self.Moment24 = (1.0/400.0) * Train.Electric.I24 * self.MagneticFlux24
+	self.Moment13 = (1.0/300.0) * Train.Electric.I13 * self.MagneticFlux13
+	self.Moment24 = (1.0/300.0) * Train.Electric.I24 * self.MagneticFlux24
 	
 	-- Apply moment to bogeys
 	if (math.abs(Train.Electric.I13) > 1.0) or (math.abs(Train.Electric.I24) > 1.0) then

@@ -159,6 +159,7 @@ end
 function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 	-- General state
 	local Active = ((Train.KSB1.Value > 0) or (Train.KSB2.Value > 0)) and (Train.LK2.Value == 1.0)
+	local StatorCurrent = (math.abs(self.Istator13) + math.abs(self.Istator24))*0.5
 	local Current = math.abs(self.Itotal)
 	local PrevCurrent = self.ThyristorPrevCurrent or Current
 	self.ThyristorPrevCurrent = Current
@@ -196,7 +197,7 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 			0.90,0.650,
 			1.00,15.00,
 		}
-		local TargetField = 0.20 + 0.80*self.ThyristorState
+		local TargetField = 0.30 + 0.70*self.ThyristorState
 		local Found = false
 		for i=1,#keypoints/2 do
 			local X1,Y1 = keypoints[(i-1)*2+1],keypoints[(i-1)*2+2]
