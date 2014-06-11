@@ -196,7 +196,7 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 			0.90,0.650,
 			1.00,15.00,
 		}
-		local TargetField = 0.20 + 0.80*self.ThyristorState
+		local TargetField = 0.30 + 0.70*self.ThyristorState
 		local Found = false
 		for i=1,#keypoints/2 do
 			local X1,Y1 = keypoints[(i-1)*2+1],keypoints[(i-1)*2+2]
