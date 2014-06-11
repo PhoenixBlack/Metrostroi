@@ -133,12 +133,12 @@ function ENT:Initialize()
 			[22] = { "light",			Vector(439.8,12.5+1.5-9.6,-6.1), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
 			-- AVU
 			[23] = { "light",			Vector(441.6,12.5+1.5-20.3,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
-			-- LKTP
-			[24] = { "light",			Vector(441.6,12.5+1.5-23.0,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			-- LKVP
+			[24] = { "light",			Vector(441.6,12.5+1.5-23.0,-4.15), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
 			-- Pneumatic brake
-			[25] = { "light",			Vector(438.7,-26.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[25] = { "light",			Vector(438.7,-26.1,-5.35), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
 			-- Cabin heating
-			[26] = { "light",			Vector(438.7,-21.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[26] = { "light",			Vector(438.7,-21.1,-5.35), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
 			-- Door left open (#1)
 			[27] = { "light",			Vector(437.8,4.4,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 			-- Door left open (#2)
@@ -182,12 +182,12 @@ function ENT:Initialize()
 			[22] = { "light",			Vector(439.8,12.5+1.5-9.6,-6.1), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
 			-- AVU
 			[23] = { "light",			Vector(441.6,12.5+1.5-20.3,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
-			-- LKTP
-			[24] = { "light",			Vector(441.6,12.5+1.5-23.0,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			-- LKVP
+			[24] = { "light",			Vector(441.6,12.5+1.5-23.0,-4.15), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
 			-- Pneumatic brake
-			[25] = { "light",			Vector(438.7,-26.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[25] = { "light",			Vector(438.7,-26.1,-5.35), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
 			-- Cabin heating
-			[26] = { "light",			Vector(438.7,-21.1,-5.35), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
+			[26] = { "light",			Vector(438.7,-21.1,-5.35), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
 			-- Door left open (#1)
 			[27] = { "light",			Vector(437.8,4.4,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 			-- Door left open (#2)
@@ -362,7 +362,7 @@ function ENT:Think()
 	-- LKVC
 	self:SetPackedBool(51,self.KVC.Value < 0.5)
 	-- BPSN
-	self:SetLightPower(24,(self.PowerSupply.XT3_1 <= 0) and (self.Panel["V1"] > 0.5))
+	self:SetLightPower(24,(self.PowerSupply.XT3_1 > 0) and (self.Panel["V1"] > 0.5))
 	self:SetPackedBool(52,self.PowerSupply.XT3_1 > 0)
 	-- LRS
 	self:SetPackedBool(54,(self.Panel["V1"] > 0.5) and 
