@@ -304,11 +304,10 @@ function Metrostroi.ScanTrack(itype,node,func,x,dir,checked)
 	-- Check if this node was already scanned
 	if not node then return end
 	if not checked then 
-		checked = {}
-		--[[for k,v in pairs(check_table) do
+		for k,v in pairs(check_table) do
 			check_table[k] = nil
 		end
-		checked = check_table]]--
+		checked = check_table
 	end
 	if checked[node] then return end	
 	checked[node] = true
@@ -517,8 +516,8 @@ end
 -- Update train positions
 --------------------------------------------------------------------------------
 function Metrostroi.UpdateTrainPositions()
-	Metrostroi.TrainPositions = Metrostroi.TrainPositions or {}
-	Metrostroi.TrainsForNode = Metrostroi.TrainsForNode or {}
+	Metrostroi.TrainPositions = {}
+	Metrostroi.TrainsForNode = {}
 
 	-- Query all train types
 	for _,class in pairs(Metrostroi.TrainClasses) do
