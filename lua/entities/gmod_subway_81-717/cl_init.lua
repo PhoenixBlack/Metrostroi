@@ -356,6 +356,22 @@ ENT.ButtonMap["RearPneumatic"] = {
 	scale = 0.1,
 }
 
+-- Wagon numbers
+ENT.ButtonMap["TrainNumber1"] = {
+	pos = Vector(30,-67.6,-10),
+	ang = Angle(0,0,90),
+	width = 130,
+	height = 55,
+	scale = 0.20,
+}
+ENT.ButtonMap["TrainNumber2"] = {
+	pos = Vector(30+28,67.7,-10),
+	ang = Angle(0,180,90),
+	width = 130,
+	height = 55,
+	scale = 0.20,
+}
+
 
 
 
@@ -500,7 +516,7 @@ Metrostroi.ClientPropForButton("KDL",{
 Metrostroi.ClientPropForButton("KDP",{
 	panel = "Front",
 	button = "KDPSet",
-	model = "models/metrostroi/81-717/button07.mdl",
+	model = "models/metrostroi/81-717/button08.mdl",
 })
 Metrostroi.ClientPropForButton("KVT",{
 	panel = "Main",
@@ -722,6 +738,9 @@ table.insert(ENT.ClientProps,{
 function ENT:Think()
 	self.BaseClass.Think(self)
 
+	local transient = (self.Transient or 0)*0.05
+	if (self.Transient or 0) >= 1.0 then self.Transient = 0.0 end
+	
 	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
 	self:Animate("controller",		1-self:GetPackedRatio(1),			0.30, 0.70,  384,24)
@@ -730,7 +749,7 @@ function ENT:Think()
 	self:ShowHide("reverser",		self:GetPackedBool(0))
 
 	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
-	self:Animate("train_line",		self:GetPackedRatio(5),				0.16, 0.84,  256,2,0.01)
+	self:Animate("train_line",		self:GetPackedRatio(5)-transient,	0.16, 0.84,  4096,0,0.01)
 	self:Animate("brake_cylinder",	self:GetPackedRatio(6),	 			0.17, 0.86,  256,2,0.03)
 	self:Animate("voltmeter",		self:GetPackedRatio(7),				0.35, 0.64)
 	self:Animate("ampermeter",		self:GetPackedRatio(8),				0.37, 0.63)
@@ -745,7 +764,7 @@ function ENT:Think()
 	self:Animate("VMK",				self:GetPackedBool(9) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VAH",				self:GetPackedBool(10) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VAD",				self:GetPackedBool(11) and 1 or 0, 	0,1, 16, false)
-	self:Animate("VUD1",			self:GetPackedBool(12) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VUD1",			1-(self:GetPackedBool(12) and 1 or 0), 	0,1, 16, false)
 	--self:Animate("VUD2",			self:GetPackedBool(13) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VDL",				self:GetPackedBool(14) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KDL",				self:GetPackedBool(15) and 1 or 0, 	0,1, 16, false)
@@ -764,6 +783,7 @@ function ENT:Think()
 	self:Animate("L_3",				self:GetPackedBool(62) and 1 or 0, 	0,1, 16, false)
 	self:Animate("L_4",				self:GetPackedBool(63) and 1 or 0, 	0,1, 16, false)
 	self:Animate("L_5",				self:GetPackedBool(53) and 1 or 0, 	0,1, 16, false)	
+	self:Animate("DoorSelect",		self:GetPackedBool(55) and 1 or 0, 	0,1, 16, false)	
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -794,6 +814,18 @@ function ENT:Think()
 				self.ClientEnts[n_r]:SetPos(self:LocalToWorld(self.ClientProps[n_r].pos - (1.0 - 2.0*k)*offset_r))
 			end
 		end
+	end
+	
+	-- Door transient
+	local door_state1 = self:GetPackedBool(21)
+	local door_state2 = self:GetPackedBool(25)
+	if door_state1 ~= self.PrevDoorState1 then
+		self.PrevDoorState1 = door_state1
+		self.Transient = 1.00
+	end
+	if door_state2 ~= self.PrevDoorState2 then
+		self.PrevDoorState2 = door_state2
+		self.Transient = 1.00
 	end
 
 	
@@ -1033,6 +1065,15 @@ function ENT:Draw()
 	end)
 	self:DrawOnPanel("RearPneumatic",function()
 		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
+	end)
+	
+	-- Draw train numbers
+	local dc = render.GetLightColor(self:GetPos())
+	self:DrawOnPanel("TrainNumber1",function()
+		draw.DrawText(Format("%04d",self:EntIndex()),"MetrostroiSubway_LargeText3",0,0,Color(255*dc.x,255*dc.y,255*dc.z,255))
+	end)
+	self:DrawOnPanel("TrainNumber2",function()
+		draw.DrawText(Format("%04d",self:EntIndex()),"MetrostroiSubway_LargeText3",0,0,Color(255*dc.x,255*dc.y,255*dc.z,255))
 	end)
 	--self:DrawOnPanel("DURA",function()
 		--surface.SetDrawColor(50,255,50)

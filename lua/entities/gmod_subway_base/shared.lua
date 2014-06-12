@@ -75,6 +75,10 @@ function ENT:InitializeSounds()
 	self.SoundNames["switch5"]		= "subway_trains/switch_8.wav"
 	self.SoundNames["switch6"]		= "subway_trains/switch_9.wav"
 	self.SoundNames["switch6_off"]	= "subway_trains/switch_10.wav"
+	self.SoundNames["switch7"]	= {
+		"subway_trains/switch_11.wav",
+		"subway_trains/switch_12.wav",
+	}
 
 	self.SoundNames["bpsn1"] 		= "subway_trains/bpsn_1.wav"
 	self.SoundNames["bpsn2"] 		= "subway_trains/bpsn_2.wav"
@@ -148,6 +152,10 @@ function ENT:InitializeSounds()
 		"subway_trains/door_open_1.wav",
 		"subway_trains/door_open_2.wav",
 		"subway_trains/door_open_3.wav",
+	}
+	self.SoundNames["door_fail1"] = {
+		"subway_trains/door_fail_1.wav",
+		"subway_trains/door_fail_2.wav",
 	}
 	
 	self.SoundNames["compressor"]		= "subway_trains/compressor_1.wav"

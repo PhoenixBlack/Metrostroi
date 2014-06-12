@@ -56,8 +56,8 @@ function ENT:Initialize()
 		[KEY_F] = "PneumaticBrakeUp",
 		[KEY_R] = "PneumaticBrakeDown",
 		
-		[KEY_A] = "KDLSet",
-		[KEY_D] = "KDPSet",
+		[KEY_A] = "KDL",
+		[KEY_D] = "KDP",
 		[KEY_V] = "VUD1Set",
 		[KEY_L] = "HornEngage",
 		
@@ -143,6 +143,8 @@ function ENT:Initialize()
 			[27] = { "light",			Vector(437.8,4.4,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 			-- Door left open (#2)
 			[28] = { "light",			Vector(437.8,10.8,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
+			-- Door right open 
+			[29] = { "light",			Vector(438.7,-23.3,-5.35), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 		}
 	else
 		self.Lights = {
@@ -192,6 +194,8 @@ function ENT:Initialize()
 			[27] = { "light",			Vector(437.8,4.4,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 			-- Door left open (#2)
 			[28] = { "light",			Vector(437.8,10.8,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
+			-- Door right open 
+			[29] = { "light",			Vector(438.7,-23.3,-5.35), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 		}
 	end
 	
@@ -208,13 +212,6 @@ function ENT:Initialize()
 		table.insert(self.LeftDoorPositions,Vector(353.0 - 35*0.5 - 231*i,65,-1.8))
 		table.insert(self.RightDoorPositions,Vector(353.0 - 35*0.5 - 231*i,-65,-1.8))
 	end
-	
-	-- Extra switches not on Ezh3
-	self:LoadSystem("L_1","Relay","Switch", { normally_closed = true })
-	self:LoadSystem("L_2","Relay","Switch", { normally_closed = true })
-	self:LoadSystem("L_3","Relay","Switch", { normally_closed = true })
-	self:LoadSystem("L_4","Relay","Switch", { normally_closed = true })
-	self:LoadSystem("L_5","Relay","Switch", { normally_closed = true })
 end
 
 
@@ -249,8 +246,9 @@ function ENT:Think()
 	--self:SetLightPower(13, self.PowerSupply.XT3_4 > 65.0)
 	
 	-- Door button lights
-	self:SetLightPower(27, self.Panel["HeadLights2"] > 0.5)
-	self:SetLightPower(28, self.Panel["HeadLights2"] > 0.5)
+	self:SetLightPower(27, (self.Panel["HeadLights2"] > 0.5) and (self.DoorSelect.Value == 0))
+	self:SetLightPower(28, (self.Panel["HeadLights2"] > 0.5) and (self.DoorSelect.Value == 0))
+	self:SetLightPower(29, (self.Panel["HeadLights2"] > 0.5) and (self.DoorSelect.Value == 1))
 	
 	-- Side lights
 	self:SetLightPower(15, self.Panel["TrainDoors"] > 0.5)
@@ -305,6 +303,7 @@ function ENT:Think()
 	self:SetPackedBool(62,self.L_3.Value == 1.0)
 	self:SetPackedBool(63,self.L_4.Value == 1.0)
 	self:SetPackedBool(53,self.L_5.Value == 1.0)
+	self:SetPackedBool(55,self.DoorSelect.Value == 1.0)
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -432,10 +431,20 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
+	if button == "KDL" then self.KDL:TriggerInput("Close",1) self:OnButtonPress("KDLSet") end
+	if button == "KDP" then self.KDP:TriggerInput("Close",1) self:OnButtonPress("KDPSet") end
+	if button == "VDL" then self.VDL:TriggerInput("Close",1) self:OnButtonPress("VDLSet") end
+	
 	-- Special logic
-	if (button == "VDLSet") or (button == "KDLSet") or (button == "KDPSet") then
+	if (button == "VDL") or (button == "KDL") or (button == "KDP") then
 		self.VUD1:TriggerInput("Open",1)
 		--self.VUD2:TriggerInput("Open",1)
+	end
+	if (button == "VDL") or (button == "KDL") then
+		self.DoorSelect:TriggerInput("Open",1)
+	end
+	if (button == "KDP") then
+		self.DoorSelect:TriggerInput("Close",1)
 	end
 	if (button == "VUD1Set") or (button == "VUD1Toggle") or
 	   (button == "VUD2Set") or (button == "VUD2Toggle") then
@@ -450,9 +459,9 @@ function ENT:OnButtonPress(button)
 	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
 	if button == "DURASelectAlternate" then self:PlayOnce("switch","cabin") return end
 	if button == "VUD1Set" then self:PlayOnce("switch2","cabin") return end
-	if button == "VDLSet" then self:PlayOnce("switch3","cabin",0.7) return end
-	if button == "KDLSet" then self:PlayOnce("switch3","cabin",0.7) return end
-	if button == "KDPSet" then self:PlayOnce("switch3","cabin",0.7) return end
+	if button == "VDLSet" then self:PlayOnce("switch7","cabin",0.7) return end
+	if button == "KDLSet" then self:PlayOnce("switch7","cabin",0.7) return end
+	if button == "KDPSet" then self:PlayOnce("switch7","cabin",0.7) return end
 	
 	if button == "DriverValveDisconnectToggle" then
 		if self.DriverValveDisconnect.Value == 1.0 then
@@ -473,6 +482,10 @@ function ENT:OnButtonPress(button)
 	end
 end
 function ENT:OnButtonRelease(button)
+	if button == "KDL" then self.KDL:TriggerInput("Open",1) self:OnButtonRelease("KDLSet") end
+	if button == "KDP" then self.KDP:TriggerInput("Open",1) self:OnButtonRelease("KDPSet") end
+	if button == "VDL" then self.VDL:TriggerInput("Open",1) self:OnButtonRelease("VDLSet") end
+	
 	if button == "PBSet" then self:PlayOnce("switch6_off","cabin",0.6,100) return end
 	if (button == "PneumaticBrakeDown") and (self.Pneumatic.DriverValvePosition == 1) then
 		self.Pneumatic:TriggerInput("BrakeSet",2)

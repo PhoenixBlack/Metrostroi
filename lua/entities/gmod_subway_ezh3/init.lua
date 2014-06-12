@@ -345,9 +345,9 @@ function ENT:OnButtonPress(button)
 	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
 	if button == "DURASelectAlternate" then self:PlayOnce("switch","cabin") return end
 	if button == "VUD1Set" then self:PlayOnce("switch2","cabin") return end
-	if button == "VDLSet" then self:PlayOnce("switch3","cabin",0.7) return end
-	if button == "KDLSet" then self:PlayOnce("switch3","cabin",0.7) return end
-	if button == "KDPSet" then self:PlayOnce("switch3","cabin",0.7) return end
+	if button == "VDLSet" then self:PlayOnce("switch7","cabin",0.7) return end
+	if button == "KDLSet" then self:PlayOnce("switch7","cabin",0.7) return end
+	if button == "KDPSet" then self:PlayOnce("switch7","cabin",0.7) return end
 	
 	if button == "DriverValveDisconnectToggle" then
 		if self.DriverValveDisconnect.Value == 1.0 then

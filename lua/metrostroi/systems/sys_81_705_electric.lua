@@ -246,7 +246,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	
 	-- Calculate power and heating
 	local K = 12.0*1e-5 * 3.25
-	local H = (10.00+(5.00*Train.Engines.Speed/80.0))*1e-3
+	local H = (10.00+(25.00*Train.Engines.Speed/80.0))*1e-3
 	self.P1 = (self.IR1^2)*self.R1
 	self.P2 = (self.IR2^2)*self.R2
 	self.T1 = self.T1 + self.P1*K*dT - (self.T1-25)*H*dT

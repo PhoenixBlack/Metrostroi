@@ -33,7 +33,7 @@ function TRAIN_SYSTEM:Initialize()
 	self.MaxPosition = #self.Configuration
 	
 	-- Use more iterations to make sure rotation of the rotor passes through all positions
-	self.SubIterations = 4
+	self.SubIterations = 16
 end
 
 function TRAIN_SYSTEM:Inputs()

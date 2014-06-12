@@ -56,6 +56,9 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train.RRTuderzh = 0
 	self.Train.RRTpod = 0
 	self.WeightLoadRatio = 0
+	
+	-- Need many iterations for engine simulation to converge
+	self.SubIterations = 16
 end
 
 function TRAIN_SYSTEM:Inputs()
