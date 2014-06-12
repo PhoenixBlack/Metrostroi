@@ -67,7 +67,7 @@ local function prepareRouteData(routeData,name)
 			-- Calculate travel time between two nodes
 			local travelTime,travelDistance = Metrostroi.GetTravelTime(start_node,end_node)
 			-- Add time for startup and slowdown
-			travelTime = travelTime + 40
+			travelTime = travelTime + 25
 			
 			-- Remember stats
 			routeData.Duration = routeData.Duration + travelTime
@@ -150,7 +150,7 @@ function Metrostroi.GenerateSchedule(routeID)
 	local currentTime = Metrostroi.DepartureTime[routeID]
 	for id,stationData in ipairs(Metrostroi.ScheduleRoutes[routeID]) do
 		-- Calculate stop time
-		local stopTime = 25 --15
+		local stopTime = 15
 --		if not stationData.TravelTime then stopTime = 0 end
 		
 		-- Add entry
