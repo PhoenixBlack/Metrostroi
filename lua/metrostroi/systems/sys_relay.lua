@@ -19,6 +19,9 @@ local relay_types = {
 		contactor		= true,
 		normally_closed	= true,	
 	},
+	["AVU-045"] = {
+		in_cabin_avu	= true,
+	},
 }
 
 function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
@@ -187,5 +190,7 @@ function TRAIN_SYSTEM:Think(dT)
 		if self.in_cabin and (self.Value == 1.0) then		self.Train:PlayOnce("relay_close","cabin",0.6)		end
 		if self.in_cabin_alt and (self.Value == 0.0) then	self.Train:PlayOnce("relay_open","cabin",0.6)		end
 		if self.in_cabin_alt and (self.Value == 1.0) then	self.Train:PlayOnce("relay_close2","cabin",0.6)		end
+		if self.in_cabin_avu and (self.Value == 0.0) then	self.Train:PlayOnce("relay_open","cabin",0.6,70)	end
+		if self.in_cabin_avu and (self.Value == 1.0) then	self.Train:PlayOnce("relay_close","cabin",0.6,70)	end
 	end
 end
