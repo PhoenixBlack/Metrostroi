@@ -34,6 +34,7 @@ function TRAIN_SYSTEM:ClientThink(dT)
 	
 	-- See of horn is active
 	if active then
+		if self.Volume < 0.01 then self.Train.Transient = 5.0 end
 		self.Volume = 1
 	elseif self.Active ~= active then
 		self.Train:PlayOnce("horn2_end","cabin",0.75,100)	

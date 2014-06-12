@@ -158,7 +158,8 @@ end
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 	-- General state
-	local Active = ((Train.KSB1.Value > 0) or (Train.KSB2.Value > 0)) and (Train.LK5.Value == 1.0)
+	local Active = ((Train.KSB1.Value > 0) or (Train.KSB2.Value > 0)) and (Train.LK2.Value == 1.0)
+	local StatorCurrent = (math.abs(self.Istator13) + math.abs(self.Istator24))*0.5
 	local Current = math.abs(self.Itotal)
 	local PrevCurrent = self.ThyristorPrevCurrent or Current
 	self.ThyristorPrevCurrent = Current
@@ -169,6 +170,7 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 	-- Update thyristor controller signal
 	if not Active then
 		self.ThyristorState = 0.00
+		self.ThyristorTimeout = 0
 	else
 		-- Generate control signal
 		local T = 200.0 + (100.0*Train.YAR_13A.WeightLoadRatio + 60.0)*Train:ReadTrainWire(2) -- amps
@@ -181,6 +183,8 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 		-- Output signal
 		if Current > 0.5 then
 			self.ThyristorState = math.max(0,math.min(1,self.ThyristorState + C*dT))
+		else
+			self.ThyristorTimeout = self.ThyristorTimeout + dT
 		end
 
 		-- Generate resistance
@@ -214,7 +218,7 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 	end
 	
 	-- Allow or deny using manual brakes
-	Train.ThyristorBU5_6:TriggerInput("Set",self.ThyristorState > 0.75)	
+	Train.ThyristorBU5_6:TriggerInput("Set",(self.ThyristorState > 0.85) or (self.ThyristorTimeout > 0.3))
 	-- Set resistance
 	self.ThyristorResistance = Resistance + 1e9 * (Active and 0 or 1)
 end
@@ -308,7 +312,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	
 	-- Calculate power and heating
 	local K = 12.0*1e-5 * 3.25
-	local H = (10.00+(5.00*Train.Engines.Speed/80.0))*1e-3
+	local H = (10.00+(25.00*Train.Engines.Speed/80.0))*1e-3
 	self.P1 = (self.IR1^2)*self.R1
 	self.P2 = (self.IR2^2)*self.R2
 	self.T1 = self.T1 + self.P1*K*dT - (self.T1-25)*H*dT

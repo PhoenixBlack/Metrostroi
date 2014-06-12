@@ -71,6 +71,9 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("RightDoor4","Relay",{ open_time = 0.5, close_time = 0.5 })]]--
 	self.LeftDoorState = { 0,0,0,0 }
 	self.RightDoorState = { 0,0,0,0 }
+	
+	self.PlayOpen = 1e9
+	self.PlayClosed = 1e9
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -280,7 +283,7 @@ function TRAIN_SYSTEM:Think(dT)
 	----------------------------------------------------------------------------
 	-- Simulate compressor operation and train line depletion
 	self.Compressor = Train.KK.Value
-	self.TrainLinePressure = self.TrainLinePressure - 0.050*trainLineConsumption_dPdT*dT
+	self.TrainLinePressure = self.TrainLinePressure - 0.170*trainLineConsumption_dPdT*dT
 	if self.Compressor == 1 then equalizePressure("TrainLinePressure", 10.0, 0.05) end
 	
 	----------------------------------------------------------------------------
@@ -301,7 +304,9 @@ function TRAIN_SYSTEM:Think(dT)
 			   (self.LeftDoorState[2] == 0) or
 			   (self.LeftDoorState[3] == 0) or
 			   (self.LeftDoorState[4] == 0) then
-				Train:PlayOnce("door_open1")
+				self.PlayOpen = CurTime()
+				Train:PlayOnce("switch3")
+				self.TrainLinePressure = self.TrainLinePressure - 0.05
 			end
 			   
 			self.LeftDoorState[1] = 1
@@ -314,7 +319,9 @@ function TRAIN_SYSTEM:Think(dT)
 			   (self.RightDoorState[2] == 0) or
 			   (self.RightDoorState[3] == 0) or
 			   (self.RightDoorState[4] == 0) then
-				Train:PlayOnce("door_open1")
+				self.PlayOpen = CurTime()
+				Train:PlayOnce("switch3")
+				self.TrainLinePressure = self.TrainLinePressure - 0.05
 			end
 
 			self.RightDoorState[1] = 1
@@ -332,7 +339,8 @@ function TRAIN_SYSTEM:Think(dT)
 			   (self.RightDoorState[2] == 1) or
 			   (self.RightDoorState[3] == 1) or
 			   (self.RightDoorState[4] == 1) then
-				Train:PlayOnce("door_close1")
+				self.PlayClose = CurTime()
+				self.TrainLinePressure = self.TrainLinePressure - 0.05
 			end
 			
 			self.LeftDoorState[1] = 0
@@ -355,6 +363,27 @@ function TRAIN_SYSTEM:Think(dT)
 		(self.RightDoorState[2] == 0) and
 		(self.RightDoorState[3] == 0) and
 		(self.RightDoorState[4] == 0))
+		
+	-- Play sounds
+	local play_open 		= (CurTime() - (self.PlayOpen or 1e9)) > 0.3
+	local play_close 		= (CurTime() - (self.PlayClose or 1e9)) > 0.3
+	local play_open_early 	= (CurTime() - (self.PlayOpen or 1e9)) > 0.0
+	local play_close_early 	= (CurTime() - (self.PlayClose or 1e9)) > 0.0
+	if play_open_early and play_close_early then
+		Train:PlayOnce("door_fail1")
+		self.PlayOpen = 1e9
+		self.PlayClose = 1e9
+		play_open = false
+		play_close = false
+	end
+ 	if play_open then
+		self.PlayOpen = 1e9
+		Train:PlayOnce("door_open1")
+	end
+	if play_close then
+		self.PlayClose = 1e9
+		Train:PlayOnce("door_close1")
+	end
 
 	----------------------------------------------------------------------------	
 	-- FIXME

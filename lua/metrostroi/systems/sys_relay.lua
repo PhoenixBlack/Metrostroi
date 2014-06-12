@@ -124,7 +124,11 @@ function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
 	end
 	
 	-- Time when relay should change its value
+	self.Time = 0
 	self.ChangeTime = nil
+	
+	-- This increases precision at cost of perfomance
+	self.SubIterations = 2
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -142,12 +146,12 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 	-- Open/close coils of the relay
 	if (name == "Close") and (value > self.trigger_level) and (self.Value ~= 1.0) then
 		if (not self.ChangeTime) and (self.TargetValue ~= 1.0) then
-			self.ChangeTime = CurTime() + FailSim.Value(self,"CloseTime")
+			self.ChangeTime = self.Time + FailSim.Value(self,"CloseTime")
 		end
 		self.TargetValue = 1.0
 	elseif (name == "Open") and (value > self.trigger_level) and (self.Value ~= 0.0) then
 		if (not self.ChangeTime) and (self.TargetValue ~= 0.0) then
-			self.ChangeTime = CurTime() + FailSim.Value(self,"OpenTime")
+			self.ChangeTime = self.Time + FailSim.Value(self,"OpenTime")
 		end
 		self.TargetValue = 0.0
 	elseif name == "Set" then
@@ -161,6 +165,8 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 end
 
 function TRAIN_SYSTEM:Think(dT)
+	self.Time = self.Time + dT
+
 	-- Short-circuited relay
 	if FailSim.Value(self,"ShortCircuit") > 0.5 then
 		self.Value = 0.0
@@ -175,7 +181,7 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 
 	-- Switch relay
-	if self.ChangeTime and (CurTime() > self.ChangeTime) then		
+	if self.ChangeTime and (self.Time > self.ChangeTime) then		
 		self.Value = self.TargetValue
 		self.ChangeTime = nil
 
@@ -190,7 +196,7 @@ function TRAIN_SYSTEM:Think(dT)
 		if self.in_cabin and (self.Value == 1.0) then		self.Train:PlayOnce("relay_close","cabin",0.6)		end
 		if self.in_cabin_alt and (self.Value == 0.0) then	self.Train:PlayOnce("relay_open","cabin",0.6)		end
 		if self.in_cabin_alt and (self.Value == 1.0) then	self.Train:PlayOnce("relay_close2","cabin",0.6)		end
-		if self.in_cabin_avu and (self.Value == 0.0) then	self.Train:PlayOnce("relay_open","cabin",0.6,70)	end
-		if self.in_cabin_avu and (self.Value == 1.0) then	self.Train:PlayOnce("relay_close","cabin",0.6,70)	end
+		if self.in_cabin_avu and (self.Value == 0.0) then	self.Train:PlayOnce("relay_open","cabin",0.7,70)	end
+		if self.in_cabin_avu and (self.Value == 1.0) then	self.Train:PlayOnce("relay_close","cabin",0.7,70)	end
 	end
 end

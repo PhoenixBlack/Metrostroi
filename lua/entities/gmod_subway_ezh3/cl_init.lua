@@ -297,6 +297,22 @@ ENT.ButtonMap["RearPneumatic"] = {
 	scale = 0.1,
 }
 
+-- Wagon numbers
+ENT.ButtonMap["TrainNumber1"] = {
+	pos = Vector(30,-67.7,-9.5),
+	ang = Angle(0,0,90),
+	width = 130,
+	height = 55,
+	scale = 0.20,
+}
+ENT.ButtonMap["TrainNumber2"] = {
+	pos = Vector(30+28,67.7,-9.5),
+	ang = Angle(0,180,90),
+	width = 130,
+	height = 55,
+	scale = 0.20,
+}
+
 
 
 
@@ -609,6 +625,9 @@ table.insert(ENT.ClientProps,{
 function ENT:Think()
 	self.BaseClass.Think(self)
 
+	local transient = (self.Transient or 0)*0.05
+	if (self.Transient or 0) >= 1.0 then self.Transient = 0.0 end
+	
 	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
 	self:Animate("controller",		self:GetPackedRatio(1),				0.30, 0.70,  384,24)
@@ -617,7 +636,7 @@ function ENT:Think()
 	self:ShowHide("reverser",		self:GetPackedBool(0))
 
 	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
-	self:Animate("train_line",		self:GetPackedRatio(5),				0.16, 0.84,  256,2,0.01)
+	self:Animate("train_line",		self:GetPackedRatio(5)-transient,	0.16, 0.84,  256,2,0.01)
 	self:Animate("brake_cylinder",	self:GetPackedRatio(6),	 			0.17, 0.86,  256,2,0.03)
 	self:Animate("voltmeter",		self:GetPackedRatio(7),				0.38, 0.63)
 	self:Animate("ampermeter",		self:GetPackedRatio(8),				0.38, 0.63)
@@ -871,10 +890,15 @@ function ENT:Draw()
 	self:DrawOnPanel("RearPneumatic",function()
 		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
 	end)
-	--self:DrawOnPanel("DURA",function()
-		--surface.SetDrawColor(50,255,50)
-		--surface.DrawRect(0,0,240,80)
-	--end)
+	
+	-- Draw train numbers
+	local dc = render.GetLightColor(self:GetPos())
+	self:DrawOnPanel("TrainNumber1",function()
+		draw.DrawText(Format("%04d",self:EntIndex()),"MetrostroiSubway_LargeText3",0,0,Color(255*dc.x,255*dc.y,255*dc.z,255))
+	end)
+	self:DrawOnPanel("TrainNumber2",function()
+		draw.DrawText(Format("%04d",self:EntIndex()),"MetrostroiSubway_LargeText3",0,0,Color(255*dc.x,255*dc.y,255*dc.z,255))
+	end)
 end
 
 function ENT:OnButtonPressed(button)

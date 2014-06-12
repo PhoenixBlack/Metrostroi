@@ -697,15 +697,19 @@ BaseNetwork = {
 	{	"D3",		"16",		"VUD2" },
 	{	"16",		"0",		"#TW[16]" },
 	
-	{	"D1",		"31V",		"KDL" },
-	{	"D1",		"31V",		"VDL" },
+	{	"D1",		"31V'",		"!DoorSelect", "81_717" },
+	{	"D1",		"31V'",		"1", "Ezh3" },
+	{	"31V'",		"31V",		"KDL" },
+	{	"31V'",		"31V",		"VDL" },
 	{	"D1",		"31V",		"ARS[31]" },
 	{	"31V",		"0",		"#TW[31]" },
 	
 	{	"D1",		"12",		"KRZD" },
 	{	"12",		"0",		"#TW[12]" },
 	
-	{	"D1",		"32V",		"KDP" },
+	{	"D1",		"32V'",		"DoorSelect", "81_717" },
+	{	"D1",		"32V'",		"1", "Ezh3" },
+	{	"32V'",		"32V",		"KDP" },
 	{	"D1",		"32V",		"ARS[32]" },
 	{	"32V",		"0",		"#TW[32]" },
 	
@@ -1003,7 +1007,8 @@ BaseNetwork = {
 	-- SDPP movement triggers
 	{	"10AYa",	"10E",		"!LK3" },
 	--{	"10AYa",	"10E",		"PM,PS3" }, --FIXME
-	{	"10AYa",	"10E",		"Rper" },
+	{	"10AYa",	"10E",		"Rper", "Ezh3" },
+	{	"10AYa",	"10E",		"PS", "81_717" },
 	
 	-- SDPP step logic
 	{	"10E",		"10Yu",		"LK3" },
@@ -1093,7 +1098,7 @@ SpecialTriggers = {
 	"ReverserBackward",
 }
 ExtraStatements = {
-[[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],
+[[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value) )]],
 [[Triggers["SDRK_Shunt"]( 1.0 - (0.20+0.20*C((RK >= 2) and (RK <= 7))*C(P == 1))*Train.LK2.Value )]]
 }
 
@@ -1144,7 +1149,7 @@ SpecialTriggers = {
 	"ReverserBackward",
 }
 ExtraStatements = {
-[[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],
+[[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value)+C(RK == 6)*C(P == 2)*(1.0-Train.Rper.Value)*Train.LK3.Value)]],
 [[Triggers["SDRK_Shunt"]( 1.0 - (0.20+0.20*C((RK >= 2) and (RK <= 7))*C(P == 1))*Train.LK2.Value )]]
 }
 Simplify("81_717")
@@ -1427,7 +1432,8 @@ BaseNetwork = {
 	-- SDPP movement triggers
 	{	"10AYa",	"10E",		"!LK3" },
 	--{	"10AYa",	"10E",		"PM,PS3" }, --FIXME
-	{	"10AYa",	"10E",		"Rper" },
+	{	"10AYa",	"10E",		"Rper", "Ema508t" },
+	{	"10AYa",	"10E",		"PS", "81_714" },
 	
 	-- SDPP step logic
 	{	"10E",		"10Yu",		"LK3" },
@@ -1503,7 +1509,7 @@ SpecialTriggers = {
 	"ReverserBackward",
 }
 ExtraStatements = {
-[[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value))]],
+[[T["SDRK_ShortCircuit"] = -10*Train.RheostatController.RKP*(Train.RUT.Value+Train.RRT.Value+(1.0-Train.SR1.Value)+C(RK == 6)*C(P == 2)*(1.0-Train.Rper.Value)*Train.LK3.Value)]],
 [[Triggers["SDRK_Shunt"]( 1.0 - (0.20+0.20*C((RK >= 2) and (RK <= 7))*C(P == 1))*Train.LK2.Value )]]
 }
 Simplify("81_714")

@@ -64,4 +64,13 @@ function ENT:InitializeSystems()
 	self:LoadSystem("DURA")
 	self:LoadSystem("ALS_ARS")
 	self:LoadSystem("Horn")
+	
+	
+	-- Extra switches not on Ezh3
+	self:LoadSystem("L_1","Relay","Switch", { normally_closed = true })
+	self:LoadSystem("L_2","Relay","Switch", { normally_closed = true })
+	self:LoadSystem("L_3","Relay","Switch", { normally_closed = true })
+	self:LoadSystem("L_4","Relay","Switch", { normally_closed = true })
+	self:LoadSystem("L_5","Relay","Switch", { normally_closed = true })
+	self:LoadSystem("DoorSelect","Relay","Switch", { normally_closed = false })
 end
