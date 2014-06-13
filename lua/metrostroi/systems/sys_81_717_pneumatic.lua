@@ -306,7 +306,6 @@ function TRAIN_SYSTEM:Think(dT)
 			   (self.LeftDoorState[4] == 0) then
 				self.PlayOpen = CurTime()
 				Train:PlayOnce("switch3")
-				self.TrainLinePressure = self.TrainLinePressure - 0.05
 			end
 			   
 			self.LeftDoorState[1] = 1
@@ -321,7 +320,6 @@ function TRAIN_SYSTEM:Think(dT)
 			   (self.RightDoorState[4] == 0) then
 				self.PlayOpen = CurTime()
 				Train:PlayOnce("switch3")
-				self.TrainLinePressure = self.TrainLinePressure - 0.05
 			end
 
 			self.RightDoorState[1] = 1
@@ -340,7 +338,6 @@ function TRAIN_SYSTEM:Think(dT)
 			   (self.RightDoorState[3] == 1) or
 			   (self.RightDoorState[4] == 1) then
 				self.PlayClose = CurTime()
-				self.TrainLinePressure = self.TrainLinePressure - 0.05
 			end
 			
 			self.LeftDoorState[1] = 0
@@ -375,14 +372,17 @@ function TRAIN_SYSTEM:Think(dT)
 		self.PlayClose = 1e9
 		play_open = false
 		play_close = false
+		self.TrainLinePressure = self.TrainLinePressure - 0.01
 	end
  	if play_open then
 		self.PlayOpen = 1e9
 		Train:PlayOnce("door_open1")
+		self.TrainLinePressure = self.TrainLinePressure - 0.04
 	end
 	if play_close then
 		self.PlayClose = 1e9
 		Train:PlayOnce("door_close1")
+		self.TrainLinePressure = self.TrainLinePressure - 0.04
 	end
 
 	----------------------------------------------------------------------------	

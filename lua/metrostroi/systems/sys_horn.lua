@@ -29,19 +29,13 @@ end
 
 function TRAIN_SYSTEM:ClientThink(dT)
 	local active = self.Train:GetNWBool("HornState",false)
-	self.Volume = self.Volume or 0
 	self.Active = self.Active or false
-	
-	-- See of horn is active
-	if active then
-		if self.Volume < 0.01 then self.Train.Transient = 5.0 end
-		self.Volume = 1
-	elseif self.Active ~= active then
-		self.Train:PlayOnce("horn2_end","cabin",0.75,100)	
+
+	-- Play horn sound
+	self.Train:SetSoundState("horn2",self.Active and 1 or 0,1)
+	if (self.Active ~= active) and (not active) then
+		self.Train:PlayOnce("horn2_end","cabin",0.85,100)
+		print("play")
 	end
 	self.Active = active
-	
-	-- Play horn sound
-	if not self.Active then self.Volume = math.max(0,self.Volume - math.max(0,1.5*dT)) end
-	self.Train:SetSoundState("horn2",self.Volume,1)
 end

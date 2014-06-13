@@ -75,10 +75,12 @@ function ENT:InitializeSounds()
 	self.SoundNames["switch5"]		= "subway_trains/switch_8.wav"
 	self.SoundNames["switch6"]		= "subway_trains/switch_9.wav"
 	self.SoundNames["switch6_off"]	= "subway_trains/switch_10.wav"
-	self.SoundNames["switch7"]	= {
-		"subway_trains/switch_11.wav",
-		"subway_trains/switch_12.wav",
-	}
+	self.SoundNames["switch_door_on"]	= "subway_trains/switch_11.wav"
+	self.SoundNames["switch_door_off"]	= "subway_trains/switch_12.wav"
+	self.SoundNames["button_press"]		= "subway_trains/switch_13.wav"
+	self.SoundNames["button_release"]	= "subway_trains/switch_14.wav"
+	self.SoundNames["av_on"]			= "subway_trains/switch_15.wav"
+	self.SoundNames["av_off"]			= "subway_trains/switch_16.wav"
 
 	self.SoundNames["bpsn1"] 		= "subway_trains/bpsn_1.wav"
 	self.SoundNames["bpsn2"] 		= "subway_trains/bpsn_2.wav"
@@ -91,7 +93,7 @@ function ENT:InitializeSounds()
 	
 	self.SoundNames["horn1"] 		= "subway_trains/horn_1.wav"
 	self.SoundNames["horn1_end"] 	= "subway_trains/horn_2.wav"
-	self.SoundNames["horn2"] 		= "subway_trains/horn_3.wav"
+	self.SoundNames["horn2"] 		= "subway_trains/horn_3a.wav"
 	self.SoundNames["horn2_end"] 	= "subway_trains/horn_4a.wav"
 	self.SoundNames["horn3"] 		= "subway_trains/horn_5.wav"
 	self.SoundNames["horn3_end"] 	= "subway_trains/horn_6.wav"

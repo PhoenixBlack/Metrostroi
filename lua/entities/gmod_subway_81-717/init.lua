@@ -458,10 +458,14 @@ function ENT:OnButtonPress(button)
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
 	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
 	if button == "DURASelectAlternate" then self:PlayOnce("switch","cabin") return end
-	if button == "VUD1Set" then self:PlayOnce("switch2","cabin") return end
-	if button == "VDLSet" then self:PlayOnce("switch7","cabin",0.7) return end
-	if button == "KDLSet" then self:PlayOnce("switch7","cabin",0.7) return end
-	if button == "KDPSet" then self:PlayOnce("switch7","cabin",0.7) return end
+	if button == "VUD1Toggle" then 
+		if self.VUD1.Value > 0.5 then
+			self:PlayOnce("switch_door_on","cabin")
+		else
+			self:PlayOnce("switch_door_off","cabin")
+		end
+		return
+	end
 	
 	if button == "DriverValveDisconnectToggle" then
 		if self.DriverValveDisconnect.Value == 1.0 then
@@ -475,7 +479,7 @@ function ENT:OnButtonPress(button)
 
 	-- Generic button or switch sound
 	if string.find(button,"Set") then
-		self:PlayOnce("switch","cabin")
+		self:PlayOnce("button_press","cabin")
 	end
 	if string.find(button,"Toggle") then
 		self:PlayOnce("switch2","cabin",0.7)
@@ -492,6 +496,10 @@ function ENT:OnButtonRelease(button)
 	end
 	if (button == "PneumaticBrakeUp") and (self.Pneumatic.DriverValvePosition == 5) then
 		self.Pneumatic:TriggerInput("BrakeSet",4)
+	end
+	if string.find(button,"KV") then return end
+	if string.find(button,"Set") then
+		self:PlayOnce("button_release","cabin")
 	end
 end
 
