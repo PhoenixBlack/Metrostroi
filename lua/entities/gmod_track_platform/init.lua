@@ -204,7 +204,7 @@ function ENT:Think()
 	end
 	
 	-- Add passengers
-	if (not self.PlatformLast) then then
+	if (not self.PlatformLast) then
 		local target = GetConVarNumber("metrostroi_passengers_scale",50)*self.PopularityIndex --300
 		--if #boardingDoorList ~= 0 then target = target*0.1 end
 		
