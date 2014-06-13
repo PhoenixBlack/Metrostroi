@@ -79,11 +79,11 @@ function ENT:Draw()
 			local ID = self:GetNWInt("StationList"..i.."[ID]")
 			local currentStation = (self:GetNWInt("ID") == ID)
 			
-			local R1 = self:GetNWInt("StationList"..i.."[R]")*0.80+0.1
-			local G1 = self:GetNWInt("StationList"..i.."[G]")*0.80+0.1
-			local B1 = self:GetNWInt("StationList"..i.."[B]")*0.80+0.1
-			local R2 = 255*0.8
-			local G2 = 255*0.8
+			local R1 = self:GetNWInt("StationList"..i.."[R]")
+			local G1 = self:GetNWInt("StationList"..i.."[G]")
+			local B1 = self:GetNWInt("StationList"..i.."[B]")
+			local R2 = 225
+			local G2 = 205
 			local B2 = 0
 
 			if currentStation then

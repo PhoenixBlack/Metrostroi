@@ -739,7 +739,7 @@ function ENT:Think()
 	self.BaseClass.Think(self)
 
 	local transient = (self.Transient or 0)*0.05
-	if (self.Transient or 0) >= 1.0 then self.Transient = 0.0 end
+	if (self.Transient or 0) ~= 0.0 then self.Transient = 0.0 end
 
 	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)

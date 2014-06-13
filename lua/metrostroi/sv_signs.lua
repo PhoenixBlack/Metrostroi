@@ -65,7 +65,8 @@ function Metrostroi.AddStationSign(ent)
 					local R = (Metrostroi.StationNamesConfiguration[k] or {})[1] or 0
 					local G = (Metrostroi.StationNamesConfiguration[k] or {})[2] or 0
 					local B = (Metrostroi.StationNamesConfiguration[k] or {})[3] or 0
-					if (R > 200) or (G > 200) or (B > 200) then
+					local Use = (Metrostroi.StationNamesConfiguration[k] or {})[4] or 0
+					if (Use > 0) then
 						if ((ent.PlatformIndex == 2) and (ent.StationIndex >= k)) or
 						   ((ent.PlatformIndex == 1) and (ent.StationIndex <= k)) then
 							table.insert(stationList,k)
