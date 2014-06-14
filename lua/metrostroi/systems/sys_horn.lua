@@ -35,7 +35,9 @@ function TRAIN_SYSTEM:ClientThink(dT)
 	self.Train:SetSoundState("horn2",self.Active and 1 or 0,1)
 	if (self.Active ~= active) and (not active) then
 		self.Train:PlayOnce("horn2_end","cabin",0.85,100)
-		print("play")
+	end
+	if (self.Active ~= active) and (active) then
+		self.Train.Transient = -5.0
 	end
 	self.Active = active
 end

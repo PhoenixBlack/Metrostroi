@@ -32,5 +32,5 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Think()
-	self.Train.RPB:TriggerInput("Close",self.Train.PB.Value)
+	self.Train.RPB:TriggerInput("Close",self.Train.PB.Value + self.Train.KVT.Value)
 end

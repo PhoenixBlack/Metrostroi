@@ -15,8 +15,8 @@ ENT.ButtonMap["Main"] = {
 	scale = 0.0625,
 	
 	buttons = {		
-		{ID = "KVTSet",			x=247, y=33, radius=20, tooltip=""},
-		{ID = "PS8",			x=295, y=33, radius=20, tooltip=""},
+		{ID = "KVTSet",			x=247, y=33, radius=20, tooltip="КВТ: Кнопка восприятия торможения\nKVT: ARS Brake cancel button"},
+		{ID = "KVT2Set",		x=295, y=33, radius=20, tooltip="КБ: Кнопка Бдительности\nKB: Attention button"},
 		
 		{ID = "VUD1Toggle",		x=54, y=105, radius=40, tooltip="ВУД: Выключатель управления дверьми\nVUD: Door control toggle (close doors)"},
 		{ID = "KDLSet",			x=50, y=180, radius=20, tooltip="КДЛ: Кнопка левых дверей\nKDL: Left doors open"},
@@ -110,7 +110,7 @@ ENT.ButtonMap["ARS"] = {
 		{x=410+275*1+60+60,y=480,tooltip="0: Сигнал АРС остановки\n0: ARS stop signal",radius=120},
 		{x=410+275*2+60+60,y=480,tooltip="40: Ограничение скорости 40 км/ч\nSpeed limit 40 kph",radius=120},
 		{x=410+275*3+60+60,y=480,tooltip="60: Ограничение скорости 60 км/ч\nSpeed limit 60 kph",radius=120},
-		{x=410+275*4+60+60,y=480,tooltip="75: Ограничение скорости 75 км/ч\nSpeed limit 75 kph",radius=120},
+		{x=410+275*4+60+60,y=480,tooltip="70: Ограничение скорости 70 км/ч\nSpeed limit 70 kph",radius=120},
 		{x=410+275*5+60+60,y=480,tooltip="80: Ограничение скорости 80 км/ч\nSpeed limit 80 kph",radius=120},
 
 		{x=410+60,y=780+60,tooltip="ЛСД: Сигнализация дверей\nLSD: Door state light (doors are closed)",radius=120},
@@ -397,6 +397,11 @@ ENT.ClientProps["brake_disconnect"] = {
 	pos = Vector(419.6,-31.0+1.5,-38),
 	ang = Angle(0,0,0)
 }
+ENT.ClientProps["krureverser"] = {
+	model = "models/metrostroi/81-717/reverser.mdl",
+	pos = Vector(440.75,-24.5,-2.0),
+	ang = Angle(180,90,-30)
+}
 --------------------------------------------------------------------------------
 ENT.ClientProps["train_line"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
@@ -518,9 +523,9 @@ Metrostroi.ClientPropForButton("KDP",{
 	button = "KDPSet",
 	model = "models/metrostroi/81-717/button08.mdl",
 })
-Metrostroi.ClientPropForButton("KVT",{
+Metrostroi.ClientPropForButton("KVT2",{
 	panel = "Main",
-	button = "KVTSet",
+	button = "KVT2Set",
 	model = "models/metrostroi/81-717/button10.mdl",
 })
 Metrostroi.ClientPropForButton("KSN",{
@@ -623,9 +628,9 @@ Metrostroi.ClientPropForButton("DIPoff",{
 	button = "DIPoffSet",
 	model = "models/metrostroi/81-717/button07.mdl"
 })
-Metrostroi.ClientPropForButton("PS8",{
+Metrostroi.ClientPropForButton("KVT",{
 	panel = "Main",
-	button = "PS8",
+	button = "KVTSet",
 	model = "models/metrostroi/81-717/button10.mdl"
 })
 Metrostroi.ClientPropForButton("L_5",{
@@ -740,6 +745,12 @@ function ENT:Think()
 
 	local transient = (self.Transient or 0)*0.05
 	if (self.Transient or 0) ~= 0.0 then self.Transient = 0.0 end
+	
+	self.KRUPos = self.KRUPos or 0
+	if self:GetPackedBool(27) 
+	then self.KRUPos = self.KRUPos + (0.0 - self.KRUPos)*8.0*self.DeltaTime
+	else self.KRUPos = 1.0
+	end
 
 	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
@@ -747,6 +758,9 @@ function ENT:Think()
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.25, 0.75,  4,false)
 	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38, 0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
+	self:Animate("krureverser",		0.5+(self.KRUPos*0.5)-(0/2),		0.10, 0.90,  4,false)
+	self:ShowHide("krureverser",	self:GetPackedBool(27))
+	
 
 	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
 	self:Animate("train_line",		self:GetPackedRatio(5)-transient,	0.16, 0.84,  4096,0,0.01)
@@ -777,6 +791,8 @@ function ENT:Think()
 	self:Animate("SelectChannel",	self:GetPackedBool(31) and 1 or 0, 	0,1, 16, false)
 	self:Animate("ARS",				self:GetPackedBool(56) and 1 or 0, 	0,1, 16, false)
 	self:Animate("ALS",				self:GetPackedBool(57) and 1 or 0, 	0,1, 16, false)
+	self:Animate("KVT",				self:GetPackedBool(28) and 1 or 0, 	0,1, 16, false)
+	self:Animate("KVT2",			self:GetPackedBool(28) and 1 or 0, 	0,1, 16, false)
 	self:Animate("BPSNon",			self:GetPackedBool(59) and 1 or 0, 	0,1, 16, false)
 	self:Animate("L_1",				self:GetPackedBool(60) and 1 or 0, 	0,1, 16, false)
 	self:Animate("L_2",				self:GetPackedBool(61) and 1 or 0, 	0,1, 16, false)
@@ -804,7 +820,7 @@ function ENT:Think()
 		for k=0,1 do
 			local n_l = "door"..i.."x"..k.."a"
 			local n_r = "door"..i.."x"..k.."b"
-			local animation = self:Animate(n_l,self:GetPackedBool(21+i+4-k*4) and 1 or 0,0,1, 0.8 + (-0.2+0.4*math.random()),0)
+			local animation = self:Animate(n_l,self:GetPackedBool(21+(1-k)*4) and 1 or 0,0,1, 0.8 + (-0.2+0.4*math.random()),0)
 			local offset_l = Vector(math.abs(31*animation),0,0)
 			local offset_r = Vector(math.abs(32*animation),0,0)
 			if self.ClientEnts[n_l] then
