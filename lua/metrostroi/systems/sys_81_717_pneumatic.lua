@@ -266,13 +266,15 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	
 	-- Valve #1
+	self.BrakeCylinderRegulationError = self.BrakeCylinderRegulationError or (math.random()*0.10 - 0.05)
+	local error = self.BrakeCylinderRegulationError
 	if self.Train.PneumaticNo1.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.22, 1.00, 4.00)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.22 + error, 1.00, 4.00)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
 	-- Valve #2
 	if self.Train.PneumaticNo2.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.32, 1.00, 4.00)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.32 + error, 1.00, 4.00)
 		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
 	end
 	
@@ -283,7 +285,7 @@ function TRAIN_SYSTEM:Think(dT)
 	----------------------------------------------------------------------------
 	-- Simulate compressor operation and train line depletion
 	self.Compressor = Train.KK.Value
-	self.TrainLinePressure = self.TrainLinePressure - 0.170*trainLineConsumption_dPdT*dT
+	self.TrainLinePressure = self.TrainLinePressure - 0.190*trainLineConsumption_dPdT*dT
 	if self.Compressor == 1 then equalizePressure("TrainLinePressure", 10.0, 0.05) end
 	
 	----------------------------------------------------------------------------
@@ -305,7 +307,6 @@ function TRAIN_SYSTEM:Think(dT)
 			   (self.LeftDoorState[3] == 0) or
 			   (self.LeftDoorState[4] == 0) then
 				self.PlayOpen = CurTime()
-				Train:PlayOnce("switch3")
 			end
 			   
 			self.LeftDoorState[1] = 1
@@ -319,7 +320,6 @@ function TRAIN_SYSTEM:Think(dT)
 			   (self.RightDoorState[3] == 0) or
 			   (self.RightDoorState[4] == 0) then
 				self.PlayOpen = CurTime()
-				Train:PlayOnce("switch3")
 			end
 
 			self.RightDoorState[1] = 1
@@ -368,6 +368,7 @@ function TRAIN_SYSTEM:Think(dT)
 	local play_close_early 	= (CurTime() - (self.PlayClose or 1e9)) > 0.0
 	if play_open_early and play_close_early then
 		Train:PlayOnce("door_fail1")
+		Train:PlayOnce("switch3")
 		self.PlayOpen = 1e9
 		self.PlayClose = 1e9
 		play_open = false
@@ -377,6 +378,7 @@ function TRAIN_SYSTEM:Think(dT)
  	if play_open then
 		self.PlayOpen = 1e9
 		Train:PlayOnce("door_open1")
+		Train:PlayOnce("switch3")
 		self.TrainLinePressure = self.TrainLinePressure - 0.04
 	end
 	if play_close then

@@ -546,6 +546,10 @@ function ENT:OnButtonPress(button)
 		end
 		return
 	end
+	if button == "VUD1Set" then 
+		self:PlayOnce("switch_door_on","cabin")
+		return
+	end
 	
 	if button == "DriverValveDisconnectToggle" then
 		if self.DriverValveDisconnect.Value == 1.0 then
@@ -578,6 +582,11 @@ function ENT:OnButtonRelease(button)
 	if (button == "PneumaticBrakeUp") and (self.Pneumatic.DriverValvePosition == 5) then
 		self.Pneumatic:TriggerInput("BrakeSet",4)
 	end
+	if button == "VUD1Set" then 
+		self:PlayOnce("switch_door_off","cabin")
+		return
+	end
+	
 	if (not string.find(button,"KVT")) and string.find(button,"KV") then return end
 
 	if string.find(button,"Set") then
