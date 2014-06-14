@@ -43,8 +43,8 @@ function TRAIN_SYSTEM:Initialize()
 	self.LVD = false
 end
 
-function TRAIN_SYSTEM:Outputs() --"21", 
-	return { "2", "8", "20", "29", "33D", "33G", "33Zh",
+function TRAIN_SYSTEM:Outputs()
+	return { "2", "8", "20", "31", "32", "29", "33D", "33G", "33Zh",
 			 "Speed", "Signal80","Signal70","Signal60","Signal40","Signal0","Special","NoFreq",
 			 "SpeedLimit", "NextLimit","Ring" }
 end
@@ -75,8 +75,8 @@ function TRAIN_SYSTEM:Think()
 	local EnableALS = OverrideState or ((Train.ALS.Value == 1.0) and (Train.VB.Value == 1.0))
 	
 	-- Pedal state
-	if (Train.PB) and (Train.PB.Value == 1.0) then self.AttentionPedal = true end
-	if (Train.PB) and (Train.PB.Value == 0.0) then self.AttentionPedal = false end
+	if (Train.PB) and ((Train.PB.Value+Train.KVT.Value) >= 1.0) then self.AttentionPedal = true end
+	if (Train.PB) and ((Train.PB.Value+Train.KVT.Value) <  1.0) then self.AttentionPedal = false end
 	
 	-- Speed check and update speed data
 	if CurTime() - (self.LastSpeedCheck or 0) > 0.5 then
@@ -161,6 +161,8 @@ function TRAIN_SYSTEM:Think()
 			self.PneumaticBrake2 = true
 		end
 	else
+		self.SpeedLimit = 0
+		self.NextLimit = 0
 		self.Overspeed = true
 		--self.Ring = false
 	end

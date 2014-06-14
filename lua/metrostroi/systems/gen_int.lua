@@ -1217,6 +1217,10 @@ BaseNetwork = {
 	
 	{	"D4/3",		"D6/1",		"BD" },
 	{	"D6/1",		"0",		"#RD" },
+	
+	{	"10/4",		"U0",		"A27" },
+	{	"U0",		"U0a",		"1" },
+	{	"U0a",		"0",		"#I[GreenRP]" }, -- Simulate 10AN wire properly (see addtonodes)
 
 
 	----------------------------------------------------------------------------
@@ -1480,6 +1484,7 @@ Sources = { "B","HIGH","LOW" }
 Drains = { "0" }
 AddToNodes = {
 	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
+	{ "U0a", "(-10*S[\"10AN\"])" },
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
