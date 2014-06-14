@@ -786,7 +786,8 @@ end
 
 -- Returns if KV/reverser wrench is present in cabin
 function ENT:IsWrenchPresent()
-	if self.DriversWrenchPresent then return end
+	if self.DriversWrenchPresent then return true end
+	if self.DriversWrenchMissing then return false end
 	
 	for k,v in pairs(self.Seats) do
 		if IsValid(v.entity) and v.entity.GetPassenger and

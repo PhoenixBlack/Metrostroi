@@ -68,12 +68,15 @@ function ENT:Draw()
 	local pos = self:LocalToWorld(Vector(4,0,-32))
 	local ang = self:LocalToWorldAngles(Angle(0,90,90))
 	cam.Start3D2D(pos, ang, 0.25)
+		draw.NoTexture()
+		
 		local N = self:GetNWInt("StationList#")
 		local W = 320
 		local H = 55
 		local P1 = -2
 		local P2 = 3
 		local X = -N*W*0.5
+		local LastColor = nil
 		for i=1,N do
 			local x = X+W*(i-1)
 			local ID = self:GetNWInt("StationList"..i.."[ID]")
@@ -92,6 +95,8 @@ function ENT:Draw()
 				R1,G1,B1 = R,G,B
 			end
 
+			LastColor = LastColor or Color(R1,G1,B1,255)
+			
 			surface.SetDrawColor(0,0,0,255)
 			surface.DrawRect(x+P1,0,W-P1*2,H)
 			
@@ -120,5 +125,31 @@ function ENT:Draw()
 				yalign = TEXT_ALIGN_CENTER,
 				color = Color(0,0,0,255)})
 		end
+		
+		-- Inner part of arrow
+		local arrow = {
+			{ x = 0,	y = 0 },
+			{ x = 0,	y = H },
+			{ x = -H/2,	y = H/2 },			
+		}
+		for k,v in ipairs(arrow) do
+			v.x = v.x - (N*0.5)*W - 2
+		end
+	
+		surface.SetDrawColor(Color(0,0,0,255))
+		surface.DrawPoly(arrow)
+		
+		-- Outer part of arrow
+		arrow = {
+			{ x = -P2,	y = 2*P2 },
+			{ x = -P2,	y = H-2*P2 },
+			{ x = -H/2+P2,	y = H/2 },
+		}
+		for k,v in ipairs(arrow) do
+			v.x = v.x - (N*0.5)*W
+		end
+		
+		surface.SetDrawColor(LastColor or Color(0,0,0,0))
+		surface.DrawPoly(arrow)
 	cam.End3D2D()
 end
