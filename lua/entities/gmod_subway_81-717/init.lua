@@ -110,13 +110,13 @@ function ENT:Initialize()
 	if not model_b then
 		self.Lights = {
 			-- Head
-			[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0), Color(176,161,132), fov = 100 },
+			[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0), Color(216,161,92), fov = 100 },
 			[2] = { "glow",				Vector(460, 51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
 			[3] = { "glow",				Vector(460,-51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
-			[4] = { "glow",				Vector(460,-8, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
-			[5] = { "glow",				Vector(460,-8, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
-			[6] = { "glow",				Vector(460, 2, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
-			[7] = { "glow",				Vector(460, 2, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[4] = { "glow",				Vector(460,-8, 55), Angle(0,0,0),  Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[5] = { "glow",				Vector(460,-8, 55), Angle(0,0,0),  Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[6] = { "glow",				Vector(460, 2, 55), Angle(0,0,0),  Color(255,255,255), brightness = 0.3, scale = 2.0 },
+			[7] = { "glow",				Vector(460, 2, 55), Angle(0,0,0),  Color(255,255,255), brightness = 0.3, scale = 2.0 },
 			
 			-- Reverse
 			[8] = { "light",			Vector(458,-45, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
@@ -157,11 +157,22 @@ function ENT:Initialize()
 			[28] = { "light",			Vector(437.8,10.8,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 			-- Door right open 
 			[29] = { "light",			Vector(438.7,-23.3,-5.35), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
+
+			-- Cabin texture light
+			[30] = { "headlight", 		Vector(390.0,16,45), Angle(60,-50,0), Color(176,161,132), farz = 128, nearz = 1, shadows = 0, brightness = 0.20, fov = 140 },
+			-- Manometers
+			[31] = { "headlight", Vector(450.00,5,3.0), Angle(0,-90,0), Color(216,161,92), farz = 32, nearz = 1, shadows = 0, brightness = 0.4, fov = 30 },
+			-- Voltmeter
+			[32] = { "headlight", Vector(449.00,10,7.0), Angle(28,90,0), Color(216,161,92), farz = 16, nearz = 1, shadows = 0, brightness = 0.4, fov = 40 },
+			-- Ampermeter
+			[33] = { "headlight", Vector(445.0,-35,9.0), Angle(-90,0,0), Color(216,161,92), farz = 10, nearz = 1, shadows = 0, brightness = 4.0, fov = 60 },
+			-- Voltmeter
+			[34] = { "headlight", Vector(445.0,-35,13.0), Angle(-90,0,0), Color(216,161,92), farz = 10, nearz = 1, shadows = 0, brightness = 4.0, fov = 60 },
 		}
 	else
 		self.Lights = {
 			-- Head
-			[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0), Color(176,161,132), fov = 100 },
+			[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0),   Color(216,161,92), fov = 100 },
 			[2] = { "glow",				Vector(460, 51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
 			[3] = { "glow",				Vector(460,-51,-23), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
 			[4] = { "glow",				Vector(460,-18,-23), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
@@ -208,6 +219,17 @@ function ENT:Initialize()
 			[28] = { "light",			Vector(437.8,10.8,-8.0), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
 			-- Door right open 
 			[29] = { "light",			Vector(438.7,-23.3,-5.35), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.024 },
+
+			-- Cabin texture light
+			[30] = { "headlight", 		Vector(390.0,16,45), Angle(60,-50,0), Color(176,161,132), farz = 128, nearz = 1, shadows = 0, brightness = 0.20, fov = 140 },
+			-- Manometers
+			[31] = { "headlight", Vector(450.00,5,3.0), Angle(0,-90,0), Color(216,161,92), farz = 32, nearz = 1, shadows = 0, brightness = 0.4, fov = 30 },
+			-- Voltmeter
+			[32] = { "headlight", Vector(449.00,10,7.0), Angle(28,90,0), Color(216,161,92), farz = 16, nearz = 1, shadows = 0, brightness = 0.4, fov = 40 },
+			-- Ampermeter
+			[33] = { "headlight", Vector(445.0,-35,9.0), Angle(-90,0,0), Color(216,161,92), farz = 10, nearz = 1, shadows = 0, brightness = 4.0, fov = 60 },
+			-- Voltmeter
+			[34] = { "headlight", Vector(445.0,-35,13.0), Angle(-90,0,0), Color(216,161,92), farz = 10, nearz = 1, shadows = 0, brightness = 4.0, fov = 60 },
 		}
 	end
 	
@@ -235,7 +257,7 @@ function ENT:Think()
 	local retVal = self.BaseClass.Think(self)
 
 	-- Check if wrench was pulled out
-	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end
+	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end	
 
 	-- Headlights
 	local brightness = (math.min(1,self.Panel["HeadLights1"])*0.50 + 
@@ -255,10 +277,15 @@ function ENT:Think()
 	
 	-- Interior/cabin lights
 	self:SetLightPower(10, (self.Panel["CabinLight"] > 0.5) and (self.L_2.Value > 0.5))
+	self:SetLightPower(30, (self.Panel["CabinLight"] > 0.5), 0.03 + 0.97*self.L_2.Value)
 	self:SetLightPower(12, (self.Panel["EmergencyLight"] > 0.5) and ((self.L_1.Value > 0.5) or (self.L_5.Value > 0.5)),
 		0.1*self.L_5.Value + ((self.PowerSupply.XT3_4 > 65.0) and 0.5 or 0))
 	--self:SetLightPower(12, self.Panel["EmergencyLight"] > 0.5)
-	--self:SetLightPower(13, self.PowerSupply.XT3_4 > 65.0)
+	--self:SetLightPower(13, self.PowerSupply.XT3_4 > 65.0)	
+	self:SetLightPower(31, (self.Panel["CabinLight"] > 0.5) and (self.L_3.Value > 0.5))
+	self:SetLightPower(32, (self.Panel["CabinLight"] > 0.5) and (self.L_3.Value > 0.5))
+	self:SetLightPower(33, (self.Panel["CabinLight"] > 0.5) and (self.L_3.Value > 0.5))
+	self:SetLightPower(34, (self.Panel["CabinLight"] > 0.5) and (self.L_3.Value > 0.5))
 	
 	-- Door button lights
 	self:SetLightPower(27, (self.Panel["HeadLights2"] > 0.5) and (self.DoorSelect.Value == 0))

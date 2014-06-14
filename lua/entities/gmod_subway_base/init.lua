@@ -849,9 +849,9 @@ function ENT:SetLightPower(index,power,brightness)
 		light:SetLocalAngles(lightData[3])
 
 		-- Set parameters
-		light:SetKeyValue("enableshadows", 1)
-		light:SetKeyValue("farz", 2048)
-		light:SetKeyValue("nearz", 16)
+		light:SetKeyValue("enableshadows", lightData.shadows or 1)
+		light:SetKeyValue("farz", lightData.farz or 2048)
+		light:SetKeyValue("nearz", lightData.nearz or 16)
 		light:SetKeyValue("lightfov", lightData.fov or 120)
 
 		-- Set Brightness
