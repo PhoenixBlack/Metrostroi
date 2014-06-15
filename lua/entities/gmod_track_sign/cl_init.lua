@@ -72,7 +72,7 @@ function ENT:Draw()
 		
 		local N = self:GetNWInt("StationList#")
 		local W = 320
-		local H = 55
+		local H = 64
 		local P1 = -2
 		local P2 = 3
 		local X = -N*W*0.5
@@ -102,6 +102,25 @@ function ENT:Draw()
 			
 			surface.SetDrawColor(R1,G1,B1,255)
 			surface.DrawRect(x+P1+P2,0+P2,W-P1*2-P2*2,H-P2*2)
+			
+			local cx = x+W*0.1
+			local cy = 0+H*0.5
+			local N = 10
+			local radius = 23
+			local step = 2*math.pi/N
+			local vertexBuffer = { {}, {}, {} }
+
+			surface.SetDrawColor(255,255,255,255)
+			for i=1,N do
+				vertexBuffer[1].x = cx + radius*math.sin(step*(i+0))
+				vertexBuffer[1].y = cy + radius*math.cos(step*(i+0))
+				vertexBuffer[2].x = cx
+				vertexBuffer[2].y = cy
+				vertexBuffer[3].x = cx + radius*math.sin(step*(i+1))
+				vertexBuffer[3].y = cy + radius*math.cos(step*(i+1))
+				surface.DrawPoly(vertexBuffer)
+			end
+	
 			
 			draw.Text({
 				text = self:GetNWString("StationList"..i.."[ID]"),
