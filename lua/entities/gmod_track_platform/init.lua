@@ -105,6 +105,24 @@ function ENT:PopulationCount()
 	return totalCount
 end
 
+local empty_checked = {}
+local function getTrainDriver(train,checked)
+	if not checked then
+		for k,v in pairs(empty_checked) do empty_checked[k] = nil end
+		checked = empty_checked
+	end
+	if not IsValid(train) then return end
+	if checked[train] then return end
+	checked[train] = true
+	
+	local ply = train:GetDriver()
+	if IsValid(ply) then -- and (train.KV.ReverserPosition ~= 0)
+		return ply
+	end
+	
+	return getTrainDriver(train.RearTrain,checked) or getTrainDriver(train.FrontTrain,checked)
+end
+
 function ENT:Think()
 	-- Rate of boarding
 	local dT = 0.25
@@ -143,8 +161,11 @@ function ENT:Think()
 		if vertical_distance > 192 then doors_open = false end		
 		if (train_start < 0) and (train_end < 0) then doors_open = false end
 		if (train_start > 1) and (train_end > 1) then doors_open = false end
-		
+
 		if (platform_distance < 256) and (doors_open) then
+			-- Find player of the train
+			local driver = getTrainDriver(v)
+			
 			-- Limit train to platform	
 			train_start = math.max(0,math.min(1,train_start))
 			train_end = math.max(0,math.min(1,train_end))
@@ -187,8 +208,20 @@ function ENT:Think()
 			end
 			-- People leave to platform
 			if left > 0 then
+				if IsValid(driver) then
+					driver:AddFrags(left)
+					--driver:AddDeaths(-left)
+				end
+			
+				-- Move passengers
 				v.PassengersToLeave = v.PassengersToLeave - left
 				self.PassengersLeft = self.PassengersLeft + left
+			end
+			-- People boarded train
+			if boarded > 0 then
+				if IsValid(driver) then
+					--driver:AddDeaths(boarded)
+				end
 			end
 			-- Change number of people in train
 			v:BoardPassengers(passenger_delta)

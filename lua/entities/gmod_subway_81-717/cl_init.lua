@@ -339,6 +339,13 @@ ENT.ButtonMap["Schedule"] = {
 		{x=1, y=rowtall*3+4, w=col1w, h=(rowtall+1)*(rowamount-3)-1, tooltip="Station name"}, -- NEEDS TRANSLATING
 	}
 }
+ENT.ButtonMap["IGLA"] = {
+	pos = Vector(449.7,-31.8,30.8),
+	ang = Angle(0,-125,90),
+	width = 440,
+	height = 190,
+	scale = 0.024,
+}
 
 -- Temporary panels (possibly temporary)
 ENT.ButtonMap["FrontPneumatic"] = {
@@ -887,6 +894,10 @@ function ENT:Think()
 		end
 	end
 	
+	-- IGLA alert
+	--local state = true --self:GetPackedBool(39)
+	--self:SetSoundState("ring2",0.20,1)
+	
 	-- DIP sound
 	self:SetSoundState("bpsn2",self:GetPackedBool(52) and 1 or 0,1.0)
 	--self:SetSoundState("bpsn1",0,1.0)
@@ -1074,6 +1085,70 @@ function ENT:Draw()
 		end
 		
 		surface.SetAlphaMultiplier(1.0)
+	end)
+	self:DrawOnPanel("IGLA",function()
+		if not self:GetPackedBool(32) then return end
+		local text1 = ""
+		local text2 = ""
+		local C1 = Color(0,200,255,255)
+		local C2 = Color(0,0,100,155)
+		local flash = false
+		local T = self:GetPackedRatio(11)
+		local Ptrain = self:GetPackedRatio(5)*16.0
+		local Pcyl = self:GetPackedRatio(6)*6.0
+		local date = os.date("!*t",os_time)
+		
+		-- Default IGLA text
+		text1 = "IGLA-01K     RK TEMP"
+		text2 = Format("%02d:%02d:%02d       %3d C",date.hour,date.min,date.sec,T)
+		
+		-- Modifiers and conditions
+		if self:GetPackedBool(25) then text1 = " !!  Right Doors !!" end
+		if self:GetPackedBool(21) then text1 = " !!  Left Doors  !!" end
+		
+		if T > 300 then text1 = "Temperature warning!" end
+		
+		if self:GetPackedBool(50) and (Pcyl > 1.1) then
+			text1 = "FAIL PNEUMATIC BRAKE"
+			flash = true
+		end
+		if self:GetPackedBool(35) and
+		   self:GetPackedBool(28) then
+			text1 = "FAIL AVU/BRAKE PRESS"
+			flash = true
+		end
+		if self:GetPackedBool(35) and
+		   (not self:GetPackedBool(40)) then
+			text1 = "FAIL SD/DOORS OPEN  "
+			flash = true
+		end
+		if self:GetPackedBool(36) then
+			text1 = "FAIL OVERLOAD RELAY "
+			flash = true
+		end
+		if Ptrain < 5.5 then
+			text1 = "FAIL TRAIN LINE LEAK"
+			flash = true
+		end
+		
+		if T > 400 then flash = true end
+		if T > 500 then text1 = "!Disengage circuits!" end
+		if T > 750 then text1 = " !! PIZDA POEZDU !! " end
+		
+		-- Draw text
+		if flash and ((RealTime() % 1.0) > 0.5) then
+			C2,C1 = C1,C2
+		end
+		for i=1,20 do
+			surface.SetDrawColor(C2)
+			surface.DrawRect(42+(i-1)*17.7+1,42+4,16,22)			
+			draw.DrawText(string.upper(text1[i] or ""),"MetrostroiSubway_IGLA",42+(i-1)*17.7,42+0,C1)
+		end
+		for i=1,20 do
+			surface.SetDrawColor(C2)
+			surface.DrawRect(42+(i-1)*17.7+1,42+24+4,16,22)
+			draw.DrawText(string.upper(text2[i] or ""),"MetrostroiSubway_IGLA",42+(i-1)*17.7,42+24,C1)
+		end
 	end)
 	
 	self:DrawOnPanel("FrontPneumatic",function()

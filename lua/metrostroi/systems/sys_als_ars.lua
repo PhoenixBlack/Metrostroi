@@ -241,6 +241,8 @@ function TRAIN_SYSTEM:Think()
 	-- ARS signalling train wires
 	if EnableALS and EnableARS then
 		self.Train:WriteTrainWire(21,self.LVD and 1 or 0)--self.LKT and 1 or 0)
+	else
+		self.Train:WriteTrainWire(21,0)
 	end
 	
 	-- ARS anti-door-closing

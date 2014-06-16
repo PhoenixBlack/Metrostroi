@@ -331,6 +331,7 @@ function ENT:Think()
 	--self:SetPackedBool(24,self.Pneumatic.LeftDoorState[4] > 0.5)
 	self:SetPackedBool(25,self.Pneumatic.RightDoorState[1] > 0.5)
 	--self:SetPackedBool(26,self.Pneumatic.RightDoorState[2] > 0.5)
+	--self:SetPackedBool(26,(self.Electric.T1 > 400) or (self.Electric.T2 > 400))
 	--self:SetPackedBool(27,self.Pneumatic.RightDoorState[3] > 0.5)
 	self:SetPackedBool(27,self.KVWrenchMode == 2)
 	--self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
@@ -419,6 +420,9 @@ function ENT:Think()
 		else self:SetPackedBool(64+(i-1),self[v].Value == 1.0)
 		end
 	end
+	
+	-- Total temperature
+	local IGLA_Temperature = math.max(self.Electric.T1,self.Electric.T2)
     
 	-- Feed packed floats
 	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/5)
@@ -431,10 +435,12 @@ function ENT:Think()
 	self:SetPackedRatio(8, 0.5 + (self.Electric.I24/500.0))
 	self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
 	self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 150.0)
+	self:SetPackedRatio(11,IGLA_Temperature)
 
 	-- Update ARS system
 	self:SetPackedRatio(3, self.ALS_ARS.Speed/100.0)
-	if (self.ALS_ARS.Ring == true) or (self:ReadTrainWire(21) > 0) then
+	if (self.ALS_ARS.Ring == true) or (self:ReadTrainWire(21) > 0) or 
+		((IGLA_Temperature > 500) and ((CurTime() % 2.0) > 1.0)) then
 		self:SetPackedBool(39,true)
 	end
 	
