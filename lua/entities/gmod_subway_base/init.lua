@@ -41,11 +41,21 @@ function ENT:Initialize()
 
 	-- Initialize wire interface
 	self.WireIOSystems = self.WireIOSystems or { "KV", "ALS_ARS", "DURA", "Pneumatic" }
+	self.WireIOIgnoreList = self.WireIOIgnoreList or {
+		"ALS_ARS2", "ALS_ARS8", "ALS_ARS20", "ALS_ARS31", "ALS_ARS32",
+		"ALS_ARS29", "ALS_ARS33D", "ALS_ARS33G", "ALS_ARS33Zh",
+		"ALS_ARSSignal80","ALS_ARSSignal70","ALS_ARSSignal60","ALS_ARSSignal40",
+		"ALS_ARSSignal0","ALS_ARSSpecial","ALS_ARSNoFreq"
+	}
 	if Wire_CreateInputs then
 		local inputs = {}
 		local outputs = {}
 		local inputTypes = {}
 		local outputTypes = {}
+		local ignoreOutputs = {}
+		for k,v in pairs(self.WireIOIgnoreList) do
+			ignoreOutputs[v] = true
+		end
 		for _,name in pairs(self.WireIOSystems) do
 			local v = self.Systems[name]
 			if v then
@@ -54,11 +64,17 @@ function ENT:Initialize()
 				
 				for _,v2 in pairs(i) do 
 					if type(v2) == "string" then
-						table.insert(inputs,(v.Name or "")..v2) 
-						table.insert(inputTypes,"NORMAL")
+						local name = (v.Name or "")..v2
+						if not ignoreOutputs[name] then
+							table.insert(inputs,name) 
+							table.insert(inputTypes,"NORMAL")
+						end
 					elseif type(v2) == "table" then
-						table.insert(inputs,(v.Name or "")..v2[1])
-						table.insert(inputTypes,v2[2])
+						local name = (v.Name or "")..v2[1]
+						if not ignoreOutputs[name] then
+							table.insert(inputs,name)
+							table.insert(inputTypes,v2[2])
+						end
 					else
 						ErrorNoHalt("Invalid wire input for metrostroi subway entity")
 					end
@@ -66,11 +82,17 @@ function ENT:Initialize()
 				
 				for _,v2 in pairs(o) do 
 					if type(v2) == "string" then
-						table.insert(outputs,(v.Name or "")..v2) 
-						table.insert(outputTypes,"NORMAL")
+						local name = (v.Name or "")..v2
+						if not ignoreOutputs[name] then
+							table.insert(outputs,(v.Name or "")..v2) 
+							table.insert(outputTypes,"NORMAL")
+						end
 					elseif type(v2) == "table" then
-						table.insert(outputs,(v.Name or "")..v2[1])
-						table.insert(outputTypes,v2[2])
+						local name = (v.Name or "")..v2[1]
+						if not ignoreOutputs[name] then
+							table.insert(outputs,(v.Name or "")..v2[1])
+							table.insert(outputTypes,v2[2])
+						end
 					else
 						ErrorNoHalt("Invalid wire output for metrostroi subway entity")
 					end
