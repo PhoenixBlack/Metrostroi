@@ -82,8 +82,9 @@ function ENT:Think()
 	-- Engine sound
 	if (speed > 1.0) and (math.abs(motorPower) > 0.0) then
 		local startVolRamp = 0.2 + 0.8*math.max(0.0,math.min(1.0,(speed - 1.0)*0.5))
-		local powerVolRamp = math.max(0.3,math.min(1.0,math.abs(motorPower)))
-		
+		local powerVolRamp = 0.2 + (math.abs(motorPower)^2)
+		--math.max(0.3,math.min(1.0,math.abs(motorPower)))
+
 		local k,x = 1.0,math.max(0,math.min(1.1,(speed-1.0)/80))
 		local motorPchRamp = (k*x^3 - k*x^2 + x)
 		local motorPitch = 0.01+1.7*motorPchRamp

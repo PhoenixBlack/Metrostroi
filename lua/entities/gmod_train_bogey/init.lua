@@ -351,6 +351,12 @@ function ENT:Think()
 	else self:GetPhysicsObject():ApplyForceCenter(-self:GetAngles():Forward()*force + self:GetAngles():Right()*side_force)
 	end
 	
+	-- Apply Z axis damping
+	local avel = self:GetPhysicsObject():GetAngleVelocity()
+	local avelz = math.min(20,math.max(-20,avel.z))
+	local damping = Vector(0,0,-avelz) * 0.75 * dt_scale
+	self:GetPhysicsObject():AddAngleVelocity(damping) 
+	
 	-- Calculate brake squeal
 	local k = ((self.SquealSensitivity or 0.5) - 0.5)*2
 	local brakeSqueal = (math.abs(pneumaticForce)/(40000*(1+0.8*k)))^2
