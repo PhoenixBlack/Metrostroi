@@ -64,7 +64,7 @@ function ENT:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 	end
 	
 	-- Red if track occupied, switch section is blocked (occupied), or always red
-	self:SetRed(trackOccupied or switchBlocked or self:GetAlwaysRed())
+	self:SetRed(trackOccupied or switchBlocked or self:GetAlwaysRed() or self.OverrideTrackOccupied)
 	
 	-- Use normal logic or ARS-only logic
 	self:SetBlue(self.ARSOnly and (not self:GetRed()) and (not switchAlternate))

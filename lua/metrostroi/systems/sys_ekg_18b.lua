@@ -16,7 +16,7 @@ function TRAIN_SYSTEM:Initialize()
 	Metrostroi.BaseSystems["EKG"].Initialize(self)
 	
 	-- Rate of rotation (positions per second
-	self.RotationRate = 1.0/0.20
+	self.RotationRate = 1.0/0.30
 	
 	-- Реле РПУ
 	self.Train:LoadSystem("RPU","Relay","RPU-3")

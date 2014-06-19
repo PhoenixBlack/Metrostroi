@@ -1,10 +1,7 @@
 *.bak
 data/*
 maps/*
-materials/*
-models/*
 resource/*
-sound/*
 docs/*
 
 #Ignore all gamemodes

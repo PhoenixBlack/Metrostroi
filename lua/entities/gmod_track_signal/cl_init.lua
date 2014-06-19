@@ -58,27 +58,6 @@ function ENT:Think()
 end
 
 function ENT:Draw()
-	-- Draw long-distance traffic light value
-	--[[local models = self.TrafficLightModels[self:GetLightsStyle()] or {}	
-	local offset = Vector(0,0,112+32)
-	for k,v in ipairs(models) do		
-		offset = offset - Vector(0,0,v[1])
-		if v[3] then
-			for light,data in pairs(v[3]) do
-				local state = self:GetTrafficLamp(light)
-				
-				local pos = self:LocalToWorld(self.BasePosition + offset + data[1] + Vector(10,0,0))
-				local ang = self:LocalToWorldAngles(Angle(0,180,90))
-				surface.SetAlphaMultiplier(0.01)
-				cam.Start3D2D(pos, ang, 3)
-					surface.DrawCircle(0,0,2,data[2]) 
-				cam.End3D2D()
-				surface.SetAlphaMultiplier(1)
-				--data[2]
-			end
-		end
-	end]]--
-	
 	-- Draw model
 	self:DrawModel()
 	
@@ -111,4 +90,14 @@ function ENT:Draw()
 			draw.DrawText("(325 Hz) Special","Trebuchet24",15,280,Color(self:GetSettingsBit(5) and 255 or 0,0,self:GetActiveSignalsBit(15) and 255 or 0,255))
 		cam.End3D2D()
 	end
+	
+	-- Draw traffic light ID
+	--[[pos = self:LocalToWorld(Vector(0,32,95))
+	ang = self:LocalToWorldAngles(Angle(0,180,90))
+	cam.Start3D2D(pos, ang, 0.25)
+		surface.SetDrawColor(255, 255, 255, 255)
+		surface.DrawRect(0, 0, 64, 24)
+
+		draw.DrawText(self:EntIndex(),"Trebuchet24",0,0,Color(0,0,0,255))
+	cam.End3D2D()]]--
 end

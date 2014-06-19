@@ -44,6 +44,7 @@ function TRAIN_SYSTEM:Think(dT)
 		header = header.."\n"
 
 		local f = io.open(self.DataName,"w+")
+		if not f then return end
 		f:write(header)
 		f:close()
 		self.WroteHeader = true
@@ -52,6 +53,7 @@ function TRAIN_SYSTEM:Think(dT)
 	-- Write actual telemetry
 	if self.WroteHeader then
 		local f = io.open(self.DataName,"a+")
+		if not f then return end
 		f:write((self.Time or 0).."\t")
 		f:write((self.Train.Engines.Speed or 0).."\t")
 		f:write((0 or 0).."\t")
