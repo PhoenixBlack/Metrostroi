@@ -17,6 +17,7 @@ function ENT:Initialize()
 	self.PlatformLast		= (self.VMF.PlatformLast == "yes")
 	self.PlatformX0			= self.VMF.PlatformX0 or 0.80
 	self.PlatformSigma		= self.VMF.PlatformSigma or 0.25
+	self.HorliftStation		= self.VMF.HorliftStation or 0
 
 	if not self.PlatformStart then
 		self.VMF.PlatformStart 	= "station"..self.StationIndex.."_"..(self.VMF.PlatformStart or "")
@@ -123,6 +124,14 @@ local function getTrainDriver(train,checked)
 	return getTrainDriver(train.RearTrain,checked) or getTrainDriver(train.FrontTrain,checked)
 end
 
+function ENT:FireHorliftDoors(input)
+	local doors = ents.FindByName("station"..self.StationIndex.."_platform"..self.PlatformIndex.."_door") 
+	for k,v in pairs(doors) do
+		--print(k,v)
+		v:Fire(input,"","1")
+	end
+end
+
 function ENT:Think()
 	-- Rate of boarding
 	local dT = 0.25
@@ -148,6 +157,7 @@ function ENT:Think()
 	local dot = (self:GetPos() - platformStart):Cross(platformEnd - platformStart)
 	local swap_side = dot.z > 0.0
 
+	self.HorliftStation = 1
 	local boardingDoorList = {}
 	for k,v in pairs(trains) do
 		local platform_distance	= ((platformStart-v:GetPos()) - ((platformStart-v:GetPos()):Dot(platformNorm))*platformNorm):Length()
@@ -162,7 +172,40 @@ function ENT:Think()
 		if (train_start < 0) and (train_end < 0) then doors_open = false end
 		if (train_start > 1) and (train_end > 1) then doors_open = false end
 
+		-- Check horizontal lift station logic
+		local passengers_can_board = false
 		if (platform_distance < 256) and (doors_open) then
+			passengers_can_board = false
+			if self.HorliftStation > 0 then
+				-- Check fine stop
+				local stopped_fine = false
+				for i=0,4 do
+					local x_s = 0.99086 - i*0.1929
+					local x_e = 0.97668 - i*0.1929
+					stopped_fine = stopped_fine or ((train_start < x_s) and (train_start > x_e))
+				end
+			
+				-- Open doors on station
+				if stopped_fine then
+					self.ARSOverride = true
+					self.HorliftTimer1 = self.HorliftTimer1 or CurTime()
+					if ((CurTime() - self.HorliftTimer1) > 2.0) and (stopped_fine) then
+						self.HorliftTimer2 = CurTime()
+						self:FireHorliftDoors("Open")
+					end
+				end
+				
+				-- Allow boarding
+				if self.HorliftTimer2 then
+					passengers_can_board = true
+				end
+			else
+				passengers_can_board = true
+			end
+		end
+		
+		-- Board passengers		
+		if passengers_can_board then
 			-- Find player of the train
 			local driver = getTrainDriver(v)
 			
@@ -254,6 +297,37 @@ function ENT:Think()
 			end
 			self.WindowEnd = (self.WindowEnd + math.floor(growthDelta+0.5)) % self:PoolSize()
 		end
+	end
+	
+	-- Reset timer for horizontal lift stations
+	if self.HorliftStation > 0 then
+		if self.HorliftTimer2 then
+			if (CurTime() - self.HorliftTimer2) > 2.0 then
+				self:FireHorliftDoors("Close")
+				self.HorliftTimer1 = nil
+				self.HorliftTimer2 = nil
+				self.ARSOverride = false
+			end		
+		end
+	end
+	
+	-- Block local ARS sections
+	if self.ARSOverride ~= nil then
+		-- Signal override to all signals
+		local ars_ents = ents.FindInSphere(self.PlatformEnd,768)
+		for k,v in pairs(ars_ents) do
+			local delta_z = math.abs(self.PlatformEnd.z-v:GetPos().z)
+			if (v:GetClass() == "gmod_track_signal") and (delta_z < 128) then
+				v.OverrideTrackOccupied = self.ARSOverride
+			end
+			if (v:GetClass() == "gmod_track_horlift_signal") and (delta_z < 128) then
+				v.WhiteSignal = self.ARSOverride
+				v.YellowSignal = not self.ARSOverride
+			end
+		end
+		
+		-- Finish override
+		self.ARSOverride = nil
 	end
 	
 	-- Send boarding list FIXME make this nicer

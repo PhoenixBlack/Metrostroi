@@ -19,6 +19,14 @@ function ENT:GetStandingArea()
 	return Vector(-450,-30,-45),Vector(380,30,-45)
 end
 
+function ENT:InitializeSounds()
+	self.BaseClass.InitializeSounds(self)
+	self.SoundNames["pneumo_switch"] = {
+		"subway_trains/pneumo_8.wav",
+		"subway_trains/pneumo_9.wav",
+	}
+end
+
 function ENT:InitializeSystems()
 	-- Токоприёмник
 	self:LoadSystem("TR","TR_3B")	

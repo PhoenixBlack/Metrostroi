@@ -219,6 +219,19 @@ function ENT:Think()
 	end
 	self:SetSoundState("compressor",state and 1 or 0,1)
 	
+	-- PP rotation
+	local state = self:GetPackedBool(112)
+	self.PreviousPPState = self.PreviousPPState or false
+	if self.PreviousPPState ~= state then
+		self.PreviousPPState = state
+		if state then
+			self:SetSoundState("rk_spin",0.20,1)
+		else
+			self:SetSoundState("rk_spin",0,0)
+			self:PlayOnce("rk_stop",nil,0.70)		
+		end
+	end
+	
 	-- DIP sound
 	self:SetSoundState("bpsn2",self:GetPackedBool(52) and 1 or 0,1.0)
 end
