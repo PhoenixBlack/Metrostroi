@@ -17,7 +17,7 @@ function ENT:Initialize()
 	self.PlatformLast		= (self.VMF.PlatformLast == "yes")
 	self.PlatformX0			= self.VMF.PlatformX0 or 0.80
 	self.PlatformSigma		= self.VMF.PlatformSigma or 0.25
-	self.HorliftStation		= self.VMF.HorliftStation or 0
+	self.HorliftStation		= tonumber(self.VMF.HorliftStation) or 0
 
 	if not self.PlatformStart then
 		self.VMF.PlatformStart 	= "station"..self.StationIndex.."_"..(self.VMF.PlatformStart or "")
@@ -157,7 +157,6 @@ function ENT:Think()
 	local dot = (self:GetPos() - platformStart):Cross(platformEnd - platformStart)
 	local swap_side = dot.z > 0.0
 
-	self.HorliftStation = 1
 	local boardingDoorList = {}
 	for k,v in pairs(trains) do
 		local platform_distance	= ((platformStart-v:GetPos()) - ((platformStart-v:GetPos()):Dot(platformNorm))*platformNorm):Length()
@@ -189,7 +188,7 @@ function ENT:Think()
 				if stopped_fine then
 					self.ARSOverride = true
 					self.HorliftTimer1 = self.HorliftTimer1 or CurTime()
-					if ((CurTime() - self.HorliftTimer1) > 2.0) and (stopped_fine) then
+					if ((CurTime() - self.HorliftTimer1) > 0.5) and (stopped_fine) then
 						self.HorliftTimer2 = CurTime()
 						self:FireHorliftDoors("Open")
 					end
@@ -302,7 +301,7 @@ function ENT:Think()
 	-- Reset timer for horizontal lift stations
 	if self.HorliftStation > 0 then
 		if self.HorliftTimer2 then
-			if (CurTime() - self.HorliftTimer2) > 2.0 then
+			if (CurTime() - self.HorliftTimer2) > 0.5 then
 				self:FireHorliftDoors("Close")
 				self.HorliftTimer1 = nil
 				self.HorliftTimer2 = nil

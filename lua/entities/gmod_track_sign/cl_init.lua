@@ -67,7 +67,7 @@ function ENT:Draw()
 	
 	local pos = self:LocalToWorld(Vector(4,0,-32))
 	local ang = self:LocalToWorldAngles(Angle(0,90,90))
-	cam.Start3D2D(pos, ang, 0.25)
+	cam.Start3D2D(pos, ang, 0.125)
 		draw.NoTexture()
 		
 		local N = self:GetNWInt("StationList#")

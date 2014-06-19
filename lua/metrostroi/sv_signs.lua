@@ -14,8 +14,8 @@ local function trace(pos,dir,col)
 		endpos = pos+dir,
 		mask = MASK_NPCWORLDSTATIC
 	})
-	timer.Simple(0.01,function()
-		local t = 3
+	timer.Simple(0.05,function()
+		local t = 5
 		debugoverlay.Line(tr.StartPos,tr.HitPos,t,col or Color(0,0,255),true)
 		debugoverlay.Sphere(tr.StartPos,2,t,Color(0,255,255),true)
 		debugoverlay.Sphere(tr.HitPos,2,t,Color(255,0,0),true)
@@ -37,16 +37,24 @@ function Metrostroi.AddStationSign(ent)
 	local N = 2
 	local X = { 0.25, 0.75 }
 	for i=1,N do
-		local pos = (platformStart + platformDir*X[i]) + Vector(0,0,64) + platformN*96
+		local pos = (platformStart + platformDir*X[i]) + Vector(0,0,64+32) + platformN*96
 		local tr = trace(pos,platformN*384)
+		
+		-- Bad hit workaround
+		if (not tr.Hit) or (tr.Fraction < 0.05) then
+			--print("STATION",ent.StationIndex,tr.Hit,tr.Fraction)
+
+			pos = (platformStart + platformDir*X[i]) + Vector(0,0,64+32) + platformN*0
+			tr = trace(pos,platformN*384)
+		end
 		
 		local sign = ents.Create("gmod_track_sign")
 		if IsValid(sign) then
 			if tr.Hit then
-				sign:SetPos(tr.HitPos)
+				sign:SetPos(tr.HitPos + tr.HitNormal*4)
 				sign:SetAngles(tr.HitNormal:Angle())
 			else
-				sign:SetPos(tr.HitPos)
+				sign:SetPos(tr.HitPos + tr.HitNormal*4)
 				sign:SetAngles(-platformN:Angle())
 			end
 			sign:Spawn()
@@ -151,4 +159,4 @@ function Metrostroi.InitializeSigns()
 	end
 end
 
-Metrostroi.InitializeSigns()
+Metrostroi.InitializeSigns(       )

@@ -144,6 +144,9 @@ function Metrostroi.GetPositionOnTrack(pos,ang,opts)
 		end	
 	end
 	
+	-- Sort results by distance
+	table.sort(results, function(a,b) return a.distance < b.distance end)
+	
 	-- Return list of positions
 	return results
 end
@@ -184,6 +187,7 @@ function Metrostroi.UpdateSignalEntities()
 	local options = { z_pad = 256 }
 	if Metrostroi.IgnoreEntityUpdates then return end
 	Metrostroi.SignalEntitiesForNode = {}
+	Metrostroi.SignalEntityPositions = {}
 	
 	local entities = ents.FindByClass("gmod_track_signal")
 	for k,v in pairs(entities) do
@@ -200,7 +204,7 @@ function Metrostroi.UpdateSignalEntities()
 		--else
 			--print("position not found",k,v)
 		end
-	end	
+	end
 end
 
 
@@ -270,8 +274,9 @@ function Metrostroi.UpdateARSSections()
 			--debugoverlay.Line(k:GetPos(),signal:GetPos(),10,Color(0,0,255),true)
 
 			-- Interpolate between two positions and add intermediates
+			local count = 0
 			local offset = 0
-			local delta_offset = 100
+			local delta_offset = 80
 			if (v.path == pos.path) and (pos.x < v.x) then
 				--print(Format("Metrostroi: Adding ARS sections between [%d] %.0f -> %.0f m",pos.path.id,pos.x,v.x))
 				local node = pos.node1
@@ -279,6 +284,7 @@ function Metrostroi.UpdateARSSections()
 					if (offset > delta_offset) and (math.abs(node.x - v.x) > delta_offset) then
 						Metrostroi.AddARSSubSection(node,signal)
 						offset = offset - delta_offset
+						count = count + 1
 					end
 	
 					node = node.next
@@ -287,6 +293,9 @@ function Metrostroi.UpdateARSSections()
 					end
 				end
 			end
+			--if count == 0 then
+				--print("Could not add any signals for",k)
+			--end
 		end
 	end
 	Metrostroi.IgnoreEntityUpdates = false
@@ -523,7 +532,11 @@ function Metrostroi.UpdateTrainPositions()
 	for _,class in pairs(Metrostroi.TrainClasses) do
 		local trains = ents.FindByClass(class)
 		for _,train in pairs(trains) do
-			Metrostroi.TrainPositions[train] = Metrostroi.GetPositionOnTrack(train:GetPos(),train:GetAngles())
+			local positions = Metrostroi.GetPositionOnTrack(train:GetPos(),train:GetAngles())
+			Metrostroi.TrainPositions[train] = {}
+			if positions and positions[1] then
+				Metrostroi.TrainPositions[train][1] = positions[1]
+			end
 		
 			--print("TRAIN",train)
 			--for k,v in pairs(Metrostroi.TrainPositions[train]) do
