@@ -159,4 +159,4 @@ function Metrostroi.InitializeSigns()
 	end
 end
 
-Metrostroi.InitializeSigns(       )
+--Metrostroi.InitializeSigns()
