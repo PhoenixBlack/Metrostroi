@@ -341,6 +341,17 @@ function ENT:OnButtonPress(button)
 	end
 	
 	-- Special sounds
+	if (button == "VUToggle") or ((string.sub(button,1,1) == "A") and (tonumber(string.sub(button,2,2)))) then
+		local name = string.sub(button,1,(string.find(button,"Toggle") or 0)-1)
+		if self[name] then
+			if self[name].Value > 0.5 then
+				self:PlayOnce("av_off","cabin")
+			else
+				self:PlayOnce("av_on","cabin")
+			end
+		end
+		return
+	end
 	if button == "PBSet" then self:PlayOnce("switch6","cabin") return end
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
 	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
