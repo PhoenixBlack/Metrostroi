@@ -37,7 +37,7 @@ function Metrostroi.AddStationSign(ent)
 	local N = 2
 	local X = { 0.25, 0.75 }
 	for i=1,N do
-		local pos = (platformStart + platformDir*X[i]) + Vector(0,0,64)
+		local pos = (platformStart + platformDir*X[i]) + Vector(0,0,64) + platformN*96
 		local tr = trace(pos,platformN*384)
 		
 		local sign = ents.Create("gmod_track_sign")
@@ -104,6 +104,36 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Create horizontal lift signals
+--------------------------------------------------------------------------------
+function Metrostroi.AddStationSignal(ent)
+	if ent.HorliftStation == 0 then return end
+
+	local platformStart	= ent.PlatformStart
+	local platformEnd	= ent.PlatformEnd
+	local platformDir   = platformEnd-platformStart
+	local platformN		= (platformDir:Angle()-Angle(0,90,0)):Forward()
+	local platformD		= platformDir:GetNormalized()
+
+	local pos = platformEnd + Vector(0,0,64) + platformN*96 + platformD*(192-32)
+	local tr = trace(pos,platformN*384)
+		
+	local sign = ents.Create("gmod_track_horlift_signal")
+	if IsValid(sign) then
+		if tr.Hit then
+			sign:SetPos(tr.HitPos)
+			sign:SetAngles(tr.HitNormal:Angle())
+		else
+			sign:SetPos(tr.HitPos)
+			sign:SetAngles(-platformN:Angle())
+		end
+		sign:Spawn()
+		table.insert(Metrostroi.Signs,sign)
+	end
+end
+
+
+--------------------------------------------------------------------------------
 -- Create all signs
 --------------------------------------------------------------------------------
 function Metrostroi.InitializeSigns()
@@ -117,6 +147,7 @@ function Metrostroi.InitializeSigns()
 	local entities = ents.FindByClass("gmod_track_platform")
 	for k,v in pairs(entities) do
 		Metrostroi.AddStationSign(v)
+		Metrostroi.AddStationSignal(v)
 	end
 end
 

@@ -268,15 +268,18 @@ function TRAIN_SYSTEM:Think(dT)
 	-- Valve #1
 	self.BrakeCylinderRegulationError = self.BrakeCylinderRegulationError or (math.random()*0.10 - 0.05)
 	local error = self.BrakeCylinderRegulationError
+	local pneumaticValveConsumption_dPdT = 0
 	if self.Train.PneumaticNo1.Value == 1.0 then
 		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.22 + error, 1.00, 4.00)
-		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
+		pneumaticValveConsumption_dPdT = pneumaticValveConsumption_dPdT + self.BrakeCylinderPressure_dPdT
 	end
 	-- Valve #2
 	if self.Train.PneumaticNo2.Value == 1.0 then
 		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.32 + error, 1.00, 4.00)
-		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeCylinderPressure_dPdT)
+		pneumaticValveConsumption_dPdT = pneumaticValveConsumption_dPdT + self.BrakeCylinderPressure_dPdT
 	end
+	trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,pneumaticValveConsumption_dPdT)
+
 	
 	-- Simulate cross-feed between different wagons
 	self:UpdatePressures(Train,dT)
