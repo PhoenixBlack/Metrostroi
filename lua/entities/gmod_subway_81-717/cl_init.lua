@@ -894,6 +894,19 @@ function ENT:Think()
 		end
 	end
 	
+	-- PP rotation
+	local state = self:GetPackedBool(112)
+	self.PreviousPPState = self.PreviousPPState or false
+	if self.PreviousPPState ~= state then
+		self.PreviousPPState = state
+		if state then
+			self:SetSoundState("rk_spin",0.20,1)
+		else
+			self:SetSoundState("rk_spin",0,0)
+			self:PlayOnce("rk_stop",nil,0.70)		
+		end
+	end
+	
 	-- IGLA alert
 	--local state = true --self:GetPackedBool(39)
 	--self:SetSoundState("ring2",0.20,1)

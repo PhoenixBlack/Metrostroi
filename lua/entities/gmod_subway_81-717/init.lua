@@ -349,6 +349,8 @@ function ENT:Think()
 	self:SetPackedBool(63,self.L_4.Value == 1.0)
 	self:SetPackedBool(53,self.L_5.Value == 1.0)
 	self:SetPackedBool(55,self.DoorSelect.Value == 1.0)
+	--self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
+	self:SetPackedBool(112,(self.PositionSwitch.Velocity ~= 0.0))
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
