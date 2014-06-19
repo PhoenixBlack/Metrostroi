@@ -529,7 +529,7 @@ function ENT:OnButtonPress(button)
 	end
 	
 	-- Special sounds
-	if (string.sub(button,1,1) == "A") and (tonumber(string.sub(button,2,2))) then
+	if (button == "VUToggle") or ((string.sub(button,1,1) == "A") and (tonumber(string.sub(button,2,2)))) then
 		local name = string.sub(button,1,(string.find(button,"Toggle") or 0)-1)
 		if self[name] then
 			if self[name].Value > 0.5 then
