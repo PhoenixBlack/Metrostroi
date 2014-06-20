@@ -761,7 +761,7 @@ function ENT:Think()
 
 	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
-	self:Animate("controller",		1-self:GetPackedRatio(1),			0.30, 0.70,  384,24)
+	self:Animate("controller",		1-self:GetPackedRatio(1),			0.30, 0.70,  4096,128)
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.25, 0.75,  4,false)
 	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38, 0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
