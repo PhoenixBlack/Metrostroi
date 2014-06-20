@@ -454,9 +454,9 @@ function ENT:Think()
 	-- Exchange some parameters between engines, pneumatic system, and real world
 	self.Engines:TriggerInput("Speed",self.Speed)
 	if IsValid(self.FrontBogey) and IsValid(self.RearBogey) then
-		self.FrontBogey.MotorForce = 42000*0.7
+		self.FrontBogey.MotorForce = 35300
 		self.FrontBogey.Reversed = (self.RKR.Value > 0.5)
-		self.RearBogey.MotorForce  = 42000*0.7
+		self.RearBogey.MotorForce  = 35300
 		self.RearBogey.Reversed = (self.RKR.Value < 0.5)
 	
 		self.RearBogey.MotorPower  = self.Engines.BogeyMoment
