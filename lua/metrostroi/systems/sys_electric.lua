@@ -217,7 +217,7 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 		self.ThyristorTimeout = 0
 	else
 		-- Generate control signal
-		local T = 210.0 + 70.0*self.ThyristorState + 150.0*Train.YAR_13A.WeightLoadRatio*Train:ReadTrainWire(2)
+		local T = 200.0 + 60.0*self.ThyristorState + 140.0*Train.YAR_13A.WeightLoadRatio*Train:ReadTrainWire(2)
 		local I = Current
 		local dI = (Current - PrevCurrent)/dT
 		local A = (T-I)*0.05
