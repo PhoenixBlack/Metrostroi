@@ -211,6 +211,29 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 		self:SolvePT(Train)
 	end
 	
+	-- Calculate current through rheostats 1, 2
+	self.IR1 = self.I13
+	self.IR2 = self.I24
+	
+	-- Calculate induction properties of the motor
+	self.I13SH = self.I13SH or self.I13
+	self.I24SH = self.I24SH or self.I24
+	self.I13SH = self.I13SH + 8.0 * (self.I13 - self.I13SH) * dT
+	self.I24SH = self.I24SH + 8.0 * (self.I24 - self.I24SH) * dT
+	self.I13 = self.I13SH
+	self.I24 = self.I24SH
+	
+	-- Re-calculate total current
+	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
+		self.I24 = (self.I24 + self.I13)*0.5
+		self.I13 = self.I24
+		self.Itotal = self.I24
+	elseif Train.PositionSwitch.SelectedPosition == 2 then -- PS
+		self.Itotal = self.I13 + self.I24
+	else
+		self.Itotal = self.I13 + self.I24
+	end
+	
 	-- Calculate extra information
 	self.Uanchor13 = self.I13 * self.Ranchor13
 	self.Uanchor24 = self.I24 * self.Ranchor24
@@ -236,10 +259,6 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 		self.Istator13 = -I2
 		self.Istator24 = -I1
 	end
-	
-	-- Calculate current through rheostats 1, 2
-	self.IR1 = self.I13
-	self.IR2 = self.I24
 	
 	-- Calculate current through RT2 relay
 	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_contactor"])
