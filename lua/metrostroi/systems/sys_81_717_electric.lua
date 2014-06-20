@@ -181,7 +181,9 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 		local C = math.max(0,A + B)
 		
 		-- Output signal
-		if Current > 0.5 then
+		if Current > 50 then
+			--if Current < 120 then C = C * 0.01 end
+			print(Current,C,self.ThyristorState)
 			self.ThyristorState = math.max(0,math.min(1,self.ThyristorState + C*dT))
 		else
 			self.ThyristorTimeout = self.ThyristorTimeout + dT
@@ -200,7 +202,7 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 			0.90,0.650,
 			1.00,15.00,
 		}
-		local TargetField = 0.30 + 0.70*self.ThyristorState
+		local TargetField = 0.35 + 0.65*self.ThyristorState
 		local Found = false
 		for i=1,#keypoints/2 do
 			local X1,Y1 = keypoints[(i-1)*2+1],keypoints[(i-1)*2+2]
@@ -277,12 +279,44 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 		self:SolvePT(Train)
 	end
 	
+	-- Calculate current through rheostats 1, 2
+	self.IR1 = self.I13
+	self.IR2 = self.I24
+	
+	-- Calculate induction properties of the motor
+	self.I13SH = self.I13SH or self.I13
+	self.I24SH = self.I24SH or self.I24
+	self.I13SH = self.I13SH + 8.0 * (self.I13 - self.I13SH) * dT
+	self.I24SH = self.I24SH + 8.0 * (self.I24 - self.I24SH) * dT
+	self.I13 = self.I13SH
+	self.I24 = self.I24SH
+	
+	-- Re-calculate total current
+	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
+		self.I13 = self.I13 * (Train.LK3.Value * Train.LK4.Value)
+		self.I24 = self.I24 * (Train.LK3.Value * Train.LK4.Value)
+	
+		self.I24 = (self.I24 + self.I13)*0.5
+		self.I13 = self.I24
+		self.Itotal = self.I24
+	elseif Train.PositionSwitch.SelectedPosition == 2 then -- PS
+		self.I13 = self.I13 * Train.LK3.Value
+		self.I24 = self.I24 * Train.LK4.Value
+		
+		self.Itotal = self.I13 + self.I24
+	else
+		self.I13 = self.I13 * Train.LK3.Value
+		self.I24 = self.I24 * Train.LK4.Value
+		
+		self.Itotal = self.I13 + self.I24
+	end
+	
 	-- Calculate extra information
 	self.Uanchor13 = self.I13 * self.Ranchor13
 	self.Uanchor24 = self.I24 * self.Ranchor24
 	
 
-	
+
 	----------------------------------------------------------------------------
 	-- Calculate current through stator and shunt
 	self.Ustator13 = self.I13 * self.Rstator13
@@ -302,11 +336,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 		self.Istator13 = -I2
 		self.Istator24 = -I1
 	end
-	
-	-- Calculate current through rheostats 1, 2
-	self.IR1 = self.I13
-	self.IR2 = self.I24
-	
+
 	-- Calculate current through RT2 relay
 	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_contactor"])
 	
@@ -315,11 +345,11 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	local H = (10.00+(25.00*Train.Engines.Speed/80.0))*1e-3
 	self.P1 = (self.IR1^2)*self.R1
 	self.P2 = (self.IR2^2)*self.R2
-	self.T1 = self.T1 + self.P1*K*dT - (self.T1-25)*H*dT
-	self.T2 = self.T2 + self.P2*K*dT - (self.T2-25)*H*dT
-	self.Overheat1 = math.min(1-1e-12,
+	self.T1 = 0*(self.T1 + self.P1*K*dT - (self.T1-25)*H*dT)
+	self.T2 = 0*(self.T2 + self.P2*K*dT - (self.T2-25)*H*dT)
+	self.Overheat1 = 0*math.min(1-1e-12,
 		self.Overheat1 + math.max(0,(math.max(0,self.T1-750.0)/400.0)^2)*dT )
-	self.Overheat2 = math.min(1-1e-12,
+	self.Overheat2 = 0*math.min(1-1e-12,
 		self.Overheat2 + math.max(0,(math.max(0,self.T2-750.0)/400.0)^2)*dT )
 end
 
