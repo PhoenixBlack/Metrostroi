@@ -189,7 +189,7 @@ function TRAIN_SYSTEM:Think()
 			self.PneumaticBrake1 = true
 		end
 		-- Check cancel pneumatic brake 1 command
-		if Train:ReadTrainWire(1) > 0 then
+		if Train.RV2.Value > 0 then
 			self.PneumaticBrake1 = false
 			self.TW1Timer = CurTime()
 		end		

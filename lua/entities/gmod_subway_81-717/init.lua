@@ -483,6 +483,14 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
+	if button == "KVSetT1A" then
+		if self.KV.ControllerPosition == -2 then
+			self.KV:TriggerInput("ControllerSet",-1)
+			timer.Simple(0.2,function()
+				self.KV:TriggerInput("ControllerSet",-2)			
+			end)
+		end
+	end
 	if button == "KVWrench0" then 
 		self.KVWrenchMode = 0
 		self.DriversWrenchPresent = false
