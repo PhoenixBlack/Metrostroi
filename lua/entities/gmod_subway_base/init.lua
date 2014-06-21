@@ -533,7 +533,7 @@ end
 
 function ENT:WriteTrainWire(k,v)
 	-- Override values with wire interface
-	if self.TrainWireOverrides[k] and (self.TrainWireOverrides[k] > 0) then
+	if self.TrainWireOverrides[k] and (self.TrainWireOverrides[k] ~= 0) then
 		v = self.TrainWireOverrides[k]
 	end
 	
@@ -542,7 +542,7 @@ function ENT:WriteTrainWire(k,v)
 	local wrote = false
 	
 	-- Writing rules for different wires
-	local allowed_write = v > 0 -- Normally positive values override others
+	local allowed_write = v ~= 0 -- Normally positive values override others
 	if k == 18 then allowed_write = v <= 0 end -- For wire 18, zero values override others
 	for a,b in pairs(self.TrainWireCrossConnections) do
 		if self:IsTrainWireCrossConnected(a) or self:IsTrainWireCrossConnected(b) then

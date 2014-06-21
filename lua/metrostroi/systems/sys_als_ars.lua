@@ -182,7 +182,7 @@ function TRAIN_SYSTEM:Think()
 		
 		-- Check parking brake functionality
 		self.TW1Timer = self.TW1Timer or -1e9
-		if (self.Speed < 5) and 
+		if (self.Speed < 3) and 
 		   ((CurTime() - self.TW1Timer) > 5) and
 		   ((Train:ReadTrainWire(2) > 0) or
 		    (Train:ReadTrainWire(6) < 1)) then

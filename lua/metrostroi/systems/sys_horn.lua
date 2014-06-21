@@ -31,10 +31,16 @@ function TRAIN_SYSTEM:ClientThink(dT)
 	local active = self.Train:GetNWBool("HornState",false)
 	self.Active = self.Active or false
 
+	-- Calculate pitch
+	local absolutePitch  = 1 - math.exp(-10*self.Train:GetPackedRatio(5))
+	local absoluteVolume = 1 - math.exp(-4*self.Train:GetPackedRatio(5))
+
 	-- Play horn sound
-	self.Train:SetSoundState("horn2",self.Active and 1 or 0,1)
+	self.Train:SetSoundState("horn2",self.Active and absoluteVolume or 0,absolutePitch)
 	if (self.Active ~= active) and (not active) then
-		self.Train:PlayOnce("horn2_end","cabin",0.85,100)
+		if absolutePitch > 0.2 then
+			self.Train:PlayOnce("horn2_end","cabin",0.85,100*absolutePitch)
+		end
 	end
 	if (self.Active ~= active) and (active) then
 		self.Train.Transient = -5.0

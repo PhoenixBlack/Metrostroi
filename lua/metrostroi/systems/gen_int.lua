@@ -482,9 +482,6 @@ Metrostroi.DefineSystem("Gen_Int")
 
 -- Node values
 local S = {}
--- Temporary variables
-local T = {}
-for i=1,100 do T[i] = 0 end
 -- Converts boolean expression to a number
 local function C(x) return x and 1 or 0 end
 
@@ -502,6 +499,12 @@ function TRAIN_SYSTEM.Solve]]..name..[[(Train,Triggers)
 	local P		= Train.PositionSwitch.SelectedPosition
 	local RK	= Train.RheostatController.SelectedPosition
 	local B		= (Train.Battery.Voltage > 55) and 1 or 0
+	local T		= Train.SolverTemporaryVariables
+	if not T then
+		T = {}
+		for i=1,100 do T[i] = 0 end
+		Train.SolverTemporaryVariables = T
+	end
 	
 	-- Solve all circuits
 ]]
@@ -702,11 +705,6 @@ BaseNetwork = {
 	{	"B3",		"B4",		"KRU[14/1-B3]" },
 	{	"B4",		"1-7R-31",	"KRP" },
 	{	"1-7R-31",	"0",		"#TW[14]" },
-	
-	{	"B4",		"D1",		"KRU[11/3-D1/1]" },
-	
-	{	"B4",		"F7",		"KRU[11/3-FR1]" },
-	{	"B4",		"F7/1",		"KRU[11/3-FR1]" },
 	
 	
 	----------------------------------------------------------------------------
@@ -1093,6 +1091,10 @@ AddToNodes = {
 	{ "3", "(-10*Train.KRU[\"3/3-ZM31\"])" },
 	{ "5", "(-10*Train.KRU[\"5/3-ZM31\"]*0 + Train.KRU[\"14/1-B3\"]*S[\"B3\"]*1)" },
 	{ "20", "(-10*Train.KRU[\"20/3-ZM31\"])" },
+	
+	{ "D1",   "(1*Train.KRU[\"11/3-D1/1\"]*Train.KRU[\"14/1-B3\"]*S[\"B3\"])" },
+	{ "F7",   "(1*Train.KRU[\"11/3-FR1\"]*Train.KRU[\"14/1-B3\"]*S[\"B3\"])" },
+	{ "F7/1", "(1*Train.KRU[\"11/3-FR1\"]*Train.KRU[\"14/1-B3\"]*S[\"B3\"])" },
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
@@ -1155,6 +1157,10 @@ AddToNodes = {
 	{ "3", "(-10*Train.KRU[\"3/3-ZM31\"])" },
 	{ "5", "(-10*Train.KRU[\"5/3-ZM31\"]*0 + Train.KRU[\"14/1-B3\"]*S[\"B3\"]*1)" },
 	{ "20", "(-10*Train.KRU[\"20/3-ZM31\"])" },
+	
+	{ "D1",   "(1*Train.KRU[\"11/3-D1/1\"]*Train.KRU[\"14/1-B3\"]*S[\"B3\"])" },
+	{ "F7",   "(1*Train.KRU[\"11/3-FR1\"]*Train.KRU[\"14/1-B3\"]*S[\"B3\"])" },
+	{ "F7/1", "(1*Train.KRU[\"11/3-FR1\"]*Train.KRU[\"14/1-B3\"]*S[\"B3\"])" },
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
