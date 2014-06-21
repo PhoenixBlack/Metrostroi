@@ -217,7 +217,9 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 		self.ThyristorTimeout = 0
 	else
 		-- Generate control signal
-		local T = 200.0 + 60.0*self.ThyristorState + 140.0*Train.YAR_13A.WeightLoadRatio*Train:ReadTrainWire(2)
+		local T = 200.0 + 
+			60.0*self.ThyristorState*(1-Train:ReadTrainWire(2)) + 
+			(140.0*Train.YAR_13A.WeightLoadRatio+60.0)*Train:ReadTrainWire(2)
 		local I = Current
 		local dI = (Current - PrevCurrent)/dT
 		local A = (T-I)*0.05
@@ -315,7 +317,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
 		self:SolvePS(Train)
 	elseif Train.PositionSwitch.SelectedPosition == 2 then -- PS
-		self:SolvePP(Train,Train.RheostatController.SelectedPosition == 18)
+		self:SolvePP(Train,Train.RheostatController.SelectedPosition >= 17)
 	else
 		self:SolvePT(Train)
 	end
@@ -327,8 +329,23 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	-- Calculate induction properties of the motor
 	self.I13SH = self.I13SH or self.I13
 	self.I24SH = self.I24SH or self.I24
-	self.I13SH = self.I13SH + 8.0 * (self.I13 - self.I13SH) * dT
-	self.I24SH = self.I24SH + 8.0 * (self.I24 - self.I24SH) * dT
+	
+	-- Time constant
+	local T13const1 = self.R13 * 4.2 + 0.1 -- R * L
+	local T24const1 = self.R24 * 4.2 + 0.1 -- R * L
+	--print(T13const1)
+	
+	-- Total change
+	local dI13dT = T13const1 * (self.I13 - self.I13SH) * dT
+	local dI24dT = T24const1 * (self.I24 - self.I24SH) * dT
+	
+	-- Limit change and apply it
+	if dI13dT > 0 then dI13dT = math.min(self.I13 - self.I13SH,dI13dT) end
+	if dI13dT < 0 then dI13dT = math.max(self.I13 - self.I13SH,dI13dT) end
+	if dI24dT > 0 then dI24dT = math.min(self.I24 - self.I24SH,dI24dT) end
+	if dI24dT < 0 then dI24dT = math.max(self.I24 - self.I24SH,dI24dT) end	
+	self.I13SH = self.I13SH + dI13dT
+	self.I24SH = self.I24SH + dI24dT
 	self.I13 = self.I13SH
 	self.I24 = self.I24SH
 	
@@ -407,6 +424,10 @@ function TRAIN_SYSTEM:SolvePS(Train)
 	self.Utotal = (self.Power750V - Train.Engines.E13 - Train.Engines.E24)*Train.LK1.Value
 	self.Itotal = self.Utotal / Rtotal
 	
+	-- Total resistance (for induction RL circuit)
+	self.R13 = Rtotal
+	self.R24 = Rtotal
+	
 	-- Calculate current through engines 13, 24
 	self.I13 = self.Itotal
 	self.I24 = self.Itotal
@@ -428,6 +449,10 @@ function TRAIN_SYSTEM:SolvePP(Train,inTransition)
 	self.I13 = self.U13 / Rtotal13
 	self.I24 = self.U24 / Rtotal24
 	
+	-- Total resistance (for induction RL circuit)
+	self.R13 = Rtotal13
+	self.R24 = Rtotal24
+	
 	-- Calculate total current
 	self.Utotal = (self.U13 + self.U24)/2
 	self.Itotal = self.I13 + self.I24
@@ -441,6 +466,10 @@ function TRAIN_SYSTEM:SolvePT(Train)
 	-- Calculate total current
 	self.Utotal = self.Power750V*Train.LK1.Value - 0.5*(Train.Engines.E13+Train.Engines.E24)
 	self.Itotal = self.Utotal / Rtotal
+	
+	-- Total resistance (for induction RL circuit)
+	self.R13 = Rtotal
+	self.R24 = Rtotal
 	
 	-- Calculate current through engines 13, 24
 	self.U13 = self.Utotal
