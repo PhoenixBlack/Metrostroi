@@ -86,6 +86,9 @@ function ParseName(str)
 	if string.sub(str,1,5) == "KV70[" then
 		return "Train.KV[\""..string.sub(str,6,#str-1).."\"]"
 	end
+	if string.sub(str,1,4) == "KRU[" then
+		return "Train.KRU[\""..string.sub(str,5,#str-1).."\"]"
+	end
 	if string.sub(str,1,3) == "TW[" then
 		local twNo = string.sub(str,4,#str-1)
 		if not tonumber(twNo) then twNo = "\""..twNo.."\"" end
@@ -103,6 +106,9 @@ function ParseName(str)
 	if str == "B" then return "B" end
 	if str == "HIGH" then return "1" end
 	if str == "LOW" then return "0" end
+	if str == "EMERGENCY_CONTROL" then
+		return "(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)"
+	end
 
 	-- Train variable
 	if inverted then	return "(1.0-Train."..str..".Value)"	
@@ -692,6 +698,18 @@ BaseNetwork = {
 	
 	
 	----------------------------------------------------------------------------
+	-- KRU section
+	{	"B3",		"B4",		"KRU[14/1-B3]" },
+	{	"B4",		"1-7R-31",	"KRP" },
+	{	"1-7R-31",	"0",		"#TW[14]" },
+	
+	{	"B4",		"D1",		"KRU[11/3-D1/1]" },
+	
+	{	"B4",		"F7",		"KRU[11/3-FR1]" },
+	{	"B4",		"F7/1",		"KRU[11/3-FR1]" },
+	
+	
+	----------------------------------------------------------------------------
 	-- Door control (D1) circuit)
 	{	"D1",		"D3",		"VUD1" },
 	{	"D3",		"16",		"VUD2" },
@@ -779,7 +797,8 @@ BaseNetwork = {
 
 	----------------------------------------------------------------------------
 	-- Train wire 1
-	{	"TW[1]","1A",	"A1" },
+	{	"TW[1]","1A'",	"A1" },
+	{	"1A'",	"1A",	"EMERGENCY_CONTROL" },
 	{	"1A",	"1T",	"!PS,PP" },
 	{	"1T",	"1P",	"NR" },
 	{	"1T",	"1P",	"RPU" },
@@ -816,7 +835,8 @@ BaseNetwork = {
 	
 	----------------------------------------------------------------------------
 	-- Train wire 2
-	{	"TW[2]","2Zh",	"A2" },
+	{	"TW[2]","2Zh'",	"A2" },
+	{	"2Zh'",	"2Zh",	"EMERGENCY_CONTROL" },
 	{	"2Zh",	"2A",	"!KSB1" },
 	{	"2Zh",	"2A",	"!TR1" },
 	
@@ -841,7 +861,8 @@ BaseNetwork = {
 	
 	----------------------------------------------------------------------------
 	-- Train wire 3
-	{	"TW[3]","3A",	"A3" },
+	{	"TW[3]","3A'",	"A3" },
+	{	"3A'",	"3A",	"EMERGENCY_CONTROL" },
 	{	"3A",	"0",	"#Rper" },
 	
 
@@ -904,20 +925,21 @@ BaseNetwork = {
 	
 	
 	----------------------------------------------------------------------------
+	-- Train wire 14
+	{	"TW[14]",	"0",	"#RRP" },
+	
+	
+	----------------------------------------------------------------------------
 	-- Train wire 15
 	{	"15",		"0",		"#TW[15]" },
 	{	"15",		"15A",		"1" },
 	
-	{	"TW[15]",	"D8",		"1" }, -- KRU FIXME
+	{	"TW[15]",	"D8",		"KRU[15/2-D8]" }, -- KRU FIXME
 	{	"D8",		"15A",		"KV70[D8-15A]" },	
 	{	"15A",		"15B",		"KV70[15A-15B]" },
 	{	"15A",		"15B",		"KD" },
 	{	"15B",		"0",		"#KD" },
 	{	"15B",		"0",		"#I[SD]" },
-	--{	"15A",		"0",		"#TW[15]" },
-	
-	--{	"TW[15]",	"15A",	"1" },
-	--
 	
 	
 	----------------------------------------------------------------------------
@@ -948,7 +970,8 @@ BaseNetwork = {
 	
 	----------------------------------------------------------------------------
 	-- Train wire 20
-	{	"TW[20]",	"20A",	"A20" },
+	{	"TW[20]",	"20A'",	"A20" },
+	{	"20A'",		"20A",	"EMERGENCY_CONTROL" },
 	{	"20A",		"20B",	"!RP" },
 	{	"20B",		"0",	"#LK2" },
 	{	"20B",		"0",	"#LK5" },
@@ -1059,11 +1082,17 @@ AddToNodes = {
 	{ "10/4", "(1-Train.VB.Value)*Train:ReadTrainWire(10)" },
 	{ "2-7R-21", "(-10*Train:ReadTrainWire(18))" },
 	{ "10AH", "0" },
-	{ "15", "(-10*Train:ReadTrainWire(11))" },--+Train:ReadTrainWire(15))"},
+	{ "15", "(-10*Train:ReadTrainWire(11)) + Train.KRU[\"14/1-B3\"]*S[\"B3\"]*20" },
 	{ "2", "Train.ALS_ARS[\"2\"]" },
 	{ "8", "Train.ALS_ARS[\"8\"]" },
 	{ "20", "Train.ALS_ARS[\"20\"]" },
 	{ "29", "Train.ALS_ARS[\"29\"]" },
+	
+	{ "1", "(-10*Train.KRU[\"1/3-ZM31\"])" },
+	{ "2", "(-10*Train.KRU[\"2/3-ZM31\"])" },
+	{ "3", "(-10*Train.KRU[\"3/3-ZM31\"])" },
+	{ "5", "(-10*Train.KRU[\"5/3-ZM31\"]*0 + Train.KRU[\"14/1-B3\"]*S[\"B3\"]*1)" },
+	{ "20", "(-10*Train.KRU[\"20/3-ZM31\"])" },
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
@@ -1115,11 +1144,17 @@ AddToNodes = {
 	{ "10/4", "(1-Train.VB.Value)*Train:ReadTrainWire(10)" },
 	{ "2-7R-21", "(-10*Train:ReadTrainWire(18))" },
 	{ "10AH", "0" },
-	{ "15", "(-10*Train:ReadTrainWire(11))" },--+Train:ReadTrainWire(15))"},
+	{ "15", "(-10*Train:ReadTrainWire(11)) + Train.KRU[\"14/1-B3\"]*S[\"B3\"]*20" },
 	{ "2", "Train.ALS_ARS[\"2\"]" },
 	{ "8", "Train.ALS_ARS[\"8\"]" },
 	{ "20", "Train.ALS_ARS[\"20\"]" },
 	{ "29", "Train.ALS_ARS[\"29\"]" },
+	
+	{ "1", "(-10*Train.KRU[\"1/3-ZM31\"])" },
+	{ "2", "(-10*Train.KRU[\"2/3-ZM31\"])" },
+	{ "3", "(-10*Train.KRU[\"3/3-ZM31\"])" },
+	{ "5", "(-10*Train.KRU[\"5/3-ZM31\"]*0 + Train.KRU[\"14/1-B3\"]*S[\"B3\"]*1)" },
+	{ "20", "(-10*Train.KRU[\"20/3-ZM31\"])" },
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
@@ -1225,7 +1260,8 @@ BaseNetwork = {
 
 	----------------------------------------------------------------------------
 	-- Train wire 1
-	{	"TW[1]","1A",	"A1" },
+	{	"TW[1]","1A'",	"A1" },
+	{	"1A'",	"1A",	"EMERGENCY_CONTROL" },
 	{	"1A",	"1T",	"!PS,PP" },
 	{	"1T",	"1P",	"NR" },
 	{	"1T",	"1P",	"RPU" },
@@ -1262,7 +1298,8 @@ BaseNetwork = {
 	
 	----------------------------------------------------------------------------
 	-- Train wire 2
-	{	"TW[2]","2Zh",	"A2" },
+	{	"TW[2]","2Zh'",	"A2" },
+	{	"2Zh'",	"2Zh",	"EMERGENCY_CONTROL" },
 	{	"2Zh",	"2A",	"!KSB1" },
 	{	"2Zh",	"2A",	"!TR1" },
 	
@@ -1287,7 +1324,8 @@ BaseNetwork = {
 	
 	----------------------------------------------------------------------------
 	-- Train wire 3
-	{	"TW[3]","3A",	"A3" },
+	{	"TW[3]","3A'",	"A3" },
+	{	"3A'",	"3A",	"EMERGENCY_CONTROL" },
 	{	"3A",	"0",	"#Rper" },
 	
 
@@ -1347,6 +1385,11 @@ BaseNetwork = {
 	{	"TW[12]",	"12A",	"A12" },
 	{	"12A",		"31A",	"1" },
 	{	"12A",		"32A",	"1" },
+
+	
+	----------------------------------------------------------------------------
+	-- Train wire 14
+	{	"TW[14]",	"0",	"#RRP" },
 	
 	
 	----------------------------------------------------------------------------
@@ -1377,7 +1420,8 @@ BaseNetwork = {
 	
 	----------------------------------------------------------------------------
 	-- Train wire 20
-	{	"TW[20]",	"20A",	"A20" },
+	{	"TW[20]",	"20A'",	"A20" },
+	{	"20A'",		"20A",	"EMERGENCY_CONTROL" },
 	{	"20A",		"20B",	"!RP" },
 	{	"20B",		"0",	"#LK2" },
 	{	"20B",		"0",	"#LK5" },

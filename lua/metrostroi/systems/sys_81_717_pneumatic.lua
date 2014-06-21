@@ -262,7 +262,7 @@ function TRAIN_SYSTEM:Think(dT)
 		self.BrakeCylinderValve = 0
 	end
 	if self.BrakeCylinderValve == 1 then
-		equalizePressure("BrakeCylinderPressure", targetPressure, 2.00, 2.50) --0.75, 1.25)
+		equalizePressure("BrakeCylinderPressure", targetPressure, 2.00, 3.50) --0.75, 1.25)
 	end
 	
 	-- Valve #1
@@ -270,12 +270,12 @@ function TRAIN_SYSTEM:Think(dT)
 	local error = self.BrakeCylinderRegulationError
 	local pneumaticValveConsumption_dPdT = 0
 	if self.Train.PneumaticNo1.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.22 + error, 1.00, 4.00)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.26 + error, 1.00, 5.50)
 		pneumaticValveConsumption_dPdT = pneumaticValveConsumption_dPdT + self.BrakeCylinderPressure_dPdT
 	end
 	-- Valve #2
 	if self.Train.PneumaticNo2.Value == 1.0 then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.32 + error, 1.00, 4.00)
+		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.39 + error, 1.00, 5.50)
 		pneumaticValveConsumption_dPdT = pneumaticValveConsumption_dPdT + self.BrakeCylinderPressure_dPdT
 	end
 	trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,pneumaticValveConsumption_dPdT)

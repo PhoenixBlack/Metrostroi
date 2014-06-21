@@ -132,7 +132,7 @@ function TRAIN_SYSTEM:Think()
 	
 	-- ARS system placeholder logic
 	if EnableALS then
-		local V = math.floor(self.Speed+0.5)
+		local V = math.floor(self.Speed+0.05)
 		local Vlimit = 0
 		if self.Signal40 then Vlimit = 40 end
 		if self.Signal60 then Vlimit = 60 end

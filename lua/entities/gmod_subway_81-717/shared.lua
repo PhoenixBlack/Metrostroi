@@ -40,6 +40,8 @@ function ENT:InitializeSystems()
 	self:LoadSystem("PositionSwitch","EKG_18B")
 	-- Кулачковый контроллер
 	self:LoadSystem("KV","KV_70")
+	-- Контроллер резервного управления
+	self:LoadSystem("KRU")
 
 	
 	-- Ящики с реле и контакторами

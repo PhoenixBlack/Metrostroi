@@ -11,7 +11,7 @@ function ENT:Initialize()
 	self.NominalSignals = 0
 	self.NoNominalSignals = true
 	self.GetNominalSignals = function(self) return self.NominalSignals end
-	timer.Simple(12.0,function()
+	timer.Simple(16.0,function()
 		if IsValid(self) and self.GetActiveSignals then
 			self.NoNominalSignals = false
 			self.NominalSignals = self:GetActiveSignals()

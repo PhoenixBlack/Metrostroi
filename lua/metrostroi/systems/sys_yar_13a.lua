@@ -35,8 +35,8 @@ function TRAIN_SYSTEM:Initialize()
 	
 	-- Реле ручного тормоза (РРТ)
 	self.Train:LoadSystem("RRT","Relay")
-	-- Реле резервного пуска (РРП1)
-	self.Train:LoadSystem("RRP1","Relay")
+	-- Реле резервного пуска (РРП)
+	self.Train:LoadSystem("RRP","Relay")
 	-- Стоп-реле (СР1)
 	self.Train:LoadSystem("SR1","Relay","RM3000")
 	-- Реле контроля реверсоров

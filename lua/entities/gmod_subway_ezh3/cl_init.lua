@@ -748,10 +748,10 @@ function ENT:Think()
 	if self.PreviousPPState ~= state then
 		self.PreviousPPState = state
 		if state then
-			self:SetSoundState("rk_spin",0.20,1)
+			self:SetSoundState("rk_spin",0.25,1)
 		else
 			self:SetSoundState("rk_spin",0,0)
-			self:PlayOnce("rk_stop",nil,0.70)		
+			self:PlayOnce("rk_stop",nil,0.72)
 		end
 	end
 	
