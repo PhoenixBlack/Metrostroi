@@ -28,27 +28,29 @@ function TRAIN_SYSTEM.SolveEzh3(Train,Triggers)
 	S["33B-33AVU"] = Train.AVU.Value+Train.OtklAVU.Value
 	S["1T-1P"] = Train.NR.Value+Train.RPU.Value
 	S["2Zh-2A"] = (1.0-Train.KSB1.Value)+(1.0-Train.TR1.Value)
-	S["2Zh-2A"] = Train.KSB2.Value+S["2Zh-2A"]
+	S["2Zh-2A"] = S["2Zh-2A"]+Train.KSB2.Value
 	S["8A-8Ye"] = C(RK == 1)+(1.0-Train.LK4.Value)
 	S["15A-15B"] = Train.KV["15A-15B"]+Train.KD.Value
 	S["10AYa-10E"] = (1.0-Train.LK3.Value)+Train.Rper.Value
 	S["10AP-10AD"] = Train.LK2.Value+C((P == 3) or (P == 4))
 	S["10AE-10B"] = Train.TR1.Value+Train.RV1.Value
-	S["10AE-10B"] = Train.RV1.Value+S["10AE-10B"]
-	S["2V-2G"] = C((RK >= 5) and (RK <= 18))+C((RK >= 2) and (RK <= 4))*Train.KSH1.Value
-	S["D1-31V"] = Train.ALS_ARS["31"]+1*S["31V'-31V"]
+	S["10AE-10B"] = S["10AE-10B"]+Train.RV1.Value
 	S["D1-32V"] = Train.ALS_ARS["32"]+1*Train.KDP.Value
-	S["1A-1M"] = C((RK >= 1) and (RK <= 5))+C(RK == 6)*Train.RheostatController.RKM1
 	S["1E-1Yu"] = Train.KSH2.Value+Train.KSB2.Value*Train.KSB1.Value
-	S["10Zh-10N"] = Train.RheostatController.RKM1+(1.0-Train.RUT.Value)*Train.SR1.Value*(1.0-Train.RRT.Value)
-	S["10AG-10AD"] = C((P == 2) or (P == 3) or (P == 4))*(1.0-Train.TR2.Value)*(1.0-Train.TR1.Value)+C((P == 1) or (P == 2) or (P == 4))*Train.TR2.Value*Train.TR1.Value
+	S["1A-1M"] = C((RK >= 1) and (RK <= 5))+C(RK == 6)*Train.RheostatController.RKM1
+	S["1A-1R"] = (1.0-Train.RV1.Value)*C((P == 1))+C((P == 2))*S["1A-1M"]
+	S["D1-31V"] = Train.ALS_ARS["31"]+1*S["31V'-31V"]
+	S["10Zh-10N"] = Train.RheostatController.RKM1+(1.0-Train.RRT.Value)*(1.0-Train.RUT.Value)*Train.SR1.Value
+	S["10AG-10AD"] = C((P == 1) or (P == 2) or (P == 4))*Train.TR2.Value*Train.TR1.Value+C((P == 2) or (P == 3) or (P == 4))*(1.0-Train.TR2.Value)*(1.0-Train.TR1.Value)
+	S["10E-10AG"] = S["10AP-10AD"]*(1.0-Train.LK1.Value)*S["10AG-10AD"]+C(RK == 18)*C((P == 1))*Train.LK3.Value
+	S["2V-2G"] = C((RK >= 5) and (RK <= 18))+C((RK >= 2) and (RK <= 4))*Train.KSH1.Value
+	S["2A-2G"] = C((P == 2) or (P == 4))*S["2V-2G"]+C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))
 	S["1G-1Zh"] = Train.LK3.Value+C((P == 1) or (P == 3))*Train.LK5.Value*C(RK == 1)*S["1E-1Yu"]
-	S["1R-1A"] = C((P == 2))*S["1A-1M"]+(1.0-Train.RV1.Value)*C((P == 1))
-	S["2A-2G"] = C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))+C((P == 2) or (P == 4))*S["2V-2G"]
-	S["10E-10AG"] = Train.LK3.Value*C(RK == 18)*C((P == 1))+(1.0-Train.LK1.Value)*S["10AP-10AD"]*S["10AG-10AD"]
-	S["10-8"] = Train.KV["10-8"]+Train.KV["FR1-10"]*(1.0-Train.RPB.Value)*(1.0-Train.VAH.Value)
+	S["10-8"] = Train.KV["10-8"]+(1.0-Train.VAH.Value)*Train.KV["FR1-10"]*(1.0-Train.RPB.Value)
 	S["10"] = 1*Train:ReadTrainWire(10)
 	S["FR1/2"] = S["10"]*Train.KV["FR1-10"]
+	S["F7"] = S["10"]*Train.KV["F7-10"]+T[7]*Train.KRU["11/3-FR1"]
+	S["F7/1"] = S["10"]*Train.KV["F7-10"]+T[9]*Train.KRU["11/3-FR1"]
 	S["10AL"] = S["10"]*Train.VU.Value
 	S["10ALa"] = S["10AL"]*Train.A64.Value
 	S["Sh1-43"] = S["10AL"]*Train.A45.Value
@@ -58,21 +60,16 @@ function TRAIN_SYSTEM.SolveEzh3(Train,Triggers)
 	S["6"] = S["6P"]*Train.RVT.Value
 	S["2-7R-24"] = S["6P"]*(1.0-Train.AVU.Value)
 	S["29"] = S["2-7R-24"]*(1.0-Train.OtklAVU.Value)+Train.ALS_ARS["29"]
-	S["1A"] = Train.A1.Value*Train:ReadTrainWire(1)
-	S["3A"] = Train.A3.Value*Train:ReadTrainWire(3)
+	S["F13"] = S["F7"]*Train.A46.Value
 	S["4B"] = (1.0-Train.RKR.Value)*Train:ReadTrainWire(4)
 	S["5B"] = Train.RKR.Value*Train:ReadTrainWire(5)
-	S["5V"] = Train.RKR.Value*Train:ReadTrainWire(4)+T[10]*(1.0-Train.RKR.Value)
+	S["5V"] = Train.RKR.Value*Train:ReadTrainWire(4)+T[14]*(1.0-Train.RKR.Value)
 	S["5B'"] = S["5V"]*Train.LK3.Value
 	S["6A"] = Train.A6.Value*Train:ReadTrainWire(6)
 	S["8A"] = Train.A8.Value*Train:ReadTrainWire(8)
-	S["8Zh"] = S["8A"]*C((RK >= 17) and (RK <= 18))+T[12]*1
+	S["8Zh"] = S["8A"]*C((RK >= 17) and (RK <= 18))+T[16]*1
 	S["12A"] = Train.A12.Value*Train:ReadTrainWire(12)
-	S["D8"] = 1*Train:ReadTrainWire(15)
-	S["F13"] = S["10"]*Train.KV["F7-10"]*Train.A46.Value
-	S["1-7R-8"] = S["10AS"]*Train.KV["10AS-U4"]*Train.VozvratRP.Value
-	S["8"] = S["10"]*S["10-8"]+Train.ALS_ARS["8"]
-	S["F10"] = S["10"]*Train.KV["F7-10"]*Train.VUS.Value*Train.A47.Value
+	S["D8"] = Train.KRU["15/2-D8"]*Train:ReadTrainWire(15)
 	S["17A"] = Train.A17.Value*Train:ReadTrainWire(17)
 	S["24V"] = (1.0-Train.LK4.Value)*Train:ReadTrainWire(24)
 	S["25A"] = Train.A25.Value*Train:ReadTrainWire(25)
@@ -80,50 +77,61 @@ function TRAIN_SYSTEM.SolveEzh3(Train,Triggers)
 	S["28A"] = Train.A51.Value*Train:ReadTrainWire(28)
 	S["31A"] = Train.A31.Value*Train:ReadTrainWire(31)+T[3]*1
 	S["32A"] = Train.A32.Value*Train:ReadTrainWire(32)+T[4]*1
-	S["22A"] = Train.A23.Value*1*Train:ReadTrainWire(23)+T[8]*Train.A22.Value
-	S["20B"] = Train.A20.Value*(1.0-Train.RPvozvrat.Value)*Train:ReadTrainWire(20)
-	S["B12"] = 1*Train.VB.Value*B
-	S["33V"] = S["10AK"]*Train.RV2.Value*S["10AK-VAH1"]*1*S["33B-33AVU"]
-	S["B2"] = 1*Train.VB.Value*B
-	S["6Yu"] = S["6A"]*C((P == 3) or (P == 4))*C((RK >= 1) and (RK <= 5))
-	S["8G"] = S["8A"]*(1.0-Train.RT2.Value)*S["8A-8Ye"]
-	S["16V"] = Train.A16.Value*(1.0-Train.RD.Value)*Train:ReadTrainWire(16)
-	S["1-7R-29"] = S["B2"]*Train.A44.Value*Train.RezMK.Value
+	S["2Ye"] = Train.LK4.Value*S["2A-2G"]*Train.A2.Value*S["2Zh-2A"]*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*Train:ReadTrainWire(2)+T[6]*(1.0-Train.LK4.Value)
 	S["33Aa"] = S["10AS"]*Train.KV["10AS-33"]*S["33-33Aa"]
-	S["10AN"] = (1.0-Train.RPvozvrat.Value)*Train.A14.Value*1*1
-	S["18A"] = Train.A14.Value*(1.0-Train.RPvozvrat.Value)*Train.LK4.Value*1
-	S["1R"] = S["1A"]*S["1R-1A"]
-	S["2Ye"] = Train.LK4.Value*Train.A2.Value*S["2Zh-2A"]*S["2A-2G"]*Train:ReadTrainWire(2)+T[6]*(1.0-Train.LK4.Value)
-	S["1"] = S["10AS"]*Train.KV["10AS-33D"]*Train.ALS_ARS["33D"]*Train.R1_5.Value
-	S["1P"] = S["1A"]*C((P == 1) or (P == 2))*S["1T-1P"]+T[2]*C((P == 3) or (P == 4))
+	S["22A"] = Train.A23.Value*1*Train:ReadTrainWire(23)+T[12]*Train.A22.Value
+	S["18A"] = (1.0-Train.RPvozvrat.Value)*Train.LK4.Value*Train.A14.Value*1
+	S["8G"] = S["8A"]*S["8A-8Ye"]*(1.0-Train.RT2.Value)
+	S["33V"] = S["10AK"]*S["10AK-VAH1"]*Train.RV2.Value*S["33B-33AVU"]*1
+	S["F10"] = S["F7/1"]*Train.VUS.Value*Train.A47.Value
+	S["20B"] = Train.A20.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*(1.0-Train.RPvozvrat.Value)*Train:ReadTrainWire(20)
+	S["1A"] = Train.A1.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*Train:ReadTrainWire(1)
+	S["3A"] = Train.A3.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*Train:ReadTrainWire(3)
+	S["B2"] = 1*Train.VB.Value*B
+	S["8"] = S["10"]*S["10-8"]+Train.ALS_ARS["8"]
+	S["B12"] = 1*Train.VB.Value*B
+	S["6Yu"] = S["6A"]*C((P == 3) or (P == 4))*C((RK >= 1) and (RK <= 5))
+	S["1"] = S["10AS"]*Train.KV["10AS-33D"]*Train.ALS_ARS["33D"]*Train.R1_5.Value+(-10*Train.KRU["1/3-ZM31"])
+	S["1P"] = S["1A"]*S["1T-1P"]*C((P == 1) or (P == 2))+T[2]*C((P == 3) or (P == 4))
+	S["1-7R-8"] = S["10AS"]*Train.KV["10AS-U4"]*Train.VozvratRP.Value
+	S["10AN"] = 1*(1.0-Train.RPvozvrat.Value)*Train.A14.Value*1
+	S["16V"] = Train.A16.Value*(1.0-Train.RD.Value)*Train:ReadTrainWire(16)
 	S["B8"] = S["B2"]*Train.A53.Value
 	S["B22"] = S["B8"]*Train.A75.Value
 	S["B28"] = S["B8"]*Train.KUP.Value
 	S["36Ya"] = S["B8"]*Train.KVC.Value
 	S["B13"] = S["B12"]*Train.A24.Value
+	S["B3"] = S["B2"]*Train.A44.Value
+	S["1-7R-29"] = S["B3"]*Train.RezMK.Value
 	S["4"] = S["10AK"]*Train.KV["10AK-4"]
-	S["5"] = S["10AK"]*Train.KV["10AK-5"]
+	S["5"] = S["10AK"]*Train.KV["10AK-5"]+(-10*Train.KRU["5/3-ZM31"]*0 + Train.KRU["14/1-B3"]*S["B3"]*1)
 	S["U2"] = S["10AS"]*Train.KV["U2-10AS"]
 	S["24"] = S["U2"]*Train.KSN.Value
 	S["2-7R-21"] = S["U2"]*1+(-10*Train:ReadTrainWire(18))
-	S["2"] = S["10AK"]*Train.KV["10AK-2"]+Train.ALS_ARS["2"]
-	S["3"] = S["U2"]*Train.KV["U2-3"]
+	S["2"] = S["10AK"]*Train.KV["10AK-2"]+Train.ALS_ARS["2"]+(-10*Train.KRU["2/3-ZM31"])
+	S["3"] = S["U2"]*Train.KV["U2-3"]+(-10*Train.KRU["3/3-ZM31"])
+	S["B4"] = S["B3"]*Train.KRU["14/1-B3"]+T[8]*Train.KRU["11/3-FR1"]+T[10]*Train.KRU["11/3-FR1"]
+	S["1-7R-31"] = S["B4"]*Train.KRP.Value
+	S["D1"] = S["B4"]*Train.KRU["11/3-D1/1"]
+	S["12"] = S["D1"]*Train.KRZD.Value
 	S["22V"] = S["22A"]*(1.0-Train.TRK.Value)
-	S["20"] = S["U2"]*S["U2-20"]+Train.ALS_ARS["20"]
 	S["11A"] = S["B2"]*(1.0-Train.RD.Value)
-	S["1Zh"] = S["1P"]*Train.AVT.Value*(1.0-Train.RPvozvrat.Value)*S["1G-1Zh"]
+	S["20"] = S["U2"]*S["U2-20"]+Train.ALS_ARS["20"]+(-10*Train.KRU["20/3-ZM31"])
+	S["32V"] = S["D1"]*S["D1-32V"]
+	S["1R"] = S["1A"]*S["1A-1R"]
 	S["10AYa"] = S["B2"]*Train.A80.Value
+	S["10/4"] = S["D1"]*Train.A21.Value*Train.KV["D-D1"]+S["B12"]*Train.VB.Value*Train.A56.Value+(1-Train.VB.Value)*Train:ReadTrainWire(10)
+	S["16"] = S["D1"]*Train.VUD1.Value*Train.VUD2.Value
+	S["11B"] = S["10/4"]*Train.KV["10/4-C3"]*(1.0-Train.NR.Value)+T[1]*1
+	S["25"] = S["U2"]*Train.KV["U2-25"]*Train.K25.Value
+	S["1Zh"] = S["1P"]*Train.AVT.Value*(1.0-Train.RPvozvrat.Value)*S["1G-1Zh"]
+	S["22E'"] = S["10/4"]*Train.VMK.Value*Train.AK.Value
 	S["10AE"] = S["B2"]*Train.A30.Value
+	S["10N"] = S["10AE"]*S["10Zh-10N"]*1+T["SDRK_ShortCircuit"]
 	S["10I"] = S["10AE"]*Train.RheostatController.RKM2
 	S["10AH"] = S["10I"]*(1.0-Train.LK1.Value)+0
 	S["10H"] = S["10I"]*Train.LK4.Value
-	S["10B"] = S["10AE"]*S["10AE-10B"]
-	S["10/4"] = S["B12"]*Train.VB.Value*Train.A56.Value+(1-Train.VB.Value)*Train:ReadTrainWire(10)
-	S["10AV"] = S["10AYa"]*(1.0-Train.LK3.Value)*C((RK >= 2) and (RK <= 18))
-	S["10N"] = S["10AE"]*1*S["10Zh-10N"]+T["SDRK_ShortCircuit"]
-	S["25"] = S["U2"]*Train.KV["U2-25"]*Train.K25.Value
-	S["D1"] = S["10/4"]*Train.A21.Value*Train.KV["D-D1"]
-	S["10AG"] = S["10AYa"]*S["10AYa-10E"]*S["10E-10AG"]
+	S["31V"] = S["D1"]*S["D1-31V"]
 	S["10/4a"] = S["10/4"]*Train.VB.Value
 	S["22K"] = S["10/4"]*Train.A10.Value
 	S["U0"] = S["10/4"]*Train.A27.Value
@@ -132,9 +140,8 @@ function TRAIN_SYSTEM.SolveEzh3(Train,Triggers)
 	S["s10"] = S["U0"]*Train.DIPoff.Value
 	S["F1"] = S["10/4"]*Train.KV["10/4-F1"]
 	S["D4"] = S["10/4"]*Train.A13.Value
-	S["15"] = S["D4"]*Train.KV["D4-15"]+(-10*Train:ReadTrainWire(11))
+	S["15"] = S["D4"]*Train.KV["D4-15"]+(-10*Train:ReadTrainWire(11)) + Train.KRU["14/1-B3"]*S["B3"]*20
 	S["D4/3"] = S["D4"]*1
-	S["12"] = S["D1"]*Train.KRZD.Value
 	S["F2a"] = S["F1"]*Train.A7.Value
 	S["F1a"] = S["F1"]*Train.A9.Value
 	S["ST/1+ST/2"] = S["D4/3"]*Train.BPT.Value
@@ -142,118 +149,122 @@ function TRAIN_SYSTEM.SolveEzh3(Train,Triggers)
 	S["D6/1"] = S["D4/3"]*Train.BD.Value
 	S["1K"] = S["1Zh"]*C((P == 1) or (P == 2))
 	S["1N"] = S["1Zh"]*C((P == 1) or (P == 3))
+	S["10B"] = S["10AE"]*S["10AE-10B"]
 	S["15A"] = S["15"]*1+T[5]*Train.KV["D8-15A"]
-	S["11B"] = S["10/4"]*Train.KV["10/4-C3"]*(1.0-Train.NR.Value)+T[1]*1
-	S["22E'"] = S["10/4"]*Train.VMK.Value*Train.AK.Value
+	S["10AG"] = S["10AYa"]*S["10AYa-10E"]*S["10E-10AG"]
+	S["10AV"] = S["10AYa"]*(1.0-Train.LK3.Value)*C((RK >= 2) and (RK <= 18))
 	S["15B"] = S["15A"]*S["15A-15B"]
-	S["31V"] = S["D1"]*S["D1-31V"]
-	S["32V"] = S["D1"]*S["D1-32V"]
-	S["16"] = S["D1"]*Train.VUD1.Value*Train.VUD2.Value
 	S["33G"] = 1*Train.ALS_ARS["33G"]+S["U2"]*Train.KV["U2-33G"]
 
 	-- Call all triggers
-	Train:WriteTrainWire(5,S["5"])
-	Train.Panel["CabinLight"] = S["10ALa"]
-	Train.Panel["EmergencyLight"] = S["B12"]
-	Train.Panel["RedRP"] = S["2-7R-21"]
-	Train.VDZ:TriggerInput("Set",S["16V"])
-	Triggers["RUTpod"](S["10H"])
-	Triggers["XR3.7"](S["36Ya"])
-	Triggers["KSH1"](S["1R"])
-	Train.RUP:TriggerInput("Set",S["6Yu"])
-	Train:WriteTrainWire(1,S["1"])
-	Train:WriteTrainWire(31,S["31V"])
-	Train.Panel["TrainDoors"] = S["16V/1+16V/2"]
-	Train.Panel["GreenRP"] = S["U0a"]
-	Train.KUP:TriggerInput("Set",S["B22"])
-	T[6] = min(1,S["10AV"])
-	Triggers["RPvozvrat"](S["17A"])
-	Train.VDOP:TriggerInput("Set",S["32A"])
-	Train.Panel["HeadLights2"] = S["F13"]
-	Train:WriteTrainWire(6,S["6"])
-	T[4] = min(1,S["12A"])
-	Train.Panel["AVU"] = S["2-7R-24"]
-	Train.KVC:TriggerInput("Set",S["B8"])
-	Train.KD:TriggerInput("Set",S["15B"])
-	T[12] = min(1,Train:ReadTrainWire(29))
-	Train.LK1:TriggerInput("Set",S["1K"])
-	Train.RVT:TriggerInput("Set",S["33G"])
-	T[11] = min(1,S["8Zh"])
-	T[10] = min(1,Train:ReadTrainWire(5))
-	Train:WriteTrainWire(9,S["10/4a"])
-	Train:WriteTrainWire(16,S["16"])
-	T[9] = min(1,S["5V"])
-	Train:WriteTrainWire(17,S["1-7R-8"])
-	Train:WriteTrainWire(12,S["12"])
-	Train:WriteTrainWire(10,S["10/4a"])
-	T[8] = min(1,Train:ReadTrainWire(22))
-	Triggers["KSH2"](S["1R"])
-	Triggers["ReverserForward"](S["5B"])
-	Train.RD:TriggerInput("Set",S["D6/1"])
-	T[7] = min(1,S["22A"])
-	T[5] = min(1,S["D8"])
-	Train:WriteTrainWire(2,S["2"])
-	Train.LK4:TriggerInput("Set",S["5B'"])
-	T[2] = min(1,S["6A"])
-	Train.KK:TriggerInput("Set",S["22V"])
-	Train.R1_5:TriggerInput("Set",S["33V"])
-	T[1] = min(1,S["27A"])
-	Triggers["SDRK"](S["10N"])
-	Train.LK3:TriggerInput("Set",S["1Zh"])
-	Triggers["RRTpod"](S["10AH"])
-	Train.RV2:TriggerInput("Set",S["33Aa"])
-	Train:WriteTrainWire(25,S["25"])
-	Train:WriteTrainWire(24,S["24"])
-	Triggers["SDRK_Coil"](S["10B"])
-	Triggers["SDPP"](S["10AG"])
-	Train.SR1:TriggerInput("Set",S["2Ye"])
-	Train.Panel["HeadLights1"] = S["F10"]
-	Train.PneumaticNo2:TriggerInput("Set",S["8G"])
-	Train.VDOL:TriggerInput("Set",S["31A"])
-	Train:WriteTrainWire(20,S["20"])
-	Triggers["XR3.3"](S["28A"])
-	Train.K25:TriggerInput("Set",Train.ALS_ARS["33Zh"])
-	Train:WriteTrainWire(8,S["8"])
 	Triggers["XR3.2"](S["27A"])
-	Triggers["KPP"](S["27A"])
-	Train.TR1:TriggerInput("Set",S["6A"])
-	Triggers["XR3.6"](S["36Ya"])
-	Train.Panel["RedLightLeft"] = S["F1a"]
-	Train.RZ_2:TriggerInput("Set",S["24V"])
-	Train.RR:TriggerInput("Set",S["1N"])
-	Train.LK2:TriggerInput("Set",S["20B"])
-	Train:WriteTrainWire(18,S["18A"])
-	Train:WriteTrainWire(4,S["4"])
-	Train.Panel["TrainBrakes"] = S["ST/1+ST/2"]
-	Train.Panel["V1"] = S["10/4"]
-	Train.Panel["RedLightRight"] = S["F2a"]
-	Train:WriteTrainWire(15,S["15"])
-	Train:WriteTrainWire(11,S["11A"])
-	Train:WriteTrainWire(29,S["29"])
-	Triggers["KSB1"](S["6Yu"])
-	Train:WriteTrainWire(23,S["1-7R-29"])
-	Train.PneumaticNo1:TriggerInput("Set",S["8Zh"])
-	Train.Panel["HeadLights3"] = S["F13"]
-	Train:WriteTrainWire(32,S["32V"])
-	Triggers["KSB2"](S["6Yu"])
-	Train.TR2:TriggerInput("Set",S["6A"])
-	Train.Panel["TrainRP"] = S["2-7R-21"]
-	Train.Panel["KUP"] = S["B28"]
 	Triggers["XR3.4"](S["36Ya"])
-	Train:WriteTrainWire(27,S["s3"])
-	Train.RPU:TriggerInput("Set",S["27A"])
-	Triggers["XT3.1"](S["B13"])
-	T[3] = min(1,S["12A"])
-	Train:WriteTrainWire(3,S["3"])
-	Triggers["ReverserBackward"](S["4B"])
-	Train.Rper:TriggerInput("Set",S["3A"])
-	Train.RV1:TriggerInput("Set",S["2Ye"])
-	Train:WriteTrainWire(22,S["22E'"])
-	Train.LK5:TriggerInput("Set",S["20B"])
-	Train.Panel["SD"] = S["15B"]
-	Triggers["RRTuderzh"](S["25A"])
+	T[14] = min(1,Train:ReadTrainWire(5))
+	Train.RR:TriggerInput("Set",S["1N"])
+	Train:WriteTrainWire(32,S["32V"])
+	Train.Panel["EmergencyLight"] = S["B12"]
+	Train.Panel["RedLightRight"] = S["F2a"]
+	Train:WriteTrainWire(6,S["6"])
+	T[15] = min(1,S["8Zh"])
+	Train.LK3:TriggerInput("Set",S["1Zh"])
+	Train.VDOP:TriggerInput("Set",S["32A"])
+	Triggers["KSH1"](S["1R"])
+	T[13] = min(1,S["5V"])
+	T[1] = min(1,S["27A"])
+	Train.PneumaticNo1:TriggerInput("Set",S["8Zh"])
+	Train.KUP:TriggerInput("Set",S["B22"])
 	Train.Panel["Ring"] = S["11B"]
+	Train:WriteTrainWire(10,S["10/4a"])
+	Train.LK1:TriggerInput("Set",S["1K"])
+	Train:WriteTrainWire(17,S["1-7R-8"])
+	T[3] = min(1,S["12A"])
+	Triggers["SDPP"](S["10AG"])
+	Triggers["XR3.3"](S["28A"])
+	T[16] = min(1,Train:ReadTrainWire(29))
+	T[12] = min(1,Train:ReadTrainWire(22))
+	Train.KK:TriggerInput("Set",S["22V"])
+	Train:WriteTrainWire(3,S["3"])
+	T[11] = min(1,S["22A"])
+	T[10] = min(1,S["F7/1"])
+	Train:WriteTrainWire(27,S["s3"])
+	Train:WriteTrainWire(14,S["1-7R-31"])
+	Triggers["XT3.1"](S["B13"])
+	T[9] = min(1,S["B4"])
+	Train:WriteTrainWire(20,S["20"])
+	Train.RUP:TriggerInput("Set",S["6Yu"])
+	Triggers["KPP"](S["27A"])
+	Train.K25:TriggerInput("Set",Train.ALS_ARS["33Zh"])
+	T[6] = min(1,S["10AV"])
+	Train:WriteTrainWire(29,S["29"])
+	T[4] = min(1,S["12A"])
+	Train:WriteTrainWire(9,S["10/4a"])
+	T[2] = min(1,S["6A"])
+	Triggers["SDRK"](S["10N"])
+	Train:WriteTrainWire(23,S["1-7R-29"])
+	Triggers["RRTpod"](S["10AH"])
+	Train.RV1:TriggerInput("Set",S["2Ye"])
+	Train.Panel["AVU"] = S["2-7R-24"]
+	Triggers["XR3.6"](S["36Ya"])
+	Triggers["RUTpod"](S["10H"])
+	Train.Panel["CabinLight"] = S["10ALa"]
+	Triggers["SDRK_Coil"](S["10B"])
+	Train:WriteTrainWire(22,S["22E'"])
+	Train.VDOL:TriggerInput("Set",S["31A"])
+	Train.Panel["RedRP"] = S["2-7R-21"]
+	Train.RPU:TriggerInput("Set",S["27A"])
+	Train:WriteTrainWire(1,S["1"])
+	Triggers["ReverserBackward"](S["4B"])
+	Train.Panel["SD"] = S["15B"]
+	Train.LK5:TriggerInput("Set",S["20B"])
+	Train.R1_5:TriggerInput("Set",S["33V"])
+	Train.TR1:TriggerInput("Set",S["6A"])
+	Train.SR1:TriggerInput("Set",S["2Ye"])
+	Train.LK2:TriggerInput("Set",S["20B"])
+	Train.Rper:TriggerInput("Set",S["3A"])
+	Triggers["RPvozvrat"](S["17A"])
+	Train:WriteTrainWire(4,S["4"])
+	Train:WriteTrainWire(11,S["11A"])
+	Train:WriteTrainWire(15,S["15"])
+	Train:WriteTrainWire(12,S["12"])
+	Train.RZ_2:TriggerInput("Set",S["24V"])
+	T[5] = min(1,S["D8"])
+	Train.VDZ:TriggerInput("Set",S["16V"])
+	Train.RRP:TriggerInput("Set",Train:ReadTrainWire(14))
+	Triggers["ReverserForward"](S["5B"])
+	Train.PneumaticNo2:TriggerInput("Set",S["8G"])
+	Train.Panel["KUP"] = S["B28"]
+	Train:WriteTrainWire(5,S["5"])
+	Triggers["KSB2"](S["6Yu"])
+	Triggers["KSB1"](S["6Yu"])
+	T[7] = min(1,S["B4"])
+	Train.Panel["GreenRP"] = S["U0a"]
+	Triggers["XR3.7"](S["36Ya"])
+	Train.Panel["RedLightLeft"] = S["F1a"]
+	Train.TR2:TriggerInput("Set",S["6A"])
 	Train:WriteTrainWire(28,S["s10"])
+	Train.LK4:TriggerInput("Set",S["5B'"])
+	T[8] = min(1,S["F7"])
+	Train:WriteTrainWire(16,S["16"])
+	Train.Panel["HeadLights3"] = S["F13"]
+	Train.Panel["TrainBrakes"] = S["ST/1+ST/2"]
+	Train:WriteTrainWire(25,S["25"])
+	Train:WriteTrainWire(18,S["18A"])
+	Triggers["KSH2"](S["1R"])
+	Train.RV2:TriggerInput("Set",S["33Aa"])
+	Triggers["RRTuderzh"](S["25A"])
+	Train.RD:TriggerInput("Set",S["D6/1"])
+	Train:WriteTrainWire(31,S["31V"])
+	Train.Panel["HeadLights2"] = S["F13"]
+	Train.Panel["V1"] = S["10/4"]
+	Train:WriteTrainWire(2,S["2"])
+	Train.Panel["TrainRP"] = S["2-7R-21"]
+	Train:WriteTrainWire(8,S["8"])
+	Train.KD:TriggerInput("Set",S["15B"])
+	Train.Panel["HeadLights1"] = S["F10"]
+	Train.RVT:TriggerInput("Set",S["33G"])
+	Train.Panel["TrainDoors"] = S["16V/1+16V/2"]
+	Train:WriteTrainWire(24,S["24"])
+	Train.KVC:TriggerInput("Set",S["B8"])
 	return S
 end
 
@@ -273,27 +284,29 @@ function TRAIN_SYSTEM.Solve81_717(Train,Triggers)
 	S["33B-33AVU"] = Train.AVU.Value+Train.OtklAVU.Value
 	S["1T-1P"] = Train.NR.Value+Train.RPU.Value
 	S["2Zh-2A"] = (1.0-Train.KSB1.Value)+(1.0-Train.TR1.Value)
-	S["2Zh-2A"] = Train.ThyristorBU5_6.Value+S["2Zh-2A"]
+	S["2Zh-2A"] = S["2Zh-2A"]+Train.ThyristorBU5_6.Value
 	S["8A-8Ye"] = C(RK == 1)+(1.0-Train.LK4.Value)
 	S["15A-15B"] = Train.KV["15A-15B"]+Train.KD.Value
 	S["10AYa-10E"] = (1.0-Train.LK3.Value)+C((P == 1))
 	S["10AP-10AD"] = Train.LK2.Value+C((P == 3) or (P == 4))
 	S["10AE-10B"] = Train.TR1.Value+Train.RV1.Value
-	S["10AE-10B"] = Train.RV1.Value+S["10AE-10B"]
-	S["2V-2G"] = C((RK >= 5) and (RK <= 18))+C((RK >= 2) and (RK <= 4))*Train.KSH1.Value
-	S["D1-31V"] = Train.ALS_ARS["31"]+(1.0-Train.DoorSelect.Value)*S["31V'-31V"]
+	S["10AE-10B"] = S["10AE-10B"]+Train.RV1.Value
 	S["D1-32V"] = Train.ALS_ARS["32"]+Train.DoorSelect.Value*Train.KDP.Value
-	S["1A-1M"] = C((RK >= 1) and (RK <= 5))+C(RK == 6)*Train.RheostatController.RKM1
 	S["1E-1Yu"] = Train.KSH2.Value+Train.KSB2.Value*Train.KSB1.Value
-	S["10AG-10AD"] = C((P == 2) or (P == 3) or (P == 4))*(1.0-Train.TR2.Value)*(1.0-Train.TR1.Value)+C((P == 1) or (P == 2) or (P == 4))*Train.TR2.Value*Train.TR1.Value
-	S["10N-10Zh"] = (1.0-Train.RUT.Value)*Train.SR1.Value*(1.0-Train.RRT.Value)+Train.RheostatController.RKM1
-	S["1G-1Zh"] = Train.LK3.Value+C((P == 1) or (P == 3))*Train.LK5.Value*C(RK == 1)*S["1E-1Yu"]
+	S["1A-1M"] = C((RK >= 1) and (RK <= 5))+C(RK == 6)*Train.RheostatController.RKM1
 	S["1A-1R"] = (1.0-Train.RV1.Value)*C((P == 1))+C((P == 2))*S["1A-1M"]
-	S["2A-2G"] = C((P == 2) or (P == 4))*S["2V-2G"]+C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))
-	S["10E-10AG"] = Train.LK3.Value*C(RK == 18)*C((P == 1))+(1.0-Train.LK1.Value)*S["10AP-10AD"]*S["10AG-10AD"]
-	S["10-8"] = Train.KV["10-8"]+Train.KV["FR1-10"]*(1.0-Train.RPB.Value)*(1.0-Train.VAH.Value)
+	S["D1-31V"] = Train.ALS_ARS["31"]+(1.0-Train.DoorSelect.Value)*S["31V'-31V"]
+	S["10Zh-10N"] = Train.RheostatController.RKM1+(1.0-Train.RRT.Value)*(1.0-Train.RUT.Value)*Train.SR1.Value
+	S["2V-2G"] = C((RK >= 5) and (RK <= 18))+C((RK >= 2) and (RK <= 4))*Train.KSH1.Value
+	S["2A-2G"] = C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))+C((P == 2) or (P == 4))*S["2V-2G"]
+	S["10AG-10AD"] = C((P == 1) or (P == 2) or (P == 4))*Train.TR2.Value*Train.TR1.Value+C((P == 2) or (P == 3) or (P == 4))*(1.0-Train.TR2.Value)*(1.0-Train.TR1.Value)
+	S["10E-10AG"] = S["10AP-10AD"]*(1.0-Train.LK1.Value)*S["10AG-10AD"]+C(RK == 18)*C((P == 1))*Train.LK3.Value
+	S["1G-1Zh"] = Train.LK3.Value+C((P == 1) or (P == 3))*Train.LK5.Value*C(RK == 1)*S["1E-1Yu"]
+	S["10-8"] = Train.KV["10-8"]+(1.0-Train.VAH.Value)*Train.KV["FR1-10"]*(1.0-Train.RPB.Value)
 	S["10"] = 1*Train:ReadTrainWire(10)
 	S["FR1/2"] = S["10"]*Train.KV["FR1-10"]
+	S["F7"] = S["10"]*Train.KV["F7-10"]+T[21]*Train.KRU["11/3-FR1"]
+	S["F7/1"] = S["10"]*Train.KV["F7-10"]+T[23]*Train.KRU["11/3-FR1"]
 	S["10AL"] = S["10"]*Train.VU.Value
 	S["10ALa"] = S["10AL"]*Train.A64.Value
 	S["Sh1-43"] = S["10AL"]*Train.A45.Value
@@ -303,69 +316,78 @@ function TRAIN_SYSTEM.Solve81_717(Train,Triggers)
 	S["6"] = S["6P"]*Train.RVT.Value
 	S["2-7R-24"] = S["6P"]*(1.0-Train.AVU.Value)
 	S["29"] = S["2-7R-24"]*(1.0-Train.OtklAVU.Value)+Train.ALS_ARS["29"]
-	S["1A"] = Train.A1.Value*Train:ReadTrainWire(1)
-	S["3A"] = Train.A3.Value*Train:ReadTrainWire(3)
+	S["F13"] = S["F7"]*Train.A46.Value
 	S["4B"] = (1.0-Train.RKR.Value)*Train:ReadTrainWire(4)
 	S["5B"] = Train.RKR.Value*Train:ReadTrainWire(5)
-	S["5V"] = Train.RKR.Value*Train:ReadTrainWire(4)+T[22]*(1.0-Train.RKR.Value)
+	S["5V"] = Train.RKR.Value*Train:ReadTrainWire(4)+T[30]*(1.0-Train.RKR.Value)
 	S["5B'"] = S["5V"]*Train.LK3.Value
 	S["6A"] = Train.A6.Value*Train:ReadTrainWire(6)
 	S["8A"] = Train.A8.Value*Train:ReadTrainWire(8)
-	S["8Zh"] = S["8A"]*C((RK >= 17) and (RK <= 18))+T[26]*1
+	S["8Zh"] = S["8A"]*C((RK >= 17) and (RK <= 18))+T[34]*1
 	S["12A"] = Train.A12.Value*Train:ReadTrainWire(12)
-	S["D8"] = 1*Train:ReadTrainWire(15)+T[24]*Train.KV["D8-15A"]
-	S["18A"] = Train.A14.Value*(1.0-Train.RPvozvrat.Value)*Train.LK4.Value*1
-	S["1R"] = S["1A"]*S["1A-1R"]
+	S["D8"] = Train.KRU["15/2-D8"]*Train:ReadTrainWire(15)+T[32]*Train.KV["D8-15A"]
 	S["17A"] = Train.A17.Value*Train:ReadTrainWire(17)
-	S["1"] = S["10AS"]*Train.KV["10AS-33D"]*Train.ALS_ARS["33D"]*Train.R1_5.Value
-	S["1P"] = S["1A"]*C((P == 1) or (P == 2))*S["1T-1P"]+T[13]*C((P == 3) or (P == 4))
-	S["2Ye"] = Train.LK4.Value*S["2A-2G"]*Train.A2.Value*S["2Zh-2A"]*Train:ReadTrainWire(2)+T[16]*(1.0-Train.LK4.Value)
-	S["10AN"] = (1.0-Train.RPvozvrat.Value)*Train.A14.Value*1*1
-	S["F13"] = S["10"]*Train.KV["F7-10"]*Train.A46.Value
-	S["1-7R-8"] = S["10AS"]*Train.KV["10AS-U4"]*Train.VozvratRP.Value
 	S["24V"] = (1.0-Train.LK4.Value)*Train:ReadTrainWire(24)
-	S["8"] = S["10"]*S["10-8"]+Train.ALS_ARS["8"]
 	S["25A"] = Train.A25.Value*Train:ReadTrainWire(25)
-	S["1Zh"] = S["1P"]*S["1G-1Zh"]*Train.AVT.Value*(1.0-Train.RPvozvrat.Value)
 	S["27A"] = Train.A50.Value*Train:ReadTrainWire(27)
-	S["F10"] = S["10"]*Train.KV["F7-10"]*Train.VUS.Value*Train.A47.Value
-	S["31A"] = Train.A31.Value*Train:ReadTrainWire(31)+T[14]*1
-	S["32A"] = Train.A32.Value*Train:ReadTrainWire(32)+T[15]*1
-	S["22A"] = Train.A23.Value*1*Train:ReadTrainWire(23)+T[20]*Train.A22.Value
-	S["B12"] = 1*Train.VB.Value*B
-	S["33V"] = S["10AK"]*Train.RV2.Value*S["10AK-VAH1"]*1*S["33B-33AVU"]
-	S["20B"] = Train.A20.Value*(1.0-Train.RPvozvrat.Value)*Train:ReadTrainWire(20)
-	S["B2"] = 1*Train.VB.Value*B
-	S["6Yu"] = S["6A"]*C((P == 3) or (P == 4))*C((RK >= 1) and (RK <= 5))
-	S["8G"] = S["8A"]*(1.0-Train.RT2.Value)*S["8A-8Ye"]
+	S["10AN"] = 1*(1.0-Train.RPvozvrat.Value)*Train.A14.Value*1
+	S["2Ye"] = Train.LK4.Value*S["2A-2G"]*Train.A2.Value*S["2Zh-2A"]*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*Train:ReadTrainWire(2)+T[20]*(1.0-Train.LK4.Value)
 	S["16V"] = Train.A16.Value*(1.0-Train.RD.Value)*Train:ReadTrainWire(16)
-	S["1-7R-29"] = S["B2"]*Train.A44.Value*Train.RezMK.Value
+	S["31A"] = Train.A31.Value*Train:ReadTrainWire(31)+T[18]*1
 	S["33Aa"] = S["10AS"]*Train.KV["10AS-33"]*S["33-33Aa"]
+	S["32A"] = Train.A32.Value*Train:ReadTrainWire(32)+T[19]*1
+	S["22A"] = Train.A23.Value*1*Train:ReadTrainWire(23)+T[28]*Train.A22.Value
+	S["18A"] = (1.0-Train.RPvozvrat.Value)*Train.LK4.Value*Train.A14.Value*1
+	S["33V"] = S["10AK"]*S["10AK-VAH1"]*Train.RV2.Value*S["33B-33AVU"]*1
+	S["F10"] = S["F7/1"]*Train.VUS.Value*Train.A47.Value
+	S["8G"] = S["8A"]*S["8A-8Ye"]*(1.0-Train.RT2.Value)
+	S["20B"] = Train.A20.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*(1.0-Train.RPvozvrat.Value)*Train:ReadTrainWire(20)
+	S["B2"] = 1*Train.VB.Value*B
+	S["1A"] = Train.A1.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*Train:ReadTrainWire(1)
+	S["10AE"] = S["B2"]*Train.A30.Value
+	S["10N"] = S["10AE"]*S["10Zh-10N"]*1+T["SDRK_ShortCircuit"]
+	S["3A"] = Train.A3.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*Train:ReadTrainWire(3)
+	S["8"] = S["10"]*S["10-8"]+Train.ALS_ARS["8"]
+	S["10I"] = S["10AE"]*Train.RheostatController.RKM2
+	S["10AH"] = S["10I"]*(1.0-Train.LK1.Value)+0
+	S["10H"] = S["10I"]*Train.LK4.Value
+	S["B12"] = 1*Train.VB.Value*B
+	S["1"] = S["10AS"]*Train.KV["10AS-33D"]*Train.ALS_ARS["33D"]*Train.R1_5.Value+(-10*Train.KRU["1/3-ZM31"])
+	S["6Yu"] = S["6A"]*C((P == 3) or (P == 4))*C((RK >= 1) and (RK <= 5))
+	S["1P"] = S["1A"]*S["1T-1P"]*C((P == 1) or (P == 2))+T[17]*C((P == 3) or (P == 4))
+	S["1-7R-8"] = S["10AS"]*Train.KV["10AS-U4"]*Train.VozvratRP.Value
 	S["B8"] = S["B2"]*Train.A53.Value
 	S["B22"] = S["B8"]*Train.A75.Value
 	S["B28"] = S["B8"]*Train.KUP.Value
 	S["36Ya"] = S["B8"]*Train.KVC.Value
 	S["B13"] = S["B12"]*Train.A24.Value
+	S["B3"] = S["B2"]*Train.A44.Value
+	S["1-7R-29"] = S["B3"]*Train.RezMK.Value
 	S["4"] = S["10AK"]*Train.KV["10AK-4"]
-	S["5"] = S["10AK"]*Train.KV["10AK-5"]
+	S["5"] = S["10AK"]*Train.KV["10AK-5"]+(-10*Train.KRU["5/3-ZM31"]*0 + Train.KRU["14/1-B3"]*S["B3"]*1)
 	S["U2"] = S["10AS"]*Train.KV["U2-10AS"]
 	S["24"] = S["U2"]*Train.KSN.Value
 	S["2-7R-21"] = S["U2"]*1+(-10*Train:ReadTrainWire(18))
-	S["2"] = S["10AK"]*Train.KV["10AK-2"]+Train.ALS_ARS["2"]
-	S["3"] = S["U2"]*Train.KV["U2-3"]
+	S["2"] = S["10AK"]*Train.KV["10AK-2"]+Train.ALS_ARS["2"]+(-10*Train.KRU["2/3-ZM31"])
+	S["3"] = S["U2"]*Train.KV["U2-3"]+(-10*Train.KRU["3/3-ZM31"])
+	S["B4"] = S["B3"]*Train.KRU["14/1-B3"]+T[22]*Train.KRU["11/3-FR1"]+T[24]*Train.KRU["11/3-FR1"]
+	S["1-7R-31"] = S["B4"]*Train.KRP.Value
+	S["D1"] = S["B4"]*Train.KRU["11/3-D1/1"]
+	S["12"] = S["D1"]*Train.KRZD.Value
 	S["22V"] = S["22A"]*(1.0-Train.TRK.Value)
-	S["1K"] = S["1Zh"]*C((P == 1) or (P == 2))
-	S["1N"] = S["1Zh"]*C((P == 1) or (P == 3))
-	S["20"] = S["U2"]*S["U2-20"]+Train.ALS_ARS["20"]
-	S["11A"] = S["B2"]*(1.0-Train.RD.Value)
-	S["25"] = S["U2"]*Train.KV["U2-25"]*Train.K25.Value
-	S["10AYa"] = S["B2"]*Train.A80.Value
-	S["10AE"] = S["B2"]*Train.A30.Value
-	S["10I"] = S["10AE"]*Train.RheostatController.RKM2
-	S["10AH"] = S["10I"]*(1.0-Train.LK1.Value)+0
-	S["10H"] = S["10I"]*Train.LK4.Value
 	S["10B"] = S["10AE"]*S["10AE-10B"]
-	S["10/4"] = S["B12"]*Train.VB.Value*Train.A56.Value+(1-Train.VB.Value)*Train:ReadTrainWire(10)
+	S["11A"] = S["B2"]*(1.0-Train.RD.Value)
+	S["20"] = S["U2"]*S["U2-20"]+Train.ALS_ARS["20"]+(-10*Train.KRU["20/3-ZM31"])
+	S["32V"] = S["D1"]*S["D1-32V"]
+	S["1R"] = S["1A"]*S["1A-1R"]
+	S["10AYa"] = S["B2"]*Train.A80.Value
+	S["10/4"] = S["D1"]*Train.A21.Value*Train.KV["D-D1"]+S["B12"]*Train.VB.Value*Train.A56.Value+(1-Train.VB.Value)*Train:ReadTrainWire(10)
+	S["16"] = S["D1"]*Train.VUD1.Value*Train.VUD2.Value
+	S["11B"] = S["10/4"]*Train.KV["10/4-C3"]*(1.0-Train.NR.Value)+T[26]*1
+	S["25"] = S["U2"]*Train.KV["U2-25"]*Train.K25.Value
+	S["1Zh"] = S["1P"]*Train.AVT.Value*(1.0-Train.RPvozvrat.Value)*S["1G-1Zh"]
+	S["22E'"] = S["10/4"]*Train.VMK.Value*Train.AK.Value
+	S["31V"] = S["D1"]*S["D1-31V"]
 	S["10AV"] = S["10AYa"]*(1.0-Train.LK3.Value)*C((RK >= 2) and (RK <= 18))
 	S["10/4a"] = S["10/4"]*Train.VB.Value
 	S["22K"] = S["10/4"]*Train.A10.Value
@@ -375,129 +397,129 @@ function TRAIN_SYSTEM.Solve81_717(Train,Triggers)
 	S["s3"] = S["U0"]*Train.BPSNon.Value
 	S["F1"] = S["10/4"]*Train.KV["10/4-F1"]
 	S["D4"] = S["10/4"]*Train.A13.Value
-	S["15"] = S["D4"]*Train.KV["D4-15"]+(-10*Train:ReadTrainWire(11))
+	S["15"] = S["D4"]*Train.KV["D4-15"]+(-10*Train:ReadTrainWire(11)) + Train.KRU["14/1-B3"]*S["B3"]*20
 	S["D4/3"] = S["D4"]*1
 	S["F2a"] = S["F1"]*Train.A7.Value
 	S["F1a"] = S["F1"]*Train.A9.Value
 	S["ST/1+ST/2"] = S["D4/3"]*Train.BPT.Value
 	S["16V/1+16V/2"] = S["D4/3"]*(1.0-Train.RD.Value)
 	S["D6/1"] = S["D4/3"]*Train.BD.Value
-	S["15A"] = S["15"]*1+T[23]*Train.KV["D8-15A"]
-	S["10AG"] = S["10AYa"]*S["10E-10AG"]*S["10AYa-10E"]
-	S["D1"] = S["10/4"]*Train.A21.Value*Train.KV["D-D1"]
-	S["11B"] = S["10/4"]*Train.KV["10/4-C3"]*(1.0-Train.NR.Value)+T[18]*1
+	S["1K"] = S["1Zh"]*C((P == 1) or (P == 2))
+	S["1N"] = S["1Zh"]*C((P == 1) or (P == 3))
+	S["15A"] = S["15"]*1+T[31]*Train.KV["D8-15A"]
+	S["10AG"] = S["10AYa"]*S["10AYa-10E"]*S["10E-10AG"]
 	S["15B"] = S["15A"]*S["15A-15B"]
-	S["10N"] = S["10AE"]*S["10N-10Zh"]*1+T["SDRK_ShortCircuit"]
-	S["22E'"] = S["10/4"]*Train.VMK.Value*Train.AK.Value
-	S["31V"] = S["D1"]*S["D1-31V"]
-	S["32V"] = S["D1"]*S["D1-32V"]
-	S["16"] = S["D1"]*Train.VUD1.Value*Train.VUD2.Value
-	S["12"] = S["D1"]*Train.KRZD.Value
 	S["33G"] = 1*Train.ALS_ARS["33G"]+S["U2"]*Train.KV["U2-33G"]
 
 	-- Call all triggers
-	Train:WriteTrainWire(5,S["5"])
-	Train.Panel["CabinLight"] = S["10ALa"]
-	Train.Panel["EmergencyLight"] = S["B12"]
-	Train.Panel["RedRP"] = S["2-7R-21"]
-	Train.VDZ:TriggerInput("Set",S["16V"])
-	Triggers["RUTpod"](S["10H"])
-	Triggers["XR3.7"](S["36Ya"])
-	Train.KSH1:TriggerInput("Set",S["1R"])
-	Train.RUP:TriggerInput("Set",S["6Yu"])
-	Train:WriteTrainWire(1,S["1"])
-	Train:WriteTrainWire(31,S["31V"])
-	Train.Panel["TrainDoors"] = S["16V/1+16V/2"]
-	T[17] = min(1,S["11B"])
-	Train.Panel["GreenRP"] = S["U0a"]
-	Train.KUP:TriggerInput("Set",S["B22"])
-	Triggers["RPvozvrat"](S["17A"])
-	T[15] = min(1,S["12A"])
-	Train.VDOP:TriggerInput("Set",S["32A"])
-	Train.Panel["HeadLights2"] = S["F13"]
-	Train:WriteTrainWire(6,S["6"])
-	Train.Panel["AVU"] = S["2-7R-24"]
-	Train.KVC:TriggerInput("Set",S["B8"])
-	Train.KD:TriggerInput("Set",S["15B"])
-	T[26] = min(1,Train:ReadTrainWire(29))
-	Train.LK1:TriggerInput("Set",S["1K"])
-	Train.RVT:TriggerInput("Set",S["33G"])
-	T[25] = min(1,S["8Zh"])
-	T[14] = min(1,S["12A"])
-	Train:WriteTrainWire(9,S["10/4a"])
-	Train:WriteTrainWire(16,S["16"])
-	Train.VDOL:TriggerInput("Set",S["31A"])
-	Train:WriteTrainWire(17,S["1-7R-8"])
-	Train:WriteTrainWire(12,S["12"])
-	Train:WriteTrainWire(10,S["10/4a"])
-	T[23] = min(1,S["D8"])
-	Train.KSH2:TriggerInput("Set",S["1R"])
-	Triggers["ReverserForward"](S["5B"])
-	Train.RD:TriggerInput("Set",S["D6/1"])
-	T[22] = min(1,Train:ReadTrainWire(5))
-	T[21] = min(1,S["5V"])
-	Train:WriteTrainWire(2,S["2"])
-	Triggers["ReverserBackward"](S["4B"])
-	Train.LK4:TriggerInput("Set",S["5B'"])
-	Train.KK:TriggerInput("Set",S["22V"])
-	Train.R1_5:TriggerInput("Set",S["33V"])
-	T[18] = min(1,Train:ReadTrainWire(28))
-	T[16] = min(1,S["10AV"])
-	Train.LK3:TriggerInput("Set",S["1Zh"])
-	Triggers["SDRK"](S["10N"])
-	Train.RV2:TriggerInput("Set",S["33Aa"])
-	Train:WriteTrainWire(25,S["25"])
-	Train:WriteTrainWire(24,S["24"])
-	Triggers["RRTpod"](S["10AH"])
-	Triggers["SDRK_Coil"](S["10B"])
-	Train.SR1:TriggerInput("Set",S["2Ye"])
-	Train.Panel["HeadLights1"] = S["F10"]
-	Train.PneumaticNo2:TriggerInput("Set",S["8G"])
-	Triggers["SDPP"](S["10AG"])
-	Train:WriteTrainWire(20,S["20"])
-	T[24] = min(1,S["15A"])
-	Train.K25:TriggerInput("Set",Train.ALS_ARS["33Zh"])
-	Train:WriteTrainWire(8,S["8"])
 	Triggers["XR3.2"](S["27A"])
-	T[13] = min(1,S["6A"])
-	Triggers["KPP"](S["27A"])
-	Triggers["XR3.6"](S["36Ya"])
-	Train.Panel["RedLightLeft"] = S["F1a"]
-	Train.RZ_2:TriggerInput("Set",S["24V"])
-	Train.RR:TriggerInput("Set",S["1N"])
-	Train.LK2:TriggerInput("Set",S["20B"])
-	Train:WriteTrainWire(18,S["18A"])
-	Train:WriteTrainWire(4,S["4"])
-	Train.Panel["TrainBrakes"] = S["ST/1+ST/2"]
-	Train.Panel["V1"] = S["10/4"]
-	Train.Panel["RedLightRight"] = S["F2a"]
-	Train:WriteTrainWire(15,S["15"])
-	Train:WriteTrainWire(11,S["11A"])
-	Train:WriteTrainWire(29,S["29"])
-	Train.KSB1:TriggerInput("Set",S["6Yu"])
-	Train:WriteTrainWire(23,S["1-7R-29"])
-	Train.PneumaticNo1:TriggerInput("Set",S["8Zh"])
-	Train.Panel["HeadLights3"] = S["F13"]
-	Train:WriteTrainWire(32,S["32V"])
-	Train.KSB2:TriggerInput("Set",S["6Yu"])
-	Train.TR2:TriggerInput("Set",S["6A"])
-	Train.Panel["TrainRP"] = S["2-7R-21"]
-	Train.Panel["KUP"] = S["B28"]
+	T[21] = min(1,S["B4"])
 	Triggers["XR3.4"](S["36Ya"])
-	Train:WriteTrainWire(27,S["s3"])
-	Train.TR1:TriggerInput("Set",S["6A"])
-	Triggers["XT3.1"](S["B13"])
-	T[19] = min(1,S["22A"])
-	Train:WriteTrainWire(3,S["3"])
-	T[20] = min(1,Train:ReadTrainWire(22))
-	Train.Rper:TriggerInput("Set",S["3A"])
-	Train.RV1:TriggerInput("Set",S["2Ye"])
-	Train:WriteTrainWire(22,S["22E'"])
-	Train.LK5:TriggerInput("Set",S["20B"])
-	Train.Panel["SD"] = S["15B"]
-	Triggers["RRTuderzh"](S["25A"])
+	Train.RR:TriggerInput("Set",S["1N"])
+	Train:WriteTrainWire(32,S["32V"])
+	Train.Panel["EmergencyLight"] = S["B12"]
+	Train.Panel["RedLightRight"] = S["F2a"]
+	Train:WriteTrainWire(6,S["6"])
+	Train.LK3:TriggerInput("Set",S["1Zh"])
+	Train.VDOP:TriggerInput("Set",S["32A"])
+	Train.KSH1:TriggerInput("Set",S["1R"])
+	Train.PneumaticNo1:TriggerInput("Set",S["8Zh"])
+	Train.KUP:TriggerInput("Set",S["B22"])
 	Train.Panel["Ring"] = S["11B"]
+	Train:WriteTrainWire(10,S["10/4a"])
+	Train.LK1:TriggerInput("Set",S["1K"])
+	T[23] = min(1,S["B4"])
+	T[33] = min(1,S["8Zh"])
+	Train:WriteTrainWire(17,S["1-7R-8"])
+	T[32] = min(1,S["15A"])
+	T[31] = min(1,S["D8"])
+	Triggers["SDPP"](S["10AG"])
+	T[24] = min(1,S["F7/1"])
+	T[29] = min(1,S["5V"])
+	T[28] = min(1,Train:ReadTrainWire(22))
+	Train.KK:TriggerInput("Set",S["22V"])
+	Train:WriteTrainWire(3,S["3"])
+	Train.TR2:TriggerInput("Set",S["6A"])
+	Train.RV2:TriggerInput("Set",S["33Aa"])
+	Train.KVC:TriggerInput("Set",S["B8"])
+	Train:WriteTrainWire(14,S["1-7R-31"])
+	Triggers["XT3.1"](S["B13"])
+	T[25] = min(1,S["11B"])
+	T[30] = min(1,Train:ReadTrainWire(5))
+	T[34] = min(1,Train:ReadTrainWire(29))
+	Triggers["KPP"](S["27A"])
+	Train.K25:TriggerInput("Set",Train.ALS_ARS["33Zh"])
+	T[22] = min(1,S["F7"])
+	T[20] = min(1,S["10AV"])
+	T[19] = min(1,S["12A"])
+	Train:WriteTrainWire(9,S["10/4a"])
+	T[18] = min(1,S["12A"])
+	T[27] = min(1,S["22A"])
+	Train:WriteTrainWire(23,S["1-7R-29"])
+	Triggers["SDRK"](S["10N"])
+	Train.RV1:TriggerInput("Set",S["2Ye"])
+	Train.Panel["AVU"] = S["2-7R-24"]
+	Triggers["XR3.6"](S["36Ya"])
+	Triggers["RUTpod"](S["10H"])
+	Train.Panel["CabinLight"] = S["10ALa"]
+	Triggers["RRTpod"](S["10AH"])
+	Train:WriteTrainWire(22,S["22E'"])
+	Triggers["SDRK_Coil"](S["10B"])
+	Train.Panel["RedRP"] = S["2-7R-21"]
+	Train.VDOL:TriggerInput("Set",S["31A"])
+	Train:WriteTrainWire(1,S["1"])
+	Triggers["ReverserBackward"](S["4B"])
+	Train.Panel["SD"] = S["15B"]
+	Train.LK5:TriggerInput("Set",S["20B"])
+	Train.R1_5:TriggerInput("Set",S["33V"])
+	Train.TR1:TriggerInput("Set",S["6A"])
+	Train.SR1:TriggerInput("Set",S["2Ye"])
+	Train.LK2:TriggerInput("Set",S["20B"])
+	Train.Rper:TriggerInput("Set",S["3A"])
+	Triggers["RPvozvrat"](S["17A"])
+	Train:WriteTrainWire(4,S["4"])
+	Train:WriteTrainWire(11,S["11A"])
+	Train:WriteTrainWire(15,S["15"])
+	Train:WriteTrainWire(12,S["12"])
+	Train.RZ_2:TriggerInput("Set",S["24V"])
+	Train:WriteTrainWire(29,S["29"])
+	Train.VDZ:TriggerInput("Set",S["16V"])
+	Train.RRP:TriggerInput("Set",Train:ReadTrainWire(14))
+	Triggers["ReverserForward"](S["5B"])
+	Train.PneumaticNo2:TriggerInput("Set",S["8G"])
+	Train.Panel["KUP"] = S["B28"]
+	Train:WriteTrainWire(5,S["5"])
+	Train.KSB2:TriggerInput("Set",S["6Yu"])
+	Train.KSB1:TriggerInput("Set",S["6Yu"])
+	Train.RUP:TriggerInput("Set",S["6Yu"])
+	Train.Panel["GreenRP"] = S["U0a"]
+	Triggers["XR3.7"](S["36Ya"])
+	Train.Panel["RedLightLeft"] = S["F1a"]
+	T[17] = min(1,S["6A"])
 	Train:WriteTrainWire(28,S["s10"])
+	Train.LK4:TriggerInput("Set",S["5B'"])
+	Train:WriteTrainWire(20,S["20"])
+	Train:WriteTrainWire(16,S["16"])
+	Train.Panel["HeadLights3"] = S["F13"]
+	Train.Panel["TrainBrakes"] = S["ST/1+ST/2"]
+	Train:WriteTrainWire(25,S["25"])
+	Train:WriteTrainWire(18,S["18A"])
+	Train.KSH2:TriggerInput("Set",S["1R"])
+	T[26] = min(1,Train:ReadTrainWire(28))
+	Triggers["RRTuderzh"](S["25A"])
+	Train.RD:TriggerInput("Set",S["D6/1"])
+	Train:WriteTrainWire(31,S["31V"])
+	Train.Panel["HeadLights2"] = S["F13"]
+	Train.Panel["V1"] = S["10/4"]
+	Train:WriteTrainWire(2,S["2"])
+	Train.Panel["TrainRP"] = S["2-7R-21"]
+	Train:WriteTrainWire(8,S["8"])
+	Train.KD:TriggerInput("Set",S["15B"])
+	Train.Panel["HeadLights1"] = S["F10"]
+	Train.RVT:TriggerInput("Set",S["33G"])
+	Train.Panel["TrainDoors"] = S["16V/1+16V/2"]
+	Train:WriteTrainWire(24,S["24"])
+	Train:WriteTrainWire(27,S["s3"])
 	return S
 end
 
@@ -517,134 +539,135 @@ function TRAIN_SYSTEM.Solve81_714(Train,Triggers)
 	S["10AYa-10E"] = (1.0-Train.LK3.Value)+C((P == 1))
 	S["10AP-10AD"] = Train.LK2.Value+C((P == 3) or (P == 4))
 	S["10AE-10B"] = Train.TR1.Value+Train.RV1.Value
-	S["10AE-10B"] = Train.RV1.Value+S["10AE-10B"]
-	S["2V-2G"] = C((RK >= 5) and (RK <= 18))+C((RK >= 2) and (RK <= 4))*Train.KSH1.Value
+	S["10AE-10B"] = S["10AE-10B"]+Train.RV1.Value
 	S["1E-1Yu"] = Train.KSH2.Value+Train.KSB2.Value*Train.KSB1.Value
-	S["10Zh-10N"] = Train.RheostatController.RKM1+(1.0-Train.RUT.Value)*Train.SR1.Value*(1.0-Train.RRT.Value)
-	S["1G-1Zh"] = Train.LK3.Value+C(RK == 1)*S["1E-1Yu"]*C((P == 1) or (P == 3))*Train.LK5.Value
-	S["2A-2G"] = C((P == 2) or (P == 4))*S["2V-2G"]+C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))
-	S["10AD-10AG"] = Train.TR2.Value*Train.TR1.Value*C((P == 1) or (P == 2) or (P == 4))+C((P == 2) or (P == 3) or (P == 4))*(1.0-Train.TR2.Value)*(1.0-Train.TR1.Value)
-	S["10AG-10E"] = S["10AD-10AG"]*(1.0-Train.LK1.Value)*S["10AP-10AD"]+Train.LK3.Value*C(RK == 18)*C((P == 1))
+	S["2V-2G"] = C((RK >= 5) and (RK <= 18))+C((RK >= 2) and (RK <= 4))*Train.KSH1.Value
+	S["2A-2G"] = C((P == 1) or (P == 3))*C((RK >= 1) and (RK <= 17))+C((P == 2) or (P == 4))*S["2V-2G"]
 	S["1A-1M"] = C((RK >= 1) and (RK <= 5))+C(RK == 6)*Train.RheostatController.RKM1
-	S["1R-1A"] = C((P == 2))*S["1A-1M"]+(1.0-Train.RV1.Value)*C((P == 1))
+	S["1A-1R"] = (1.0-Train.RV1.Value)*C((P == 1))+C((P == 2))*S["1A-1M"]
+	S["10AG-10AD"] = C((P == 1) or (P == 2) or (P == 4))*Train.TR2.Value*Train.TR1.Value+(1.0-Train.TR2.Value)*(1.0-Train.TR1.Value)*C((P == 2) or (P == 3) or (P == 4))
+	S["10AG-10E"] = C((P == 1))*Train.LK3.Value*C(RK == 18)+S["10AP-10AD"]*(1.0-Train.LK1.Value)*S["10AG-10AD"]
+	S["1G-1Zh"] = C(RK == 1)*Train.LK5.Value*C((P == 1) or (P == 3))*S["1E-1Yu"]+Train.LK3.Value
+	S["10Zh-10N"] = Train.SR1.Value*(1.0-Train.RRT.Value)*(1.0-Train.RUT.Value)+Train.RheostatController.RKM1
 	S["10"] = 1*Train:ReadTrainWire(10)
-	S["1A"] = Train.A1.Value*Train:ReadTrainWire(1)
-	S["3A"] = Train.A3.Value*Train:ReadTrainWire(3)
+	S["2Ye"] = Train.LK4.Value*S["2A-2G"]*Train.A2.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*S["2Zh-2A"]*Train:ReadTrainWire(2)+T[38]*(1.0-Train.LK4.Value)
+	S["B12"] = 1*Train.VB.Value*B
 	S["4B"] = (1.0-Train.RKR.Value)*Train:ReadTrainWire(4)
 	S["5B"] = Train.RKR.Value*Train:ReadTrainWire(5)
-	S["5V"] = Train.RKR.Value*Train:ReadTrainWire(4)+T[34]*(1.0-Train.RKR.Value)
+	S["5V"] = Train.RKR.Value*Train:ReadTrainWire(4)+T[42]*(1.0-Train.RKR.Value)
 	S["5B'"] = S["5V"]*Train.LK3.Value
 	S["6A"] = Train.A6.Value*Train:ReadTrainWire(6)
 	S["8A"] = Train.A8.Value*Train:ReadTrainWire(8)
-	S["8Zh"] = S["8A"]*C((RK >= 17) and (RK <= 18))+T[36]*1
+	S["8Zh"] = S["8A"]*C((RK >= 17) and (RK <= 18))+T[44]*1
 	S["12A"] = Train.A12.Value*Train:ReadTrainWire(12)
 	S["17A"] = Train.A17.Value*Train:ReadTrainWire(17)
 	S["24V"] = (1.0-Train.LK4.Value)*Train:ReadTrainWire(24)
 	S["25A"] = Train.A25.Value*Train:ReadTrainWire(25)
 	S["27A"] = Train.A50.Value*Train:ReadTrainWire(27)
-	S["10AN"] = 1*(1.0-Train.RPvozvrat.Value)*Train.A14.Value*1
-	S["1R"] = S["1A"]*S["1R-1A"]
-	S["31A"] = Train.A31.Value*Train:ReadTrainWire(31)+T[28]*1
-	S["20B"] = Train.A20.Value*(1.0-Train.RPvozvrat.Value)*Train:ReadTrainWire(20)
-	S["32A"] = Train.A32.Value*Train:ReadTrainWire(32)+T[29]*1
-	S["B2"] = 1*Train.VB.Value*B
-	S["6Yu"] = S["6A"]*C((P == 3) or (P == 4))*C((RK >= 1) and (RK <= 5))
-	S["8G"] = S["8A"]*(1.0-Train.RT2.Value)*S["8A-8Ye"]
+	S["31A"] = Train.A31.Value*Train:ReadTrainWire(31)+T[36]*1
+	S["32A"] = Train.A32.Value*Train:ReadTrainWire(32)+T[37]*1
+	S["3A"] = Train.A3.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*Train:ReadTrainWire(3)
 	S["16V"] = Train.A16.Value*(1.0-Train.RD.Value)*Train:ReadTrainWire(16)
-	S["B12"] = 1*Train.VB.Value*B
-	S["22A"] = Train.A23.Value*1*Train:ReadTrainWire(23)+T[32]*Train.A22.Value
-	S["1P"] = S["1A"]*C((P == 1) or (P == 2))*S["1T-1P"]+T[27]*C((P == 3) or (P == 4))
+	S["1A"] = Train.A1.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*Train:ReadTrainWire(1)
+	S["B2"] = 1*Train.VB.Value*B
+	S["10AN"] = (1.0-Train.RPvozvrat.Value)*Train.A14.Value*1*1
+	S["22A"] = Train.A23.Value*1*Train:ReadTrainWire(23)+T[40]*Train.A22.Value
+	S["6Yu"] = S["6A"]*C((P == 3) or (P == 4))*C((RK >= 1) and (RK <= 5))
 	S["18A"] = Train.A14.Value*(1.0-Train.RPvozvrat.Value)*Train.LK4.Value*1
-	S["2Ye"] = Train.A2.Value*Train.LK4.Value*S["2Zh-2A"]*S["2A-2G"]*Train:ReadTrainWire(2)+T[30]*(1.0-Train.LK4.Value)
+	S["10/4"] = S["B12"]*Train.VB.Value*Train.A56.Value
+	S["D4/3"] = S["10/4"]*Train.A13.Value*1
+	S["1P"] = S["1A"]*C((P == 1) or (P == 2))*S["1T-1P"]+T[35]*C((P == 3) or (P == 4))
+	S["8G"] = S["8A"]*(1.0-Train.RT2.Value)*S["8A-8Ye"]
+	S["U0a"] = S["10/4"]*Train.A27.Value*1+(-10*S["10AN"])
+	S["20B"] = Train.A20.Value*(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)*(1.0-Train.RPvozvrat.Value)*Train:ReadTrainWire(20)
 	S["B8"] = S["B2"]*Train.A53.Value
 	S["B22"] = S["B8"]*Train.A75.Value
 	S["B28"] = S["B8"]*Train.KUP.Value
 	S["36Ya"] = S["B8"]*Train.KVC.Value
+	S["10/4a"] = S["10/4"]*Train.VB.Value
 	S["B13"] = S["B12"]*Train.A24.Value
+	S["D"] = S["10/4"]*Train.A21.Value
 	S["22V"] = S["22A"]*(1.0-Train.TRK.Value)
+	S["ST/1+ST/2"] = S["D4/3"]*Train.BPT.Value
+	S["16V/1+16V/2"] = S["D4/3"]*(1.0-Train.RD.Value)
+	S["D6/1"] = S["D4/3"]*Train.BD.Value
+	S["1Zh"] = S["1P"]*S["1G-1Zh"]*Train.AVT.Value*(1.0-Train.RPvozvrat.Value)
+	S["1K"] = S["1Zh"]*C((P == 1) or (P == 2))
+	S["1N"] = S["1Zh"]*C((P == 1) or (P == 3))
 	S["11A"] = S["B2"]*(1.0-Train.RD.Value)
-	S["1Zh"] = S["1P"]*Train.AVT.Value*(1.0-Train.RPvozvrat.Value)*S["1G-1Zh"]
 	S["10AYa"] = S["B2"]*Train.A80.Value
 	S["10AE"] = S["B2"]*Train.A30.Value
 	S["10I"] = S["10AE"]*Train.RheostatController.RKM2
 	S["10AH"] = S["10I"]*(1.0-Train.LK1.Value)
+	S["1R"] = S["1A"]*S["1A-1R"]
 	S["10H"] = S["10I"]*Train.LK4.Value
-	S["10B"] = S["10AE"]*S["10AE-10B"]
-	S["10/4"] = S["B12"]*Train.VB.Value*Train.A56.Value
-	S["D4/3"] = S["10/4"]*Train.A13.Value*1
 	S["10AV"] = S["10AYa"]*(1.0-Train.LK3.Value)*C((RK >= 2) and (RK <= 18))
-	S["U0a"] = S["10/4"]*Train.A27.Value*1+(-10*S["10AN"])
-	S["10/4a"] = S["10/4"]*Train.VB.Value
-	S["D"] = S["10/4"]*Train.A21.Value
-	S["ST/1+ST/2"] = S["D4/3"]*Train.BPT.Value
-	S["16V/1+16V/2"] = S["D4/3"]*(1.0-Train.RD.Value)
-	S["D6/1"] = S["D4/3"]*Train.BD.Value
-	S["1K"] = S["1Zh"]*C((P == 1) or (P == 2))
-	S["1N"] = S["1Zh"]*C((P == 1) or (P == 3))
-	S["10AG"] = S["10AYa"]*S["10AG-10E"]*S["10AYa-10E"]
-	S["10N"] = S["10AE"]*1*S["10Zh-10N"]+T["SDRK_ShortCircuit"]
+	S["10AG"] = S["10AYa"]*S["10AYa-10E"]*S["10AG-10E"]
+	S["10N"] = S["10AE"]*S["10Zh-10N"]*1+T["SDRK_ShortCircuit"]
+	S["10B"] = S["10AE"]*S["10AE-10B"]
 
 	-- Call all triggers
-	T[32] = min(1,Train:ReadTrainWire(22))
-	Train.Panel["EmergencyLight"] = S["B12"]
-	T[36] = min(1,Train:ReadTrainWire(29))
-	T[35] = min(1,S["8Zh"])
-	T[34] = min(1,Train:ReadTrainWire(5))
-	Train.LK3:TriggerInput("Set",S["1Zh"])
-	Train.VDZ:TriggerInput("Set",S["16V"])
-	Train.LK5:TriggerInput("Set",S["20B"])
-	Train.VDOL:TriggerInput("Set",S["31A"])
-	Train:WriteTrainWire(18,S["18A"])
-	T[30] = min(1,S["10AV"])
-	Triggers["XR3.7"](S["36Ya"])
-	Train.SR1:TriggerInput("Set",S["2Ye"])
-	Train.TR1:TriggerInput("Set",S["6A"])
-	Train.KSH1:TriggerInput("Set",S["1R"])
-	Train.LK2:TriggerInput("Set",S["20B"])
-	Train.RUP:TriggerInput("Set",S["6Yu"])
-	Train.RZ_2:TriggerInput("Set",S["24V"])
-	T[28] = min(1,S["12A"])
-	T[27] = min(1,S["6A"])
 	Triggers["XR3.2"](S["27A"])
-	Train.Panel["TrainDoors"] = S["16V/1+16V/2"]
-	Triggers["SDRK"](S["10N"])
-	Triggers["RUTpod"](S["10H"])
-	Train.Panel["GreenRP"] = S["U0a"]
-	Train.KUP:TriggerInput("Set",S["B22"])
-	Train:WriteTrainWire(11,S["11A"])
-	Triggers["SDRK_Coil"](S["10B"])
-	Triggers["SDPP"](S["10AG"])
-	Triggers["RPvozvrat"](S["17A"])
-	Train.LK4:TriggerInput("Set",S["5B'"])
-	Triggers["KPP"](S["27A"])
 	Train.RV1:TriggerInput("Set",S["2Ye"])
-	Train.VDOP:TriggerInput("Set",S["32A"])
 	Triggers["XR3.6"](S["36Ya"])
-	Train.KSB2:TriggerInput("Set",S["6Yu"])
-	Train.KSB1:TriggerInput("Set",S["6Yu"])
+	Triggers["RUTpod"](S["10H"])
 	Train.RR:TriggerInput("Set",S["1N"])
-	Triggers["RRTuderzh"](S["25A"])
-	T[33] = min(1,S["5V"])
-	T[29] = min(1,S["12A"])
-	T[31] = min(1,S["22A"])
-	Train.KVC:TriggerInput("Set",S["B8"])
-	Triggers["RRTpod"](S["10AH"])
-	Train.Panel["KUP"] = S["B28"]
-	Triggers["XR3.4"](S["36Ya"])
-	Train.Rper:TriggerInput("Set",S["3A"])
-	Train.PneumaticNo2:TriggerInput("Set",S["8G"])
-	Triggers["XT3.1"](S["B13"])
-	Train.PneumaticNo1:TriggerInput("Set",S["8Zh"])
-	Train:WriteTrainWire(9,S["10/4a"])
-	Train.Panel["TrainBrakes"] = S["ST/1+ST/2"]
-	Train.TR2:TriggerInput("Set",S["6A"])
-	Train.KK:TriggerInput("Set",S["22V"])
+	T[36] = min(1,S["12A"])
+	Train.Panel["EmergencyLight"] = S["B12"]
+	Train.KSB2:TriggerInput("Set",S["6Yu"])
+	T[44] = min(1,Train:ReadTrainWire(29))
 	Triggers["ReverserBackward"](S["4B"])
-	Train:WriteTrainWire(10,S["10/4a"])
-	Train.LK1:TriggerInput("Set",S["1K"])
-	Train.KSH2:TriggerInput("Set",S["1R"])
+	Train.VDOL:TriggerInput("Set",S["31A"])
+	Train.SR1:TriggerInput("Set",S["2Ye"])
+	T[40] = min(1,Train:ReadTrainWire(22))
+	Train.TR1:TriggerInput("Set",S["6A"])
+	Train.LK3:TriggerInput("Set",S["1Zh"])
+	T[39] = min(1,S["22A"])
+	Triggers["RPvozvrat"](S["17A"])
+	T[43] = min(1,S["8Zh"])
+	T[41] = min(1,S["5V"])
+	Train:WriteTrainWire(11,S["11A"])
+	Train.VDOP:TriggerInput("Set",S["32A"])
+	Train.KSB1:TriggerInput("Set",S["6Yu"])
+	Train.KSH1:TriggerInput("Set",S["1R"])
+	T[38] = min(1,S["10AV"])
+	Train.VDZ:TriggerInput("Set",S["16V"])
+	Triggers["SDRK_Coil"](S["10B"])
 	Triggers["ReverserForward"](S["5B"])
+	Train.KUP:TriggerInput("Set",S["B22"])
+	Train.Panel["KUP"] = S["B28"]
+	Train.RZ_2:TriggerInput("Set",S["24V"])
+	Train:WriteTrainWire(10,S["10/4a"])
+	T[42] = min(1,Train:ReadTrainWire(5))
+	Train.LK1:TriggerInput("Set",S["1K"])
+	Train.Panel["GreenRP"] = S["U0a"]
+	Triggers["XR3.7"](S["36Ya"])
+	Triggers["SDRK"](S["10N"])
+	Triggers["RRTuderzh"](S["25A"])
+	Train.LK4:TriggerInput("Set",S["5B'"])
+	Triggers["SDPP"](S["10AG"])
+	Train.LK5:TriggerInput("Set",S["20B"])
+	Train.RRP:TriggerInput("Set",Train:ReadTrainWire(14))
+	Train.KK:TriggerInput("Set",S["22V"])
+	Train.Panel["TrainBrakes"] = S["ST/1+ST/2"]
+	Triggers["RRTpod"](S["10AH"])
+	Train:WriteTrainWire(18,S["18A"])
+	Train.RUP:TriggerInput("Set",S["6Yu"])
+	Train.KVC:TriggerInput("Set",S["B8"])
+	Train.KSH2:TriggerInput("Set",S["1R"])
 	Train.RD:TriggerInput("Set",S["D6/1"])
+	Train.PneumaticNo1:TriggerInput("Set",S["8Zh"])
+	T[37] = min(1,S["12A"])
+	Triggers["XR3.4"](S["36Ya"])
+	Triggers["KPP"](S["27A"])
+	Train.PneumaticNo2:TriggerInput("Set",S["8G"])
+	Train.TR2:TriggerInput("Set",S["6A"])
+	Train.LK2:TriggerInput("Set",S["20B"])
+	Train.Rper:TriggerInput("Set",S["3A"])
+	Train:WriteTrainWire(9,S["10/4a"])
+	Train.Panel["TrainDoors"] = S["16V/1+16V/2"]
+	Triggers["XT3.1"](S["B13"])
+	T[35] = min(1,S["6A"])
 	return S
 end
 

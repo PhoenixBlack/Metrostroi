@@ -27,6 +27,7 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("ARS","Relay","Switch")
 	self.Train:LoadSystem("ALS","Relay","Switch")
 	self.Train:LoadSystem("KVT","Relay","Switch")
+	self.Train:LoadSystem("KRP","Relay","Switch")
 	
 	-- Педаль бдительности (ПБ)
 	self.Train:LoadSystem("PB","Relay","Switch")

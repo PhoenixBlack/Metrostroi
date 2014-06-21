@@ -60,7 +60,7 @@ ENT.ButtonMap["Front"] = {
 		{ID = "VAHToggle",x=170, y=200, radius=20, tooltip="ВАХ: Включение аварийного хода (неисправность реле педали безопасности)\nVAH: Emergency driving mode (failure of RPB relay)"},
 		{ID = "VADToggle",x=127, y=200, radius=20, tooltip="ВАД: Включение аварийного закрытия дверей (неисправность реле контроля дверей)\nVAD: Emergency door close override (failure of KD relay)"},		
 		{ID = "RezMKSet",x=53,  y=98, radius=20, tooltip="Резервное включение мотор-компрессора\nEmergency motor-compressor startup"},
-		{ID = "KRPSet",x=53, y=33, radius=20, tooltip="КРП: Кнопка резервного пуска"},
+		{ID = "KRPSet",x=53, y=33, radius=20, tooltip="КРП: Кнопка резервного пуска\nKRP: Emergency start button"},
 		
 		{ID = "L_4Toggle",x=53, y=200, radius=20, tooltip="Выключатель фар\nHeadlights toggle"},
 		{ID = "CabinHeatLight",x=90, y=145, radius=20, tooltip="Контроль печи\nCabin heater active"},
@@ -761,11 +761,11 @@ function ENT:Think()
 
 	-- Simulate pressure gauges getting stuck a little
 	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
-	self:Animate("controller",		1-self:GetPackedRatio(1),			0.30, 0.70,  4096,128)
+	self:Animate("controller",		1-self:GetPackedRatio(1),			0.30, 0.70,  2,false)
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.25, 0.75,  4,false)
 	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38, 0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
-	self:Animate("krureverser",		0.5+(self.KRUPos*0.5)-(0/2),		0.10, 0.90,  4,false)
+	self:Animate("krureverser",		0.5+(self.KRUPos*0.5)-0.5*(self:GetPackedRatio(2)/2),		0.10, 0.90,  3,false)
 	self:ShowHide("krureverser",	self:GetPackedBool(27))
 	
 
@@ -807,6 +807,7 @@ function ENT:Think()
 	self:Animate("L_4",				self:GetPackedBool(63) and 1 or 0, 	0,1, 16, false)
 	self:Animate("L_5",				self:GetPackedBool(53) and 1 or 0, 	0,1, 16, false)	
 	self:Animate("DoorSelect",		self:GetPackedBool(55) and 1 or 0, 	0,1, 16, false)	
+	self:Animate("KRP",				self:GetPackedBool(113) and 1 or 0, 0,1, 16, false)	
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -900,10 +901,10 @@ function ENT:Think()
 	if self.PreviousPPState ~= state then
 		self.PreviousPPState = state
 		if state then
-			self:SetSoundState("rk_spin",0.20,1)
+			self:SetSoundState("rk_spin",0.25,1)
 		else
 			self:SetSoundState("rk_spin",0,0)
-			self:PlayOnce("rk_stop",nil,0.70)		
+			self:PlayOnce("rk_stop",nil,0.72)		
 		end
 	end
 	

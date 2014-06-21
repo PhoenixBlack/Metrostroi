@@ -4,6 +4,7 @@
 Metrostroi.DefineSystem("KV_70")
 
 function TRAIN_SYSTEM:Initialize()
+	self.Enabled = 1
 	self.ControllerPosition = 0
 	self.ReverserPosition = 0
 	self.RealControllerPosition = 0
@@ -73,7 +74,7 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Inputs()
-	return { "ControllerSet", "ReverserSet",
+	return { "Enabled", "ControllerSet", "ReverserSet",
 			 "ControllerUp","ControllerDown","ReverserUp","ReverserDown",
 			 "SetX1", "SetX2", "SetX3", "Set0", "SetT1", "SetT1A", "SetT2" }
 end
@@ -86,8 +87,10 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 	local prevReverserPosition = self.ReverserPosition
 	
 	-- Change position
-	if name == "ControllerSet" then
-		if (self.ReverserPosition ~= 0) and (math.floor(value) ~= self.ControllerPosition) then
+	if name == "Enabled" then
+		self.Enabled = math.floor(value)
+	elseif name == "ControllerSet" then
+		if (self.Enabled ~= 0) and (self.ReverserPosition ~= 0) and (math.floor(value) ~= self.ControllerPosition) then
 			local prevControllerPosition = self.ControllerPosition
 			self.ControllerPosition = math.floor(value)
 			
@@ -103,7 +106,7 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 		end		
 		
 	elseif name == "ReverserSet" then
-		if math.floor(value) ~= self.ReverserPosition then
+		if (self.Enabled ~= 0) and (math.floor(value) ~= self.ReverserPosition) then
 			local prevReverserPosition = self.ReverserPosition
 			self.ReverserPosition = math.floor(value)
 			if self.ReverserPosition >  1 then self.ReverserPosition =  1 end
@@ -141,18 +144,24 @@ end
 
 function TRAIN_SYSTEM:Think()
 	local Train = self.Train
+	if (self.Enabled == 0) and (self.ReverserPosition ~= 0) then
+		self.ReverserPosition = 0
+		self.ControllerPosition = 0
+		self.Train:PlayOnce("kv1","cabin",0.6)
+	end
 	if (self.ReverserPosition == 0) and (self.ControllerPosition ~= 0) then
+		self.ReverserPosition = 0
 		self.ControllerPosition = 0
 		self.Train:PlayOnce("kv1","cabin",0.6)
 	end
 	
 	-- Move controller
 	self.Timer = self.Timer or CurTime()
-	if ((CurTime() - self.Timer > 0.15) and (self.ControllerPosition > self.RealControllerPosition)) then
+	if ((CurTime() - self.Timer > 0.10) and (self.ControllerPosition > self.RealControllerPosition)) then
 		self.Timer = CurTime()
 		self.RealControllerPosition = self.RealControllerPosition + 1
 	end
-	if ((CurTime() - self.Timer > 0.15) and (self.ControllerPosition < self.RealControllerPosition)) then
+	if ((CurTime() - self.Timer > 0.10) and (self.ControllerPosition < self.RealControllerPosition)) then
 		self.Timer = CurTime()
 		self.RealControllerPosition = self.RealControllerPosition - 1
 	end
