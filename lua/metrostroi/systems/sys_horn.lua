@@ -39,7 +39,7 @@ function TRAIN_SYSTEM:ClientThink(dT)
 	self.Train:SetSoundState("horn2",self.Active and absoluteVolume or 0,absolutePitch)
 	if (self.Active ~= active) and (not active) then
 		if absolutePitch > 0.2 then
-			self.Train:PlayOnce("horn2_end","cabin",0.85,100*absolutePitch)
+			self.Train:PlayOnce("horn2_end","cabin",0.85,101.5*absolutePitch)
 		end
 	end
 	if (self.Active ~= active) and (active) then

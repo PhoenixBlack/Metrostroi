@@ -442,7 +442,7 @@ function ENT:Think()
 	self:SetPackedRatio(5, self.Pneumatic.TrainLinePressure/16.0)
 	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
-	self:SetPackedRatio(8, 0.5 + (self.Electric.I24/500.0))
+	self:SetPackedRatio(8, 0.5 + 0.5*(self.Electric.I24/500.0))
 	self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
 	self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 150.0)
 	self:SetPackedRatio(11,IGLA_Temperature)
@@ -471,10 +471,10 @@ function ENT:Think()
 		self.FrontBogey.MotorPower = self.Engines.BogeyMoment
 		
 		-- Apply brakes
-		self.FrontBogey.PneumaticBrakeForce = 65000.0
+		self.FrontBogey.PneumaticBrakeForce = 40000.0
 		self.FrontBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.FrontBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
-		self.RearBogey.PneumaticBrakeForce = 65000.0
+		self.RearBogey.PneumaticBrakeForce = 40000.0
 		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end

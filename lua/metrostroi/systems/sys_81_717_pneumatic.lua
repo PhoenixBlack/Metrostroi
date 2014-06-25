@@ -5,7 +5,17 @@ Metrostroi.DefineSystem("81_717_Pneumatic")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
-	-- Position of the train drivers valve
+	self.ValveType = 1
+	
+	-- Position of the train drivers valve 
+	--  Type 1 (334)
+	-- 1 Accelerated charge
+	-- 2 Normal charge (brake release)
+	-- 3 Closed
+	-- 4 Service application
+	-- 5 Emergency application
+	--
+	-- Type 2 (013)
 	-- 1 Accelerated charge
 	-- 2 Normal charge (brake release)
 	-- 3 Closed
@@ -77,7 +87,7 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Inputs()
-	return { "BrakeUp", "BrakeDown", "BrakeSet"}
+	return { "BrakeUp", "BrakeDown", "BrakeSet", "ValveType" }
 end
 
 function TRAIN_SYSTEM:Outputs()
@@ -96,6 +106,8 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 		self:TriggerInput("BrakeSet",self.DriverValvePosition+1)
 	elseif (name == "BrakeDown") and (value > 0.5) then
 		self:TriggerInput("BrakeSet",self.DriverValvePosition-1)
+	elseif name == "ValveType" then
+		self.ValveType = math.floor(value)
 	end
 end
 
@@ -269,7 +281,7 @@ function TRAIN_SYSTEM:Think(dT)
 	self.BrakeCylinderRegulationError = self.BrakeCylinderRegulationError or (math.random()*0.10 - 0.05)
 	local error = self.BrakeCylinderRegulationError
 	local pneumaticValveConsumption_dPdT = 0
-	if self.Train.PneumaticNo1.Value == 1.0 then
+	if (self.Train.PneumaticNo1.Value == 1.0) and (self.Train.PneumaticNo2.Value == 0.0) then
 		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.26 + error, 1.00, 5.50)
 		pneumaticValveConsumption_dPdT = pneumaticValveConsumption_dPdT + self.BrakeCylinderPressure_dPdT
 	end
