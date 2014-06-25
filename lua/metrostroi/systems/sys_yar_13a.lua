@@ -83,7 +83,7 @@ function TRAIN_SYSTEM:Think()
 	Train.RP2_4:TriggerInput("Set",Train.Electric.I24)
 	
 	-- RUT operation
-	self.RUTCurrent = math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24)
+	self.RUTCurrent = (math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24))/2
 	self.RUTTarget = 250 + 150*self.WeightLoadRatio
 	
 	if Train.RUTpod > 0.5 

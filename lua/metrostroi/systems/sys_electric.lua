@@ -204,7 +204,7 @@ function TRAIN_SYSTEM:SolveThyristorController(Train,dT)
 	-- General state
 	local Active = ((Train.KSB1.Value > 0) or (Train.KSB2.Value > 0)) and (Train.LK2.Value == 1.0)
 	local StatorCurrent = (math.abs(self.Istator13) + math.abs(self.Istator24))*0.5
-	local Current = math.abs(self.Itotal)
+	local Current = (math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24))/2
 	local PrevCurrent = self.ThyristorPrevCurrent or Current
 	self.ThyristorPrevCurrent = Current
 	
@@ -331,8 +331,8 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.I24SH = self.I24SH or self.I24
 	
 	-- Time constant
-	local T13const1 = self.R13 * 5.0 + 0.1 -- R * L
-	local T24const1 = self.R24 * 5.0 + 0.1 -- R * L
+	local T13const1 = math.max(0.1,math.min(28.0,self.R13 * 6.0)) -- R * L
+	local T24const1 = math.max(0.1,math.min(28.0,self.R24 * 6.0)) -- R * L
 	--print(T13const1)
 	
 	-- Total change
@@ -351,18 +351,18 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	
 	-- Re-calculate total current and simulate infinite resistance in circuit
 	if Train.PositionSwitch.SelectedPosition == 1 then -- PS
-		self.I13 = self.I13 * (Train.LK3.Value * Train.LK4.Value)
-		self.I24 = self.I24 * (Train.LK3.Value * Train.LK4.Value)
+		self.I13 = self.I13 * (Train.LK3.Value * Train.LK4.Value * Train.LK1.Value)
+		self.I24 = self.I24 * (Train.LK3.Value * Train.LK4.Value * Train.LK1.Value)
 	
 		self.I24 = (self.I24 + self.I13)*0.5
 		self.I13 = self.I24
 		self.Itotal = self.I24
 	elseif Train.PositionSwitch.SelectedPosition == 2 then -- PS
-		self.I13 = self.I13 * Train.LK3.Value
-		self.I24 = self.I24 * Train.LK4.Value
+		self.I13 = self.I13 * Train.LK3.Value * Train.LK1.Value
+		self.I24 = self.I24 * Train.LK4.Value * Train.LK1.Value
 		
 		self.Itotal = self.I13 + self.I24
-	else
+	else -- PT
 		self.I13 = self.I13 * Train.LK3.Value
 		self.I24 = self.I24 * Train.LK4.Value
 		
@@ -384,7 +384,7 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.Istator13 = self.Ustator13 / self.Ranchor13 -- FIXME: use stators own resistance
 	self.Ishunt24  = self.Ustator24 / self.Rs2
 	self.Istator24 = self.Ustator24 / self.Ranchor24
-	
+
 	if Train.PositionSwitch.SelectedPosition >= 3 then
 		local I1,I2 = self.Ishunt13,self.Ishunt24
 		self.Ishunt13 = -I2
@@ -398,9 +398,13 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	-- Calculate current through RT2 relay
 	self.IRT2 = math.abs(self.Itotal * Train.PositionSwitch["10_contactor"])
 	
+	-- Sane checks
+	if self.R1 > 1e5 then self.IR1 = 0 end
+	if self.R2 > 1e5 then self.IR2 = 0 end
+	
 	-- Calculate power and heating
-	local K = 12.0*1e-5 * 3.25
-	local H = (10.00+(25.00*Train.Engines.Speed/80.0))*1e-3
+	local K = 12.0*1e-5
+	local H = (10.00+(15.00*Train.Engines.Speed/80.0))*1e-3
 	self.P1 = (self.IR1^2)*self.R1
 	self.P2 = (self.IR2^2)*self.R2
 	self.T1 = (self.T1 + self.P1*K*dT - (self.T1-25)*H*dT)
@@ -428,52 +432,65 @@ function TRAIN_SYSTEM:SolvePS(Train)
 	self.R13 = Rtotal
 	self.R24 = Rtotal
 	
-	-- Calculate current through engines 13, 24
+	-- Calculate everything else
 	self.I13 = self.Itotal
 	self.I24 = self.Itotal
-	self.U13 = self.Utotal / 2
-	self.U24 = self.Utotal / 2
+	self.U13 = self.Utotal*(1/2)
+	self.U24 = self.Utotal*(1/2)
 end
 
 function TRAIN_SYSTEM:SolvePP(Train,inTransition)
 	-- Temporary hack for transition to parallel circuits
-	local extraR = inTransition and 0.909 or 0.00
+	local extraR = 0.00 --inTransition and 0.909 or 0.00
 	
 	-- Calculate total resistance of each branch
-	local Rtotal13 = self.Ranchor13 + self.Rstator13 + self.R1 + extraR + self.ExtraResistanceLK5
-	local Rtotal24 = self.Ranchor24 + self.Rstator24 + self.R2 + extraR + self.ExtraResistanceLK5
+	local R1 = self.Ranchor13 + self.Rstator13 + self.R1 + extraR + self.ExtraResistanceLK5
+	local R2 = self.Ranchor24 + self.Rstator24 + self.R2 + extraR + self.ExtraResistanceLK5
+	local R3 = 0
 	
+	-- Main circuit parameters
+	local V = self.Power750V*Train.LK1.Value
+	local E1 = Train.Engines.E13
+	local E2 = Train.Engines.E24
+
 	-- Calculate current through engines 13, 24
-	self.U13 = (self.Power750V - Train.Engines.E13)*Train.LK1.Value
-	self.U24 = (self.Power750V - Train.Engines.E24)*Train.LK1.Value
-	self.I13 = self.U13 / Rtotal13
-	self.I24 = self.U24 / Rtotal24
+	self.I13 = -((E1*R2 + E1*R3 - E2*R3 - R2*V)/(R1*R2 + R1*R3 + R2*R3))
+	self.I24 = -((E2*R1 - E1*R3 + E2*R3 - R1*V)/(R1*R2 + R1*R3 + R2*R3))
 	
 	-- Total resistance (for induction RL circuit)
-	self.R13 = Rtotal13
-	self.R24 = Rtotal24
+	self.R13 = R1
+	self.R24 = R2
 	
-	-- Calculate total current
+	-- Calculate everything else
+	self.U13 = self.I13*R1
+	self.U24 = self.I24*R2
 	self.Utotal = (self.U13 + self.U24)/2
 	self.Itotal = self.I13 + self.I24
 end
 
 function TRAIN_SYSTEM:SolvePT(Train)
-	-- Calculate total resistance of the entire braking circuit
-	local Rtotal = self.Ranchor13 + self.Ranchor24 + self.Rstator13 + self.Rstator24 +
-		self.R1 + self.R2 + self.R3 + self.ExtraResistanceLK2
-	
-	-- Calculate total current
-	self.Utotal = self.Power750V*Train.LK1.Value - 0.5*(Train.Engines.E13+Train.Engines.E24)
-	self.Itotal = self.Utotal / Rtotal
+	-- Winding resistances
+	local R1 = self.Ranchor13 + self.Rstator13
+	local R2 = self.Ranchor24 + self.Rstator24
+	-- Total resistance of the entire braking rheostat
+	local R3 = self.R1 + self.R2 + self.R3 + self.ExtraResistanceLK2
+
+	-- Main circuit parameters
+	local V = self.Power750V*Train.LK1.Value
+	local E1 = Train.Engines.E13
+	local E2 = Train.Engines.E24
+
+	-- Calculate current through engines 13, 24
+	self.I13 = -((E1*R2 + E1*R3 - E2*R3 - R2*V)/(R1*R2 + R1*R3 + R2*R3))
+	self.I24 = -((E2*R1 - E1*R3 + E2*R3 - R1*V)/(R1*R2 + R1*R3 + R2*R3))
 	
 	-- Total resistance (for induction RL circuit)
-	self.R13 = Rtotal
-	self.R24 = Rtotal
+	self.R13 = R3+((R1^-1 + R2^-1)^-1)
+	self.R24 = R3+((R1^-1 + R2^-1)^-1)
 	
-	-- Calculate current through engines 13, 24
-	self.U13 = self.Utotal
-	self.U24 = self.Utotal
-	self.I13 = self.Itotal / 2
-	self.I24 = self.Itotal / 2
+	-- Calculate everything else
+	self.U13 = self.I13*R1
+	self.U24 = self.I24*R2
+	self.Utotal = (self.U13 + self.U24)/2
+	self.Itotal = self.I13 + self.I24
 end
