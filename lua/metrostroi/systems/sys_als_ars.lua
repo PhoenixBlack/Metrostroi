@@ -4,13 +4,7 @@
 Metrostroi.DefineSystem("ALS_ARS")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
-function TRAIN_SYSTEM:Initialize()
-	-- ARS type
-	-- 1 Default
-	-- 2 Classic
-	-- 3 SPB/Kyiv
-	self.ARSType = 1
-	
+function TRAIN_SYSTEM:Initialize()	
 	-- ALS state
 	self.Signal80 = false
 	self.Signal70 = false

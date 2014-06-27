@@ -103,12 +103,12 @@ function ENT:Initialize()
 	self.Lights = {
 		-- Head
 		[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0), Color(176,161,132), fov = 100 },
-		[2] = { "glow",				Vector(460, 49,-28), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
-		[3] = { "glow",				Vector(460,-49,-28), Angle(0,0,0), Color(255,255,255), brightness = 2, scale = 3.0 },
-		[4] = { "glow",				Vector(458,-15, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
-		[5] = { "glow",				Vector(458,-5,  55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
-		[6] = { "glow",				Vector(458, 5,  55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
-		[7] = { "glow",				Vector(458, 15, 55), Angle(0,0,0), Color(255,255,255), brightness = 0.3, scale = 2.0 },
+		[2] = { "glow",				Vector(460, 49,-28), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 1.0 },
+		[3] = { "glow",				Vector(460,-49,-28), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 1.0 },
+		[4] = { "glow",				Vector(458,-15, 55), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
+		[5] = { "glow",				Vector(458,-5,  55), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
+		[6] = { "glow",				Vector(458, 5,  55), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
+		[7] = { "glow",				Vector(458, 15, 55), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
 		
 		-- Reverse
 		[8] = { "light",			Vector(458,-27, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },

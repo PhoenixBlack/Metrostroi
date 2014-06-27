@@ -40,6 +40,26 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Get random number that is same over a period of 1 minute
+--------------------------------------------------------------------------------
+local randomPeriodStart = 0
+local randomPeriodNumber = math.random()
+function Metrostroi.PeriodRandomNumber()
+	if (CurTime() - randomPeriodStart) > 60 then
+		randomPeriodNumber = math.random()
+	end
+	
+	-- Refresh the period
+	randomPeriodStart = CurTime()
+
+	-- Return number
+	return randomPeriodNumber
+end
+
+
+
+
+--------------------------------------------------------------------------------
 -- Joystick controls
 -- Author: HunterNL
 --------------------------------------------------------------------------------

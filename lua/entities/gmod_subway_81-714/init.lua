@@ -97,6 +97,10 @@ function ENT:Initialize()
 		table.insert(self.LeftDoorPositions,Vector(353.0 - 35*0.5 - 231*i,65,-1.8))
 		table.insert(self.RightDoorPositions,Vector(353.0 - 35*0.5 - 231*i,-65,-1.8))
 	end
+	
+	-- BPSN type
+	self.BPSNType = 2+math.floor(Metrostroi.PeriodRandomNumber()*5+0.5)
+	self:SetNWInt("BPSNType",self.BPSNType)
 end
 
 
