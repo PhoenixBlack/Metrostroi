@@ -220,6 +220,7 @@ function ENT:Think()
 	self:SetPackedBool(19,self.OtklAVU.Value == 1.0)
 	self:SetPackedBool(20,self.Pneumatic.Compressor == 1.0)
 	self:SetPackedBool(21,self.Pneumatic.LeftDoorState[1] > 0.5)
+	self:SetPackedBool(22,self.Pneumatic.ValveType == 2)
 	--self:SetPackedBool(22,self.Pneumatic.LeftDoorState[2] > 0.5)
 	--self:SetPackedBool(23,self.Pneumatic.LeftDoorState[3] > 0.5)
 	--self:SetPackedBool(24,self.Pneumatic.LeftDoorState[4] > 0.5)
@@ -293,10 +294,14 @@ function ENT:Think()
 	end
     
 	-- Feed packed floats
-	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/5)
+	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/7)
 	self:SetPackedRatio(1, (self.KV.ControllerPosition+3)/7)
 	self:SetPackedRatio(2, 1-(self.KV.ReverserPosition+1)/2)
-	self:SetPackedRatio(4, self.Pneumatic.ReservoirPressure/16.0)
+	if self.Pneumatic.ValveType == 1 then
+		self:SetPackedRatio(4, self.Pneumatic.ReservoirPressure/16.0)
+	else
+		self:SetPackedRatio(4, self.Pneumatic.BrakeLinePressure/16.0)	
+	end	
 	self:SetPackedRatio(5, self.Pneumatic.TrainLinePressure/16.0)
 	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
