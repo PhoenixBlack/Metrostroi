@@ -24,18 +24,19 @@
 	<tr><td><kbd>W</kbd></td><td>Controller notch up</td></tr>
 	<tr><td><kbd>S</kbd></td><td>Controller notch down</td></tr>
 	<tr><td><kbd>1</kbd></td><td>Controller to <var>X1</var> (manuvering)</td></tr>
-	<tr><td><kbd>2</kbd></td><td>Controller to <var>X2</var> (series)</td></tr>
-	<tr><td><kbd>3</kbd></td><td>Controller to <var>X3</var> (parallel)</td></tr>
+	<tr><td><kbd>2</kbd></td><td>Controller to <var>X2</var> (<var>Ezh3</var>: series, <var>81-717</var>: series-parallel)</td></tr>
+	<tr><td><kbd>3</kbd></td><td>Controller to <var>X3</var> (<var>Ezh3</var>: parallel, <var>81-717</var>: field reduction)</td></tr>
 	<tr><td><kbd>4</kbd></td><td>Controller to <var>0</var></td></tr>
 	<tr><td><kbd>5</kbd></td><td>Controller to <var>T1</var> (engage brake)</td></tr>
 	<tr><td><kbd>6</kbd></td><td>Controller to <var>T1A</var> (manual brake)</td></tr>
 	<tr><td><kbd>7</kbd></td><td>Controller to <var>T2</var> (automatic brake)</td></tr>
+	<tr><td><kbd>8</kbd></td><td>Emergency start button</td></tr>
 	<tr><td><kbd>9</kbd></td><td>Reverser notch down</td></tr>
 	<tr><td><kbd>0</kbd></td><td>Reverser notch up</td></tr>
 	<tr><td><kbd>R</kbd></td><td>Drivers valve notch down (release)</td></tr>
 	<tr><td><kbd>F</kbd></td><td>Drivers valve notch up (fill)</td></tr>
 	<tr><td><kbd>G</kbd></td><td>Reset overload relay</td></tr>
-	<tr><td><kbd>L</kbd></td><td>Headlights brightness (dim/bright)</td></tr>
+	<tr><td><kbd>L</kbd></td><td>Horn</td></tr>
 	<tr><td><kbd>A</kbd></td><td>Open left doors</td></tr>
 	<tr><td><kbd>D</kbd></td><td>Open right doors</td></tr>
 	<tr><td><kbd>V</kbd></td><td>Close all doors</td></tr>
@@ -44,22 +45,58 @@
 	<tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>DURA Select alternate path</td></tr>
 	<tr><td><kbd>Shift</kbd>+<kbd>D</kbd></td><td>DURA Select main path</td></tr>
 	<tr><td><kbd>Shift</kbd>+<kbd>V</kbd></td><td>DURA Path selection</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>7</kbd></td><td>Remove reverser wrench from the train</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>8</kbd></td><td>Put reverser wrench into emergency control</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>9</kbd></td><td>Put reverser wrench into reverser (normal control)</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>0</kbd></td><td>Automatic reverser wrench behavior (default setting)</td></tr>
 	</table>
-
-	<h3>Driver's valve positions:</h3>
-	<table class="listing">
-	<tr><td><var>1</var></td><td>Charge (fast release)</td><td>Brake line is filled from train line (select and hold R)</td></tr>
-	<tr><td><var>2</var></td><td>Driving (brake release)</td><td>Brake line and reservoir filled from train line</td></tr>
-	<tr><td><var>3</var></td><td>Closed</td><td>All valves are closed, drivers valve is disabled (no flow)</td></tr>
-	<tr><td><var>4</var></td><td>Service application</td><td>Brake line is released to atmosphere, brake cylinders fed from train line</td></tr>
-	<tr><td><var>5</var></td><td>Emergency application</td><td>Fast application of brakes (select and hold R)</td></tr>
-	</table>
+	
+	<h3>Driver's valve positions (334):</h3>
+	<figure class="infobox rightimg" id="define-signal-flashred-dop">
+		<img src="images/334.jpg" alt="" />
+		<figcaption>
+			<table class="listing">
+			<tr><td><var>1</var></td><td>Charge (fast release)</td><td>Brake line is filled from train line (select and hold R)</td></tr>
+			<tr><td><var>2</var></td><td>Driving (brake release)</td><td>Brake line and reservoir filled from train line</td></tr>
+			<tr><td><var>3</var></td><td>Closed</td><td>All valves are closed, drivers valve is disabled (no flow)</td></tr>
+			<tr><td><var>4</var></td><td>Service application</td><td>Brake line is released to atmosphere, brake cylinders fed from train line</td></tr>
+			<tr><td><var>5</var></td><td>Emergency application</td><td>Fast application of brakes (select and hold R)</td></tr>
+			</table>
+		</figcaption>
+	</figure>
+	
+	<h3>Driver's valve positions (013):</h3>
+	<figure class="infobox rightimg" id="define-signal-flashred-dop">
+		<img src="images/013.jpg" alt="" />
+		<figcaption>
+			<table class="listing">
+			<tr><td><var>1</var></td><td>Overcharge</td><td>Brake line is filled from train line (select and hold R)</td></tr>
+			<tr><td><var>2</var></td><td>Driving (brake release)</td><td>5.0 atmospheres in brake line</td></tr>
+			<tr><td><var>3</var></td><td>Application</td><td>4.3 atm in brake line</td></tr>
+			<tr><td><var>4</var></td><td>Application</td><td>4.0 atm in brake line</td></tr>
+			<tr><td><var>5</var></td><td>Application</td><td>3.7 atm in brake line</td></tr>
+			<tr><td><var>6</var></td><td>Full service application</td><td>3.0 atm in brake line, maximum normal brake effort</td></tr>
+			<tr><td><var>7</var></td><td>Full emergency application</td><td>Fastest application of brakes for emergency</td></tr>
+			</table>
+		</figcaption>
+	</figure>
 
 	<h3>Reverser positions:</h3>
 	<table class="listing">
 	<tr><td><var>forward</var></td><td>Driver's cabin has control, train will move forwards</td></tr>
 	<tr><td><var>0</var></td><td>Cabin not active and not in control</td></tr>
 	<tr><td><var>backward</var></td><td>Driver's cabin has control, train will move backwards</td></tr>
+	</table>
+
+	<h3>Emergency controller positions:</h3>
+	<aside class="info"><p>
+	Hold the emergency start button (<kbd>8</kbd>) to make the train moving under emergency control.
+	</p></aside>
+	<table class="listing">
+	<tr><td><var>0</var></td><td>Emergency control off</td></tr>
+	<tr><td><var>1</var></td><td>Same as X1</td></tr>
+	<tr><td><var>2</var></td><td>Same as X2</td></tr>
+	<tr><td><var>3</var></td><td>Same as X3 (<var>Ezh3</var> only)</td></tr>
 	</table>
 
 	<h3>Operational parameters:</h3>
@@ -103,12 +140,17 @@
 
 	<p>
 	The pneumatic braking system is controlled with the <em>driver's valve</em>.
-	It has five modes, which allow the brake cylinder to be filled or drained of air.
+	It has five modes (default #334 type valve), which allow the brake cylinder to be filled or drained of air.
 	The subway trains use fail-safe westinghouse braking system (railway air brake).
 	</p>
 	
+	<aside class="info"><p>
+	Pay attention that there are two possible driver valves available, and they are slightly different
+	in the way they are used.
+	</p></aside>
+	
 	<p>
-	The valve is used to connect or disconnect brake line and train line. For proper
+	The drivers valve is used to connect or disconnect brake line and train line. For proper
 	air braking, the valve is opened and closed until brake line pressure is at desired
 	value.
 	</p>
@@ -222,10 +264,14 @@
 		</p></aside>
 		
 		<aside class="warning"><p>
-		Always verify isolation valves (FIXME: add link to the term) positions before departing to ensure that
+		Always verify isolation valves positions before departing to ensure that
 		pneumatic system is shared for entire train.
 		</p></aside>
 
+		<aside class="info"><p>
+		Information about use of drivers valve below corresponds to valve type #334.
+		</p></aside>
+		
 		<p>
 		When pneumatic braking is not used, the driver's valve is set to position <var>2</var>.
 		This fills the brake line from the train line, which causes the two pressures to almost equalize, and so disengages the brakes.
@@ -338,10 +384,15 @@
 	</section>
 	
 	<section>
-		<h3>Dashboard</h3>
+		<h3>Dashboard (Ezh3)</h3>
 		<figure class="infobox rightimg" id="define-ezh3-dashboard">
 			<img src="images/ezh3_dashboard.jpg" alt="" />
-		</figure>		
+		</figure>
+		
+		<h3>Dashboard (81-717)</h3>
+		<figure class="infobox rightimg" id="define-ezh3-dashboard">
+			<img src="images/81-717_dashboard.jpg" alt="" />
+		</figure>
 	</section>	
 </article>
 
@@ -409,7 +460,8 @@
 		<ol>
 			<li>Close the driver's valve disconnect value (<kbd>Shift</kbd>+<kbd>L</kbd>)</li>
 			<li>Move reverser to position <var>0</var> (press <kbd>9</kbd> once).</li>
-			<li>Signal to the driver in the other head about completing this procedure by pressing and holding <var>DIP on</var> button for some time (<kbd>Shift</kbd>+<kbd>1</kbd>).</li>
+			<li><var>Ezh3:</var> Signal to the driver in the other head about completing this procedure by pressing and holding <var>DIP on</var> button (<kbd>Shift</kbd>+<kbd>1</kbd>).</li>
+			<li><var>81-717:</var> Signal to the driver in the other head about completing this procedure by using <var>Ring</var> button to give two beeps.</li>
 		</ol>
 	</section>
 	
@@ -417,6 +469,7 @@
 		<h3>Changing cabins (previously REAR head procedure):</h3>
 		<ol>
 			<li>Wait until alarm is sounded by the driver in front cabin.</li>
+			<li>Signal to driver in other cabin about receiving control.</li>
 			<li>Open the driver's valve disconnect value (<kbd>Shift</kbd>+<kbd>L</kbd>)</li>
 			<li>Move reverser to position <var>forward</var> (press <kbd>0</kbd> once).</li>
 			<li>Leave the holding dead end by starting motion of the train by moving the controller to position <var>X1</var> by pressing <kbd>1</kbd>.</li>
@@ -438,7 +491,7 @@
 
 		<p>
 		To avoid damage to the engines and discomfort of the passengers, the current through engines is limited.
-		The effective acceleration and braking of train is 1.5 m/s<sup>2</sup>.
+		The effective acceleration and braking of train is 1.2 m/s<sup>2</sup>.
 		</p>
 
 		<aside class="info"><p>
@@ -449,7 +502,7 @@
 	</section>
 	
 	<section>
-		<h3>Pneumatic braking:</h3>
+		<h3>Pneumatic braking (drivers valve 334):</h3>
 		<ol>
 			<li><strong>Always plan your braking ahead!</strong></li>
 			<li>Prepare the pneumatic brake by moving it into position 3 (press <kbd>F</kbd> once).</li>
