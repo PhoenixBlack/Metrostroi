@@ -18,7 +18,6 @@ function TOOL:LeftClick(trace)
 	if CLIENT then return true end
 	
 	local ply = self:GetOwner()
-	if (ply:IsValid()) and (not ply:IsAdmin()) then return false end
 	if not trace then return false end
 	if trace.Entity and trace.Entity:IsPlayer() then return false end
 	if not Metrostroi.IsTrainClass[trace.Entity:GetClass()] then return false end
