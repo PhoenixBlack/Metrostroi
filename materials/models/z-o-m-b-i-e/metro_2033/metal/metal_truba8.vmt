@@ -1,6 +1,5 @@
 "VertexLitGeneric"
 {
 	"$baseTexture" "z-o-m-b-i-e/metro_2033/metal/metal_truba8"
-	"$bumpmap" "z-o-m-b-i-e/metro_2033/metal/metal_truba8_norm"
 	"$surfaceprop" "metal"
 }
