@@ -98,8 +98,13 @@ end
 function TRAIN_SYSTEM:TriggerInput(name,value)
 	if name == "BrakeSet" then
 		self.DriverValvePosition = math.floor(value)
-		if self.DriverValvePosition < 1 then self.DriverValvePosition = 1 end
-		if self.DriverValvePosition > 5 then self.DriverValvePosition = 5 end
+		if self.ValveType == 1 then
+			if self.DriverValvePosition < 1 then self.DriverValvePosition = 1 end
+			if self.DriverValvePosition > 5 then self.DriverValvePosition = 5 end
+		else
+			if self.DriverValvePosition < 1 then self.DriverValvePosition = 1 end
+			if self.DriverValvePosition > 7 then self.DriverValvePosition = 7 end
+		end
 		
 		self.Train:PlayOnce("switch",true)
 	elseif (name == "BrakeUp") and (value > 0.5) then
@@ -223,50 +228,97 @@ function TRAIN_SYSTEM:Think(dT)
 	-- Feed pressure to door line
 	self.DoorLinePressure = self.TrainToBrakeReducedPressure * 0.90
 	
-	-- 1 Fill reservoir from train line, fill brake line from train line
 	local trainLineConsumption_dPdT = 0.0
-	if (self.DriverValvePosition == 1) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("ReservoirPressure", self.TrainLinePressure, 1.50)
+	if self.ValveType == 1 then
+		-- 334: 1 Fill reservoir from train line, fill brake line from train line
+		if (self.DriverValvePosition == 1) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("ReservoirPressure", self.TrainLinePressure, 1.50)
+			
+			self.BrakeLinePressure = self.ReservoirPressure
+			self.BrakeLinePressure_dPdT = self.ReservoirPressure_dPdT
+			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
+		end
 		
-		self.BrakeLinePressure = self.ReservoirPressure
-		self.BrakeLinePressure_dPdT = self.ReservoirPressure_dPdT
-		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
-	end
-	
-	-- 2 Brake line, reservoir replenished from brake line reductor
-	if (self.DriverValvePosition == 2) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("ReservoirPressure", self.TrainToBrakeReducedPressure*1.05, 1.30)
+		-- 334: 2 Brake line, reservoir replenished from brake line reductor
+		if (self.DriverValvePosition == 2) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("ReservoirPressure", self.TrainToBrakeReducedPressure*1.05, 1.30)
 
-		self.BrakeLinePressure = self.ReservoirPressure
-		self.BrakeLinePressure_dPdT = self.ReservoirPressure_dPdT
-		trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
-	end
-	
-	-- 3 Close all valves
-	if (self.DriverValvePosition == 3) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("ReservoirPressure", self.BrakeLinePressure, 3.00)
-		equalizePressure("BrakeLinePressure", self.ReservoirPressure, 3.00)
-	end
-	
-	-- 4 Reservoir open to atmosphere, brake line equalizes with reservoir
-	if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("ReservoirPressure", 0.0,0.55)--0.35)
-		self.BrakeLinePressure = self.ReservoirPressure
-		self.BrakeLinePressure_dPdT = self.ReservoirPressure_dPdT
-	end
-	
-	-- 5 Reservoir and brake line open to atmosphere
-	if (self.DriverValvePosition == 5) and (Train.DriverValveDisconnect.Value == 1.0) then
-		equalizePressure("ReservoirPressure", 0.0, 1.70)
-		self.BrakeLinePressure = self.ReservoirPressure
-		self.BrakeLinePressure_dPdT = self.ReservoirPressure_dPdT
+			self.BrakeLinePressure = self.ReservoirPressure
+			self.BrakeLinePressure_dPdT = self.ReservoirPressure_dPdT
+			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
+		end
+		
+		-- 334: 3 Close all valves
+		if (self.DriverValvePosition == 3) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("ReservoirPressure", self.BrakeLinePressure, 3.00)
+			equalizePressure("BrakeLinePressure", self.ReservoirPressure, 3.00)
+		end
+		
+		-- 334: 4 Reservoir open to atmosphere, brake line equalizes with reservoir
+		if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("ReservoirPressure", 0.0,0.55)--0.35)
+			self.BrakeLinePressure = self.ReservoirPressure
+			self.BrakeLinePressure_dPdT = self.ReservoirPressure_dPdT
+		end
+		
+		-- 334: 5 Reservoir and brake line open to atmosphere
+		if (self.DriverValvePosition == 5) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("ReservoirPressure", 0.0, 1.70)
+			self.BrakeLinePressure = self.ReservoirPressure
+			self.BrakeLinePressure_dPdT = self.ReservoirPressure_dPdT
+		end
+	else
+		-- 013: 1 Overcharge
+		if (self.DriverValvePosition == 1) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("BrakeLinePressure", self.TrainLinePressure, 1.20)
+			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
+		end
+		
+		-- 013: 2 Normal pressure
+		if (self.DriverValvePosition == 2) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*1.05, 1.20)
+			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
+		end
+		
+		-- 013: 3 4.3 Atm
+		if (self.DriverValvePosition == 3) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.86, 3.50)
+			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
+		end
+		
+		-- 013: 4 4.0 Atm
+		if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.80, 3.50)
+			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
+		end
+		
+		-- 013: 5 3.7 Atm
+		if (self.DriverValvePosition == 5) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.74, 3.50)
+			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
+		end
+		
+		-- 013: 6 3.0 Atm
+		if (self.DriverValvePosition == 6) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.60, 3.50)
+			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
+		end
+		
+		-- 013: 7 0.0 Atm
+		if (self.DriverValvePosition == 7) and (Train.DriverValveDisconnect.Value == 1.0) then
+			equalizePressure("BrakeLinePressure", 0.0, 3.50)
+			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
+		end
 	end
 	
 	
 	----------------------------------------------------------------------------
 	-- Fill brake cylinders
+	--local targetPressure = math.max(0,math.min(5.2,
+	--	1.5*(math.min(5.1,self.TrainToBrakeReducedPressure) - self.BrakeLinePressure)))
 	local targetPressure = math.max(0,math.min(5.2,
-		2*(self.TrainToBrakeReducedPressure - self.BrakeLinePressure)))
+		2.0*(self.TrainToBrakeReducedPressure - self.BrakeLinePressure)))
+
 	if math.abs(self.BrakeCylinderPressure - targetPressure) > 0.150 then
 		self.BrakeCylinderValve = 1
 	end

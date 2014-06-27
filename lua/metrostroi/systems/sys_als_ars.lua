@@ -5,6 +5,12 @@ Metrostroi.DefineSystem("ALS_ARS")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
 function TRAIN_SYSTEM:Initialize()
+	-- ARS type
+	-- 1 Default
+	-- 2 Classic
+	-- 3 SPB/Kyiv
+	self.ARSType = 1
+	
 	-- ALS state
 	self.Signal80 = false
 	self.Signal70 = false
@@ -180,9 +186,13 @@ function TRAIN_SYSTEM:Think()
 			self.PneumaticBrake2 = false
 		end
 		
+		-- Parking brake limit
+		triggerSpeed = 5.0
+		if (Train:ReadTrainWire(6) > 0) then triggerSpeed = 0.25 end
+		
 		-- Check parking brake functionality
 		self.TW1Timer = self.TW1Timer or -1e9
-		if (self.Speed < 3) and 
+		if (self.Speed < triggerSpeed) and 
 		   ((CurTime() - self.TW1Timer) > 5) and
 		   ((Train:ReadTrainWire(2) > 0) or
 		    (Train:ReadTrainWire(6) < 1)) then

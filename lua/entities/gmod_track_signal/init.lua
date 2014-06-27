@@ -77,7 +77,7 @@ function ENT:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 	self:SetSecondYellow(switchAlternate and (not self:GetRed()))
 	
 	-- Green if not alternate path selected and not red
-	self:SetGreen( not (self:GetRed() or switchBlocked or blueLight) )
+	self:SetGreen( not (self:GetRed() or switchBlocked or blueLight or switchAlternate) )
 	
 	-- Mirror green with yellow, if signal does not have green on it
 	--[[if not (
@@ -228,7 +228,7 @@ function ENT:Think()
 	local index = 1
 	local models = self.TrafficLightModels[self:GetLightsStyle()] or {}	
 	local offset = self.RenderOffset[self:GetLightsStyle()] or Vector(0,0,0)
-	for k,v in ipairs(models) do
+	for k,v in ipairs(models) do	
 		if self:GetTrafficLightsBit(k-1) and v[3] then
 			offset = offset - Vector(0,0,v[1])
 			for light,data in pairs(v[3]) do

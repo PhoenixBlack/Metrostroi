@@ -225,7 +225,7 @@ ENT.ButtonMap["DriverValveDisconnect"] = {
 	}
 }
 ENT.ButtonMap["DURA"] = {
-	pos = Vector(412.5,-58.0,-2.6),
+	pos = Vector(408,-58.0,-6.5),
 	ang = Angle(0,0,0),
 	width = 240,
 	height = 80,
@@ -318,19 +318,29 @@ ENT.ButtonMap["TrainNumber2"] = {
 
 --------------------------------------------------------------------------------
 ENT.ClientPropsInitialized = false
+--ENT.ClientProps["brake"] = {
+--	model = "models/metrostroi/81-717/brake.mdl",
+--	pos = Vector(431,-59.5,2.7),
+--	ang = Angle(0,180,0)
+--}
 ENT.ClientProps["brake"] = {
-	model = "models/metrostroi/81-717/brake.mdl",
-	pos = Vector(431,-59.5,2.7),
-	ang = Angle(0,180,0)
+	model = "models/metrostroi/81-717/brake334.mdl",
+	pos = Vector(432,-58.0,4.0),
+	ang = Angle(0,180-45,0)
+}
+ENT.ClientProps["brake334_body"] = {
+	model = "models/metrostroi/81-717/brake334_body.mdl",
+	pos = Vector(429,-57.9,1.0),
+	ang = Angle(0,0,0)
 }
 ENT.ClientProps["controller"] = {
-	model = "models/metrostroi/81-717/controller.mdl",
-	pos = Vector(446,-25,2.0),
-	ang = Angle(0,-45,90)
+	model = "models/metrostroi/81-717/ezh_controller.mdl",
+	pos = Vector(447,-26,1.8),
+	ang = Angle(0,90+45,0)
 }
 ENT.ClientProps["reverser"] = {
 	model = "models/metrostroi/81-717/reverser.mdl",
-	pos = Vector(446,-25,1.2),
+	pos = Vector(447,-26,2.5),
 	ang = Angle(0,45,90)
 }
 ENT.ClientProps["brake_disconnect"] = {
@@ -389,11 +399,6 @@ ENT.ClientProps["panellights"] = {
 	model = "models/metrostroi/81-717/switch04.mdl",
 	pos = Vector(444.1,-59.3,3.3),
 	ang = Angle(-90,0,0)
-}
-ENT.ClientProps["dura"] = {
-	model = "models/metrostroi/81-717/dura.mdl",
-	pos = Vector(420.0,-58.3,-5.0),
-	ang = Angle(0,0,90)
 }
 --------------------------------------------------------------------------------
 Metrostroi.ClientPropForButton("DIPon",{
@@ -627,10 +632,10 @@ function ENT:Think()
 
 	local transient = (self.Transient or 0)*0.05
 	if (self.Transient or 0) ~= 0.0 then self.Transient = 0.0 end
-	
-	-- Simulate pressure gauges getting stuck a little
-	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
-	self:Animate("controller",		self:GetPackedRatio(1),				0.30, 0.70,  384,24)
+
+	-- Simulate pressure gauges getting stuck a little 
+	self:Animate("brake", 			1-self:GetPackedRatio(0), 			0.00, 0.45,  256,24)
+	self:Animate("controller",		self:GetPackedRatio(1),				0.53, 0.80,  2,false)
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.20, 0.55,  4,false)
 	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38,0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
@@ -667,6 +672,7 @@ function ENT:Think()
 	self:Animate("SelectChannel",	self:GetPackedBool(31) and 1 or 0, 	0,1, 16, false)
 	self:Animate("ARS",				self:GetPackedBool(56) and 1 or 0, 	0,1, 16, false)
 	self:Animate("ALS",				self:GetPackedBool(57) and 1 or 0, 	0,1, 16, false)
+	self:Animate("KVT",				self:GetPackedBool(28) and 1 or 0, 	0,1, 16, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -687,7 +693,7 @@ function ENT:Think()
 		for k=0,1 do
 			local n_l = "door"..i.."x"..k.."a"
 			local n_r = "door"..i.."x"..k.."b"
-			local animation = self:Animate(n_l,self:GetPackedBool(21+i+4-k*4) and 1 or 0,0,1, 0.8 + (-0.2+0.4*math.random()),0)
+			local animation = self:Animate(n_l,self:GetPackedBool(21+(1-k)*4) and 1 or 0,0,1, 0.8 + (-0.2+0.4*math.random()),0)
 			local offset_l = Vector(math.abs(31*animation),0,0)
 			local offset_r = Vector(math.abs(32*animation),0,0)
 			if self.ClientEnts[n_l] then
