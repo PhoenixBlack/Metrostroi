@@ -181,9 +181,15 @@ function ENT:Think()
 		self.FrontBogey.Reversed = (self.RKR.Value > 0.5)
 		self.RearBogey.MotorForce  = 35300
 		self.RearBogey.Reversed = (self.RKR.Value < 0.5)
-	
-		self.RearBogey.MotorPower  = self.Engines.BogeyMoment
-		self.FrontBogey.MotorPower = self.Engines.BogeyMoment
+
+		-- These corrections are required to beat source engine friction at very low values of motor power
+		local A = 2*self.Engines.BogeyMoment
+		local P = math.max(0,0.04449 + 1.06879*math.abs(A) - 0.465729*A^2)
+		if math.abs(A) > 0.4 then P = math.abs(A) end
+		if math.abs(A) < 0.05 then P = 0 end
+		if self.Speed < 10 then P = P*(1.0 + 0.5*(10.0-self.Speed)/10.0) end
+		self.RearBogey.MotorPower  = P*0.5*((A > 0) and 1 or -1)
+		self.FrontBogey.MotorPower = P*0.5*((A > 0) and 1 or -1)
 		
 		-- Apply brakes
 		self.FrontBogey.PneumaticBrakeForce = 40000.0

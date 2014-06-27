@@ -23,9 +23,9 @@ function ENT:Initialize()
 	self:SetPos(self:GetPos() + Vector(0,0,140))
 	
 	-- Create seat entities
-	self.DriverSeat = self:CreateSeat("driver",Vector(410,0,-23))
-	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,37,-28))
-	self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-33,-28))
+	self.DriverSeat = self:CreateSeat("driver",Vector(410,0,-23+2))
+	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,37,-28+2))
+	self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-33,-28+2))
 
 	-- Hide seats
 	self.DriverSeat:SetColor(Color(0,0,0,0))
@@ -329,7 +329,7 @@ function ENT:Think()
 	self:SetPackedBool(19,self.OtklAVU.Value == 1.0)
 	self:SetPackedBool(20,self.Pneumatic.Compressor == 1.0)
 	self:SetPackedBool(21,self.Pneumatic.LeftDoorState[1] > 0.5)
-	--self:SetPackedBool(22,self.Pneumatic.LeftDoorState[2] > 0.5)
+	self:SetPackedBool(22,self.Pneumatic.ValveType == 2)
 	--self:SetPackedBool(23,self.Pneumatic.LeftDoorState[3] > 0.5)
 	--self:SetPackedBool(24,self.Pneumatic.LeftDoorState[4] > 0.5)
 	self:SetPackedBool(25,self.Pneumatic.RightDoorState[1] > 0.5)
@@ -352,8 +352,7 @@ function ENT:Think()
 	self:SetPackedBool(63,self.L_4.Value == 1.0)
 	self:SetPackedBool(53,self.L_5.Value == 1.0)
 	self:SetPackedBool(55,self.DoorSelect.Value == 1.0)
-	--self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
-	self:SetPackedBool(112,(self.PositionSwitch.Velocity ~= 0.0))
+	self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
 	self:SetPackedBool(113,self.KRP.Value == 1.0)
 
 	-- Signal if doors are open or no to platform simulation
@@ -427,18 +426,25 @@ function ENT:Think()
 		end
 	end
 	
+	-- Non-standard ARS logic
+	self:SetBodygroup(2,(self.ALS_ARS.ARSType or 1)-1)
+	
 	-- Total temperature
 	local IGLA_Temperature = math.max(self.Electric.T1,self.Electric.T2)
     
 	-- Feed packed floats
-	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/5)
+	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/7)
 	self:SetPackedRatio(1, (self.KV.ControllerPosition+3)/7)
 	if self.KVWrenchMode == 2 then
 		self:SetPackedRatio(2, self.KRU.Position)
 	else
 		self:SetPackedRatio(2, 1-(self.KV.ReverserPosition+1)/2)	
 	end
-	self:SetPackedRatio(4, self.Pneumatic.ReservoirPressure/16.0)
+	if self.Pneumatic.ValveType == 1 then
+		self:SetPackedRatio(4, self.Pneumatic.ReservoirPressure/16.0)
+	else
+		self:SetPackedRatio(4, self.Pneumatic.BrakeLinePressure/16.0)	
+	end	
 	self:SetPackedRatio(5, self.Pneumatic.TrainLinePressure/16.0)
 	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
@@ -467,8 +473,16 @@ function ENT:Think()
 		self.RearBogey.MotorForce  = 35300
 		self.RearBogey.Reversed = (self.RKR.Value < 0.5)
 	
-		self.RearBogey.MotorPower  = self.Engines.BogeyMoment
-		self.FrontBogey.MotorPower = self.Engines.BogeyMoment
+		-- These corrections are required to beat source engine friction at very low values of motor power
+		local A = 2*self.Engines.BogeyMoment
+		local P = math.max(0,0.04449 + 1.06879*math.abs(A) - 0.465729*A^2)
+		if math.abs(A) > 0.4 then P = math.abs(A) end
+		if math.abs(A) < 0.05 then P = 0 end
+		if self.Speed < 10 then P = P*(1.0 + 0.5*(10.0-self.Speed)/10.0) end
+		self.RearBogey.MotorPower  = P*0.5*((A > 0) and 1 or -1)
+		self.FrontBogey.MotorPower = P*0.5*((A > 0) and 1 or -1)
+		--self.Acc = (self.Acc or 0)*0.95 + self.Acceleration*0.05
+		--print(self.Acc)
 		
 		-- Apply brakes
 		self.FrontBogey.PneumaticBrakeForce = 40000.0
@@ -596,7 +610,7 @@ function ENT:OnButtonPress(button)
 		end
 		return
 	end
-	if button == "PBSet" then self:PlayOnce("switch6","cabin",0.6,100) return end
+	if button == "PBSet" then self:PlayOnce("switch6","cabin",0.55,100) return end
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
 	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
 	if button == "DURASelectAlternate" then self:PlayOnce("switch","cabin") return end
@@ -632,6 +646,7 @@ function ENT:OnButtonPress(button)
 		self:PlayOnce("switch2","cabin",0.7)
 	end
 end
+
 function ENT:OnButtonRelease(button)
 	if button == "KVT2Set" then self.KVT:TriggerInput("Open",1) end
 	if button == "KDL" then self.KDL:TriggerInput("Open",1) self:OnButtonRelease("KDLSet") end
@@ -642,12 +657,14 @@ function ENT:OnButtonRelease(button)
 		self:OnButtonRelease("KRPSet")
 	end
 	
-	if button == "PBSet" then self:PlayOnce("switch6_off","cabin",0.6,100) return end
+	if button == "PBSet" then self:PlayOnce("switch6_off","cabin",0.55,100) return end
 	if (button == "PneumaticBrakeDown") and (self.Pneumatic.DriverValvePosition == 1) then
 		self.Pneumatic:TriggerInput("BrakeSet",2)
-	end
-	if (button == "PneumaticBrakeUp") and (self.Pneumatic.DriverValvePosition == 5) then
-		self.Pneumatic:TriggerInput("BrakeSet",4)
+	end	
+	if self.Pneumatic.ValveType == 1 then
+		if (button == "PneumaticBrakeUp") and (self.Pneumatic.DriverValvePosition == 5) then
+			self.Pneumatic:TriggerInput("BrakeSet",4)
+		end
 	end
 	if button == "VUD1Set" then 
 		self:PlayOnce("switch_door_off","cabin")

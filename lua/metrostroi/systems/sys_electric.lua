@@ -304,8 +304,8 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	end
 
 	-- Calculate total resistance of engines winding
-	local RwAnchor = Train.Engines.Rw*2 -- Double because each set includes two engines
-	local RwStator = Train.Engines.Rw*2
+	local RwAnchor = Train.Engines.Rwa*2 -- Double because each set includes two engines
+	local RwStator = Train.Engines.Rws*2
 	-- Total resistance of the stator + shunt
 	self.Rstator13	= (RwStator^-1 + self.Rs1^-1)^-1
 	self.Rstator24	= (RwStator^-1 + self.Rs2^-1)^-1
@@ -381,9 +381,9 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.Ustator24 = self.I24 * self.Rstator24	
 	
 	self.Ishunt13  = self.Ustator13 / self.Rs1
-	self.Istator13 = self.Ustator13 / self.Ranchor13 -- FIXME: use stators own resistance
+	self.Istator13 = self.Ustator13 / RwStator
 	self.Ishunt24  = self.Ustator24 / self.Rs2
-	self.Istator24 = self.Ustator24 / self.Ranchor24
+	self.Istator24 = self.Ustator24 / RwStator
 
 	if Train.PositionSwitch.SelectedPosition >= 3 then
 		local I1,I2 = self.Ishunt13,self.Ishunt24

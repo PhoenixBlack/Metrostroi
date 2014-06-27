@@ -18,8 +18,8 @@ function ENT:Initialize()
 	self:SetPos(self:GetPos() + Vector(0,0,140))
 	
 	-- Create seat entities
-	self.DriverSeat = self:CreateSeat("driver",Vector(418,-45,-28))
-	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28))
+	self.DriverSeat = self:CreateSeat("driver",Vector(418,-45,-28+4))
+	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28+4))
 
 	-- Hide seats
 	self.DriverSeat:SetColor(Color(0,0,0,0))
@@ -38,7 +38,8 @@ function ENT:Initialize()
 		[KEY_5] = "KVSetT1",
 		[KEY_6] = "KVSetT1A",
 		[KEY_7] = "KVSetT2",
-		
+		[KEY_8] = "KRP",
+
 		[KEY_G] = "VozvratRPSet",
 		
 		[KEY_0] = "KVReverserUp",
@@ -48,8 +49,8 @@ function ENT:Initialize()
 		[KEY_F] = "PneumaticBrakeUp",
 		[KEY_R] = "PneumaticBrakeDown",
 		
-		[KEY_A] = "KDLSet",
-		[KEY_D] = "KDPSet",
+		[KEY_A] = "KDL",
+		[KEY_D] = "KDP",
 		[KEY_V] = "VUD1Set",
 		[KEY_L] = "HornEngage",
 		
@@ -62,6 +63,18 @@ function ENT:Initialize()
 			[KEY_1] = "DIPonSet",
 			[KEY_2] = "DIPoffSet",
 			[KEY_L] = "DriverValveDisconnectToggle",
+			
+			[KEY_7] = "KVWrenchNone",
+			[KEY_8] = "KVWrenchKRU",
+			[KEY_9] = "KVWrenchKV",
+			[KEY_0] = "KVWrench0",
+		},
+		
+		[KEY_RSHIFT] = {
+			[KEY_7] = "KVWrenchNone",
+			[KEY_8] = "KVWrenchKRU",
+			[KEY_9] = "KVWrenchKV",
+			[KEY_0] = "KVWrench0",
 		},
 	}
 	
@@ -134,16 +147,20 @@ function ENT:Initialize()
 		table.insert(self.LeftDoorPositions,Vector(353.0 - 35*0.5 - 231*i,65,-1.8))
 		table.insert(self.RightDoorPositions,Vector(353.0 - 35*0.5 - 231*i,-65,-1.8))
 	end
+	
+	-- KV wrench mode
+	self.KVWrenchMode = 0
 end
 
 
 --------------------------------------------------------------------------------
 function ENT:Think()
 	local retVal = self.BaseClass.Think(self)
-	--if not self.Panel["HeadLights1"] then return true end
 
 	-- Check if wrench was pulled out
-	if not self:IsWrenchPresent() then self.KV:TriggerInput("ReverserSet",0) end
+	if self.DriversWrenchPresent then
+		self.KV:TriggerInput("Enabled",self:IsWrenchPresent() and 1 or 0)
+	end
 
 	-- Headlights
 	local brightness = (math.min(1,self.Panel["HeadLights1"])*0.50 + 
@@ -203,13 +220,15 @@ function ENT:Think()
 	self:SetPackedBool(19,self.OtklAVU.Value == 1.0)
 	self:SetPackedBool(20,self.Pneumatic.Compressor == 1.0)
 	self:SetPackedBool(21,self.Pneumatic.LeftDoorState[1] > 0.5)
-	self:SetPackedBool(22,self.Pneumatic.LeftDoorState[2] > 0.5)
-	self:SetPackedBool(23,self.Pneumatic.LeftDoorState[3] > 0.5)
-	self:SetPackedBool(24,self.Pneumatic.LeftDoorState[4] > 0.5)
+	--self:SetPackedBool(22,self.Pneumatic.LeftDoorState[2] > 0.5)
+	--self:SetPackedBool(23,self.Pneumatic.LeftDoorState[3] > 0.5)
+	--self:SetPackedBool(24,self.Pneumatic.LeftDoorState[4] > 0.5)
 	self:SetPackedBool(25,self.Pneumatic.RightDoorState[1] > 0.5)
-	self:SetPackedBool(26,self.Pneumatic.RightDoorState[2] > 0.5)
-	self:SetPackedBool(27,self.Pneumatic.RightDoorState[3] > 0.5)
-	self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
+	--self:SetPackedBool(26,self.Pneumatic.RightDoorState[2] > 0.5)
+	--self:SetPackedBool(27,self.Pneumatic.RightDoorState[3] > 0.5)
+	self:SetPackedBool(27,self.KVWrenchMode == 2)
+	--self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
+	self:SetPackedBool(28,self.KVT.Value == 1.0)
 	self:SetPackedBool(29,self.DURA.SelectAlternate == false)
 	self:SetPackedBool(30,self.DURA.SelectAlternate == true)
 	self:SetPackedBool(31,self.DURA.Channel == 2)
@@ -304,8 +323,14 @@ function ENT:Think()
 		self.RearBogey.MotorForce  = 35300
 		self.RearBogey.Reversed = (self.RKR.Value < 0.5)
 
-		self.RearBogey.MotorPower  = self.Engines.BogeyMoment
-		self.FrontBogey.MotorPower = self.Engines.BogeyMoment
+		-- These corrections are required to beat source engine friction at very low values of motor power
+		local A = 2*self.Engines.BogeyMoment
+		local P = math.max(0,0.04449 + 1.06879*math.abs(A) - 0.465729*A^2)
+		if math.abs(A) > 0.4 then P = math.abs(A) end
+		if math.abs(A) < 0.05 then P = 0 end
+		if self.Speed < 10 then P = P*(1.0 + 0.5*(10.0-self.Speed)/10.0) end
+		self.RearBogey.MotorPower  = P*0.5*((A > 0) and 1 or -1)
+		self.FrontBogey.MotorPower = P*0.5*((A > 0) and 1 or -1)
 		
 		-- Apply brakes
 		self.FrontBogey.PneumaticBrakeForce = 40000.0
@@ -328,10 +353,91 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
+	if (self.KVWrenchMode == 2) and (button == "KVReverserUp") then
+		self.KRU:TriggerInput("Up",1)
+		self:OnButtonPress("KRUUp")
+	end
+	if (self.KVWrenchMode == 2) and (button == "KVReverserDown") then
+		self.KRU:TriggerInput("Down",1)
+		self:OnButtonPress("KRUDown")
+	end
+	if (self.KVWrenchMode == 2) and (button == "KVSetX1") then
+		self.KRU:TriggerInput("SetX1",1)
+		self:OnButtonPress("KRUSetX1")
+	end
+	if (self.KVWrenchMode == 2) and (button == "KVSetX2") then
+		self.KRU:TriggerInput("SetX2",1)
+		self:OnButtonPress("KRUSetX2")
+	end
+	if (self.KVWrenchMode == 2) and (button == "KVSetX3") then
+		self.KRU:TriggerInput("SetX3",1)
+		self:OnButtonPress("KRUSetX3")
+	end
+	if (self.KVWrenchMode == 2) and (button == "KVSet0") then
+		self.KRU:TriggerInput("Set0",1)
+		self:OnButtonPress("KRUSet0")
+	end		
+
+	if button == "KVSetT1A" then
+		if self.KV.ControllerPosition == -2 then
+			self.KV:TriggerInput("ControllerSet",-1)
+			timer.Simple(0.20,function()
+				self.KV:TriggerInput("ControllerSet",-2)			
+			end)
+		end
+	end
+	if button == "KVWrench0" then 
+		self.KVWrenchMode = 0
+		self.DriversWrenchPresent = false
+		self.DriversWrenchMissing = false
+		self.KV:TriggerInput("Enabled",1)
+		self.KRU:TriggerInput("Enabled",0)
+		self:PlayOnce("kv1","cabin",0.7,120.0)
+	end
+	if button == "KVWrenchKV" then
+		self.KVWrenchMode = 1
+		self.DriversWrenchPresent = true
+		self.DriversWrenchMissing = false
+		self.KV:TriggerInput("Enabled",1)
+		self.KRU:TriggerInput("Enabled",0)
+		self:PlayOnce("kv1","cabin",0.7,120.0)
+	end
+	if button == "KVWrenchKRU" then
+		self.KVWrenchMode = 2
+		self.DriversWrenchPresent = false
+		self.DriversWrenchMissing = true
+		self.KV:TriggerInput("Enabled",0)
+		self.KRU:TriggerInput("Enabled",1)
+		self.KRU:TriggerInput("LockX3",1)
+		self:PlayOnce("kv1","cabin",0.7,120.0)
+	end
+	if button == "KVWrenchNone" then
+		self.KVWrenchMode = 3
+		self.DriversWrenchPresent = false
+		self.DriversWrenchMissing = true
+		self.KV:TriggerInput("Enabled",0)
+		self.KRU:TriggerInput("Enabled",0)
+		self:PlayOnce("kv1","cabin",0.7,120.0)
+	end
+	if button == "KVT2Set" then self.KVT:TriggerInput("Close",1) end
+	if button == "KDL" then self.KDL:TriggerInput("Close",1) self:OnButtonPress("KDLSet") end
+	if button == "KDP" then self.KDP:TriggerInput("Close",1) self:OnButtonPress("KDPSet") end
+	if button == "VDL" then self.VDL:TriggerInput("Close",1) self:OnButtonPress("VDLSet") end
+	if button == "KRP" then 
+		self.KRP:TriggerInput("Set",1)
+		self:OnButtonPress("KRPSet")
+	end
+	
 	-- Special logic
-	if (button == "VDLSet") or (button == "KDLSet") or (button == "KDPSet") then
+	if (button == "VDL") or (button == "KDL") or (button == "KDP") then
 		self.VUD1:TriggerInput("Open",1)
 		--self.VUD2:TriggerInput("Open",1)
+	end
+	if (button == "VDL") or (button == "KDL") then
+		self.DoorSelect:TriggerInput("Open",1)
+	end
+	if (button == "KDP") then
+		self.DoorSelect:TriggerInput("Close",1)
 	end
 	if (button == "VUD1Set") or (button == "VUD1Toggle") or
 	   (button == "VUD2Set") or (button == "VUD2Toggle") then
@@ -352,24 +458,28 @@ function ENT:OnButtonPress(button)
 		end
 		return
 	end
-	if button == "PBSet" then self:PlayOnce("switch6","cabin") return end
+	if button == "PBSet" then self:PlayOnce("switch6","cabin",0.55,100) return end
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
 	if button == "DURASelectMain" then self:PlayOnce("switch","cabin") return end
 	if button == "DURASelectAlternate" then self:PlayOnce("switch","cabin") return end
 	if button == "VUD1Toggle" then 
 		if self.VUD1.Value > 0.5 then
-			self:PlayOnce("switch_door_on","cabin")
-		else
 			self:PlayOnce("switch_door_off","cabin")
+		else
+			self:PlayOnce("switch_door_on","cabin")
 		end
 		return
 	end
 	if button == "VUD2Toggle" then 
-		if self.VUD2.Value > 0.5 then
-			self:PlayOnce("switch_door_on","cabin")
-		else
+		if self.VUD1.Value > 0.5 then
 			self:PlayOnce("switch_door_off","cabin")
+		else
+			self:PlayOnce("switch_door_on","cabin")
 		end
+		return
+	end
+	if button == "VUD1Set" then 
+		self:PlayOnce("switch_door_on","cabin")
 		return
 	end
 	
@@ -380,7 +490,8 @@ function ENT:OnButtonPress(button)
 			self:PlayOnce("pneumo_disconnect1","cabin",0.9)
 		end
 	end
-	if string.find(button,"KV") then return end
+	if (not string.find(button,"KVT")) and string.find(button,"KV") then return end
+	if string.find(button,"KRU") then return end
 	if string.find(button,"Brake") then self:PlayOnce("switch","cabin") return end
 
 	-- Generic button or switch sound
@@ -391,15 +502,34 @@ function ENT:OnButtonPress(button)
 		self:PlayOnce("switch2","cabin",0.7)
 	end
 end
+
 function ENT:OnButtonRelease(button)
-	if button == "PBSet" then self:PlayOnce("switch6_off","cabin") return end
+	if button == "KVT2Set" then self.KVT:TriggerInput("Open",1) end
+	if button == "KDL" then self.KDL:TriggerInput("Open",1) self:OnButtonRelease("KDLSet") end
+	if button == "KDP" then self.KDP:TriggerInput("Open",1) self:OnButtonRelease("KDPSet") end
+	if button == "VDL" then self.VDL:TriggerInput("Open",1) self:OnButtonRelease("VDLSet") end
+	if button == "KRP" then 
+		self.KRP:TriggerInput("Set",0)
+		self:OnButtonRelease("KRPSet")
+	end
+	
+	if button == "PBSet" then self:PlayOnce("switch6_off","cabin",0.55,100) return end
 	if (button == "PneumaticBrakeDown") and (self.Pneumatic.DriverValvePosition == 1) then
 		self.Pneumatic:TriggerInput("BrakeSet",2)
 	end
-	if (button == "PneumaticBrakeUp") and (self.Pneumatic.DriverValvePosition == 5) then
-		self.Pneumatic:TriggerInput("BrakeSet",4)
+	if self.Pneumatic.ValveType == 1 then
+		if (button == "PneumaticBrakeUp") and (self.Pneumatic.DriverValvePosition == 5) then
+			self.Pneumatic:TriggerInput("BrakeSet",4)
+		end
 	end
-	if string.find(button,"KV") then return end
+	if button == "VUD1Set" then 
+		self:PlayOnce("switch_door_off","cabin")
+		return
+	end
+	
+	if (not string.find(button,"KVT")) and string.find(button,"KV") then return end
+	if string.find(button,"KRU") then return end
+
 	if string.find(button,"Set") then
 		self:PlayOnce("button_release","cabin")
 	end

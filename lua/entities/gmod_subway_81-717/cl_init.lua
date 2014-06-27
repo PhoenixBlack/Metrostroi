@@ -384,10 +384,20 @@ ENT.ButtonMap["TrainNumber2"] = {
 
 --------------------------------------------------------------------------------
 ENT.ClientPropsInitialized = false
-ENT.ClientProps["brake"] = {
+ENT.ClientProps["brake013"] = {
 	model = "models/metrostroi/81-717/brake.mdl",
 	pos = Vector(425.6,-24.8+1.5,-9.3),
 	ang = Angle(0,180,0)
+}
+ENT.ClientProps["brake334"] = {
+	model = "models/metrostroi/81-717/brake334.mdl",
+	pos = Vector(428.0,-24.8+1.5,-4),
+	ang = Angle(0,180-45,0)
+}
+ENT.ClientProps["brake334_body"] = {
+	model = "models/metrostroi/81-717/brake334_body.mdl",
+	pos = Vector(425.6,-24,-8),
+	ang = Angle(0,0,0)
 }
 ENT.ClientProps["controller"] = {
 	model = "models/metrostroi/81-717/controller.mdl",
@@ -691,8 +701,7 @@ end
 Metrostroi.ClientPropForButton("battery",{
 	panel = "Battery",
 	button = "VBToggle",	
-	model = "models/metrostroi/81-717/switch01.mdl",
-	z = -10.7,
+	model = "models/metrostroi/81-717/rc.mdl",
 })
 
 --------------------------------------------------------------------------------
@@ -760,14 +769,18 @@ function ENT:Think()
 	end
 
 	-- Simulate pressure gauges getting stuck a little
-	self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
+	self:Animate("brake334", 		1-self:GetPackedRatio(0), 			0.00, 0.65,  256,24)
+	self:Animate("brake013", 		self:GetPackedRatio(0)^0.5,			0.00, 0.65,  256,24)
 	self:Animate("controller",		1-self:GetPackedRatio(1),			0.30, 0.70,  2,false)
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.25, 0.75,  4,false)
 	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38, 0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
-	self:Animate("krureverser",		0.5+(self.KRUPos*0.5)-0.5*(self:GetPackedRatio(2)/2),		0.10, 0.90,  3,false)
+	self:Animate("krureverser",		0.5+(0.5-self.KRUPos*0.5)-0.5*(self:GetPackedRatio(2)/2),		0.10, 0.90,  3,false)
 	self:ShowHide("krureverser",	self:GetPackedBool(27))
-	
+
+	self:ShowHide("brake013",		self:GetPackedBool(22))
+	self:ShowHide("brake334",		not self:GetPackedBool(22))
+	self:ShowHide("brake334_body",	not self:GetPackedBool(22))
 
 	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
 	self:Animate("train_line",		self:GetPackedRatio(5)-transient,	0.16, 0.84,  4096,0,0.01)
@@ -780,7 +793,7 @@ function ENT:Think()
 	self:Animate("DIPon",			self:GetPackedBool(3) and 1 or 0, 	0,1, 16, false)
 	self:Animate("DIPoff",			self:GetPackedBool(4) and 1 or 0, 	0,1, 16, false)	
 	self:Animate("brake_disconnect",self:GetPackedBool(6) and 1 or 0, 	0,0.7, 3, false)
-	self:Animate("battery",			self:GetPackedBool(7) and 1 or 0, 	0,1, 16, false)
+	self:Animate("battery",			self:GetPackedBool(7) and 0.87 or 1, 	0,1, 1, false)
 	self:Animate("RezMK",			self:GetPackedBool(8) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VMK",				self:GetPackedBool(9) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VAH",				self:GetPackedBool(10) and 1 or 0, 	0,1, 16, false)
@@ -795,7 +808,7 @@ function ENT:Think()
 	self:Animate("OtklAVU",			self:GetPackedBool(19) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectMain",		self:GetPackedBool(29) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectAlternate",	self:GetPackedBool(30) and 1 or 0, 	0,1, 16, false)
-	self:Animate("SelectChannel",	self:GetPackedBool(31) and 1 or 0, 	0,1, 16, false)
+	self:Animate("SelectChannel",	self:GetPackedBool(31) and 0 or 1, 	0,1, 16, false)
 	self:Animate("ARS",				self:GetPackedBool(56) and 1 or 0, 	0,1, 16, false)
 	self:Animate("ALS",				self:GetPackedBool(57) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KVT",				self:GetPackedBool(28) and 1 or 0, 	0,1, 16, false)
@@ -895,11 +908,11 @@ function ENT:Think()
 		end
 	end
 	
-	-- PP rotation
+	-- RK rotation
 	local state = self:GetPackedBool(112)
-	self.PreviousPPState = self.PreviousPPState or false
-	if self.PreviousPPState ~= state then
-		self.PreviousPPState = state
+	self.PreviousRKState = self.PreviousRKState or false
+	if self.PreviousRKState ~= state then
+		self.PreviousRKState = state
 		if state then
 			self:SetSoundState("rk_spin",0.25,1)
 		else
