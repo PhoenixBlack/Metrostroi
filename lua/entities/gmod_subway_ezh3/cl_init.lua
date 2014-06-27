@@ -318,12 +318,12 @@ ENT.ButtonMap["TrainNumber2"] = {
 
 --------------------------------------------------------------------------------
 ENT.ClientPropsInitialized = false
---ENT.ClientProps["brake"] = {
---	model = "models/metrostroi/81-717/brake.mdl",
---	pos = Vector(431,-59.5,2.7),
---	ang = Angle(0,180,0)
---}
-ENT.ClientProps["brake"] = {
+ENT.ClientProps["brake013"] = {
+	model = "models/metrostroi/81-717/brake.mdl",
+	pos = Vector(431,-59.5,2.7),
+	ang = Angle(0,180,0)
+}
+ENT.ClientProps["brake334"] = {
 	model = "models/metrostroi/81-717/brake334.mdl",
 	pos = Vector(432,-58.0,4.0),
 	ang = Angle(0,180-45,0)
@@ -634,11 +634,16 @@ function ENT:Think()
 	if (self.Transient or 0) ~= 0.0 then self.Transient = 0.0 end
 
 	-- Simulate pressure gauges getting stuck a little 
-	self:Animate("brake", 			1-self:GetPackedRatio(0), 			0.00, 0.45,  256,24)
+	self:Animate("brake334", 		1-self:GetPackedRatio(0), 			0.00, 0.65,  256,24)
+	self:Animate("brake013", 		self:GetPackedRatio(0)^0.5,			0.00, 0.65,  256,24)
 	self:Animate("controller",		self:GetPackedRatio(1),				0.53, 0.80,  2,false)
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.20, 0.55,  4,false)
 	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38,0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
+	
+	self:ShowHide("brake013",		self:GetPackedBool(22))
+	self:ShowHide("brake334",		not self:GetPackedBool(22))
+	self:ShowHide("brake334_body",	not self:GetPackedBool(22))
 
 	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
 	self:Animate("train_line",		self:GetPackedRatio(5)-transient,	0.16, 0.84,  256,2,0.01)
