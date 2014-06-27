@@ -273,6 +273,17 @@ hook.Add("PostDrawOpaqueRenderables", "metrostroi-draw-stopmarker",function()
 	cam.End3D2D()
 end)
 
---	print(:GetTrain())
 
---end)
+
+
+--------------------------------------------------------------------------------
+-- Fix for gm_metrostroi 3D sky
+--------------------------------------------------------------------------------
+local player_state = {} 
+timer.Create("Metrostroi_3DSkyFix",1.0,0,function()
+	local player = LocalPlayer()
+	if not IsValid(player) then return end
+	if string.sub(game.GetMap(),1,13) ~= "gm_metrostroi" then return end
+	
+	RunConsoleCommand("r_3dsky", (player:GetPos().z < -1024) and "0" or "1")
+end)
