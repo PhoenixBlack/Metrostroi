@@ -602,26 +602,26 @@ for i=0,3 do
 		}
 	end
 end
-table.insert(ENT.ClientProps,{
+ENT.ClientProps["door1"] = {
 	model = "models/metrostroi/e/em508_door5.mdl",
 	pos = Vector(456.5,0.4,-3.8),
 	ang = Angle(0,0,0)
-})
-table.insert(ENT.ClientProps,{
+}
+ENT.ClientProps["door2"] = {
 	model = "models/metrostroi/e/em508_door5.mdl",
 	pos = Vector(-479.5,-0.5,-3.8),
 	ang = Angle(0,180,0)
-})
-table.insert(ENT.ClientProps,{
+}
+ENT.ClientProps["door3"] = {
 	model = "models/metrostroi/e/em508_door4.mdl",
 	pos = Vector(386.5,0.4,5.2),
 	ang = Angle(0,0,0)
-})
-table.insert(ENT.ClientProps,{
+}
+ENT.ClientProps["door4"] = {
 	model = "models/metrostroi/e/em508_door3.mdl",
 	pos = Vector(425.6,65.2,-2.2),
 	ang = Angle(0,0,0)
-})
+}
 
 
 
@@ -698,12 +698,18 @@ function ENT:Think()
 			local offset_r = Vector(math.abs(32*animation),0,0)
 			if self.ClientEnts[n_l] then
 				self.ClientEnts[n_l]:SetPos(self:LocalToWorld(self.ClientProps[n_l].pos + (1.0 - 2.0*k)*offset_l))
+				self.ClientEnts[n_l]:SetSkin(self:GetSkin())
 			end
 			if self.ClientEnts[n_r] then
 				self.ClientEnts[n_r]:SetPos(self:LocalToWorld(self.ClientProps[n_r].pos - (1.0 - 2.0*k)*offset_r))
+				self.ClientEnts[n_r]:SetSkin(self:GetSkin())
 			end
 		end
 	end
+	if self.ClientEnts["door1"] then self.ClientEnts["door1"]:SetSkin(self:GetSkin()) end
+	if self.ClientEnts["door2"] then self.ClientEnts["door2"]:SetSkin(self:GetSkin()) end
+	if self.ClientEnts["door3"] then self.ClientEnts["door3"]:SetSkin(self:GetSkin()) end
+	if self.ClientEnts["door4"] then self.ClientEnts["door4"]:SetSkin(self:GetSkin()) end
 
 	
 	-- Brake-related sounds

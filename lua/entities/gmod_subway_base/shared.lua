@@ -84,6 +84,10 @@ function ENT:InitializeSounds()
 
 	self.SoundNames["bpsn1"] 		= "subway_trains/bpsn_1.wav"
 	self.SoundNames["bpsn2"] 		= "subway_trains/bpsn_2.wav"
+	self.SoundNames["bpsn3"] 		= "subway_trains/bpsn_3.wav"
+	self.SoundNames["bpsn4"] 		= "subway_trains/bpsn_4.wav"
+	self.SoundNames["bpsn5"] 		= "subway_trains/bpsn_5.wav"
+	self.SoundNames["bpsn6"] 		= "subway_trains/bpsn_6.wav"
 	
 	self.SoundNames["release1"]		= "subway_trains/release_1.wav"
 	self.SoundNames["release2"]		= "subway_trains/release_2.wav"

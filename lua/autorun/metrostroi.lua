@@ -43,11 +43,13 @@ if not Metrostroi then
 	
 	-- Supported train classes
 	Metrostroi.TrainClasses = {}
+	Metrostroi.IsTrainClass = {}
 	timer.Simple(0.05, function() 
 		for name,ent_base in pairs(scripted_ents.GetList()) do
 			local prefix = "gmod_subway_"
 			if string.sub(name,1,#prefix) == prefix then
 				table.insert(Metrostroi.TrainClasses,name)
+				Metrostroi.IsTrainClass[name] = true
 			end
 		end
 	end)
@@ -62,7 +64,7 @@ end
 -- Load core files
 --------------------------------------------------------------------------------
 if SERVER then
-	DISABLE_TURBOSTROI = true
+	DISABLE_TURBOSTROI = false
 	if not DISABLE_TURBOSTROI then
 		print("Metrostroi: Trying to load simulation acceleration DLL...")
 		
