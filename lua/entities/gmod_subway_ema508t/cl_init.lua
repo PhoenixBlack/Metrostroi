@@ -222,17 +222,18 @@ function ENT:Think()
 		end
 	end
 	self:SetSoundState("compressor",state and 1 or 0,1)
-
-	-- PP rotation
-	local state = self:GetPackedBool(112)
-	self.PreviousPPState = self.PreviousPPState or false
-	if self.PreviousPPState ~= state then
-		self.PreviousPPState = state
+	
+	-- RK rotation
+	if self:GetPackedBool(112) then self.RKTimer = CurTime() end
+	local state = (CurTime() - (self.RKTimer or 0)) < 0.2
+	self.PreviousRKState = self.PreviousRKState or false
+	if self.PreviousRKState ~= state then
+		self.PreviousRKState = state
 		if state then
 			self:SetSoundState("rk_spin",0.25,1)
 		else
 			self:SetSoundState("rk_spin",0,0)
-			self:PlayOnce("rk_stop",nil,0.72)
+			self:PlayOnce("rk_stop",nil,0.72)		
 		end
 	end
 	

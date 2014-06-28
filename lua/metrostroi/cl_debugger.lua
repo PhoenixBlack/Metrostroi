@@ -126,6 +126,7 @@ Debugger.DisplayGroups["Control Relays"] = {
 		{"RUTValue","%.0f",""},
 		{"SR1Value","%.0f",""},
 		{"RV1Value","%.0f",""},
+		{"RRValue","%.0f",""},
 		
 		{"Cabin","Relays:",""},
 		{"R1_5Value","%.0f",""},

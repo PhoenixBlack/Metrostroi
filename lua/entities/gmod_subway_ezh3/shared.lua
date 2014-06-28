@@ -25,6 +25,8 @@ function ENT:InitializeSounds()
 		"subway_trains/pneumo_8.wav",
 		"subway_trains/pneumo_9.wav",
 	}
+	self.SoundNames["rk_spin"]		= "subway_trains/rk_3.wav"
+	self.SoundNames["rk_stop"]		= "subway_trains/rk_4.wav"
 end
 
 function ENT:InitializeSystems()	
