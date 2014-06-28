@@ -7,9 +7,9 @@ function TRAIN_SYSTEM:Initialize()
 	-- Реле перегрузки (РПЛ)
 	self.Train:LoadSystem("RPL","Relay","RM3001")
 	-- Групповое реле перегрузки 1-3 (РП1-3)
-	self.Train:LoadSystem("RP1_3","Relay","RM3001",{ trigger_level = 630 })
+	self.Train:LoadSystem("RP1_3","Relay","RM3001",{ trigger_level = 760 }) --630 })
 	-- Групповое реле перегрузки 2-4 (РП2-4)
-	self.Train:LoadSystem("RP2_4","Relay","RM3001",{ trigger_level = 630 })
+	self.Train:LoadSystem("RP2_4","Relay","RM3001",{ trigger_level = 760 }) --630 })
 	
 	-- Нулевое реле (НР)
 	--   Does not use any power source defined, as the operation is calculated from bus voltage

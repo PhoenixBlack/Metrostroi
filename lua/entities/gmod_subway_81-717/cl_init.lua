@@ -123,12 +123,21 @@ ENT.ButtonMap["ARS"] = {
 	}
 }
 
+-- ARS/Speedometer panel (Kyiv version)
+ENT.ButtonMap["ARSKyiv"] = {
+	pos = Vector(448.32,11.0,7.84),
+	ang = Angle(0,-90-0.2,56.3),
+	width = 300*10,
+	height = 110*10,
+	scale = 0.0625/10,
+}
+
 -- AV panel
 ENT.ButtonMap["AV"] = {
 	pos = Vector(387.0,-8.0,44.5),
 	ang = Angle(0,90,90),
-	width = 520,
-	height = 550,
+	width = 590,
+	height = 580,
 	scale = 0.0625,
 	
 	buttons = {
@@ -914,7 +923,8 @@ function ENT:Think()
 	end
 	
 	-- RK rotation
-	local state = self:GetPackedBool(112)
+	if self:GetPackedBool(112) then self.RKTimer = CurTime() end
+	local state = (CurTime() - (self.RKTimer or 0)) < 0.2
 	self.PreviousRKState = self.PreviousRKState or false
 	if self.PreviousRKState ~= state then
 		self.PreviousRKState = state
@@ -950,7 +960,7 @@ function ENT:Draw()
 		self:DrawDigit((51+0) *10,	29*10, d2, 0.75, 0.60)
 		self:DrawDigit((51+11)*10,	29*10, d1, 0.75, 0.60)
 	end)
-	self:DrawOnPanel("ARS",function()
+	self:DrawOnPanel("ARSKyiv",function()
 		if self:GetNWInt("ARSType",1) ~= 3 then return end
 		if not self:GetPackedBool(32) then return end
 		

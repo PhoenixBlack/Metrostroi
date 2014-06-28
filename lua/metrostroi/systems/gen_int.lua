@@ -770,7 +770,8 @@ BaseNetwork = {
 	{	"F13",		"0",		"#I[HeadLights2]" },
 	{	"F13",		"0",		"#I[HeadLights3]" },
 	
-	{	"C3",		"11B",		"!NR" },
+	{	"C3",		"11B",		"!NR", "Ezh3"},
+	{	"C3",		"11B",		"0", "81_717"},
 	{	"11B",		"0",		"#I[Ring]" },
 	{	"27A",		"11B",		"1", "Ezh3" },
 	{	"TW[28]",	"11B",		"1", "81_717" },
@@ -819,7 +820,7 @@ BaseNetwork = {
 	{	"1Zh",	"0",	"#LK3" },
 	{	"1K",	"0",	"#LK1" },
 	{	"1N",	"0",	"#RR" },
-	
+
 	{	"1A",	"1V",	"!RV1" },
 	{	"1V",	"1R",	"!PS" },
 	{	"1A",	"1M",	"!RK1-5" },
@@ -1152,6 +1153,8 @@ AddToNodes = {
 	{ "8", "Train.ALS_ARS[\"8\"]" },
 	{ "20", "Train.ALS_ARS[\"20\"]" },
 	{ "29", "Train.ALS_ARS[\"29\"]" },
+	
+	--{ "1N","S[\"B2\"]*C((P == 1) or (P == 3))*C((RK >= 11) and (RK <= 18))*(1.0-Train.LK4.Value)" },
 	
 	{ "1", "(-10*Train.KRU[\"1/3-ZM31\"])" },
 	{ "2", "(-10*Train.KRU[\"2/3-ZM31\"])" },
@@ -1536,6 +1539,8 @@ Drains = { "0" }
 AddToNodes = {
 	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
 	{ "U0a", "(-10*S[\"10AN\"])" },
+	
+	--{ "1N","S[\"B2\"]*C((P == 1) or (P == 3))*C((RK >= 11) and (RK <= 18))*(1.0-Train.LK4.Value)" },
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes

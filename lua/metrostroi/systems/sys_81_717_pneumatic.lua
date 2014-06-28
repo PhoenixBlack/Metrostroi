@@ -27,7 +27,7 @@ function TRAIN_SYSTEM:Initialize()
 	-- Pressure in reservoir
 	self.ReservoirPressure = 0.0 -- atm
 	-- Pressure in trains feed line
-	self.TrainLinePressure = 7.0 -- atm
+	self.TrainLinePressure = 8.0 -- atm
 	-- Pressure in trains brake line
 	self.BrakeLinePressure = 0.0 -- atm
 	-- Pressure in brake cylinder
@@ -276,37 +276,37 @@ function TRAIN_SYSTEM:Think(dT)
 		
 		-- 013: 2 Normal pressure
 		if (self.DriverValvePosition == 2) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*1.05, 1.20)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*1.05, 4.50)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 3 4.3 Atm
 		if (self.DriverValvePosition == 3) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.86, 3.50)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.86, 4.50)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 4 4.0 Atm
 		if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.80, 3.50)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.80, 4.50)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 5 3.7 Atm
 		if (self.DriverValvePosition == 5) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.74, 3.50)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.74, 4.50)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 6 3.0 Atm
 		if (self.DriverValvePosition == 6) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.60, 3.50)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.60, 4.50)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 7 0.0 Atm
 		if (self.DriverValvePosition == 7) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", 0.0, 3.50)
+			equalizePressure("BrakeLinePressure", 0.0, 4.50)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 	end

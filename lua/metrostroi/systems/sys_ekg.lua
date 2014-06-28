@@ -83,6 +83,7 @@ function TRAIN_SYSTEM:Think(dT)
 	self.Position = self.Position + math.min(threshold*0.5,self.Velocity * dT)
 	
 	-- Limit motor from moving too far
+	--self.WrapsAround = true
 	if not self.WrapsAround then
 		if self.Position > self.MaxPosition+0.1 then
 			self.Position = self.MaxPosition+0.1
