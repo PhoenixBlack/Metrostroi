@@ -932,10 +932,6 @@ function ENT:Think()
 	
 	-- DIP sound
 	self:SetSoundState("bpsn"..self:GetNWInt("BPSNType",1),self:GetPackedBool(52) and 1 or 0,1.0)
-	
-	-- Skin and bodygroup
-	self:SetBodygroup(2,self:GetNWInt("ARSType",1)-1)
-	self:SetSkin(self:GetNWInt("Skin",0))
 end
 
 function ENT:Draw()
