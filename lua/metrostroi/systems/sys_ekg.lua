@@ -96,8 +96,8 @@ function TRAIN_SYSTEM:Think(dT)
 			self.MotorState = 0.0
 		end
 	else
-		if self.Position > self.MaxPosition+0.1 then self.Position = 0.9 end
-		if self.Position < 0.9  then self.Position = self.MaxPosition+0.1 end
+		if self.Position > self.MaxPosition+1.0 then self.Position = -1.0 end
+		if self.Position < -1.0  then self.Position = self.MaxPosition+1.0 end
 	end
 	
 	-- Update position contactors

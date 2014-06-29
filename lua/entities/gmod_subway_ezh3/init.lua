@@ -236,7 +236,7 @@ function ENT:Think()
 	self:SetPackedBool(56,self.ARS.Value == 1.0)
 	self:SetPackedBool(57,self.ALS.Value == 1.0)
 	self:SetPackedBool(58,self.Panel["CabinLight"] > 0.5)
-	self:SetPackedBool(112,(self.PositionSwitch.Velocity ~= 0.0))
+	self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -439,10 +439,10 @@ function ENT:OnButtonPress(button)
 		--self.VUD2:TriggerInput("Open",1)
 	end
 	if (button == "VDL") or (button == "KDL") then
-		self.DoorSelect:TriggerInput("Open",1)
+		--self.DoorSelect:TriggerInput("Open",1)
 	end
 	if (button == "KDP") then
-		self.DoorSelect:TriggerInput("Close",1)
+		--self.DoorSelect:TriggerInput("Close",1)
 	end
 	if (button == "VUD1Set") or (button == "VUD1Toggle") or
 	   (button == "VUD2Set") or (button == "VUD2Toggle") then

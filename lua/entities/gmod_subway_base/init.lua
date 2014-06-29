@@ -563,8 +563,14 @@ function ENT:WriteTrainWire(k,v)
 	-- Record us as last writer
 	if wrote and (allowed_write or can_write) then
 		self.TrainWireWriters[k] = self.TrainWireWriters[k] or {}
+		local prev_t = self.TrainWireWriters[k].t or (-1e9)
+		local prev_e = self.TrainWireWriters[k].e
 		self.TrainWireWriters[k].t = CurTime()
 		self.TrainWireWriters[k].e = self
+		
+		if (prev_e ~= self) and ((CurTime() - prev_t) < 0.1) and allowed_write then
+			self:OnTrainWireError(k)
+		end
 	end
 end
 

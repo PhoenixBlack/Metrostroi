@@ -136,7 +136,7 @@ function ENT:Think()
 	self:SetPackedBool(26,self.Pneumatic.RightDoorState[2] > 0.5)
 	self:SetPackedBool(27,self.Pneumatic.RightDoorState[3] > 0.5)
 	self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
-	self:SetPackedBool(112,(self.PositionSwitch.Velocity ~= 0.0))
+	self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -170,7 +170,11 @@ function ENT:Think()
 	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
 	self:SetPackedRatio(8, math.abs(self.Electric.I24)/1000.0)	
-	self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
+	if self.Pneumatic.TrainLineOpen then
+		self:SetPackedRatio(9, (self.Pneumatic.TrainLinePressure_dPdT or 0)*6)
+	else
+		self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
+	end
 	self:SetPackedRatio(10,(self.VB.Value * self.Battery.Voltage) / 120.0)
 
 	-- RUT test
