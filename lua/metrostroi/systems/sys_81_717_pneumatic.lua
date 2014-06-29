@@ -84,6 +84,7 @@ function TRAIN_SYSTEM:Initialize()
 	
 	self.PlayOpen = 1e9
 	self.PlayClosed = 1e9
+	self.TrainLineOpen = false
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -149,7 +150,7 @@ function TRAIN_SYSTEM:UpdatePressures(Train,dT)
 	end
 	
 	-- Calculate derivatives
-	local function equalizePressure(pressure,train,valve_status,rate)
+	local function equalizePressure(pressure,train,valve_status,rate,close_rate)
 		if not valve_status then return end
 		local other
 		if train then other = train.Pneumatic end
@@ -157,6 +158,11 @@ function TRAIN_SYSTEM:UpdatePressures(Train,dT)
 		-- Get second pressure
 		local P2 = 0
 		if other then P2 = other[pressure] end
+		if (not other) and (valve_status) then
+			self.TrainLineOpen = (pressure == "TrainLinePressure")
+			rate = close_rate or rate
+			--self.TrainLinePressure_dPdT = 0.0
+		end
 		
 		-- Calculate rate
 		local dPdT = rate * (P2 - self[pressure])
@@ -178,13 +184,18 @@ function TRAIN_SYSTEM:UpdatePressures(Train,dT)
 				other[pressure] = math.min(P0,other[pressure] - dP)
 			end
 		end
+		-- Update delta if losing air
+		if self.TrainLineOpen and (pressure == "TrainLinePressure") then
+			self[pressure.."_dPdT"] = (self[pressure.."_dPdT"] or 0) + dPdT
+		end
 	end
 	
 	-- Equalize pressure
+	self.TrainLineOpen = false
 	equalizePressure("BrakeLinePressure",Train.FrontTrain,frontBrakeOpen,200.0)
 	equalizePressure("BrakeLinePressure",Train.RearTrain,rearBrakeOpen,200.0)
-	equalizePressure("TrainLinePressure",Train.FrontTrain,frontBrakeOpen,200.0)
-	equalizePressure("TrainLinePressure",Train.RearTrain,rearBrakeOpen,200.0)
+	equalizePressure("TrainLinePressure",Train.FrontTrain,frontBrakeOpen,200.0,0.08)
+	equalizePressure("TrainLinePressure",Train.RearTrain,rearBrakeOpen,200.0,0.08)
 end
 
 
@@ -195,13 +206,13 @@ function TRAIN_SYSTEM:Think(dT)
 	local Train = self.Train
 	
 	-- Apply specific rate to equalize pressure
-	local function equalizePressure(pressure,target,rate,fill_rate,no_limit)
+	local function equalizePressure(pressure,target,rate,fill_rate,no_limit,smooth)
 		if fill_rate and (target > self[pressure]) then rate = fill_rate end
 		
 		-- Calculate derivative
 		local dPdT = rate
 		if target < self[pressure] then dPdT = -dPdT end
-		local dPdTramp = math.min(1.0,math.abs(target - self[pressure])*0.5)
+		local dPdTramp = math.min(1.0,math.abs(target - self[pressure])*(smooth or 0.5))
 		dPdT = dPdT*dPdTramp
 
 		-- Update pressure
@@ -270,43 +281,43 @@ function TRAIN_SYSTEM:Think(dT)
 	else
 		-- 013: 1 Overcharge
 		if (self.DriverValvePosition == 1) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainLinePressure, 1.20)
+			equalizePressure("BrakeLinePressure", self.TrainLinePressure, 1.30)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 2 Normal pressure
 		if (self.DriverValvePosition == 2) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*1.05, 4.50)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*1.05, 8.50, nil, 8.0)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 3 4.3 Atm
 		if (self.DriverValvePosition == 3) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.86, 4.50)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.86, 8.50, nil, 8.0)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 4 4.0 Atm
 		if (self.DriverValvePosition == 4) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.80, 4.50)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.80, 8.50, nil, 8.0)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 5 3.7 Atm
 		if (self.DriverValvePosition == 5) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.74, 4.50)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.74, 8.50, nil, 8.0)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 6 3.0 Atm
 		if (self.DriverValvePosition == 6) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.60, 4.50)
+			equalizePressure("BrakeLinePressure", self.TrainToBrakeReducedPressure*0.60, 8.50, nil, 8.0)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		
 		-- 013: 7 0.0 Atm
 		if (self.DriverValvePosition == 7) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", 0.0, 4.50)
+			equalizePressure("BrakeLinePressure", 0.0, 3.50)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 	end
@@ -326,7 +337,11 @@ function TRAIN_SYSTEM:Think(dT)
 		self.BrakeCylinderValve = 0
 	end
 	if self.BrakeCylinderValve == 1 then
-		equalizePressure("BrakeCylinderPressure", targetPressure, 2.00, 3.50) --0.75, 1.25)
+		--if self.DriversValve == 1 then
+			--equalizePressure("BrakeCylinderPressure", targetPressure, 2.00, 3.50, nil, 1.0) --0.75, 1.25)
+		--else
+			equalizePressure("BrakeCylinderPressure", targetPressure, 2.00, 6.50, nil, 1.0) --0.75, 1.25)
+		--end
 	end
 	
 	-- Valve #1

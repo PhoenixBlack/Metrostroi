@@ -331,9 +331,8 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 	self.I24SH = self.I24SH or self.I24
 	
 	-- Time constant
-	local T13const1 = math.max(0.1,math.min(28.0,self.R13 * 6.0)) -- R * L
-	local T24const1 = math.max(0.1,math.min(28.0,self.R24 * 6.0)) -- R * L
-	--print(T13const1)
+	local T13const1 = math.max(16.00,math.min(28.0,(self.R13^2) * 2.0)) -- R * L
+	local T24const1 = math.max(16.00,math.min(28.0,(self.R24^2) * 2.0)) -- R * L
 	
 	-- Total change
 	local dI13dT = T13const1 * (self.I13 - self.I13SH) * dT

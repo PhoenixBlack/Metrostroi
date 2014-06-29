@@ -64,10 +64,11 @@ function ENT:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 	end
 	
 	-- Red if track occupied, switch section is blocked (occupied), or always red
-	self:SetRed(trackOccupied or switchBlocked or self:GetAlwaysRed() or self.OverrideTrackOccupied)
+	self.RedState = trackOccupied or switchBlocked or self:GetAlwaysRed() or self.OverrideTrackOccupied
+	self:SetRed(self.RedState or (self.ARSOnly and (self.SpeedLimit == 0)))
 	
 	-- Use normal logic or ARS-only logic
-	self:SetBlue(self.ARSOnly and (not self:GetRed()) and (not switchAlternate))
+	self:SetBlue(self.ARSOnly and (not self.RedState) and (not switchAlternate))
 	local blueLight = self.ARSOnly and 
 		(self:GetTrafficLightsBit(3) or self:GetTrafficLightsBit(7) or self.ARSNoGreen)
 	
@@ -142,7 +143,7 @@ function ENT:ARSLogic()
 		
 		-- Reset to zero when traffic light is red
 		self.NextRed = false
-		if nextARS and nextARS:GetRed() then
+		if nextARS and nextARS.RedState then
 			self.NextRed = true
 			speedLimit = 0
 		end

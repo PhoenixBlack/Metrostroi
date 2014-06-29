@@ -19,9 +19,9 @@ function ENT:Initialize()
 	self:SetPos(self:GetPos() + Vector(0,0,140))
 	
 	-- Create seat entities
-	self.DriverSeat = self:CreateSeat("driver",Vector(410,0,-23+2))
-	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,37,-28+2))
-	self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-33,-28+2))
+	self.DriverSeat = self:CreateSeat("driver",Vector(410,0,-23+2.5))
+	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,44,-28+4))
+	self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-40,-28+1))
 
 	-- Hide seats
 	self.DriverSeat:SetColor(Color(0,0,0,0))
@@ -246,7 +246,7 @@ function ENT:Think()
 	if self.DriversWrenchPresent then
 		self.KV:TriggerInput("Enabled",self:IsWrenchPresent() and 1 or 0)
 	end
-
+	
 	-- Headlights
 	local brightness = (math.min(1,self.Panel["HeadLights1"])*0.50 + 
 						math.min(1,self.Panel["HeadLights2"])*0.25 + 
@@ -499,7 +499,11 @@ function ENT:Think()
 	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
 	self:SetPackedRatio(8, 0.5 + 0.5*(self.Electric.I24/500.0))
-	self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
+	if self.Pneumatic.TrainLineOpen then
+		self:SetPackedRatio(9, (self.Pneumatic.TrainLinePressure_dPdT or 0)*6)
+	else
+		self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
+	end
 	self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 150.0)
 	self:SetPackedRatio(11,IGLA_Temperature)
 
@@ -735,5 +739,12 @@ function ENT:OnCouple(train,isfront)
 	if isfront 
 	then self.FrontBrakeLineIsolation:TriggerInput("Open",1.0)
 	else self.RearBrakeLineIsolation:TriggerInput("Open",1.0)
+	end
+end
+
+function ENT:OnTrainWireError(k)
+	if k == 4 then
+		--self.VU:TriggerInput("Open",1.0)
+		--self:PlayOnce("av_off","cabin")
 	end
 end
