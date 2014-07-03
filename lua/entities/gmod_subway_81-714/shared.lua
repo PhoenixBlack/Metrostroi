@@ -55,4 +55,5 @@ function ENT:InitializeSystems()
 	-- Everything else
 	self:LoadSystem("Battery")
 	self:LoadSystem("PowerSupply","BPSN")
+	self:LoadSystem("Announcer")
 end

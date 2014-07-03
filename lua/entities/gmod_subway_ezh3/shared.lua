@@ -76,4 +76,5 @@ function ENT:InitializeSystems()
 	self:LoadSystem("DURA")
 	self:LoadSystem("ALS_ARS")
 	self:LoadSystem("Horn")
+	self:LoadSystem("Announcer")
 end
