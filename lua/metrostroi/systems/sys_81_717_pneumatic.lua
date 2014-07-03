@@ -345,11 +345,12 @@ function TRAIN_SYSTEM:Think(dT)
 	end
 	
 	-- Valve #1
-	self.BrakeCylinderRegulationError = self.BrakeCylinderRegulationError or (math.random()*0.10 - 0.05)
+	self.BrakeCylinderRegulationError = self.BrakeCylinderRegulationError or (math.random()*0.20 - 0.10)
 	local error = self.BrakeCylinderRegulationError
 	local pneumaticValveConsumption_dPdT = 0
 	if (self.Train.PneumaticNo1.Value == 1.0) and (self.Train.PneumaticNo2.Value == 0.0) then
-		equalizePressure("BrakeCylinderPressure", self.TrainLinePressure * 0.26 + error, 1.00, 5.50)
+		local PN1 = math.min(self.TrainLinePressure,(1.2 + error)*1.7)
+		equalizePressure("BrakeCylinderPressure", PN1, 1.00, 5.50)
 		pneumaticValveConsumption_dPdT = pneumaticValveConsumption_dPdT + self.BrakeCylinderPressure_dPdT
 	end
 	-- Valve #2

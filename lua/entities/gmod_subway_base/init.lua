@@ -40,7 +40,7 @@ function ENT:Initialize()
 	end
 
 	-- Initialize wire interface
-	self.WireIOSystems = self.WireIOSystems or { "KV", "ALS_ARS", "DURA", "Pneumatic" }
+	self.WireIOSystems = self.WireIOSystems or { "KV", "ALS_ARS", "DURA", "Pneumatic", "Announcer" }
 	self.WireIOIgnoreList = self.WireIOIgnoreList or {
 		"ALS_ARS2", "ALS_ARS8", "ALS_ARS20", "ALS_ARS31", "ALS_ARS32",
 		"ALS_ARS29", "ALS_ARS33D", "ALS_ARS33G", "ALS_ARS33Zh",
@@ -478,6 +478,11 @@ function ENT:WriteCell(Address, value)
 	if self.HighspeedLayout[Address] then
 		self.HighspeedLayout[Address](value)
 		return true
+	end
+	if Address == 49164 then
+		if self.Announcer then
+			self.Announcer:Queue(value)
+		end
 	end
 	if Address >= 65536 then
 		local wagonIndex = 1+math.floor(Address/65536)

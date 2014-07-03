@@ -1,7 +1,7 @@
 ﻿ENT.Type            = "anim"
 ENT.Base            = "gmod_subway_base"
 
-ENT.PrintName       = "Ema508T"
+ENT.PrintName       = "Em508T"
 ENT.Author          = ""
 ENT.Contact         = ""
 ENT.Purpose         = ""
@@ -63,4 +63,5 @@ function ENT:InitializeSystems()
 	-- Everything else
 	self:LoadSystem("Battery")
 	self:LoadSystem("PowerSupply","BPSN")
+	self:LoadSystem("Announcer")
 end
