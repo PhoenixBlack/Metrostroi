@@ -225,6 +225,7 @@ function ENT:SetSoundState(sound,volume,pitch,timeout)
 				if IsValid(ent) then
 					self.Sounds[sound] = CreateSound(ent, Sound(name))
 				else
+					self.SoundPositions[sound] = nil
 					return
 				end
 			else
