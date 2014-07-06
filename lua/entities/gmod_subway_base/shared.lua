@@ -96,6 +96,9 @@ function ENT:InitializeSounds()
 	self.SoundPositions["release2"] = "cabin"
 	self.SoundPositions["release3"] = "cabin"
 	
+	self.SoundNames["release2_w"]	= "subway_trains/release_2.wav"
+	self.SoundNames["release3_w"]	= "subway_trains/release_3.wav"
+	
 	self.SoundNames["horn1"] 		= "subway_trains/horn_1.wav"
 	self.SoundNames["horn1_end"] 	= "subway_trains/horn_2.wav"
 	self.SoundNames["horn2"] 		= "subway_trains/horn_3a.wav"
@@ -226,8 +229,6 @@ function ENT:SetSoundState(sound,volume,pitch,timeout)
 				if IsValid(ent) then
 					self.Sounds[sound] = CreateSound(ent, Sound(name))
 				else
-					--self.SoundPositions[sound] = nil
-					--if sound ==
 					return
 				end
 			else
