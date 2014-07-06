@@ -6,6 +6,8 @@ function ENT:ReinitializeSounds()
 	-- Bogey-related sounds
 	self.SoundNames = {}
 	self.SoundNames["engine"]		= "subway_trains/engine_1.wav"
+	self.SoundNames["engine5"]		= "subway_trains/engine_5.wav"
+	self.SoundNames["engine6"]		= "subway_trains/engine_6.wav"
 	self.SoundNames["run1"]			= "subway_trains/run_1.wav"
 	self.SoundNames["run2"]			= "subway_trains/run_2.wav"
 	self.SoundNames["run3"]			= "subway_trains/run_3.wav"
@@ -80,18 +82,29 @@ function ENT:Think()
 	local dPdT = self:GetdPdT()
 	
 	-- Engine sound
-	if (speed > 1.0) and (math.abs(motorPower) > 0.0) then
+	--speed = 40
+	--motorPower = 1.0
+	if (speed > 1.0) and (math.abs(motorPower) >= 0.0) then
+		local t = RealTime()*2.5
+		local modulation = 1.5*math.max(0,0.2+math.sin(t)*math.sin(t*3.12)*math.sin(t*0.24)*math.sin(t*4.0))
+		local mod2 = 1.0-math.min(1.0,(math.abs(motorPower)/0.1))
 		local startVolRamp = 0.2 + 0.8*math.max(0.0,math.min(1.0,(speed - 1.0)*0.5))
-		local powerVolRamp = 0.2 + (math.abs(motorPower)^2)
+		local powerVolRamp = 0.3*modulation*mod2 + 2.0*(math.abs(motorPower)^2)
 		--math.max(0.3,math.min(1.0,math.abs(motorPower)))
 
 		local k,x = 1.0,math.max(0,math.min(1.1,(speed-1.0)/80))
 		local motorPchRamp = (k*x^3 - k*x^2 + x)
-		local motorPitch = 0.01+1.7*motorPchRamp
+		local motorPitch = 0.03+1.85*motorPchRamp
 		
-		self:SetSoundState("engine",startVolRamp*powerVolRamp,motorPitch)
+		local crossfade = math.min(1.0,math.max(0.0,1.25*(math.abs(motorPower)-0.15) ))
+		
+		self:SetSoundState("engine",startVolRamp*powerVolRamp*(1-0.5*crossfade),motorPitch)
+		self:SetSoundState("engine6",startVolRamp*powerVolRamp*crossfade,motorPitch)
+		self:SetSoundState("engine5",0,0)--startVolRamp*powerVolRamp*(1-crossfade),motorPitch)
 	else
 		self:SetSoundState("engine",0,0)
+		self:SetSoundState("engine5",0,0)
+		self:SetSoundState("engine6",0,0)
 	end
 	
 	-- Run sound

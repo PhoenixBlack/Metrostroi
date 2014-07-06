@@ -131,6 +131,11 @@ function TRAIN_SYSTEM:Queue(id)
 end
 
 
+function TRAIN_SYSTEM:ClientThink()
+	local active = self.Train:GetNWBool("BPSNBuzz",false)
+	self.Train:SetSoundState("bpsn_ann",active and 0.175 or 0,1)
+end
+
 function TRAIN_SYSTEM:Think()
 	-- Check if new announcement must be started from train wire
 	local targetAnnouncement = self.Train:ReadTrainWire(48)
@@ -142,11 +147,22 @@ function TRAIN_SYSTEM:Think()
 
 			-- Emit the sound
 			if self.Sound ~= "" then
-				self.Train:EmitSound(self.Sound, 75, 100)
+				self.Train:EmitSound(self.Sound, 85, 100)
 			end
+			
+			-- BPSN buzz
+			if targetAnnouncement == 5 then timer.Simple(0.3,function() self.Train:SetNWBool("BPSNBuzz",true) end) end
+			if targetAnnouncement == 6 then timer.Simple(0.4,function() self.Train:SetNWBool("BPSNBuzz",false) end) end
+			self.BPSNBuzzTimeout = CurTime() + 10.0
 		end
 	elseif (targetAnnouncement == 0) then
 		self.Announcement = 0
+	end
+	
+	-- Buzz timeout 
+	if self.BPSNBuzzTimeout and (CurTime() > self.BPSNBuzzTimeout) then
+		self.BPSNBuzzTimeout = nil
+		self.Train:SetNWBool("BPSNBuzz",false)
 	end
 	
 	-- Check if new announcement must be started from schedule
