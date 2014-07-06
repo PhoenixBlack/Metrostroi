@@ -184,6 +184,7 @@
 	<tr><td><kbd>49161</kbd></td><td>Next station ID</td></tr>
 	<tr><td><kbd>49162</kbd></td><td>Previous station ID</td></tr>
 	<tr><td><kbd>49163</kbd></td><td>Distance to next station</td></tr>
+	<tr><td><kbd>49164</kbd></td><td>Add announcement to queue (write announcement ID)</td></tr>
 	
 	<tr><td><kbd>65504</kbd></td><td>Train position (X - offset from line start)</td></tr>
 	<tr><td><kbd>65505</kbd></td><td>Train position (Y - horizontal offset from track)</td></tr>
@@ -199,6 +200,108 @@
 	<tr><td><kbd>196607-262144</kbd></td><td>Wagon #4 highspeed interface</td></tr>
 	<tr><td><kbd>262144-327680</kbd></td><td>Wagon #5 highspeed interface</td></tr>
 	</table>
+</article>
+
+<article id="announcer">
+	<h2><a href="#announcer">Announcer Messages</a></h2>
+
+	<p>If announcer message is "02-04", input 204 into PlayAnnouncement, QueueAnnouncement. To announce a station name, use the last two digits of station identifier as the message ID. For example, to announce station 114 in English, input 614 (for line 1).</p>
+
+	<table class="listing">
+	<tr><td>ID   </td><td>Voice </td><td>Original text</td><td>Translation</td></tr>
+	<tr><td><kbd>00-01</kbd></td><td>      </td><td> 700 msec pause</td><td>(no sound)</td></tr>
+	<tr><td><kbd>00-02</kbd></td><td>      </td><td>1500 msec pause</td><td>(no sound)</td></tr>
+	<tr><td><kbd>00-03</kbd></td><td>      </td><td>(ding)</td><td>Attention to message sound</td></tr>
+	<tr><td><kbd>00-04</kbd></td><td>JAP   </td><td>(ding)</td><td>Train closing warning</td></tr>
+	<tr><td><kbd>00-05</kbd></td><td>      </td><td>(click)</td><td>Message start</td></tr>
+	<tr><td><kbd>00-06</kbd></td><td>      </td><td>(click)</td><td>Message end</td></tr>
+	
+	<tr><td><kbd>01-01</kbd></td><td>M/RUS </td><td>Осторожно, двери закрываются.</td><td>Caution, the doors are closing.</td></tr>
+	<tr><td><kbd>01-02</kbd></td><td>M/RUS </td><td>Следющая станция ...</td><td>The next station is ...</td></tr>
+	<tr><td><kbd>01-03</kbd></td><td>F/RUS </td><td>Осторожно, двери закрываются.</td><td>Caution, the doors are closing.</td></tr>
+	<tr><td><kbd>01-04</kbd></td><td>F/RUS </td><td>Следующая станция ...</td><td>The next station is ...</td></tr>
+	<tr><td><kbd>01-05</kbd></td><td>M/RUS </td><td>Уважаемые пассажиры. Будьте взаимовежливыми, уступайте места инвалидам, пожилым людям, пассажирам с детьми.</td><td>Dear passengers. Be kind to each other. Leave place to sit for disabled, elderly, people with young children.</td></tr>
+	<tr><td><kbd>01-06</kbd></td><td>F/RUS </td><td>Уважаемые пассажиры, при выходе из поезда не забывайте свои вещи.</td><td>Dear passengers. When leaving the train, don't forget your belongings.</td></tr>
+	<tr><td><kbd>01-07</kbd></td><td>M/RUS </td><td>Уважаемые пассажиры, при выходе из поезда не забывайте свои вещи.</td><td>Dear passengers. When leaving the train, don't forget your belongings.</td></tr>
+	<tr><td><kbd>01-08</kbd></td><td>F/RUS </td><td>Уважаемые пассажиры. Будьте взаимовежливыми, уступайте места инвалидам, пожилым людям, пассажирам с детьми.</td><td>Dear passengers. Be kind to each other. Leave place to sit for disabled, elderly, people with young children.</td></tr>
+	<tr><td><kbd>01-09</kbd></td><td>F/RUS </td><td>Конечная. Поезд дальше не идёт. Просьба освободить вагоны.</td><td>End station. The train does not go anywhere. Please leave the train.</td></tr>
+	
+	<tr><td><kbd>02-01</kbd></td><td>RUS   </td><td>Информатор готов к работе.</td><td></td></tr>
+	<tr><td><kbd>02-02</kbd></td><td>RUS   </td><td>Переход...</td><td></td></tr>
+	<tr><td><kbd>02-03</kbd></td><td>RUS   </td><td>...на станцию...</td><td></td></tr>
+	<tr><td><kbd>02-04</kbd></td><td>RUS   </td><td>Пасажиры, отпустите пожалуйста двери</td><td></td></tr>
+	<tr><td><kbd>02-05</kbd></td><td>RUS   </td><td>Не задерживайте поезд, отпустите пожалуйста двери</td><td></td></tr>
+	<tr><td><kbd>02-06</kbd></td><td>RUS   </td><td>Пасажиры, поезд дальше не едет. Освободите вагоны</td><td></td></tr>
+	<tr><td><kbd>02-07</kbd></td><td>RUS   </td><td>Пожалуйста освободите вагоны, поезд дальше не едет</td><td></td></tr>
+	<tr><td><kbd>02-08</kbd></td><td>RUS   </td><td>Пожалуйста заходите и выходите быстрее</td><td></td></tr>
+	<tr><td><kbd>02-09</kbd></td><td>RUS   </td><td>Заходите быстрее, не задерживайтесь у дверей, проходите дальше у вагоны</td><td></td></tr>
+	<tr><td><kbd>02-10</kbd></td><td>RUS   </td><td>Поезд следует к станции ...</td><td></td></tr>
+	<tr><td><kbd>02-11</kbd></td><td>RUS   </td><td>Направление движения ...</td><td></td></tr>
+	<tr><td><kbd>02-12</kbd></td><td>RUS   </td><td>Конечная. Поезд дальше не едет. Уважаемые пасажиры, выходя из вагонов не забывайте ваши вещи.</td><td></td></tr>
+	<tr><td><kbd>02-13</kbd></td><td>RUS   </td><td>Уважаемые пасажиры, при движении поезда прислоняться к дверям опасно</td><td></td></tr>
+	<tr><td><kbd>02-14</kbd></td><td>RUS   </td><td>Уважаемые пасажиры, будьте взаимовежливыми. Уступайте места инвалидам, людям в возрасте, пасажирам с детьми.</td><td></td></tr>
+	<tr><td><kbd>02-15</kbd></td><td>RUS   </td><td>Выход на правую платформу.</td><td></td></tr>
+	<tr><td><kbd>02-16</kbd></td><td>RUS   </td><td>Без манёвров</td><td></td></tr>
+	<tr><td><kbd>02-17</kbd></td><td>RUS   </td><td>Уважаемые пасажиры! Сохраняйте спокойствие. Поезд будет отправлен через несколько минут.</td><td></td></tr>
+	<tr><td><kbd>02-18</kbd></td><td>RUS   </td><td>Осторожно, двери закрываются.</td><td></td></tr>
+	<tr><td><kbd>02-19</kbd></td><td>RUS   </td><td>Следущая станция ...</td><td></td></tr>
+	<tr><td><kbd>02-20</kbd></td><td>RUS   </td><td>Станция ...</td><td></td></tr>
+	<tr><td><kbd>02-21</kbd></td><td>RUS   </td><td>Поезд прибыл на конечную станцию ...</td><td></td></tr>
+	<tr><td><kbd>02-22</kbd></td><td>RUS   </td><td>Не забывайте свои вещи в вагонах электропоезда.</td><td></td></tr>
+	<tr><td><kbd>02-23</kbd></td><td>RUS   </td><td>Поезд следует до станции ...</td><td></td></tr>
+	<tr><td><kbd>02-24</kbd></td><td>RUS   </td><td>Конечная. Поезд дальше не идёт, просьба выйти из вагонов.</td><td></td></tr>
+	<tr><td><kbd>02-25</kbd></td><td>RUS   </td><td>Осторожно, двери закрываются. Следущая станция ...</td><td></td></tr>
+	<tr><td><kbd>02-26</kbd></td><td>RUS   </td><td>При выходе из поезда не забывайте свои вещи.</td><td></td></tr>
+	<tr><td><kbd>02-27</kbd></td><td>RUS   </td><td>При обнаружении забытых вещей сообщите машинисту.</td><td></td></tr>
+	<tr><td><kbd>02-28</kbd></td><td>RUS   </td><td>Уважаемые пасажиры, будьте осторожны. Поезд отправляется.</td><td></td></tr>
+	<tr><td><kbd>02-29</kbd></td><td>RUS   </td><td>Уважаемые пасажиры, просьба соблюдать спокойствие. Поезд скоро отправится.</td><td></td></tr>
+	<tr><td><kbd>02-30</kbd></td><td>RUS   </td><td>Уважаемые пасажиры.</td><td></td></tr>
+	<tr><td><kbd>02-31</kbd></td><td>RUS   </td><td>Платформа справа.</td><td></td></tr>
+	<tr><td><kbd>02-32</kbd></td><td>RUS   </td><td>Уважаемые пассажиры. Будьте взаимовежливыми, уступайте места инвалидам, пожилым людям, пассажирам с детьми и беременным женщинам.</td><td></td></tr>
+
+	
+	<tr><td><kbd>03-08</kbd></td><td>RUS   </td><td>Автозаводская</td><td> </td></tr>
+	<tr><td><kbd>03-09</kbd></td><td>RUS   </td><td>Индустриальная</td><td> </td></tr>
+	<tr><td><kbd>03-10</kbd></td><td>RUS   </td><td>Московская</td><td> </td></tr>
+	<tr><td><kbd>03-11</kbd></td><td>RUS   </td><td>Октябрьская</td><td> </td></tr>
+	<tr><td><kbd>03-12</kbd></td><td>RUS   </td><td>Площадь Мира</td><td> </td></tr>
+	<tr><td><kbd>03-13</kbd></td><td>RUS   </td><td>Новоармейская</td><td> </td></tr>
+	<tr><td><kbd>03-14</kbd></td><td>RUS   </td><td>Вокзальная</td><td> </td></tr>
+	<tr><td><kbd>03-15</kbd></td><td>RUS   </td><td>Комсомольская</td><td> </td></tr>
+	<tr><td><kbd>03-16</kbd></td><td>RUS   </td><td>Электросила</td><td> </td></tr>
+	<tr><td><kbd>03-17</kbd></td><td>RUS   </td><td>Театральная Площадь</td><td> </td></tr>
+	<tr><td><kbd>03-18</kbd></td><td>RUS   </td><td>Парк Победы</td><td> </td></tr>
+	<tr><td><kbd>03-19</kbd></td><td>RUS   </td><td>Синеозерная</td><td> </td></tr>
+	<tr><td><kbd>03-20</kbd></td><td>RUS   </td><td>Лесная</td><td> </td></tr>
+	<tr><td><kbd>03-21</kbd></td><td>RUS   </td><td>Минская</td><td> </td></tr>
+	<tr><td><kbd>03-22</kbd></td><td>RUS   </td><td>Царские Ворота</td><td> </td></tr>
+	<tr><td><kbd>03-23</kbd></td><td>RUS   </td><td>Междустройская</td><td> </td></tr>
+	
+	<tr><td><kbd>04-10</kbd></td><td>RUS   </td><td>Академическая</td><td> </td></tr>
+	<tr><td><kbd>04-11</kbd></td><td>RUS   </td><td>Сокол</td><td> </td></tr>
+	<tr><td><kbd>04-12</kbd></td><td>RUS   </td><td>Охотный Ряд</td><td> </td></tr>
+	<tr><td><kbd>04-13</kbd></td><td>RUS   </td><td>Кировская</td><td> </td></tr>
+	<tr><td><kbd>04-14</kbd></td><td>RUS   </td><td>Профсоюзная</td><td> </td></tr>
+	<tr><td><kbd>04-15</kbd></td><td>RUS   </td><td>Ленинская</td><td> </td></tr>
+	<tr><td><kbd>04-16</kbd></td><td>RUS   </td><td>Державинская</td><td> </td></tr>
+	<tr><td><kbd>04-17</kbd></td><td>RUS   </td><td>Восточная</td><td> </td></tr>
+	<tr><td><kbd>04-18</kbd></td><td>RUS   </td><td>Тракторный Завод</td><td> </td></tr>
+	<tr><td><kbd>04-19</kbd></td><td>RUS   </td><td>Планерная</td><td> </td></tr>
+	<tr><td><kbd>04-20</kbd></td><td>RUS   </td><td>Аэропорт</td><td> </td></tr>
+
+	<tr><td><kbd>05-01</kbd></td><td>ENG   </td><td>Caution, the doors are closing.</td><td></td></tr>
+	<tr><td><kbd>05-02</kbd></td><td>ENG   </td><td>Please stand clear of the closing doors.</td><td></td></tr>
+	<tr><td><kbd>05-03</kbd></td><td>ENG   </td><td>Last station. Please leave the train.</td><td></td></tr>
+	<tr><td><kbd>05-04</kbd></td><td>ENG   </td><td>Last station. The train does not go anywhere, please leave the train.</td><td></td></tr>
+	<tr><td><kbd>05-05</kbd></td><td>ENG   </td><td>Next station is closed. The train will not stop at the next station.</td><td></td></tr>
+	<tr><td><kbd>05-06</kbd></td><td>ENG   </td><td>Now arriving at ...</td><td></td></tr>
+	<tr><td><kbd>05-07</kbd></td><td>ENG   </td><td>... station</td><td></td></tr>
+	<tr><td><kbd>05-08</kbd></td><td>ENG   </td><td>The next station is ...</td><td></td></tr>
+	<tr><td><kbd>06-XX</kbd></td><td>ENG   </td><td>(station name, line 1)</td><td></td></tr>
+	<tr><td><kbd>07-XX</kbd></td><td>ENG   </td><td>(station name, line 2)</td><td><b>Chapter not available.</b></td></tr>
+	</table>
+
+
 </article>
 
 <article id="high-speed2">
@@ -1083,6 +1186,82 @@
 	<tr><td><kbd>970</kbd></td><td>Electric.U13                         </td></tr>
 	<tr><td><kbd>971</kbd></td><td>Electric.U24                         </td></tr>
 	<tr><td><kbd>972</kbd></td><td>Electric.Utotal                      </td></tr>
+	<tr><td><kbd>973</kbd></td><td>Custom1.Open                         </td></tr>
+	<tr><td><kbd>974</kbd></td><td>Custom1.Close                        </td></tr>
+	<tr><td><kbd>975</kbd></td><td>Custom1.Set                          </td></tr>
+	<tr><td><kbd>976</kbd></td><td>Custom1.Toggle                       </td></tr>
+	<tr><td><kbd>977</kbd></td><td>Custom1.Value                        </td></tr>
+	<tr><td><kbd>978</kbd></td><td>Custom2.Open                         </td></tr>
+	<tr><td><kbd>979</kbd></td><td>Custom2.Close                        </td></tr>
+	<tr><td><kbd>980</kbd></td><td>Custom2.Set                          </td></tr>
+	<tr><td><kbd>981</kbd></td><td>Custom2.Toggle                       </td></tr>
+	<tr><td><kbd>982</kbd></td><td>Custom2.Value                        </td></tr>
+	<tr><td><kbd>983</kbd></td><td>Custom3.Open                         </td></tr>
+	<tr><td><kbd>984</kbd></td><td>Custom3.Close                        </td></tr>
+	<tr><td><kbd>985</kbd></td><td>Custom3.Set                          </td></tr>
+	<tr><td><kbd>986</kbd></td><td>Custom3.Toggle                       </td></tr>
+	<tr><td><kbd>987</kbd></td><td>Custom3.Value                        </td></tr>
+	<tr><td><kbd>988</kbd></td><td>Custom4.Open                         </td></tr>
+	<tr><td><kbd>989</kbd></td><td>Custom4.Close                        </td></tr>
+	<tr><td><kbd>990</kbd></td><td>Custom4.Set                          </td></tr>
+	<tr><td><kbd>991</kbd></td><td>Custom4.Toggle                       </td></tr>
+	<tr><td><kbd>992</kbd></td><td>Custom4.Value                        </td></tr>
+	<tr><td><kbd>993</kbd></td><td>Custom5.Open                         </td></tr>
+	<tr><td><kbd>994</kbd></td><td>Custom5.Close                        </td></tr>
+	<tr><td><kbd>995</kbd></td><td>Custom5.Set                          </td></tr>
+	<tr><td><kbd>996</kbd></td><td>Custom5.Toggle                       </td></tr>
+	<tr><td><kbd>997</kbd></td><td>Custom5.Value                        </td></tr>
+	<tr><td><kbd>998</kbd></td><td>Custom6.Open                         </td></tr>
+	<tr><td><kbd>999</kbd></td><td>Custom6.Close                        </td></tr>
+	<tr><td><kbd>1000</kbd></td><td>Custom6.Set                         </td></tr>
+	<tr><td><kbd>1001</kbd></td><td>Custom6.Toggle                      </td></tr>
+	<tr><td><kbd>1002</kbd></td><td>Custom6.Value                       </td></tr
+	<tr><td><kbd>1003</kbd></td><td>Custom7.Open                        </td></tr>
+	<tr><td><kbd>1004</kbd></td><td>Custom7.Close                       </td></tr>
+	<tr><td><kbd>1005</kbd></td><td>Custom7.Set                         </td></tr>
+	<tr><td><kbd>1006</kbd></td><td>Custom7.Toggle                      </td></tr>
+	<tr><td><kbd>1007</kbd></td><td>Custom7.Value                       </td></tr>
+	<tr><td><kbd>1008</kbd></td><td>Custom8.Open                        </td></tr>
+	<tr><td><kbd>1009</kbd></td><td>Custom8.Close                       </td></tr>
+	<tr><td><kbd>1010</kbd></td><td>Custom8.Set                         </td></tr>
+	<tr><td><kbd>1011</kbd></td><td>Custom8.Toggle                      </td></tr>
+	<tr><td><kbd>1012</kbd></td><td>Custom8.Value                       </td></tr>
+	<tr><td><kbd>1013</kbd></td><td>CustomA.Open                        </td></tr>
+	<tr><td><kbd>1014</kbd></td><td>CustomA.Close                       </td></tr>
+	<tr><td><kbd>1015</kbd></td><td>CustomA.Set                         </td></tr>
+	<tr><td><kbd>1016</kbd></td><td>CustomA.Toggle                      </td></tr>
+	<tr><td><kbd>1017</kbd></td><td>CustomA.Value                       </td></tr>
+	<tr><td><kbd>1018</kbd></td><td>CustomB.Open                        </td></tr>
+	<tr><td><kbd>1019</kbd></td><td>CustomB.Close                       </td></tr>
+	<tr><td><kbd>1020</kbd></td><td>CustomB.Set                         </td></tr>
+	<tr><td><kbd>1021</kbd></td><td>CustomB.Toggle                      </td></tr>
+	<tr><td><kbd>1022</kbd></td><td>CustomB.Value                       </td></tr>
+	<tr><td><kbd>1023</kbd></td><td>CustomC.Open                        </td></tr>
+	<tr><td><kbd>1024</kbd></td><td>CustomC.Close                       </td></tr>
+	<tr><td><kbd>1025</kbd></td><td>CustomC.Set                         </td></tr>
+	<tr><td><kbd>1026</kbd></td><td>CustomC.Toggle                      </td></tr>
+	<tr><td><kbd>1027</kbd></td><td>CustomC.Value                       </td></tr>
+	<tr><td><kbd>1028</kbd></td><td>CustomD.Open                        </td></tr>
+	<tr><td><kbd>1029</kbd></td><td>CustomD.Close                       </td></tr>
+	<tr><td><kbd>1030</kbd></td><td>CustomD.Set                         </td></tr>
+	<tr><td><kbd>1031</kbd></td><td>CustomD.Toggle                      </td></tr>
+	<tr><td><kbd>1032</kbd></td><td>CustomD.Value                       </td></tr>
+	<tr><td><kbd>1033</kbd></td><td>CustomE.Open                        </td></tr>
+	<tr><td><kbd>1034</kbd></td><td>CustomE.Close                       </td></tr>
+	<tr><td><kbd>1035</kbd></td><td>CustomE.Set                         </td></tr>
+	<tr><td><kbd>1036</kbd></td><td>CustomE.Toggle                      </td></tr>
+	<tr><td><kbd>1037</kbd></td><td>CustomE.Value                       </td></tr>
+	<tr><td><kbd>1038</kbd></td><td>CustomF.Open                        </td></tr>
+	<tr><td><kbd>1039</kbd></td><td>CustomF.Close                       </td></tr>
+	<tr><td><kbd>1040</kbd></td><td>CustomF.Set                         </td></tr>
+	<tr><td><kbd>1041</kbd></td><td>CustomF.Toggle                      </td></tr>
+	<tr><td><kbd>1042</kbd></td><td>CustomF.Value                       </td></tr>
+	<tr><td><kbd>1043</kbd></td><td>CustomG.Open                        </td></tr>
+	<tr><td><kbd>1044</kbd></td><td>CustomG.Close                       </td></tr>
+	<tr><td><kbd>1045</kbd></td><td>CustomG.Set                         </td></tr>
+	<tr><td><kbd>1046</kbd></td><td>CustomG.Toggle                      </td></tr>
+	<tr><td><kbd>1047</kbd></td><td>CustomG.Value                       </td></tr>
+	
 	</table>
 
 </article>
