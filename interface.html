@@ -172,6 +172,11 @@
 	<p>All entries are located at offset <kbd>49152+64 + entryID*4</kbd>. All times in the schedules are in seconds, starting from midnight.</p>
 
 	<table class="listing">
+	<tr><td><kbd>32768+32*0</kbd></td><td>Start of 32 bytes of string #0 (announcer line 1)</td></tr>
+	<tr><td><kbd>32768+32*1</kbd></td><td>Start of 32 bytes of string #1 (announcer line 2)</td></tr>
+	<tr><td><kbd>32768+32*2</kbd></td><td>Start of 32 bytes of string #2 (custom key 1)</td></tr>
+	<tr><td><kbd>32768+32*3</kbd></td><td>Start of 32 bytes of string #3 (custom key 2)</td></tr>
+	
 	<tr><td><kbd>49152</kbd></td><td>Number of entries in schedule</td></tr>
 	<tr><td><kbd>49153</kbd></td><td>Schedule ID</td></tr>
 	<tr><td><kbd>49154</kbd></td><td>Schedule interval</td></tr>
@@ -1186,81 +1191,83 @@
 	<tr><td><kbd>970</kbd></td><td>Electric.U13                         </td></tr>
 	<tr><td><kbd>971</kbd></td><td>Electric.U24                         </td></tr>
 	<tr><td><kbd>972</kbd></td><td>Electric.Utotal                      </td></tr>
-	<tr><td><kbd>973</kbd></td><td>Custom1.Open                         </td></tr>
-	<tr><td><kbd>974</kbd></td><td>Custom1.Close                        </td></tr>
-	<tr><td><kbd>975</kbd></td><td>Custom1.Set                          </td></tr>
-	<tr><td><kbd>976</kbd></td><td>Custom1.Toggle                       </td></tr>
-	<tr><td><kbd>977</kbd></td><td>Custom1.Value                        </td></tr>
-	<tr><td><kbd>978</kbd></td><td>Custom2.Open                         </td></tr>
-	<tr><td><kbd>979</kbd></td><td>Custom2.Close                        </td></tr>
-	<tr><td><kbd>980</kbd></td><td>Custom2.Set                          </td></tr>
-	<tr><td><kbd>981</kbd></td><td>Custom2.Toggle                       </td></tr>
-	<tr><td><kbd>982</kbd></td><td>Custom2.Value                        </td></tr>
-	<tr><td><kbd>983</kbd></td><td>Custom3.Open                         </td></tr>
-	<tr><td><kbd>984</kbd></td><td>Custom3.Close                        </td></tr>
-	<tr><td><kbd>985</kbd></td><td>Custom3.Set                          </td></tr>
-	<tr><td><kbd>986</kbd></td><td>Custom3.Toggle                       </td></tr>
-	<tr><td><kbd>987</kbd></td><td>Custom3.Value                        </td></tr>
-	<tr><td><kbd>988</kbd></td><td>Custom4.Open                         </td></tr>
-	<tr><td><kbd>989</kbd></td><td>Custom4.Close                        </td></tr>
-	<tr><td><kbd>990</kbd></td><td>Custom4.Set                          </td></tr>
-	<tr><td><kbd>991</kbd></td><td>Custom4.Toggle                       </td></tr>
-	<tr><td><kbd>992</kbd></td><td>Custom4.Value                        </td></tr>
-	<tr><td><kbd>993</kbd></td><td>Custom5.Open                         </td></tr>
-	<tr><td><kbd>994</kbd></td><td>Custom5.Close                        </td></tr>
-	<tr><td><kbd>995</kbd></td><td>Custom5.Set                          </td></tr>
-	<tr><td><kbd>996</kbd></td><td>Custom5.Toggle                       </td></tr>
-	<tr><td><kbd>997</kbd></td><td>Custom5.Value                        </td></tr>
-	<tr><td><kbd>998</kbd></td><td>Custom6.Open                         </td></tr>
-	<tr><td><kbd>999</kbd></td><td>Custom6.Close                        </td></tr>
-	<tr><td><kbd>1000</kbd></td><td>Custom6.Set                         </td></tr>
-	<tr><td><kbd>1001</kbd></td><td>Custom6.Toggle                      </td></tr>
-	<tr><td><kbd>1002</kbd></td><td>Custom6.Value                       </td></tr
-	<tr><td><kbd>1003</kbd></td><td>Custom7.Open                        </td></tr>
-	<tr><td><kbd>1004</kbd></td><td>Custom7.Close                       </td></tr>
-	<tr><td><kbd>1005</kbd></td><td>Custom7.Set                         </td></tr>
-	<tr><td><kbd>1006</kbd></td><td>Custom7.Toggle                      </td></tr>
-	<tr><td><kbd>1007</kbd></td><td>Custom7.Value                       </td></tr>
-	<tr><td><kbd>1008</kbd></td><td>Custom8.Open                        </td></tr>
-	<tr><td><kbd>1009</kbd></td><td>Custom8.Close                       </td></tr>
-	<tr><td><kbd>1010</kbd></td><td>Custom8.Set                         </td></tr>
-	<tr><td><kbd>1011</kbd></td><td>Custom8.Toggle                      </td></tr>
-	<tr><td><kbd>1012</kbd></td><td>Custom8.Value                       </td></tr>
-	<tr><td><kbd>1013</kbd></td><td>CustomA.Open                        </td></tr>
-	<tr><td><kbd>1014</kbd></td><td>CustomA.Close                       </td></tr>
-	<tr><td><kbd>1015</kbd></td><td>CustomA.Set                         </td></tr>
-	<tr><td><kbd>1016</kbd></td><td>CustomA.Toggle                      </td></tr>
-	<tr><td><kbd>1017</kbd></td><td>CustomA.Value                       </td></tr>
-	<tr><td><kbd>1018</kbd></td><td>CustomB.Open                        </td></tr>
-	<tr><td><kbd>1019</kbd></td><td>CustomB.Close                       </td></tr>
-	<tr><td><kbd>1020</kbd></td><td>CustomB.Set                         </td></tr>
-	<tr><td><kbd>1021</kbd></td><td>CustomB.Toggle                      </td></tr>
-	<tr><td><kbd>1022</kbd></td><td>CustomB.Value                       </td></tr>
-	<tr><td><kbd>1023</kbd></td><td>CustomC.Open                        </td></tr>
-	<tr><td><kbd>1024</kbd></td><td>CustomC.Close                       </td></tr>
-	<tr><td><kbd>1025</kbd></td><td>CustomC.Set                         </td></tr>
-	<tr><td><kbd>1026</kbd></td><td>CustomC.Toggle                      </td></tr>
-	<tr><td><kbd>1027</kbd></td><td>CustomC.Value                       </td></tr>
-	<tr><td><kbd>1028</kbd></td><td>CustomD.Open                        </td></tr>
-	<tr><td><kbd>1029</kbd></td><td>CustomD.Close                       </td></tr>
-	<tr><td><kbd>1030</kbd></td><td>CustomD.Set                         </td></tr>
-	<tr><td><kbd>1031</kbd></td><td>CustomD.Toggle                      </td></tr>
-	<tr><td><kbd>1032</kbd></td><td>CustomD.Value                       </td></tr>
-	<tr><td><kbd>1033</kbd></td><td>CustomE.Open                        </td></tr>
-	<tr><td><kbd>1034</kbd></td><td>CustomE.Close                       </td></tr>
-	<tr><td><kbd>1035</kbd></td><td>CustomE.Set                         </td></tr>
-	<tr><td><kbd>1036</kbd></td><td>CustomE.Toggle                      </td></tr>
-	<tr><td><kbd>1037</kbd></td><td>CustomE.Value                       </td></tr>
-	<tr><td><kbd>1038</kbd></td><td>CustomF.Open                        </td></tr>
-	<tr><td><kbd>1039</kbd></td><td>CustomF.Close                       </td></tr>
-	<tr><td><kbd>1040</kbd></td><td>CustomF.Set                         </td></tr>
-	<tr><td><kbd>1041</kbd></td><td>CustomF.Toggle                      </td></tr>
-	<tr><td><kbd>1042</kbd></td><td>CustomF.Value                       </td></tr>
-	<tr><td><kbd>1043</kbd></td><td>CustomG.Open                        </td></tr>
-	<tr><td><kbd>1044</kbd></td><td>CustomG.Close                       </td></tr>
-	<tr><td><kbd>1045</kbd></td><td>CustomG.Set                         </td></tr>
-	<tr><td><kbd>1046</kbd></td><td>CustomG.Toggle                      </td></tr>
-	<tr><td><kbd>1047</kbd></td><td>CustomG.Value                       </td></tr>
+	<tr><td><kbd>973</kbd></td><td>Electric.Overheat1                   </td></tr>
+	<tr><td><kbd>974</kbd></td><td>Electric.Overheat2                   </td></tr>
+	<tr><td><kbd>975</kbd></td><td>Custom1.Open                         </td></tr>
+	<tr><td><kbd>976</kbd></td><td>Custom1.Close                        </td></tr>
+	<tr><td><kbd>977</kbd></td><td>Custom1.Set                          </td></tr>
+	<tr><td><kbd>978</kbd></td><td>Custom1.Toggle                       </td></tr>
+	<tr><td><kbd>979</kbd></td><td>Custom1.Value                        </td></tr>
+	<tr><td><kbd>980</kbd></td><td>Custom2.Open                         </td></tr>
+	<tr><td><kbd>981</kbd></td><td>Custom2.Close                        </td></tr>
+	<tr><td><kbd>982</kbd></td><td>Custom2.Set                          </td></tr>
+	<tr><td><kbd>983</kbd></td><td>Custom2.Toggle                       </td></tr>
+	<tr><td><kbd>984</kbd></td><td>Custom2.Value                        </td></tr>
+	<tr><td><kbd>985</kbd></td><td>Custom3.Open                         </td></tr>
+	<tr><td><kbd>986</kbd></td><td>Custom3.Close                        </td></tr>
+	<tr><td><kbd>987</kbd></td><td>Custom3.Set                          </td></tr>
+	<tr><td><kbd>988</kbd></td><td>Custom3.Toggle                       </td></tr>
+	<tr><td><kbd>989</kbd></td><td>Custom3.Value                        </td></tr>
+	<tr><td><kbd>990</kbd></td><td>Custom4.Open                         </td></tr>
+	<tr><td><kbd>991</kbd></td><td>Custom4.Close                        </td></tr>
+	<tr><td><kbd>992</kbd></td><td>Custom4.Set                          </td></tr>
+	<tr><td><kbd>993</kbd></td><td>Custom4.Toggle                       </td></tr>
+	<tr><td><kbd>994</kbd></td><td>Custom4.Value                        </td></tr>
+	<tr><td><kbd>995</kbd></td><td>Custom5.Open                         </td></tr>
+	<tr><td><kbd>996</kbd></td><td>Custom5.Close                        </td></tr>
+	<tr><td><kbd>997</kbd></td><td>Custom5.Set                          </td></tr>
+	<tr><td><kbd>998</kbd></td><td>Custom5.Toggle                       </td></tr>
+	<tr><td><kbd>999</kbd></td><td>Custom5.Value                        </td></tr>
+	<tr><td><kbd>1000</kbd></td><td>Custom6.Open                        </td></tr>
+	<tr><td><kbd>1001</kbd></td><td>Custom6.Close                       </td></tr>
+	<tr><td><kbd>1002</kbd></td><td>Custom6.Set                         </td></tr>
+	<tr><td><kbd>1003</kbd></td><td>Custom6.Toggle                      </td></tr>
+	<tr><td><kbd>1004</kbd></td><td>Custom6.Value                       </td></tr>
+	<tr><td><kbd>1005</kbd></td><td>Custom7.Open                        </td></tr>
+	<tr><td><kbd>1006</kbd></td><td>Custom7.Close                       </td></tr>
+	<tr><td><kbd>1007</kbd></td><td>Custom7.Set                         </td></tr>
+	<tr><td><kbd>1008</kbd></td><td>Custom7.Toggle                      </td></tr>
+	<tr><td><kbd>1009</kbd></td><td>Custom7.Value                       </td></tr>
+	<tr><td><kbd>1010</kbd></td><td>Custom8.Open                        </td></tr>
+	<tr><td><kbd>1011</kbd></td><td>Custom8.Close                       </td></tr>
+	<tr><td><kbd>1012</kbd></td><td>Custom8.Set                         </td></tr>
+	<tr><td><kbd>1013</kbd></td><td>Custom8.Toggle                      </td></tr>
+	<tr><td><kbd>1014</kbd></td><td>Custom8.Value                       </td></tr>
+	<tr><td><kbd>1015</kbd></td><td>CustomA.Open                        </td></tr>
+	<tr><td><kbd>1016</kbd></td><td>CustomA.Close                       </td></tr>
+	<tr><td><kbd>1017</kbd></td><td>CustomA.Set                         </td></tr>
+	<tr><td><kbd>1018</kbd></td><td>CustomA.Toggle                      </td></tr>
+	<tr><td><kbd>1019</kbd></td><td>CustomA.Value                       </td></tr>
+	<tr><td><kbd>1020</kbd></td><td>CustomB.Open                        </td></tr>
+	<tr><td><kbd>1021</kbd></td><td>CustomB.Close                       </td></tr>
+	<tr><td><kbd>1022</kbd></td><td>CustomB.Set                         </td></tr>
+	<tr><td><kbd>1023</kbd></td><td>CustomB.Toggle                      </td></tr>
+	<tr><td><kbd>1024</kbd></td><td>CustomB.Value                       </td></tr>
+	<tr><td><kbd>1025</kbd></td><td>CustomC.Open                        </td></tr>
+	<tr><td><kbd>1026</kbd></td><td>CustomC.Close                       </td></tr>
+	<tr><td><kbd>1027</kbd></td><td>CustomC.Set                         </td></tr>
+	<tr><td><kbd>1028</kbd></td><td>CustomC.Toggle                      </td></tr>
+	<tr><td><kbd>1029</kbd></td><td>CustomC.Value                       </td></tr>
+	<tr><td><kbd>1030</kbd></td><td>CustomD.Open                        </td></tr>
+	<tr><td><kbd>1031</kbd></td><td>CustomD.Close                       </td></tr>
+	<tr><td><kbd>1032</kbd></td><td>CustomD.Set                         </td></tr>
+	<tr><td><kbd>1033</kbd></td><td>CustomD.Toggle                      </td></tr>
+	<tr><td><kbd>1034</kbd></td><td>CustomD.Value                       </td></tr>
+	<tr><td><kbd>1035</kbd></td><td>CustomE.Open                        </td></tr>
+	<tr><td><kbd>1036</kbd></td><td>CustomE.Close                       </td></tr>
+	<tr><td><kbd>1037</kbd></td><td>CustomE.Set                         </td></tr>
+	<tr><td><kbd>1038</kbd></td><td>CustomE.Toggle                      </td></tr>
+	<tr><td><kbd>1039</kbd></td><td>CustomE.Value                       </td></tr>
+	<tr><td><kbd>1040</kbd></td><td>CustomF.Open                        </td></tr>
+	<tr><td><kbd>1041</kbd></td><td>CustomF.Close                       </td></tr>
+	<tr><td><kbd>1042</kbd></td><td>CustomF.Set                         </td></tr>
+	<tr><td><kbd>1043</kbd></td><td>CustomF.Toggle                      </td></tr>
+	<tr><td><kbd>1044</kbd></td><td>CustomF.Value                       </td></tr>
+	<tr><td><kbd>1045</kbd></td><td>CustomG.Open                        </td></tr>
+	<tr><td><kbd>1046</kbd></td><td>CustomG.Close                       </td></tr>
+	<tr><td><kbd>1047</kbd></td><td>CustomG.Set                         </td></tr>
+	<tr><td><kbd>1048</kbd></td><td>CustomG.Toggle                      </td></tr>
+	<tr><td><kbd>1049</kbd></td><td>CustomG.Value                       </td></tr>
 	
 	</table>
 
