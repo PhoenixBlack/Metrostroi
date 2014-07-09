@@ -64,6 +64,22 @@ surface.CreateFont("MetrostroiSubway_VerySmallText2", {
   shadow = false,
   additive = false,
   outline = false
+ })
+ surface.CreateFont("MetrostroiSubway_VerySmallText3", {
+  font = "Arial",
+  size = 25,
+  weight = 1000,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false
 })
 surface.CreateFont("MetrostroiSubway_LargeText2", {
   font = "Arial",

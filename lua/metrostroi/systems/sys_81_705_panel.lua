@@ -29,6 +29,14 @@ function TRAIN_SYSTEM:Initialize()
 	self.Train:LoadSystem("KVT","Relay","Switch")
 	self.Train:LoadSystem("KRP","Relay","Switch")
 	
+	self.Train:LoadSystem("R_UNch","Relay","Switch")
+	self.Train:LoadSystem("R_ZS","Relay","Switch")
+	self.Train:LoadSystem("R_G","Relay","Switch")
+	self.Train:LoadSystem("R_Radio","Relay","Switch")
+	self.Train:LoadSystem("R_Program1","Relay","Switch")
+	self.Train:LoadSystem("R_Program2","Relay","Switch")
+	self.Train:LoadSystem("RC1","Relay","Switch",{ normally_closed = true })
+	
 	-- Педаль бдительности (ПБ)
 	self.Train:LoadSystem("PB","Relay","Switch")
 	

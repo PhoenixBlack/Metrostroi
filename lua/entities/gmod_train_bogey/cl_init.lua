@@ -89,7 +89,7 @@ function ENT:Think()
 		local modulation = 1.5*math.max(0,0.2+math.sin(t)*math.sin(t*3.12)*math.sin(t*0.24)*math.sin(t*4.0))
 		local mod2 = 1.0-math.min(1.0,(math.abs(motorPower)/0.1))
 		local startVolRamp = 0.2 + 0.8*math.max(0.0,math.min(1.0,(speed - 1.0)*0.5))
-		local powerVolRamp = 0.3*modulation*mod2 + 2.0*(math.abs(motorPower)^2)
+		local powerVolRamp = 0.3*modulation*mod2 + 2*math.abs(motorPower)--2.0*(math.abs(motorPower)^2)
 		--math.max(0.3,math.min(1.0,math.abs(motorPower)))
 
 		local k,x = 1.0,math.max(0,math.min(1.1,(speed-1.0)/80))
@@ -138,7 +138,7 @@ function ENT:Think()
 
 	local threshold = 0.01
 	if dPdT < -threshold then
-		local volRamp = math.min(0.01,-0.1*(dPdT+threshold))
+		local volRamp = 0*math.min(0.01,-0.1*(dPdT+threshold))
 		self:SetSoundState("release",volRamp,1.7)
 	elseif dPdT > threshold then
 		local volRamp = (dPdT-threshold)/4.000

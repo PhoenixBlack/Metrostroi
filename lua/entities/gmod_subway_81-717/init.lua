@@ -169,13 +169,25 @@ function ENT:Initialize()
 		-- Cabin texture light
 		[30] = { "headlight", 		Vector(390.0,16,45), Angle(60,-50,0), Color(176,161,132), farz = 128, nearz = 1, shadows = 0, brightness = 0.20, fov = 140 },
 		-- Manometers
-		[31] = { "headlight", Vector(450.00,5,3.0), Angle(0,-90,0), Color(216,161,92), farz = 32, nearz = 1, shadows = 0, brightness = 0.4, fov = 30 },
+		[31] = { "headlight", 		Vector(450.00,5,3.0), Angle(0,-90,0), Color(216,161,92), farz = 32, nearz = 1, shadows = 0, brightness = 0.4, fov = 30 },
 		-- Voltmeter
-		[32] = { "headlight", Vector(449.00,10,7.0), Angle(28,90,0), Color(216,161,92), farz = 16, nearz = 1, shadows = 0, brightness = 0.4, fov = 40 },
+		[32] = { "headlight", 		Vector(449.00,10,7.0), Angle(28,90,0), Color(216,161,92), farz = 16, nearz = 1, shadows = 0, brightness = 0.4, fov = 40 },
 		-- Ampermeter
-		[33] = { "headlight", Vector(445.0,-35,9.0), Angle(-90,0,0), Color(216,161,92), farz = 10, nearz = 1, shadows = 0, brightness = 4.0, fov = 60 },
+		[33] = { "headlight", 		Vector(445.0,-35,9.0), Angle(-90,0,0), Color(216,161,92), farz = 10, nearz = 1, shadows = 0, brightness = 4.0, fov = 60 },
 		-- Voltmeter
-		[34] = { "headlight", Vector(445.0,-35,13.0), Angle(-90,0,0), Color(216,161,92), farz = 10, nearz = 1, shadows = 0, brightness = 4.0, fov = 60 },
+		[34] = { "headlight", 		Vector(445.0,-35,13.0), Angle(-90,0,0), Color(216,161,92), farz = 10, nearz = 1, shadows = 0, brightness = 4.0, fov = 60 },
+		
+		-- Custom D
+		[35] = { "light", 			Vector(443.2,25.0-1.8*0,1.15), Angle(0,0,0), Color(255,0,0), brightness = 1.0, scale = 0.020 },
+		-- Custom E
+		[36] = { "light", 			Vector(443.2,25.0-1.8*1,1.15), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
+		-- Custom F
+		[37] = { "light", 			Vector(443.2,25.0-1.8*2,1.15), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
+		-- Custom G
+		[38] = { "light", 			Vector(443.2,25.0-1.8*3,1.15), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
+		
+		-- LSP
+		[39] = { "light",			Vector(444.55,11.3-23.0,-1.45), Angle(0,0,0), Color(255,0,0), brightness = 1.0, scale = 0.020 },
 	
 		-- ARS panel lights
 		[40] = { "light", Vector(448.26,11.0,7.84)+vY*5.15+vX*3.14,				Angle(0,0,0), Color(160,255,0), brightness = 1.0, scale = 0.008 },
@@ -342,9 +354,8 @@ function ENT:Think()
 	self:SetPackedBool(21,self.Pneumatic.LeftDoorState[1] > 0.5)
 	self:SetPackedBool(22,self.Pneumatic.ValveType == 2)
 	--23
-	--24
+	self:SetPackedBool(24,self.DURA.Power ~= 0)
 	self:SetPackedBool(25,self.Pneumatic.RightDoorState[1] > 0.5)
-	--26
 	self:SetPackedBool(27,self.KVWrenchMode == 2)
 	self:SetPackedBool(28,self.KVT.Value == 1.0)
 	self:SetPackedBool(29,self.DURA.SelectAlternate == false)
@@ -362,7 +373,28 @@ function ENT:Think()
 	self:SetPackedBool(55,self.DoorSelect.Value == 1.0)
 	self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
 	self:SetPackedBool(113,self.KRP.Value == 1.0)
-
+	self:SetPackedBool(114,self.Custom1.Value == 1.0)
+	self:SetPackedBool(115,self.Custom2.Value == 1.0)
+	self:SetPackedBool(116,self.Custom3.Value == 1.0)
+	self:SetPackedBool(117,self.Custom4.Value == 1.0)
+	self:SetPackedBool(118,self.Custom5.Value == 1.0)
+	self:SetPackedBool(119,self.Custom6.Value == 1.0)
+	self:SetPackedBool(120,self.Custom7.Value == 1.0)
+	self:SetPackedBool(121,self.Custom8.Value == 1.0)
+	self:SetPackedBool(122,self.CustomA.Value == 1.0)
+	self:SetPackedBool(123,self.CustomB.Value == 1.0)
+	self:SetPackedBool(124,self.CustomC.Value == 1.0)
+	self:SetLightPower(35,self.CustomD.Value == 1.0)
+	self:SetLightPower(36,self.CustomE.Value == 1.0)
+	self:SetLightPower(37,self.CustomF.Value == 1.0)
+	self:SetLightPower(38,self.CustomG.Value == 1.0)
+	self:SetPackedBool(125,self.R_G.Value == 1.0)
+	self:SetPackedBool(126,self.R_Radio.Value == 1.0)
+	self:SetPackedBool(127,self.R_ZS.Value == 1.0)
+	self:SetPackedBool(128,self.R_Program1.Value == 1.0)
+	self:SetPackedBool(129,self.R_Program2.Value == 1.0)
+	self:SetPackedBool(130,self.RC1.Value == 1.0)	
+	
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
 		(self.Pneumatic.LeftDoorState[1] > 0.5) or
@@ -506,6 +538,7 @@ function ENT:Think()
 	end
 	self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 150.0)
 	self:SetPackedRatio(11,IGLA_Temperature)
+	self:SetLightPower(39,(self.Electric.Overheat1 > 0) or (self.Electric.Overheat2 > 0))
 
 	-- Update ARS system
 	self:SetPackedRatio(3, self.ALS_ARS.Speed/100.0)
@@ -747,4 +780,48 @@ function ENT:OnTrainWireError(k)
 		--self.VU:TriggerInput("Open",1.0)
 		--self:PlayOnce("av_off","cabin")
 	end
+end
+
+
+
+function ENT:WriteCell(Address, value)
+	if Address < 0 then return false end
+	if Address == 0 then return true end
+	if (Address >= 1) and (Address < 128) then
+		self.TrainWireOverrides[Address] = value
+		return true
+	end
+	if self.HighspeedLayout[Address] then
+		self.HighspeedLayout[Address](value)
+		return true
+	end
+	if (Address >= 32768) and (Address < (32768+32*24)) then
+		local stringID = math.floor((Address-32768)/32)
+		local charID = (Address-32768)%32
+		local prevStr = self:GetNWString("CustomStr"..stringID)
+		local newStr = ""
+		for i=0,31 do
+			local ch = string.byte(prevStr,i+1) or 32
+			if i == charID then ch = value end
+			newStr = newStr..(string.char(ch) or "?")
+		end
+		self:SetNWString("CustomStr"..stringID,newStr)		
+	end
+	if Address == 49164 then
+		if self.Announcer then
+			self.Announcer:Queue(value)
+		end
+	end
+	if Address >= 65536 then
+		local wagonIndex = 1+math.floor(Address/65536)
+		local variableAddress = Address % 65536
+		self:UpdateWagonList()
+		
+		if self.WagonList[wagonIndex] and IsValid(self.WagonList[wagonIndex]) then
+			return self.WagonList[wagonIndex]:WriteCell(variableAddress,value)
+		else
+			return false
+		end
+	end
+	return true
 end

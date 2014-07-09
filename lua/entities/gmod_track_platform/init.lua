@@ -212,6 +212,12 @@ function ENT:Think()
 			train_start = math.max(0,math.min(1,train_start))
 			train_end = math.max(0,math.min(1,train_end))
 		
+			-- Check for announcement
+			if (v.LastPlatform == self) and (v.AnnouncementToLeaveWagon == true) and
+				(v.AnnouncementToLeaveWagonAcknowledged ~= true) then
+				v.AnnouncementToLeaveWagonAcknowledged = true
+				v.LastPlatform = nil
+			end
 			-- Check if this was the last stop
 			if (v.LastPlatform ~= self) then
 				v.LastPlatform = self
@@ -219,6 +225,7 @@ function ENT:Think()
 				-- How many passengers must leave on this station
 				local proportion = math.random() * math.max(0,1.0 + math.log(self.PopularityIndex))
 				if self.PlatformLast then proportion = 1 end
+				if (v.AnnouncementToLeaveWagon == true) then proportion = 1 end
 				-- Total count
 				v.PassengersToLeave = math.floor(proportion * v:GetPassengerCount() + 0.5)
 			end

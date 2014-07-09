@@ -14,9 +14,18 @@ ENT.ButtonMap["Main"] = {
 	height = 230,
 	scale = 0.0625,
 	
-	buttons = {		
+	buttons = {
+		{ID = "R_UNchToggle",	x=39+28*0, y=37, radius=20, tooltip="УНЧ: Усилитель низких частот\nUNCh: Low frequency amplifier"},
+		{ID = "R_ZSToggle",		x=36+28*1, y=37, radius=20, tooltip="ЗС: Звук в салоне\nZS: Sound in wagons enable"},
+		{ID = "R_GToggle",		x=38+28*2, y=37, radius=20, tooltip="Громкоговоритель\nLoudspeaker: Sound in cabin enable"},
+		{ID = "R_RadioToggle",	x=38+28*3, y=37, radius=20, tooltip="Радиоинформатор (встроеный)\nRadioinformator: Announcer (built-in)"},
+		{ID = "R_ProgramToggle",x=41+28*4, y=37, radius=0, },
+		{ID = "R_Program2Set",  x=27+28*4, y=37-20, w=28,h=20, tooltip="Программа 2\nProgram 2"},
+		{ID = "R_Program1Set",  x=27+28*4, y=37+0,  w=28,h=20, tooltip="Программа 1\nProgram 1"},
+		
 		{ID = "KVTSet",			x=247, y=33, radius=20, tooltip="КВТ: Кнопка восприятия торможения\nKVT: ARS Brake cancel button"},
 		{ID = "KVT2Set",		x=295, y=33, radius=20, tooltip="КБ: Кнопка Бдительности\nKB: Attention button"},
+		{ID = "VZ1Set",			x=350, y=33, radius=20, tooltip="ВЗ1: Вентиль замещения №1\nVZ1: Pneumatic valve #1"},
 		
 		{ID = "VUD1Toggle",		x=54, y=105, radius=40, tooltip="ВУД: Выключатель управления дверьми\nVUD: Door control toggle (close doors)"},
 		{ID = "KDLSet",			x=50, y=180, radius=20, tooltip="КДЛ: Кнопка левых дверей\nKDL: Left doors open"},
@@ -28,7 +37,7 @@ ENT.ButtonMap["Main"] = {
 		{ID = "GreenRPLight",	x=153, y=135, radius=20, tooltip="РП: Зелёная лампа реле перегрузки\nRP: Green overload relay light (overload relay open on current train)"},
 		{ID = "AVULight",		x=325, y=92, radius=20, tooltip="АВУ: Автоматический выключатель управления\nAVU: Automatic control disabler active"},
 		{ID = "KVPLight",		x=370, y=92, radius=20, tooltip="КВП: Контроль высоковольного преобразователя\nKVP: High-voltage converter control"},
-		{ID = "SPLight",		x=411, y=30, radius=20, tooltip="(placeholder) LSP"},
+		{ID = "SPLight",		x=411, y=30, radius=20, tooltip="ЛСП: Лампа сигнализации пожара\nLSP: Fire emergency (rheostat overheat)"},
 		{ID = "PS20",			x=247, y=84, radius=20, tooltip="(placeholder) VN"},
 		{ID = "PS21",			x=295, y=84, radius=20, tooltip="(placeholder) DAU ARS"},
 		
@@ -87,6 +96,48 @@ ENT.ButtonMap["BPSNFront"] = {
 		{ID = "PS9", x=83, y=80, radius=20, tooltip="(placeholder) Radio 13V"},
 		{ID = "PS10",x=126, y=80, radius=20, tooltip="(placeholder) ARS 13V"},
 	}
+}
+
+-- Announcer panel
+ENT.ButtonMap["Announcer"] = {
+	pos = Vector(444.2,31,1.8),
+	ang = Angle(0,-90,57.0),
+	width = 265,
+	height = 245,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "DURASelectMain", x=159, y=200, radius=20, tooltip="DURA Select Main"}, -- NEEDS TRANSLATING
+		{ID = "DURASelectAlternate", x=198, y=200, radius=20, tooltip="DURA Select Alternate"}, -- NEEDS TRANSLATING
+		{ID = "DURAToggleChannel", x=110, y=217, radius=20, tooltip="DURA Toggle Channel"}, -- NEEDS TRANSLATING
+		{ID = "DURAPowerToggle", x=110, y=187, radius=20, tooltip="DURA Power"}, -- NEEDS TRANSLATING
+		
+		{ID = "CustomAToggle", x=40, y=100, radius=20, tooltip="A"},
+		{ID = "CustomBToggle", x=40, y=135, radius=20, tooltip="B"},
+		{ID = "CustomCToggle", x=220, y=45, radius=20, tooltip="C"},
+		
+		{ID = "CustomD", x=95+29*0, y=18, radius=20, tooltip="D"},
+		{ID = "CustomE", x=95+29*1, y=18, radius=20, tooltip="E"},
+		{ID = "CustomF", x=95+29*2, y=18, radius=20, tooltip="F"},
+		{ID = "CustomG", x=95+29*3, y=18, radius=20, tooltip="G"},
+		
+		{ID = "Custom1Set", x=95+40*0, y=84+45*0, radius=20, tooltip="1"},
+		{ID = "Custom2Set", x=95+40*1, y=84+45*0, radius=20, tooltip="2"},
+		{ID = "Custom3Set", x=95+40*2, y=84+45*0, radius=20, tooltip="3"},
+		{ID = "Custom4Set", x=95+40*3, y=84+45*0, radius=20, tooltip="4"},
+		{ID = "Custom5Set", x=95+40*0, y=84+45*1, radius=20, tooltip="5"},
+		{ID = "Custom6Set", x=95+40*1, y=84+45*1, radius=20, tooltip="6"},
+		{ID = "Custom7Set", x=95+40*2, y=84+45*1, radius=20, tooltip="7"},
+		{ID = "Custom8Set", x=95+40*3, y=84+45*1, radius=20, tooltip="8"},
+	}
+}
+-- Announcer panel
+ENT.ButtonMap["AnnouncerDisplay"] = {
+	pos = Vector(444.3,31,1.85),
+	ang = Angle(0,-90,57.0),
+	width = 265,
+	height = 245,
+	scale = 0.0187,
 }
 
 -- ARS/Speedometer panel
@@ -205,6 +256,7 @@ ENT.ButtonMap["Battery"] = {
 	
 	buttons = {
 		{ID = "VBToggle", x=64, y=185, radius=70, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
+		{ID = "RC1Toggle", x=64, y=71, radius=70, tooltip="РЦ-1: Разъединитель цепей АРС\nRC-1: ARS circuits disconnect"},
 	}
 }
 
@@ -245,19 +297,6 @@ ENT.ButtonMap["DriverValveDisconnect"] = {
 		{ID = "DriverValveDisconnectToggle", x=0, y=0, w=200, h=90, tooltip="Клапан разобщения\nDriver valve disconnect valve"},
 	}
 }
-ENT.ButtonMap["DURA"] = {
-	pos = Vector(412.5,-56.5,-2.6),
-	ang = Angle(0,0,0),
-	width = 240,
-	height = 80,
-	scale = 0.0625,
-	
-	buttons = {
-		{ID = "DURASelectMain", x=95, y=43, radius=20, tooltip="DURA Select Main"}, -- NEEDS TRANSLATING
-		{ID = "DURASelectAlternate", x=60, y=43, radius=20, tooltip="DURA Select Alternate"}, -- NEEDS TRANSLATING
-		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip="DURA Toggle Channel"}, -- NEEDS TRANSLATING
-	}
-}
 ENT.ButtonMap["Reverser"] = {
 	pos = Vector(436.0,-28.5,-7),
 	ang = Angle(0,180,90),
@@ -278,19 +317,7 @@ ENT.ButtonMap["Controller"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "KVControllerUp",x=10,y=0,w=160,h=190, tooltip=""},
-		{ID = "KVControllerDown",x=10,y=200,w=160,h=190, tooltip=""},
-	}
-}
-ENT.ButtonMap["Controller"] = {
-	pos = Vector(440.0,25.5,-7),
-	ang = Angle(0,-90,0),
-	width = 180,
-	height = 390,
-	scale = 0.0625,
-	
-	buttons = {
-		{ID = "KVControllerUp",x=10,y=0,w=160,h=190, tooltip=""},
+		{ID = "KVControllerUp",x=10,y=110,w=160,h=80, tooltip=""},
 		{ID = "KVControllerDown",x=10,y=200,w=160,h=190, tooltip=""},
 	}
 }
@@ -470,12 +497,32 @@ Metrostroi.ClientPropForButton("headlights",{
 	button = "VUSToggle",	
 	model = "models/metrostroi/81-717/switch04.mdl",
 })
-ENT.ClientProps["dura"] = {
-	model = "models/metrostroi/81-717/dura.mdl",
-	pos = Vector(420.0,-58.3+1.5,-5.0),
-	ang = Angle(0,0,90)
-}
 --------------------------------------------------------------------------------
+Metrostroi.ClientPropForButton("R_UNch",{
+	panel = "Main",
+	button = "R_UNchToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("R_ZS",{
+	panel = "Main",
+	button = "R_ZSToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("R_G",{
+	panel = "Main",
+	button = "R_GToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("R_Radio",{
+	panel = "Main",
+	button = "R_RadioToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("R_Program",{
+	panel = "Main",
+	button = "R_ProgramToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
 Metrostroi.ClientPropForButton("BPSNon",{
 	panel = "BPSNFront",
 	button = "BPSNonToggle",
@@ -554,6 +601,12 @@ Metrostroi.ClientPropForButton("KVT2",{
 	button = "KVT2Set",
 	model = "models/metrostroi/81-717/button10.mdl",
 })
+Metrostroi.ClientPropForButton("VZ1",{
+	panel = "Main",
+	button = "VZ1Set",
+	model = "models/metrostroi/81-717/button02.mdl",
+	z=2
+})
 Metrostroi.ClientPropForButton("KSN",{
 	panel = "Main",
 	button = "KSNSet",
@@ -573,18 +626,23 @@ Metrostroi.ClientPropForButton("VDL",{
 })
 
 Metrostroi.ClientPropForButton("SelectMain",{
-	panel = "DURA",
+	panel = "Announcer",
 	button = "DURASelectMain",
 	model = "models/metrostroi/81-717/button07.mdl",
 })
 Metrostroi.ClientPropForButton("SelectAlternate",{
-	panel = "DURA",
+	panel = "Announcer",
 	button = "DURASelectAlternate",
 	model = "models/metrostroi/81-717/button07.mdl",
 })
 Metrostroi.ClientPropForButton("SelectChannel",{
-	panel = "DURA",
+	panel = "Announcer",
 	button = "DURAToggleChannel",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("DURAPower",{
+	panel = "Announcer",
+	button = "DURAPowerToggle",
 	model = "models/metrostroi/81-717/switch04.mdl",
 })
 Metrostroi.ClientPropForButton("GreenRPLight",{
@@ -685,6 +743,86 @@ Metrostroi.ClientPropForButton("PS21",{
 	model = "models/metrostroi/81-717/switch04.mdl"
 })
 
+-- Customs
+Metrostroi.ClientPropForButton("Custom1",{
+	panel = "Announcer",
+	button = "Custom1Set",
+	model = "models/metrostroi/81-717/button10.mdl"
+})
+Metrostroi.ClientPropForButton("Custom2",{
+	panel = "Announcer",
+	button = "Custom2Set",
+	model = "models/metrostroi/81-717/button10.mdl"
+})
+Metrostroi.ClientPropForButton("Custom3",{
+	panel = "Announcer",
+	button = "Custom3Set",
+	model = "models/metrostroi/81-717/button07.mdl"
+})
+Metrostroi.ClientPropForButton("Custom4",{
+	panel = "Announcer",
+	button = "Custom4Set",
+	model = "models/metrostroi/81-717/button09.mdl"
+})
+
+Metrostroi.ClientPropForButton("Custom5",{
+	panel = "Announcer",
+	button = "Custom5Set",
+	model = "models/metrostroi/81-717/button07.mdl"
+})
+Metrostroi.ClientPropForButton("Custom6",{
+	panel = "Announcer",
+	button = "Custom6Set",
+	model = "models/metrostroi/81-717/button07.mdl"
+})
+Metrostroi.ClientPropForButton("Custom7",{
+	panel = "Announcer",
+	button = "Custom7Set",
+	model = "models/metrostroi/81-717/button07.mdl"
+})
+Metrostroi.ClientPropForButton("Custom8",{
+	panel = "Announcer",
+	button = "Custom8Set",
+	model = "models/metrostroi/81-717/button09.mdl"
+})
+
+Metrostroi.ClientPropForButton("CustomA",{
+	panel = "Announcer",
+	button = "CustomAToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("CustomB",{
+	panel = "Announcer",
+	button = "CustomBToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("CustomC",{
+	panel = "Announcer",
+	button = "CustomCToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+
+Metrostroi.ClientPropForButton("CustomD",{
+	panel = "Announcer",
+	button = "CustomD",
+	model = "models/metrostroi/81-717/light01.mdl",
+})
+Metrostroi.ClientPropForButton("CustomE",{
+	panel = "Announcer",
+	button = "CustomE",
+	model = "models/metrostroi/81-717/light03.mdl",
+})
+Metrostroi.ClientPropForButton("CustomF",{
+	panel = "Announcer",
+	button = "CustomF",
+	model = "models/metrostroi/81-717/light04.mdl",
+})
+Metrostroi.ClientPropForButton("CustomG",{
+	panel = "Announcer",
+	button = "CustomG",
+	model = "models/metrostroi/81-717/light02.mdl",
+})
+
 
 --------------------------------------------------------------------------------
 ENT.ClientProps["gv"] = {
@@ -710,6 +848,11 @@ end
 Metrostroi.ClientPropForButton("battery",{
 	panel = "Battery",
 	button = "VBToggle",	
+	model = "models/metrostroi/81-717/rc.mdl",
+})
+Metrostroi.ClientPropForButton("rc1",{
+	panel = "Battery",
+	button = "RC1Toggle",	
 	model = "models/metrostroi/81-717/rc.mdl",
 })
 
@@ -815,6 +958,7 @@ function ENT:Think()
 	self:Animate("KRZD",			self:GetPackedBool(17) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KSN",				self:GetPackedBool(18) and 1 or 0, 	0,1, 16, false)
 	self:Animate("OtklAVU",			self:GetPackedBool(19) and 1 or 0, 	0,1, 16, false)
+	self:Animate("DURAPower",		self:GetPackedBool(24) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectMain",		self:GetPackedBool(29) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectAlternate",	self:GetPackedBool(30) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectChannel",	self:GetPackedBool(31) and 0 or 1, 	0,1, 16, false)
@@ -830,6 +974,22 @@ function ENT:Think()
 	self:Animate("L_5",				self:GetPackedBool(53) and 1 or 0, 	0,1, 16, false)	
 	self:Animate("DoorSelect",		self:GetPackedBool(55) and 1 or 0, 	0,1, 16, false)	
 	self:Animate("KRP",				self:GetPackedBool(113) and 1 or 0, 0,1, 16, false)	
+	self:Animate("Custom1",			self:GetPackedBool(114) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom2",			self:GetPackedBool(115) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom3",			self:GetPackedBool(116) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom4",			self:GetPackedBool(117) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom5",			self:GetPackedBool(118) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom6",			self:GetPackedBool(119) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom7",			self:GetPackedBool(120) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom8",			self:GetPackedBool(121) and 1 or 0, 0,1, 16, false)
+	self:Animate("CustomA",			self:GetPackedBool(122) and 1 or 0, 0,1, 16, false)
+	self:Animate("CustomB",			self:GetPackedBool(123) and 1 or 0, 0,1, 16, false)
+	self:Animate("CustomC",			self:GetPackedBool(124) and 1 or 0, 0,1, 16, false)
+	self:Animate("R_G",				self:GetPackedBool(125) and 1 or 0, 0,1, 16, false)
+	self:Animate("R_Radio",			self:GetPackedBool(126) and 1 or 0, 0,1, 16, false)
+	self:Animate("R_ZS",			self:GetPackedBool(127) and 1 or 0, 0,1, 16, false)
+	self:Animate("R_Program",		self:GetPackedBool(128) and 0 or (self:GetPackedBool(129) and 1 or 0.5), 0,1, 16, false)
+	self:Animate("rc1",				self:GetPackedBool(130) and 0.87 or 1, 	0,1, 1, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -918,7 +1078,7 @@ function ENT:Think()
 			self:SetSoundState("ring2",0.20,1)
 		else
 			self:SetSoundState("ring2",0,0)
-			self:PlayOnce("ring2_end","cabin",0.45)		
+			self:PlayOnce("ring2_end","cabin",0.45)
 		end
 	end
 	
@@ -929,10 +1089,10 @@ function ENT:Think()
 	if self.PreviousRKState ~= state then
 		self.PreviousRKState = state
 		if state then
-			self:SetSoundState("rk_spin",0.25,1)
+			self:SetSoundState("rk_spin",0.15,1)
 		else
 			self:SetSoundState("rk_spin",0,0)
-			self:PlayOnce("rk_stop",nil,0.72)		
+			self:PlayOnce("rk_stop",nil,0.67)
 		end
 	end
 	
@@ -1339,6 +1499,70 @@ function ENT:Draw()
 			surface.SetDrawColor(C2)
 			surface.DrawRect(42+(i-1)*17.7+1,42+24+4,16,22)
 			draw.DrawText(string.upper(text2[i] or ""),"MetrostroiSubway_IGLA",42+(i-1)*17.7,42+24,C1)
+		end
+	end)
+	self:DrawOnPanel("AnnouncerDisplay",function()
+		-- Draw button labels
+		for x=0,3 do
+			for y=0,1 do
+				draw.Text({
+					text = string.Trim(self:GetNWString("CustomStr"..(2+x+y*4))),
+					font = "MetrostroiSubway_VerySmallText3",
+					pos = { 310+x*135,350+y*150},
+					xalign = TEXT_ALIGN_CENTER,yalign = TEXT_ALIGN_CENTER,color = Color(0,0,0,255)})
+			end
+		end
+		draw.Text({
+			text = string.Trim(self:GetNWString("CustomStr10")),
+			font = "MetrostroiSubway_VerySmallText3",
+			pos = { 140,385+0*120},
+			xalign = TEXT_ALIGN_CENTER,yalign = TEXT_ALIGN_CENTER,color = Color(0,0,0,255)})
+		draw.Text({
+			text = string.Trim(self:GetNWString("CustomStr11")),
+			font = "MetrostroiSubway_VerySmallText3",
+			pos = { 140,385+1*120},
+			xalign = TEXT_ALIGN_CENTER,yalign = TEXT_ALIGN_CENTER,color = Color(0,0,0,255)})
+		draw.Text({
+			text = string.Trim(self:GetNWString("CustomStr12")),
+			font = "MetrostroiSubway_VerySmallText3",
+			pos = { 735,200},
+			xalign = TEXT_ALIGN_CENTER,yalign = TEXT_ALIGN_CENTER,color = Color(0,0,0,255)})
+		draw.Text({
+			text = string.Trim(self:GetNWString("CustomStr13")),
+			font = "MetrostroiSubway_VerySmallText3",
+			pos = { 735,100},
+			xalign = TEXT_ALIGN_CENTER,yalign = TEXT_ALIGN_CENTER,color = Color(0,0,0,255)})
+			
+		--draw.DrawText("SELFDESTRUCT","MetrostroiSubway_VerySmallText3",300,480,Color(0,0,0,255))		
+		
+		if not self:GetPackedBool(32) then return end
+		
+		surface.SetAlphaMultiplier(0.4)
+		surface.SetDrawColor(255,255,255)
+		surface.DrawRect(58,617,230,120)
+		surface.SetAlphaMultiplier(1.0)
+		--draw.DrawText("DURA V 1.0","MetrostroiSubway_IGLA",51,611,Color(0,0,0,255))
+		
+		-- Custom announcer display
+		local C1 = Color(0,0,0,210)
+		local C2 = Color(0,0,0,90)
+		local flash = false
+		text1 = self:GetNWString("CustomStr0")
+		text2 = self:GetNWString("CustomStr1")
+		
+		-- Draw text
+		if flash and ((RealTime() % 1.0) > 0.5) then
+			C2,C1 = C1,C2
+		end
+		for i=1,20 do
+			surface.SetDrawColor(C2)
+			surface.DrawRect(287+(i-1)*17.7+1,125+4,16,22)			
+			draw.DrawText(string.upper(text1[i] or ""),"MetrostroiSubway_IGLA",287+(i-1)*17.7,125+0,C1)
+		end
+		for i=1,20 do
+			surface.SetDrawColor(C2)
+			surface.DrawRect(287+(i-1)*17.7+1,125+31+4,16,22)
+			draw.DrawText(string.upper(text2[i] or ""),"MetrostroiSubway_IGLA",287+(i-1)*17.7,125+31,C1)
 		end
 	end)
 	

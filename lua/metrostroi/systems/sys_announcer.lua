@@ -79,7 +79,61 @@ Metrostroi.Announcements = {
 }
 
 Metrostroi.AnnouncementSequences = {
-	[1101] = { },
+	[1101] = { 0211, 0308, 0321 },
+	[1102] = { 0211, 0321, 0308 },
+
+	[1108] = { 0220, 0308 },
+	[1109] = { 0220, 0309 },
+	[1110] = { 0220, 0310, 0231 },
+	[1111] = { 0220, 0311 },
+	[1112] = { 0220, 0312 },
+	[1113] = { 0220, 0313 },
+	[1114] = { 0220, 0314 },
+	[1115] = { 0220, 0315, 0231, 0202, 0203, 0415 },
+	[1116] = { 0220, 0316 },
+	[1117] = { 0220, 0317 },
+	[1118] = { 0220, 0318, 0231 },
+	[1119] = { 0220, 0319 },
+	[1120] = { },
+	[1121] = { 0220, 0321 },
+	[1122] = { 0220, 0322 },
+	[1123] = { 0220, 0323 },
+	
+	[1208] = { 0218, 0219, 0308 },
+	[1209] = { 0218, 0219, 0309 },
+	[1210] = { 0218, 0219, 0310 },
+	[1211] = { 0218, 0219, 0311 },
+	[1212] = { 0218, 0219, 0312 },
+	[1213] = { 0218, 0219, 0313 },
+	[1214] = { 0218, 0219, 0314 },
+	[1215] = { 0218, 0219, 0315 },
+	[1216] = { 0218, 0219, 0316 },
+	[1217] = { 0218, 0219, 0317 },
+	[1218] = { 0218, 0219, 0318 },
+	[1219] = { 0218, 0219, 0319 },
+	[1220] = { },
+	[1221] = { 0218, 0219, 0321 },
+	[1222] = { 0218, 0219, 0322 },
+	[1223] = { 0218, 0219, 0323 },
+}
+
+Metrostroi.AnnouncementSequenceNames = {
+	[1108] = "Avtozavodskaya",
+	[1109] = "Industrial'naya",
+	[1110] = "Moskovskaya",
+	[1111] = "Oktyabrs'kaya",
+	[1112] = "Ploschad' Myra",
+	[1113] = "Novoarmeyskaya",
+	[1114] = "Vokzalnaya",
+	[1115] = "Komsomol'skaya",
+	[1116] = "Elektrosila",
+	[1117] = "Teatral'naya Ploshad",
+	[1118] = "Park Pobedy",
+	[1119] = "Sineozernaya",
+	[1120] = "Lesnaya",
+	[1121] = "Minskaya",
+	[1122] = "Tsarskiye Vorota",
+	[1123] = "Mezhdustroyskaya",
 }
 
 -- Quick lookup
@@ -100,6 +154,8 @@ function TRAIN_SYSTEM:Initialize()
 	self.EndTime = -1e9
 	-- Announcement schedule
 	self.Schedule = {}
+	-- Fake wire 49
+	self.Fake48 = 0
 end
 
 
@@ -137,8 +193,184 @@ function TRAIN_SYSTEM:ClientThink()
 end
 
 function TRAIN_SYSTEM:Think()
+	-- Build-in announcer logic
+	if self.Train.R_Radio and (self.Train.R_Radio.Value > 0.5) then
+		-- Startup
+		if self.Radioinformator == 0 then
+			self:Queue(0005)
+			self:Queue(0201)
+			self:Queue(0006)
+			self.Radioinformator = 100
+			self.Radiotimer = CurTime()+5.0
+			
+			self.Train:SetNWString("CustomStr2","Prev(Depart)")
+			self.Train:SetNWString("CustomStr3","Select")
+			self.Train:SetNWString("CustomStr4","")
+			self.Train:SetNWString("CustomStr5","Next(Arrive)")
+			self.Train:SetNWString("CustomStr6","F1")
+			self.Train:SetNWString("CustomStr7","F2")
+			self.Train:SetNWString("CustomStr8","F3")
+			self.Train:SetNWString("CustomStr9","F4")
+			self.Train:SetNWString("CustomStr10","")
+			self.Train:SetNWString("CustomStr11","")
+			self.Train:SetNWString("CustomStr12","Enable")
+			self.Train:SetNWString("CustomStr13","Silent")
+		end
+		if self.Radioinformator == 100 then
+			if (CurTime() > self.Radiotimer) then
+				self.Radioinformator = 101
+			end
+		end
+		if self.Radioinformator == 101 then
+			self.Radioinformator = 1
+			self.SelectedMessage = 1108
+			self.Train:SetNWString("CustomStr0","SELECT START STATION")
+		end
+		-- Select starting station
+		if self.Radioinformator == 1 then
+			if self.Train.Custom4.Value > 0.5 then
+				self.Radioinformator = 91
+				self.SelectedMessage = self.SelectedMessage + 1
+				if self.SelectedMessage > 1123 then self.SelectedMessage = 1108 end
+			end
+			if self.Train.Custom1.Value > 0.5 then
+				self.Radioinformator = 91
+				self.SelectedMessage = self.SelectedMessage - 1
+				if self.SelectedMessage < 1108 then self.SelectedMessage = 1123 end
+			end
+			if self.Train.Custom2.Value > 0.5 then
+				self.Radioinformator = 2
+				self.Train:SetNWString("CustomStr0","SELECT DIRECTION")
+				self.Train:SetNWString("CustomStr1","AVTOZAV -> MINSKAYA")
+				self.SelectedDirection = 1
+			end
+		end
+		-- Stop
+		if self.Radioinformator == 2 then
+			if self.Train.Custom2.Value < 0.5 then
+				self.Radioinformator = 3
+			end
+		end
+		-- Select direction
+		if self.Radioinformator == 3 then
+			if self.Train.Custom1.Value > 0.5 then
+				self.Train:SetNWString("CustomStr1","AVTOZAV -> MINSKAYA")
+				self.SelectedDirection = 1
+				self:Queue(0005)
+				self:Queue(1101)
+				self:Queue(0006)
+				self.Radioinformator = 93
+			end
+			if self.Train.Custom4.Value > 0.5 then
+				self.Train:SetNWString("CustomStr1","MINSKAYA -> AVTOZAV")
+				self.SelectedDirection = -1
+				self:Queue(0005)
+				self:Queue(1102)
+				self:Queue(0006)
+				self.Radioinformator = 93
+			end
+			if self.Train.Custom2.Value > 0.5 then
+				self.RadioX = 0
+				self.Radioinformator = 4
+				self.Train:SetNWString("CustomStr0","")
+				self.Train:SetNWString("CustomStr1","")
+			end
+		end
+		-- Stop
+		if self.Radioinformator == 4 then
+			if self.Train.Custom2.Value < 0.5 then
+				self.Radioinformator = 5
+			end
+		end
+		-- Working
+		if self.Radioinformator == 5 then
+			if (self.Train.Custom4.Value > 0.5) then
+				if self.Train.CustomC.Value < 0.5 then
+					self:Queue(0005)
+					self:Queue(self.SelectedMessage)
+					self:Queue(0006)
+				end
+				self.Radioinformator = 95
+				self.RadioX = 0
+				
+				self.SelectedMessage = self.SelectedMessage + self.SelectedDirection
+				if self.SelectedMessage == 1120 then self.SelectedMessage = self.SelectedMessage + self.SelectedDirection end
+				if self.SelectedMessage > 1123 then self.SelectedMessage = 1108 end
+				if self.SelectedMessage < 1108 then self.SelectedMessage = 1123 end
+			end
+			if (self.Train.Custom1.Value > 0.5) then
+				if self.Train.CustomC.Value < 0.5 then
+					self:Queue(0005)
+					self:Queue(100+self.SelectedMessage)
+					self:Queue(0006)
+				end
+				self.Radioinformator = 95
+				self.RadioX = 0
+			end
+			if self.Train.Custom3.Value > 0.5 then self:Queue(0005) self:Queue(0217) 				self:Queue(0006) self.Radioinformator = 95 self.RadioX = 0 end
+			if self.Train.Custom5.Value > 0.5 then self:Queue(0005) self:Queue(0212+12*self.RadioX) self:Queue(0006) self.Radioinformator = 95 self.RadioX = 1 end
+			if self.Train.Custom6.Value > 0.5 then self:Queue(0005) self:Queue(0206+self.RadioX)	self:Queue(0006) self.Radioinformator = 95 self.RadioX = 0 end
+			if self.Train.Custom7.Value > 0.5 then self:Queue(0005) self:Queue(0208+self.RadioX)	self:Queue(0006) self.Radioinformator = 95 self.RadioX = 1 end
+			if self.Train.Custom8.Value > 0.5 then self:Queue(0005) self:Queue(0204+self.RadioX)	self:Queue(0006) self.Radioinformator = 95 self.RadioX = 1 end
+		end
+		
+		-- Return to menu
+		if self.Radioinformator == 91 then
+			if (self.Train.Custom1.Value < 0.5) and (self.Train.Custom4.Value < 0.5) then
+				self.Radioinformator = 1
+			end
+		end
+		if self.Radioinformator == 93 then
+			if (self.Train.Custom1.Value < 0.5) and (self.Train.Custom4.Value < 0.5) then
+				self.Radioinformator = 3
+			end
+		end
+		if self.Radioinformator == 95 then
+			if (self.Train.Custom1.Value < 0.5) and (self.Train.Custom4.Value < 0.5) and (self.Train.Custom3.Value < 0.5) and
+				(self.Train.Custom5.Value < 0.5) and (self.Train.Custom6.Value < 0.5) and
+				(self.Train.Custom7.Value < 0.5) and (self.Train.Custom8.Value < 0.5) then
+				self.Radioinformator = 5
+			end
+		end
+		
+		-- Display message
+		if self.DisplayedMessage1 ~= self.SelectedMessage then
+			self.DisplayedMessage1 = self.SelectedMessage
+			self.Train:SetNWString("CustomStr1",
+				Format("%04d%s",self.DisplayedMessage1,(Metrostroi.AnnouncementSequenceNames[self.DisplayedMessage1] or "")))
+		end
+		if self.DisplayedMessage2 ~= self.Announcement then
+			self.DisplayedMessage2 = self.Announcement
+			if self.DisplayedMessage2 > 0 then
+				self.Train:SetNWString("CustomStr0",Format("PLAYING ANN %04d",self.DisplayedMessage2))
+			else
+				self.Train:SetNWString("CustomStr0","")
+			end
+		end
+	else
+		if self.Radioinformator ~= 0 then
+			self.Train:SetNWString("CustomStr0","")
+			self.Train:SetNWString("CustomStr1","")
+			self.Train:SetNWString("CustomStr2","")
+			self.Train:SetNWString("CustomStr3","")
+			self.Train:SetNWString("CustomStr4","")
+			self.Train:SetNWString("CustomStr5","")
+			self.Train:SetNWString("CustomStr6","")
+			self.Train:SetNWString("CustomStr7","")
+			self.Train:SetNWString("CustomStr8","")
+			self.Train:SetNWString("CustomStr9","")
+			self.Train:SetNWString("CustomStr10","")
+			self.Train:SetNWString("CustomStr11","")
+			self.Train:SetNWString("CustomStr12","")
+			self.Train:SetNWString("CustomStr13","")
+		end
+		self.Radioinformator = 0
+	end
+	
 	-- Check if new announcement must be started from train wire
 	local targetAnnouncement = self.Train:ReadTrainWire(48)
+	local onlyCabin = false
+	if (targetAnnouncement == 0) then targetAnnouncement = self.Fake48 or 0  onlyCabin = true end
 	if (targetAnnouncement > 0) and (targetAnnouncement ~= self.Announcement) and (CurTime() > self.EndTime) then
 		self.Announcement = targetAnnouncement
 		if Metrostroi.Announcements[targetAnnouncement] then
@@ -147,7 +379,22 @@ function TRAIN_SYSTEM:Think()
 
 			-- Emit the sound
 			if self.Sound ~= "" then
-				self.Train:EmitSound(self.Sound, 85, 100)
+				if self.Train.DriverSeat and (self.Train.R_G.Value > 0.5) then
+					self.Train.DriverSeat:EmitSound(self.Sound, 73, 100)
+				end
+				if onlyCabin == false then
+					self.Train:EmitSound(self.Sound, 85, 100)
+				end
+				if (self.Announcement == 0206) or 
+				   (self.Announcement == 0207) or 
+				   (self.Announcement == 0212) or 
+				   (self.Announcement == 0221) or 
+				   (self.Announcement == 0224) then
+					self.Train.AnnouncementToLeaveWagon = true
+					self.Train.AnnouncementToLeaveWagonAcknowledged = false
+				else
+					self.Train.AnnouncementToLeaveWagon = false
+				end
 			end
 			
 			-- BPSN buzz
@@ -170,14 +417,19 @@ function TRAIN_SYSTEM:Think()
 		self.ScheduleAnnouncement = self.Schedule[1][3]
 		self.ScheduleEndTime = CurTime() + self.Schedule[1][1]
 		table.remove(self.Schedule,1)
-		
 	end
 	
 	-- Check if schedule announcement is playing
 	if self.ScheduleAnnouncement ~= 0 then
-		self.Train:WriteTrainWire(48,self.ScheduleAnnouncement)
+		if self.Train.DriverSeat and (self.Train.R_ZS.Value < 0.5) then
+			self.Fake48 = self.ScheduleAnnouncement
+		else
+			self.Train:WriteTrainWire(48,self.ScheduleAnnouncement)
+			self.Fake48 = 0
+		end		
 		if CurTime() > (self.ScheduleEndTime or -1e9) then
 			self.ScheduleAnnouncement = 0
+			self.Fake48 = 0
 			self.Train:WriteTrainWire(48,0)
 		end
 	end

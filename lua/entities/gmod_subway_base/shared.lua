@@ -373,7 +373,9 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Vector", 3, "PackedVec3")
 	
 	-- Other variables
-	self:NetworkVar("Float", 0, "PassengerCount")
+	self:NetworkVar("Float", 0, "PackedInt4")
+	self:NetworkVar("Float", 1, "PackedInt5")
+	self:NetworkVar("Float", 2, "PassengerCount")	
 end
 
 --------------------------------------------------------------------------------
@@ -384,6 +386,8 @@ function ENT:SendPackedData()
 	self:SetPackedInt1(self._PackedInt[2])
 	self:SetPackedInt2(self._PackedInt[3])
 	self:SetPackedInt3(self._PackedInt[4])
+	self:SetPackedInt4(self._PackedInt[5])
+	self:SetPackedInt5(self._PackedInt[6])
 	
 	self:SetPackedVec0(self._PackedVec[1])
 	self:SetPackedVec1(self._PackedVec[2])
@@ -397,6 +401,8 @@ function ENT:RecvPackedData()
 	self._PackedInt[2] = self:GetPackedInt1()
 	self._PackedInt[3] = self:GetPackedInt2()
 	self._PackedInt[4] = self:GetPackedInt3()
+	self._PackedInt[5] = self:GetPackedInt4()
+	self._PackedInt[6] = self:GetPackedInt5()
 
 	self._PackedVec = self._PackedVec or {}
 	self._PackedVec[1] = self:GetPackedVec0()
@@ -444,6 +450,8 @@ function ENT:SetPackedBool(idx,value)
 	if idx >= 32 then int = 2 idx = idx-32 end
 	if idx >= 32 then int = 3 idx = idx-32 end
 	if idx >= 32 then int = 4 idx = idx-32 end
+	if idx >= 32 then int = 5 idx = idx-32 end
+	if idx >= 32 then int = 6 idx = idx-32 end
 	
 	-- Pack value
 	local packed_value = bitlshift(value and 1 or 0,idx)
@@ -458,6 +466,8 @@ function ENT:GetPackedBool(idx)
 	if idx >= 32 then int = 2 idx = idx-32 end
 	if idx >= 32 then int = 3 idx = idx-32 end
 	if idx >= 32 then int = 4 idx = idx-32 end
+	if idx >= 32 then int = 5 idx = idx-32 end
+	if idx >= 32 then int = 6 idx = idx-32 end
 	
 	local mask = bitlshift(1,idx)
 	return bitband(self._PackedInt[int],mask) ~= 0

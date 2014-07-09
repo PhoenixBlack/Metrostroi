@@ -260,4 +260,22 @@ function TRAIN_SYSTEM:Think()
 			self["32"] = 0
 		end
 	end
+	
+	-- RC1 operation
+	if self.Train.RC1 and (self.Train.RC1.Value == 0) then
+		self["33D"] = 1
+		self["33G"] = 0
+		self["33Zh"] = 1
+		self["2"] = 0
+		self["20"] = 0
+		self["29"] = 0
+		self["8"] = 0
+		self["31"] = 0
+		self["32"] = 0
+	end
+	
+	-- 81-717 special VZ1 button
+	if self.Train.VZ1 then
+		self["29"] = self["29"] + self.Train.VZ1.Value
+	end
 end
