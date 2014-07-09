@@ -155,12 +155,29 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 		end
 		self.TargetValue = 0.0
 	elseif name == "Set" then
-		if value > self.trigger_level
-		then self:TriggerInput("Close",self.trigger_level+1)
-		else self:TriggerInput("Open",self.trigger_level+1)
-		end	
+		if self.three_position then
+			if not self.ChangeTime then
+				self.ChangeTime = self.Time + FailSim.Value(self,"OpenTime")
+			end
+			self.TargetValue = math.max(0.0,math.min(2.0,math.floor(value)))
+		else
+			if value > self.trigger_level
+			then self:TriggerInput("Close",self.trigger_level+1)
+			else self:TriggerInput("Open",self.trigger_level+1)
+			end
+		end
 	elseif (name == "Toggle") and (value > 0.5) then
-		self:TriggerInput("Set",(1.0 - self.Value)*(self.trigger_level+1))
+		if self.three_position then
+			if self.Value == 0 then
+				self:TriggerInput("Set",1)
+			elseif self.Value == 1 then
+				self:TriggerInput("Set",2)
+			else
+				self:TriggerInput("Set",0)
+			end
+		else
+			self:TriggerInput("Set",(1.0 - self.Value)*(self.trigger_level+1))
+		end
 	end
 end
 

@@ -159,7 +159,7 @@ concommand.Add("metrostroi_train_count", function(ply, _, args)
 		for k,v in pairs(Metrostroi.TrainClasses) do
 			local ents = ents.FindByClass(v)
 			for k2,v2 in pairs(ents) do
-				N[v2:CPPIGetOwner()] = (N[v2:CPPIGetOwner()] or 0) + 1
+				N[v2:CPPIGetOwner() or "(disconnected)"] = (N[v2:CPPIGetOwner() or "(disconnected)"] or 0) + 1
 			end
 		end
 		for k,v in pairs(N) do
