@@ -139,7 +139,8 @@ function ENT:Think()
 	local threshold = 0.01
 	if dPdT < -threshold then
 		local volRamp = 0*math.min(0.01,-0.1*(dPdT+threshold))
-		self:SetSoundState("release",volRamp,1.7)
+		--self:SetSoundState("release",0*volRamp,0*1.7)
+		self:SetSoundState("release",0.0,0.0)
 	elseif dPdT > threshold then
 		local volRamp = (dPdT-threshold)/4.000
 		self:SetSoundState("release",volRamp,1.0)

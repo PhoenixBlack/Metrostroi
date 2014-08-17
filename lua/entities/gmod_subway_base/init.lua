@@ -381,12 +381,12 @@ function ENT:ReadCell(Address)
 		end
 
 		local pos = Metrostroi.TrainPositions[self]
-		if (Address >= 49160) and (Address <= 49163) and pos and pos[1] then
+		if (Address >= 49160) and (Address <= 49165) and pos and pos[1] then
 			pos = pos[1]
 
 			-- Get stations
 			local current,next,prev = 0,0,0
-			local x1,x2 = 1e9,0
+			local x1,x2,x3 = 1e9,0,1e9
 			for stationID,stationData in pairs(Metrostroi.Stations) do
 				for platformID,platformData in pairs(stationData) do
 					if (platformData.node_start.path == pos.path) and 
@@ -408,6 +408,13 @@ function ENT:ReadCell(Address)
 							prev = stationID
 						end
 					end
+					if (platformData.node_start.path == pos.path) and 
+						(platformData.x_end > pos.x) then
+						if platformData.x_end < x3 then
+							x3 = platformData.x_end
+							next = stationID
+						end
+					end
 				end
 			end
 
@@ -415,6 +422,7 @@ function ENT:ReadCell(Address)
 			if Address == 49161 then return next end
 			if Address == 49162 then return prev end
 			if Address == 49163 then return x1 - pos.x end
+			if Address == 49165 then return x3 - pos.x end
 		end
 		return 0
 	end
@@ -440,7 +448,8 @@ function ENT:ReadCell(Address)
 	end
 	if (Address >= 65504) and (Address <= 65510) then
 		local pos = Metrostroi.TrainPositions[self]
-		if pos then
+		if pos and pos[1] then
+			pos = pos[1]
 			if Address == 65504 then return pos.x end
 			if Address == 65505 then return pos.y end
 			if Address == 65506 then return pos.z end
@@ -478,6 +487,18 @@ function ENT:WriteCell(Address, value)
 	if self.HighspeedLayout[Address] then
 		self.HighspeedLayout[Address](value)
 		return true
+	end
+	if (Address >= 32768) and (Address < (32768+32*24)) then
+		local stringID = math.floor((Address-32768)/32)
+		local charID = (Address-32768)%32
+		local prevStr = self:GetNWString("CustomStr"..stringID)
+		local newStr = ""
+		for i=0,31 do
+			local ch = string.byte(prevStr,i+1) or 32
+			if i == charID then ch = value end
+			newStr = newStr..(string.char(ch) or "?")
+		end
+		self:SetNWString("CustomStr"..stringID,newStr)		
 	end
 	if Address == 49164 then
 		if self.Announcer then

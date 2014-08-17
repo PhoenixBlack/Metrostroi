@@ -165,7 +165,11 @@ function ENT:Think()
 	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/5)
 	--self:SetPackedRatio(1, (self.KV.ControllerPosition+3)/7)
 	--self:SetPackedRatio(2, 1-(self.KV.ReverserPosition+1)/2)
-	self:SetPackedRatio(4, self.Pneumatic.ReservoirPressure/16.0)
+	if self.Pneumatic.ValveType == 1 then
+		self:SetPackedRatio(4, self.Pneumatic.ReservoirPressure/16.0)
+	else
+		self:SetPackedRatio(4, self.Pneumatic.BrakeLinePressure/16.0)	
+	end	
 	self:SetPackedRatio(5, self.Pneumatic.TrainLinePressure/16.0)
 	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
