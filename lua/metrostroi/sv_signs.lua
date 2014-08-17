@@ -157,6 +157,75 @@ function Metrostroi.InitializeSigns()
 		Metrostroi.AddStationSign(v)
 		Metrostroi.AddStationSignal(v)
 	end
+	
+	-- Add temporary lights
+	local entities = ents.FindByClass("gmod_track_switch")
+	for k,v in pairs(entities) do
+		for k2,v2 in pairs(v.TrackSwitches) do
+			local tr = trace(v2:GetPos(),Vector(0,0,384))
+			if tr.Hit then
+				local light = ents.Create("env_projectedtexture")
+				light:SetPos(tr.HitPos - Vector(0,0,16))
+				light:SetAngles(tr.HitNormal:Angle())
+
+				-- Set parameters
+				light:SetKeyValue("enableshadows", 0)
+				light:SetKeyValue("farz", 600)
+				light:SetKeyValue("nearz", 16)
+				light:SetKeyValue("lightfov", 170)
+
+				-- Set Brightness
+				local brightness = 0.3
+				light:SetKeyValue("lightcolor",
+					Format("%i %i %i 255",
+						180*brightness,
+						255*brightness,
+						255*brightness
+					)
+				)
+
+				-- Turn light on
+				light:Spawn()
+				light:Input("SpotlightTexture",nil,nil,"effects/flashlight001")
+				table.insert(Metrostroi.Signs,light)			
+			end
+		end
+	end
+	
+	--17473 20200
+	if Metrostroi.Paths[1] then
+		for k,v in pairs(Metrostroi.Paths[1]) do
+			if (type(v) == "table") and (v.x) and (v.x > 17470) and (v.x < 20200) then
+				local tr = trace(v.pos + Vector(0,0,64),Vector(0,0,384)) --384*(v.dir:Angle() + Angle(0,0,90)):Forward())
+				if tr.Hit and ((k % 2) == 0) and false then
+					local light = ents.Create("env_projectedtexture")
+					light:SetPos(tr.HitPos - tr.HitNormal*64)
+					light:SetAngles(tr.HitNormal:Angle())
+
+					-- Set parameters
+					light:SetKeyValue("enableshadows", 0)
+					light:SetKeyValue("farz", 512+192)
+					light:SetKeyValue("nearz", 128)
+					light:SetKeyValue("lightfov", 160)
+
+					-- Set Brightness
+					local brightness = 0.20
+					light:SetKeyValue("lightcolor",
+						Format("%i %i %i 255",
+							180*brightness,
+							255*brightness,
+							255*brightness
+						)
+					)
+
+					-- Turn light on
+					light:Spawn()
+					light:Input("SpotlightTexture",nil,nil,"effects/flashlight001")
+					table.insert(Metrostroi.Signs,light)	
+				end
+			end
+		end
+	end
 end
 
---Metrostroi.InitializeSigns()
+Metrostroi.InitializeSigns()

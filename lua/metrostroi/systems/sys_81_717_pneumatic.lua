@@ -423,15 +423,31 @@ function TRAIN_SYSTEM:Think(dT)
 				self.PlayClose = CurTime()
 			end
 			
-			self.LeftDoorState[1] = 0
-			self.LeftDoorState[2] = 0
-			self.LeftDoorState[3] = 0
-			self.LeftDoorState[4] = 0
+			self.LastCloseTrigger = self.LastCloseTrigger or CurTime()
+			if (CurTime() - self.LastCloseTrigger) > 2.0 then
+				self.LastCloseTrigger = CurTime()
+				--self.CloseValue = nil
+			end
 			
-			self.RightDoorState[1] = 0
-			self.RightDoorState[2] = 0
-			self.RightDoorState[3] = 0
-			self.RightDoorState[4] = 0
+			if self.CloseValue == nil then
+				self.CloseValue = (math.random() > 0.05) --05)
+				if self.CloseValue == false then print("DOOR FAIL",self.Train) end
+				--print("DOOR DESTINY",self.CloseValue)
+			end
+			
+			if self.CloseValue == true then
+				self.LeftDoorState[1] = 0
+				self.LeftDoorState[2] = 0
+				self.LeftDoorState[3] = 0
+				self.LeftDoorState[4] = 0
+			
+				self.RightDoorState[1] = 0
+				self.RightDoorState[2] = 0
+				self.RightDoorState[3] = 0
+				self.RightDoorState[4] = 0
+			end
+		else
+			self.CloseValue = nil
 		end
 	end
 	Train.BD:TriggerInput("Set",

@@ -5,7 +5,7 @@ Metrostroi.DefineSystem("YAR_27")
 
 function TRAIN_SYSTEM:Initialize()
 	-- Реле дверей (РД)
-	self.Train:LoadSystem("RD","Relay","REV-821")
+	self.Train:LoadSystem("RD","Relay","REV-821",{ close_time = 1.75 })
 	-- Реле включения освещения (РВО)
 	self.Train:LoadSystem("RVO","Relay","REV-814T",{ open_time = 4.0 })
 	-- Реле времени торможения (РВ3)
