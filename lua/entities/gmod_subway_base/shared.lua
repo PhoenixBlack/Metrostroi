@@ -201,6 +201,21 @@ function ENT:InitializeSounds()
 		"subway_trains/kv3_3.wav",
 	}
 	
+	self.SoundNames["kv_0_t1"]		= "subway_trains/kv_0_t1.wav"
+	self.SoundNames["kv_0_x1"]		= "subway_trains/kv_0_x1.wav"
+	self.SoundNames["kv_t1a_t2"]	= "subway_trains/kv_t1a_t2.wav"
+	self.SoundNames["kv_x1_0"]		= "subway_trains/kv_x1_0.wav"
+	self.SoundNames["kv_x1_x2"]		= "subway_trains/kv_x1_x2.wav"
+	self.SoundNames["kv_x2_x3"]		= "subway_trains/kv_x2_x3.wav"
+	self.SoundNames["kv_t1_0"]		= {
+		"subway_trains/kv_t1_0.wav",
+		"subway_trains/kv_t1_0_alt.wav",
+	}
+	self.SoundNames["kv_t1a_t1"]		= {
+		"subway_trains/kv_t1a_t1.wav",
+		"subway_trains/kv_t1a_t1_alt.wav",
+	}
+	
 	self.SoundNames["tr"] = {
 		"subway_trains/tr_1.wav",
 		"subway_trains/tr_2.wav",

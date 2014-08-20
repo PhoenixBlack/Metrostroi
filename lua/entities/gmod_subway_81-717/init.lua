@@ -57,6 +57,7 @@ function ENT:Initialize()
 		[KEY_D] = "KDP",
 		[KEY_V] = "VUD1Set",
 		[KEY_L] = "HornEngage",
+		[KEY_N] = "VZ1Set",
 		
 		[KEY_SPACE] = "PBSet",
 
@@ -528,7 +529,7 @@ function ENT:Think()
 		self:SetPackedRatio(4, self.Pneumatic.BrakeLinePressure/16.0)	
 	end	
 	self:SetPackedRatio(5, self.Pneumatic.TrainLinePressure/16.0)
-	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
+	self:SetPackedRatio(6, math.min(2.7,self.Pneumatic.BrakeCylinderPressure)/6.0)
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
 	self:SetPackedRatio(8, 0.5 + 0.5*(self.Electric.I24/500.0))
 	if self.Pneumatic.TrainLineOpen then
