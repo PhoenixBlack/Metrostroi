@@ -961,7 +961,7 @@ function ENT:Think()
 	self:Animate("DURAPower",		self:GetPackedBool(24) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectMain",		self:GetPackedBool(29) and 1 or 0, 	0,1, 16, false)
 	self:Animate("SelectAlternate",	self:GetPackedBool(30) and 1 or 0, 	0,1, 16, false)
-	self:Animate("SelectChannel",	self:GetPackedBool(31) and 0 or 1, 	0,1, 16, false)
+	self:Animate("SelectChannel",	self:GetPackedBool(31) and 1 or 0, 	0,1, 16, false)
 	self:Animate("ARS",				self:GetPackedBool(56) and 1 or 0, 	0,1, 16, false)
 	self:Animate("ALS",				self:GetPackedBool(57) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KVT",				self:GetPackedBool(28) and 1 or 0, 	0,1, 16, false)
@@ -1044,12 +1044,13 @@ function ENT:Think()
 	local brakeLinedPdT = self:GetPackedRatio(9)
 	local dT = self.DeltaTime
 	self.BrakeLineRamp1 = self.BrakeLineRamp1 or 0
+	--print(brakeLinedPdT)
 
 	if (brakeLinedPdT > -0.001)
 	then self.BrakeLineRamp1 = self.BrakeLineRamp1 + 2.0*(0-self.BrakeLineRamp1)*dT
 	else self.BrakeLineRamp1 = self.BrakeLineRamp1 + 2.0*((-0.4*brakeLinedPdT)-self.BrakeLineRamp1)*dT
 	end
-	self:SetSoundState("release2",self.BrakeLineRamp1*0.75,1.0)
+	self:SetSoundState("release2",(self.BrakeLineRamp1^1.35)*0.75,1.0)
 
 	self.BrakeLineRamp2 = self.BrakeLineRamp2 or 0
 	if (brakeLinedPdT < 0.001)
