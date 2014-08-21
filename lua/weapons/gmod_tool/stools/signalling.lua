@@ -92,6 +92,9 @@ function TOOL:RightClick(trace)
 		if v:GetClass() == "gmod_track_signal" then
 			if v then SafeRemoveEntity(v) end
 		end
+		if v:GetClass() == "gmod_track_switch" then
+			if v then SafeRemoveEntity(v) end
+		end
 	end	
 	return true
 end
