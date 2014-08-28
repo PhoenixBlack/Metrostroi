@@ -268,7 +268,7 @@ function TOOL:SpawnWagon(trace)
 	self.rot = false
 end
 function TOOL:LeftClick(trace)
-	if CLIENT then self.GhostEntity:Remove() return end
+	if CLIENT then timer.Simple(0.5,function() if self.GhostEntity then self.GhostEntity:Remove() end end) return end
 	self:SpawnWagon(trace)
 	self:GetOwner():SelectWeapon(self:GetClientInfo("oldW"))
 	RunConsoleCommand("gmod_toolmode", self:GetClientInfo("oldT"))

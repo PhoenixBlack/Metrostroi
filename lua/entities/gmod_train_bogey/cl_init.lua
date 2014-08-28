@@ -19,6 +19,8 @@ function ENT:ReinitializeSounds()
 	self.SoundNames["brake3"]		= "subway_trains/brake_3.wav"
 	self.SoundNames["brake4"]		= "subway_trains/brake_4.wav"
 	self.SoundNames["brake3a"]		= "subway_trains/brake_3.wav"
+	self.SoundNames["flange1"]		= "subway_trains/flange_9.wav"
+	self.SoundNames["flange2"]		= "subway_trains/flange_10.wav"
 	
 	-- Remove old sounds
 	if self.Sounds then
@@ -174,4 +176,45 @@ function ENT:Think()
 		self:SetSoundState("brake3",0,0)
 		self:SetSoundState("brake4",0,0)
 	end
+	
+	-- Timing
+	self.PrevTime = self.PrevTime or RealTime()
+	local dT = (RealTime() - self.PrevTime)
+	self.PrevTime = RealTime()
+	
+	-- Generate procedural landscape thingy
+	local a = self:GetPos().x
+	local b = self:GetPos().y
+	local c = self:GetPos().z
+	local f = math.sin(c/200 + a*c/3e7 + b*c/3e7) --math.sin(a/3000)*math.sin(b/3000)
+	
+	-- Calculate flange squeal
+	self.PreviousAngles = self.PreviousAngles or self:GetAngles()
+	local deltaAngle = (self:GetAngles().yaw - self.PreviousAngles.yaw)/dT
+	deltaAngle = ((deltaAngle + 180) % 360 - 180)
+	deltaAngle = math.max(math.min(1.0,f*10)*math.abs(deltaAngle),0)
+	self.PreviousAngles = self:GetAngles()
+	
+	-- Smooth it out
+	self.SmoothAngleDelta = self.SmoothAngleDelta or 0
+	self.SmoothAngleDelta = self.SmoothAngleDelta + (deltaAngle - self.SmoothAngleDelta)*0.5*dT
+	if (not (self.SmoothAngleDelta <= 0)) and (not (self.SmoothAngleDelta >= 0)) then
+		self.SmoothAngleDelta = 0
+	end
+	
+	-- Create sound
+	local x = self.SmoothAngleDelta
+	local f1 = math.max(0,x-4.0)*0.1
+	local f2 = math.max(0,x-9.0)*0.1
+	local t = RealTime()
+	local modulation = 1.5*math.max(0,0.2+math.sin(t)*math.sin(t*3.12)*math.sin(t*0.24)*math.sin(t*4.0))
+	local pitch = 1.0 --math.abs(speed/40.0)
+	local speed_mod = math.min(1.0,math.max(0.0,(speed-20)*0.1))
+	
+	-- Play it
+	--if (self:EntIndex() == 2460) then
+		--print(Format("%.3f %.3f %.3f  F = %.4f %s",x,f1,f2,f,(f > 0) and "true" or "false"))
+	--end
+	self:SetSoundState("flange1",speed_mod*f1,pitch)
+	self:SetSoundState("flange2",speed_mod*f2*modulation,pitch)
 end
