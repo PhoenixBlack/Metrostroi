@@ -208,3 +208,10 @@ end)
 concommand.Add("metrostroi_schedule2", function(ply, _, args)
 	Metrostroi.GenerateSchedule("Line1_Platform2")
 end)
+concommand.Add("metrostroi_print_scheduleinfo", function(ply, _, args)
+	for routeName,routeData in pairs(Metrostroi.ScheduleRoutes) do
+		print(Format("\tTravel distances for preset route '%s':",routeName))
+		prepareRouteData(routeData,routeName)
+		print(Format("\t\tTotal duration: %02d:%02d min",math.floor(routeData.Duration/60),math.floor(routeData.Duration)%60))
+	end
+end)
