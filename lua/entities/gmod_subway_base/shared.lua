@@ -155,20 +155,31 @@ function ENT:InitializeSounds()
 		"subway_trains/relay_4.wav",
 		"subway_trains/relay_5.wav",
 	}
+
 	self.SoundNames["door_close1"] = {
+		"subway_trains/door_close_7.wav",
+		"subway_trains/door_close_8.wav"
+	}
+	self.SoundNames["door_open1"] = {
+		"subway_trains/door_open_4.wav",
+		"subway_trains/door_open_5.wav",
+		"subway_trains/door_open_6.wav",
+	}
+	self.SoundNames["door_fail1"] = {
+		"subway_trains/door_fail_1.wav",
+		"subway_trains/door_fail_2.wav",
+	}
+	
+	self.SoundNames["door_close2"] = {
 		"subway_trains/door_close_2.wav",
 		"subway_trains/door_close_3.wav",
 		"subway_trains/door_close_4.wav",
 		"subway_trains/door_close_5.wav",
 	}
-	self.SoundNames["door_open1"] = {
+	self.SoundNames["door_open2"] = {
 		"subway_trains/door_open_1.wav",
 		"subway_trains/door_open_2.wav",
 		"subway_trains/door_open_3.wav",
-	}
-	self.SoundNames["door_fail1"] = {
-		"subway_trains/door_fail_1.wav",
-		"subway_trains/door_fail_2.wav",
 	}
 	
 	self.SoundNames["compressor"]		= "subway_trains/compressor_1.wav"
