@@ -117,6 +117,11 @@ timer.Simple(1.0,function()
 		file.Write("metrostroi_data/track_gm_metrostroi_b45.txt",TRACK)
 		file.Write("metrostroi_data/sched_gm_metrostroi_b45.txt",SCHED)
 	end
+	if not file.Exists("metrostroi_data/sched_gm_metrostroi_b46.txt","DATA") then
+		file.Write("metrostroi_data/signs_gm_metrostroi_b46.txt",SIGNS)
+		file.Write("metrostroi_data/track_gm_metrostroi_b46.txt",TRACK)
+		file.Write("metrostroi_data/sched_gm_metrostroi_b46.txt",SCHED)
+	end
 	if not file.Exists("metrostroi_data/sched_gm_metrostroi_b46_lite.txt","DATA") then
 		file.Write("metrostroi_data/signs_gm_metrostroi_b46_lite.txt",SIGNS)
 		file.Write("metrostroi_data/track_gm_metrostroi_b46_lite.txt",TRACK)
