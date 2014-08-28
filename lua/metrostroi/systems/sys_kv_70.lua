@@ -176,18 +176,19 @@ function TRAIN_SYSTEM:Think()
 		
 		if true then
 			local A,B = previousPosition,self.RealControllerPosition
-			if A > B then
-				A,B = B,A
-			end
-			
-			--if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_0_x1",  "cabin",0.8) end
-			if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_x1_x2", "cabin",0.9) end
+			if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_0_x1", "cabin",0.9) end
+			if (A ==  1) and (B ==  0) then self.Train:PlayOnce("kv_x1_0", "cabin",0.9) end
 			if (A ==  1) and (B ==  2) then self.Train:PlayOnce("kv_x1_x2", "cabin",0.9) end
+			if (A ==  2) and (B ==  1) then self.Train:PlayOnce("kv_x2_x1", "cabin",0.9) end
 			if (A ==  2) and (B ==  3) then self.Train:PlayOnce("kv_x2_x3", "cabin",0.9) end
-			--if (A == -1) and (B ==  0) then self.Train:PlayOnce("kv_0_t1",  "cabin",0.8) end
-			if (A == -1) and (B ==  0) then self.Train:PlayOnce("kv_t1a_t1","cabin",0.9) end
-			if (A == -2) and (B == -1) then self.Train:PlayOnce("kv_t1a_t1","cabin",0.9) end
-			if (A == -3) and (B == -2) then self.Train:PlayOnce("kv_t1a_t2","cabin",0.9) end
+			if (A ==  3) and (B ==  2) then self.Train:PlayOnce("kv_x3_x2", "cabin",0.9) end
+			
+			if (A ==  0) and (B == -1) then self.Train:PlayOnce("kv_0_t1",  "cabin",0.8) end
+			if (A == -1) and (B ==  0) then self.Train:PlayOnce("kv_t1_0",  "cabin",0.8) end
+			if (A == -1) and (B == -2) then self.Train:PlayOnce("kv_t1_t1a",  "cabin",0.8) end
+			if (A == -2) and (B == -1) then self.Train:PlayOnce("kv_t1a_t1",  "cabin",0.8) end
+			if (A == -2) and (B == -3) then self.Train:PlayOnce("kv_t1a_t2",  "cabin",0.8) end
+			if (A == -3) and (B == -2) then self.Train:PlayOnce("kv_t2_t1a",  "cabin",0.8) end
 		end
 	end
 	if ((CurTime() - self.Timer > 0.10) and (self.ControllerPosition < self.RealControllerPosition)) then
@@ -197,18 +198,19 @@ function TRAIN_SYSTEM:Think()
 		
 		if true then
 			local A,B = previousPosition,self.RealControllerPosition
-			if A > B then
-				A,B = B,A
-			end
-			
-			--if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_0_x1",  "cabin",0.8) end
-			if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_x1_x2", "cabin",0.9) end
+			if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_0_x1", "cabin",0.9) end
+			if (A ==  1) and (B ==  0) then self.Train:PlayOnce("kv_x1_0", "cabin",0.9) end
 			if (A ==  1) and (B ==  2) then self.Train:PlayOnce("kv_x1_x2", "cabin",0.9) end
+			if (A ==  2) and (B ==  1) then self.Train:PlayOnce("kv_x2_x1", "cabin",0.9) end
 			if (A ==  2) and (B ==  3) then self.Train:PlayOnce("kv_x2_x3", "cabin",0.9) end
-			--if (A == -1) and (B ==  0) then self.Train:PlayOnce("kv_0_t1",  "cabin",0.8) end
-			if (A == -1) and (B ==  0) then self.Train:PlayOnce("kv_t1a_t1","cabin",0.9) end
-			if (A == -2) and (B == -1) then self.Train:PlayOnce("kv_t1a_t1","cabin",0.9) end
-			if (A == -3) and (B == -2) then self.Train:PlayOnce("kv_t1a_t2","cabin",0.9) end
+			if (A ==  3) and (B ==  2) then self.Train:PlayOnce("kv_x3_x2", "cabin",0.9) end
+			
+			if (A ==  0) and (B == -1) then self.Train:PlayOnce("kv_0_t1",  "cabin",0.8) end
+			if (A == -1) and (B ==  0) then self.Train:PlayOnce("kv_t1_0",  "cabin",0.8) end
+			if (A == -1) and (B == -2) then self.Train:PlayOnce("kv_t1_t1a",  "cabin",0.8) end
+			if (A == -2) and (B == -1) then self.Train:PlayOnce("kv_t1a_t1",  "cabin",0.8) end
+			if (A == -2) and (B == -3) then self.Train:PlayOnce("kv_t1a_t2",  "cabin",0.8) end
+			if (A == -3) and (B == -2) then self.Train:PlayOnce("kv_t2_t1a",  "cabin",0.8) end
 		end
 	end
 	

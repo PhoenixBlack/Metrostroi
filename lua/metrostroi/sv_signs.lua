@@ -159,6 +159,7 @@ function Metrostroi.InitializeSigns()
 	end
 	
 	-- Add temporary lights
+	--[[
 	local entities = ents.FindByClass("gmod_track_switch")
 	for k,v in pairs(entities) do
 		for k2,v2 in pairs(v.TrackSwitches) do
@@ -225,7 +226,7 @@ function Metrostroi.InitializeSigns()
 				end
 			end
 		end
-	end
+	end]]--
 end
 
 Metrostroi.InitializeSigns()

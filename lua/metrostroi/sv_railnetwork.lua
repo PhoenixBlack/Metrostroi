@@ -795,7 +795,7 @@ function Metrostroi.Load(name,keep_signs)
 
 	-- Load schedules data
 	print("Metrostroi: Loading schedules configuration...")
-	local sched_data = util.JSONToTable(file.Read(string.format("metrostroi_data/sched_%s.txt",name)))
+	local sched_data = util.JSONToTable(file.Read(string.format("metrostroi_data/sched_%s.txt",name)) or "")
 	if sched_data then
 		Metrostroi.LoadSchedulesData(sched_data)
 	else
