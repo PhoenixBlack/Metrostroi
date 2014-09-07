@@ -16,10 +16,47 @@ function ENT:Initialize()
 	self:SetModel("models/metrostroi/81/81-714.mdl")
 	self.BaseClass.Initialize(self)
 	self:SetPos(self:GetPos() + Vector(0,0,140))
+	
+	-- Create seat entities
+	self.DriverSeat = self:CreateSeat("driver",Vector(415,0,-48+2.5),Angle(0,90,0),"models/vehicles/prisoner_pod_inner.mdl")
+	--self.InstructorsSeat = self:CreateSeat("instructor",Vector(430,47,-27+2.5),Angle(0,-90,0))
+
+	-- Hide seats
+	self.DriverSeat:SetColor(Color(0,0,0,0))
+	self.DriverSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
+	--self.InstructorsSeat:SetColor(Color(0,0,0,0))
+	--self.InstructorsSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
 
 	-- Create bogeys
 	self.FrontBogey = self:CreateBogey(Vector( 325-20,0,-80),Angle(0,180,0),true)
 	self.RearBogey  = self:CreateBogey(Vector(-325-10,0,-80),Angle(0,0,0),false)
+	
+	-- Initialize key mapping
+	self.KeyMap = {
+		[KEY_8] = "KRPSet",
+		[KEY_G] = "VozvratRPSet",
+	
+		[KEY_0] = "PMPUp",
+		[KEY_9] = "PMPDown",
+		[KEY_F] = "PneumaticBrakeUp",
+		[KEY_R] = "PneumaticBrakeDown",
+		
+		[KEY_LSHIFT] = {
+			[KEY_L] = "DriverValveDisconnectToggle",
+			
+			--[KEY_7] = "KVWrenchNone",
+			--[KEY_8] = "KVWrenchKRU",
+			--[KEY_9] = "KVWrenchKV",
+			--[KEY_0] = "KVWrench0",
+		},
+		
+		[KEY_RSHIFT] = {
+			--[KEY_7] = "KVWrenchNone",
+			--[KEY_8] = "KVWrenchKRU",
+			--[KEY_9] = "KVWrenchKV",
+			--[KEY_0] = "KVWrench0",
+		},
+	}
 	
 	self.InteractionZones = {
 		{	Pos = Vector(458,-30,-55),
@@ -40,6 +77,9 @@ function ENT:Initialize()
 		{	Pos = Vector(446.0,0.0,50),
 			Radius = 16,
 			ID = "VBToggle" },
+		{	Pos = Vector(-180,68.5,-50),
+			Radius = 20,
+			ID = "AirDistributorDisconnectToggle" },
 	}
 
 	-- Lights
@@ -61,9 +101,9 @@ function ENT:Initialize()
 		[10] = { "dynamiclight",	Vector( 420, 0, 35), Angle(0,0,0), Color(255,255,255), brightness = 0.1, distance = 550 },
 		
 		-- Interior
-		--[11] = { "dynamiclight",	Vector( 250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
+		[11] = { "dynamiclight",	Vector( 350, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 400 },
 		[12] = { "dynamiclight",	Vector(   0, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 400 },
-		--[13] = { "dynamiclight",	Vector(-250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
+		[13] = { "dynamiclight",	Vector(-350, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 400 },
 		
 		-- Side lights
 		[14] = { "light",			Vector(-50, 68, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
@@ -108,12 +148,24 @@ end
 function ENT:Think()
 	local retVal = self.BaseClass.Think(self)
 	
+	if not self:IsWrenchPresent() then
+		self.PMP:TriggerInput("Set", 0)
+	end
 	self.Electric:TriggerInput("TrainMode",1)
+	
+	--self.DriverSeat:SetLocalPos(Vector(415,0,-48+2.5))
+	--self.InstructorsSeat:SetLocalPos(Vector(410,47,-27+2.5))
+	--seat:SetPos(self:LocalToWorld(seat_info.offset))
+	--seat:SetAngles(self:GetAngles()+Angle(0,-90,0)+seat_info.angle)
 
 	-- Interior/cabin lights
---	self:SetLightPower(10, (self.Panel["CabinLight"] > 0.5))
-	self:SetLightPower(12, self.PowerSupply.XT3_4 > 65.0)
---	self:SetLightPower(13, self.PowerSupply.XT3_4 > 65.0)
+	local lightsActive1 = (self.PowerSupply.XT3_4 > 65.0) and
+		((self:ReadTrainWire(33) > 0) or (self:ReadTrainWire(34) > 0))
+	local lightsActive2 = (self.PowerSupply.XT3_4 > 65.0) and
+		(self:ReadTrainWire(33) > 0)
+	self:SetLightPower(11, lightsActive1, 0.2*self:ReadTrainWire(34) + 0.8*self:ReadTrainWire(33))
+	self:SetLightPower(12, lightsActive2, 0.2*self:ReadTrainWire(34) + 0.8*self:ReadTrainWire(33))
+	self:SetLightPower(13, lightsActive1, 0.2*self:ReadTrainWire(34) + 0.8*self:ReadTrainWire(33))
 	
 	-- Side lights
 	self:SetLightPower(15, self.Panel["TrainDoors"] > 0.5)
@@ -125,18 +177,25 @@ function ENT:Think()
 
 	-- Switch and button states
 	self:SetPackedBool(0,self:IsWrenchPresent())
+	self:SetPackedBool(2,self.VozvratRP.Value == 1.0)
 	self:SetPackedBool(5,self.GV.Value == 1.0)
+	self:SetPackedBool(6,self.DriverValveDisconnect.Value == 1.0)
 	self:SetPackedBool(7,self.VB.Value == 1.0)
+	self:SetPackedBool(8,self.RezMK.Value == 1.0)
+	self:SetPackedBool(9,self.VMK.Value == 1.0)
 	self:SetPackedBool(20,self.Pneumatic.Compressor == 1.0)
 	self:SetPackedBool(21,self.Pneumatic.LeftDoorState[1] > 0.5)
-	self:SetPackedBool(22,self.Pneumatic.LeftDoorState[2] > 0.5)
-	self:SetPackedBool(23,self.Pneumatic.LeftDoorState[3] > 0.5)
-	self:SetPackedBool(24,self.Pneumatic.LeftDoorState[4] > 0.5)
+	self:SetPackedBool(22,self.Pneumatic.ValveType == 2)
+	--self:SetPackedBool(22,self.Pneumatic.LeftDoorState[2] > 0.5)
+	--self:SetPackedBool(23,self.Pneumatic.LeftDoorState[3] > 0.5)
+	--self:SetPackedBool(24,self.Pneumatic.LeftDoorState[4] > 0.5)
 	self:SetPackedBool(25,self.Pneumatic.RightDoorState[1] > 0.5)
-	self:SetPackedBool(26,self.Pneumatic.RightDoorState[2] > 0.5)
-	self:SetPackedBool(27,self.Pneumatic.RightDoorState[3] > 0.5)
-	self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
+	--self:SetPackedBool(26,self.Pneumatic.RightDoorState[2] > 0.5)
+	--self:SetPackedBool(27,self.Pneumatic.RightDoorState[3] > 0.5)
+	--self:SetPackedBool(28,self.Pneumatic.RightDoorState[4] > 0.5)
+	self:SetPackedBool(59,self.BPSNon.Value == 1.0)
 	self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
+	self:SetPackedBool(113,self.KRP.Value == 1.0)
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -149,6 +208,10 @@ function ENT:Think()
 		(self.Pneumatic.RightDoorState[2] > 0.5) or
 		(self.Pneumatic.RightDoorState[3] > 0.5) or
 		(self.Pneumatic.RightDoorState[4] > 0.5)
+		
+	-- Is there a driver
+	self:SetBodygroup(1,(self:GetDriver() ~= nil) and 1 or 0)
+	--self:SetBodygroup(1,((CurTime() % 2.0) > 0.2) and 1 or 0)
 	
 	-- BPSN
 	self:SetPackedBool(52,self.PowerSupply.XT3_1 > 0)
@@ -162,9 +225,9 @@ function ENT:Think()
 	end
     
 	-- Feed packed floats
-	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/5)
+	self:SetPackedRatio(0, 1-self.Pneumatic.DriverValvePosition/7)
 	--self:SetPackedRatio(1, (self.KV.ControllerPosition+3)/7)
-	--self:SetPackedRatio(2, 1-(self.KV.ReverserPosition+1)/2)
+	self:SetPackedRatio(2, 1-(self.PMP.Position+1)/2)
 	if self.Pneumatic.ValveType == 1 then
 		self:SetPackedRatio(4, self.Pneumatic.ReservoirPressure/16.0)
 	else
@@ -211,7 +274,7 @@ function ENT:Think()
 		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
-	
+
 	-- Send networked variables
 	self:SendPackedData()
 	return retVal
@@ -229,12 +292,51 @@ function ENT:OnCouple(train,isfront)
 end
 function ENT:OnButtonPress(button)
 	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
+	if (button == "VUToggle") or ((string.sub(button,1,1) == "A") and (tonumber(string.sub(button,2,2)))) then
+		local name = string.sub(button,1,(string.find(button,"Toggle") or 0)-1)
+		if self[name] then
+			if self[name].Value > 0.5 then
+				self:PlayOnce("av_off","cabin")
+			else
+				self:PlayOnce("av_on","cabin")
+			end
+		end
+		return
+	end
+
+	if button == "DriverValveDisconnectToggle" then
+		if self.DriverValveDisconnect.Value == 1.0 then
+			self:PlayOnce("pneumo_disconnect2","cabin",0.9)
+		else
+			self:PlayOnce("pneumo_disconnect1","cabin",0.9)
+		end
+	end
+	if (not string.find(button,"KVT")) and string.find(button,"KV") then return end
+	if string.find(button,"KRU") then return end
 	
 	-- Generic button or switch sound
 	if string.find(button,"Set") then
-		self:PlayOnce("switch")
+		self:PlayOnce("button_press","cabin")
 	end
 	if string.find(button,"Toggle") then
-		self:PlayOnce("switch2")
+		self:PlayOnce("switch2","cabin",0.7)
+	end
+end
+
+function ENT:OnButtonRelease(button)
+	if (button == "PneumaticBrakeDown") and (self.Pneumatic.DriverValvePosition == 1) then
+		self.Pneumatic:TriggerInput("BrakeSet",2)
+	end	
+	if self.Pneumatic.ValveType == 1 then
+		if (button == "PneumaticBrakeUp") and (self.Pneumatic.DriverValvePosition == 5) then
+			self.Pneumatic:TriggerInput("BrakeSet",4)
+		end
+	end
+
+	if (not string.find(button,"KVT")) and string.find(button,"KV") then return end
+	if string.find(button,"KRU") then return end
+
+	if string.find(button,"Set") then
+		self:PlayOnce("button_release","cabin")
 	end
 end

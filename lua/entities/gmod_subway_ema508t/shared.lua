@@ -39,6 +39,8 @@ function ENT:InitializeSystems()
 	self:LoadSystem("KF_50A")
 	-- Ящик с предохранителями
 	self:LoadSystem("YAP_57")
+	-- Пульт маневрнового передвижения
+	self:LoadSystem("PMP","PMP")
 
 	-- Реостатный контроллер для управления пусковыми сопротивления
 	self:LoadSystem("RheostatController","EKG_17B")

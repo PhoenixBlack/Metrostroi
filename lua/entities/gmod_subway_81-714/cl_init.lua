@@ -18,6 +18,102 @@ ENT.ButtonMap["RearPneumatic"] = {
 	height = 100,
 	scale = 0.1,
 }
+ENT.ButtonMap["AirDistributor"] = {
+	pos = Vector(-180,68.5,-50),
+	ang = Angle(0,180,90),
+	width = 80,
+	height = 40,
+	scale = 0.1,
+}
+
+-- Battery panel
+ENT.ButtonMap["Battery"] = {
+	pos = Vector(445.0,4,59.0),
+	ang = Angle(0,-90,90),
+	width = 100,
+	height = 100,
+	scale = 0.08,
+	
+	buttons = {
+		{ID = "VBToggle", x=0, y=0, w=100, h=100, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
+	}
+}
+
+-- AV panel
+ENT.ButtonMap["AV_Left"] = {
+	pos = Vector(449.0,50.0,-3.0),
+	ang = Angle(0,-82,90),
+	width = 460,
+	height = 340,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "A65Toggle", x=180+35*1,  y=260, radius=30, tooltip="A65 Interior lighting"},
+		{ID = "A56Toggle", x=180+35*2,  y=260, radius=30, tooltip="A56 Включение аккумуляторной батареи\nTurn on battery power to control circuits"},
+		{ID = "A63Toggle", x=180+35*3,  y=260, radius=30, tooltip="A63 IGLA/BIS"},
+		{ID = "A10Toggle", x=180+35*4,  y=260, radius=30, tooltip="A10 Motor-compressor control"},
+		{ID = "A30Toggle", x=180+35*5,  y=260, radius=30, tooltip="A30 Rheostat controller motor power"},
+		{ID = "A80Toggle", x=180+35*6,  y=260, radius=30, tooltip="A80 Power circuit mode switch motor power"},
+	}
+}
+
+-- AV panel
+ENT.ButtonMap["AV_Right"] = {
+	pos = Vector(453.0,-21.0,-3),
+	ang = Angle(0,-98,90),
+	width = 460,
+	height = 340,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "A54Toggle", x=120+35*0,  y=60+100*0, radius=30, tooltip="A54 Управление проводом 10АК\nTrain wire 10AK control"},
+		{ID = "A27Toggle", x=120+35*1,  y=60+100*0, radius=30, tooltip="A27 Turn on DIP and lighting"},
+		{ID = "A24Toggle", x=120+35*2,  y=60+100*0, radius=30, tooltip="A24 Battery charging"},
+		{ID = "A53Toggle", x=120+35*3,  y=60+100*0, radius=30, tooltip="A53 KVC power supply"},
+		{ID = "A13Toggle", x=120+35*4,  y=60+100*0, radius=30, tooltip="A13 Door alarm"},
+		{ID = "A32Toggle", x=120+35*5,  y=60+100*0, radius=30, tooltip="A32 Open right doors"},
+		{ID = "A31Toggle", x=120+35*6,  y=60+100*0, radius=30, tooltip="A31 Open left doors"},
+		{ID = "A16Toggle", x=120+35*7,  y=60+100*0, radius=30, tooltip="A16 Close doors"},
+		{ID = "A12Toggle", x=120+35*8,  y=60+100*0, radius=30, tooltip="A12 Emergency door close"},
+		------------------------------------------------------------------------
+		{ID = "A50Toggle", x=120+35*0,  y=60+100*1, radius=30, tooltip="A50 Turn on DIP and lighting"},
+		{ID = "A51Toggle", x=120+35*1,  y=60+100*1, radius=30, tooltip="A51 Turn off DIP and lighting"},
+		{ID = "A1Toggle",  x=120+35*2,  y=60+100*1, radius=30, tooltip="A1  XOD-1"},
+		-- None
+		-- None
+		-- None
+		{ID = "A2Toggle",  x=120+35*6,  y=60+100*1, radius=30, tooltip="A2  XOD-2"},
+		{ID = "A3Toggle",  x=120+35*7,  y=60+100*1, radius=30, tooltip="A3  XOD-3"},
+		{ID = "A17Toggle", x=120+35*8,  y=60+100*1, radius=30, tooltip="A17 Reset overload relay"},
+		------------------------------------------------------------------------
+		{ID = "A5Toggle",  x=120+35*0,  y=60+100*2, radius=30, tooltip="A5  "},
+		{ID = "A6Toggle",  x=120+35*1,  y=60+100*2, radius=30, tooltip="A6  T-1"},
+		{ID = "A8Toggle",  x=120+35*2,  y=60+100*2, radius=30, tooltip="A8  Pneumatic valves #1, #2"},
+		{ID = "A20Toggle", x=120+35*3,  y=60+100*2, radius=30, tooltip="A20 Drive/brake circuit control, train wire 20"},
+		{ID = "A25Toggle", x=120+35*4,  y=60+100*2, radius=30, tooltip="A25 Manual electric braking"},
+		{ID = "A22Toggle", x=120+35*5,  y=60+100*2, radius=30, tooltip="A22 Turn on KK"},
+		{ID = "A23Toggle", x=120+35*6,  y=60+100*2, radius=30, tooltip="A23 Emergency motor-compressor turn on"},
+		{ID = "A39Toggle", x=120+35*7,  y=60+100*2, radius=30, tooltip="A39 Emergency control"},
+		{ID = "A14Toggle", x=120+35*8,  y=60+100*2, radius=30, tooltip="A14 Train wire 18"},
+	}
+}
+
+-- Everything else panel
+ENT.ButtonMap["Main"] = {
+	pos = Vector(453.0,-21.0,-3),
+	ang = Angle(0,-98,90),
+	width = 460,
+	height = 340,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "KRPSet",			x=230+45*0, y=115+45*0, radius=20, tooltip="ПУСК: Кнопка пуска\nSTART: Start button"},
+		{ID = "VozvratRPSet",	x=230+45*1, y=115+45*0, radius=20, tooltip="Возврат реле перегрузки\nReset overload relay"},
+		{ID = "RezMKSet",		x=230+45*0, y=115+45*1, radius=20, tooltip="Резервное включение мотор-компрессора\nEmergency motor-compressor startup"},
+		{ID = "VMKToggle",		x=230+45*0, y=115+45*2, radius=20, tooltip="Включение мотор-компрессора\nTurn motor-compressor on"},
+		{ID = "BPSNonToggle",	x=230+45*1, y=115+45*2, radius=20, tooltip="БПСН: Блок питания собственных нужд\nBPSN: Train power supply"},
+	}
+}
 
 -- Wagon numbers
 ENT.ButtonMap["TrainNumber1"] = {
@@ -37,6 +133,26 @@ ENT.ButtonMap["TrainNumber2"] = {
 
 --------------------------------------------------------------------------------
 ENT.ClientPropsInitialized = false
+ENT.ClientProps["brake013"] = {
+	model = "models/metrostroi/81-717/brake.mdl",
+	pos = Vector(453.0,25.9,-6),
+	ang = Angle(0,-90,20)
+}
+ENT.ClientProps["brake334"] = {
+	model = "models/metrostroi/81-717/brake334.mdl",
+	pos = Vector(453.5,25.9,-7),
+	ang = Angle(0,-90,20)
+}
+ENT.ClientProps["brake334_body"] = {
+	model = "models/metrostroi/81-717/brake334_body.mdl",
+	pos = Vector(453.5,30,-10),
+	ang = Angle(0,98,-20)
+}
+ENT.ClientProps["brake_disconnect"] = {
+	model = "models/metrostroi/81-717/uava.mdl",
+	pos = Vector(449.5,42,-20),
+	ang = Angle(0,-90,0)
+}
 ENT.ClientProps["train_line"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
 	pos = Vector(447.10,-14.4,58),
@@ -51,6 +167,17 @@ ENT.ClientProps["brake_cylinder"] = {
 	model = "models/metrostroi/81-717/black_arrow.mdl",
 	pos =Vector(447.10,-18.8,57.9),
 	ang = Angle(90,0,180)
+}
+
+ENT.ClientProps["pmp"] = {
+	model = "models/metrostroi/81-717/gv.mdl",
+	pos = Vector(449.6,43,-12),
+	ang = Angle(90,-90+8,90)
+}
+ENT.ClientProps["pmp_wrench"] = {
+	model = "models/metrostroi/81-717/reverser.mdl",
+	pos = Vector(449.6,43,-12),
+	ang = Angle(135,98,0)
 }
 --------------------------------------------------------------------------------
 ENT.ClientProps["ampermeter"] = {
@@ -85,21 +212,60 @@ ENT.ClientProps["gv_wrench"] = {
 	ang = Angle(-50,0,0)
 }
 --------------------------------------------------------------------------------
---[[for x=0,11 do
-	for y=0,3 do
-		ENT.ClientProps["a"..(x+12*y)] = {
-			model = "models/metrostroi/81-717/circuit_breaker.mdl",
-			pos = Vector(393.8,-52.5+x*2.75,37.5-y*8),
-			ang = Angle(90,0,0)
-		}
-	end
-end]]--
---[[Metrostroi.ClientPropForButton("battery",{
-	panel = "Battery",
-	button = "VBToggle",	
-	model = "models/metrostroi/81-717/switch01.mdl",
-	z = -10.7,
-})]]--
+local function addAV(i,panel,av)
+	Metrostroi.ClientPropForButton("a"..i,{
+		panel = panel,
+		button = "A"..av.."Toggle",	
+		model = "models/metrostroi/81-717/circuit_breaker.mdl",
+	})
+end
+
+-- Map of switches
+local AVMap = {
+	61,55,54,56,27,21,10,53,43,45,42,41,
+	"VU",64,63,50,51,23,14,75, 1, 2, 3,17,
+	62,29, 5, 6, 8,20,25,22,30,39,44,80,
+	65, 0,24,32,31,16,13,12, 7, 9,46,47
+}
+local AVInverseMap = {}
+for k,v in pairs(AVMap) do AVInverseMap[v] = k-1 end
+
+-- Add actual models
+for k,v in pairs(ENT.ButtonMap["AV_Right"].buttons) do
+	local av = tonumber(string.sub(v.ID,2,(string.find(v.ID,"Toggle") or 1)-1)) or "VU"
+	addAV(AVInverseMap[av],"AV_Right",av)
+end
+for k,v in pairs(ENT.ButtonMap["AV_Left"].buttons) do
+	local av = tonumber(string.sub(v.ID,2,(string.find(v.ID,"Toggle") or 1)-1)) or "VU"
+	addAV(AVInverseMap[av],"AV_Left",av)
+end
+
+--------------------------------------------------------------------------------
+Metrostroi.ClientPropForButton("KRP",{
+	panel = "Main",
+	button = "KRPSet",
+	model = "models/metrostroi/81-717/button05.mdl"
+})
+Metrostroi.ClientPropForButton("VozvratRP",{
+	panel = "Main",
+	button = "VozvratRPSet",
+	model = "models/metrostroi/81-717/button02.mdl"
+})
+Metrostroi.ClientPropForButton("RezMK",{
+	panel = "Main",
+	button = "RezMKSet",
+	model = "models/metrostroi/81-717/button02.mdl"
+})
+Metrostroi.ClientPropForButton("VMK",{
+	panel = "Main",
+	button = "VMKToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("BPSNon",{
+	panel = "Main",
+	button = "BPSNonToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
 
 --------------------------------------------------------------------------------
 -- Add doors
@@ -143,20 +309,30 @@ function ENT:Think()
 	if (self.Transient or 0) ~= 0.0 then self.Transient = 0.0 end
 	
 	-- Simulate pressure gauges getting stuck a little
-	--self:Animate("brake", 			self:GetPackedRatio(0)^0.5, 		0.00, 0.65,  256,24)
-	--self:Animate("controller",		self:GetPackedRatio(1),				0.30, 0.70,  384,24)
-	--self:Animate("reverser",		1-self:GetPackedRatio(2),			0.25, 0.75,  4,false)
+	self:Animate("brake334", 		1-self:GetPackedRatio(0), 			0.00, 0.50,  256,24)
+	self:Animate("pmp_wrench",		self:GetPackedRatio(2),				0.40, 0.75,  4,false)
+	--self:Animate("brake013", 		self:GetPackedRatio(0)^0.5,			0.00, 0.65,  256,24)
+	self:Animate("brake013",		self:GetPackedRatio(0),				0.30, 0.90,  256,24)
 	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38,0.64)
-	--self:ShowHide("reverser",		self:GetPackedBool(0))
-
+	
+	self:ShowHide("pmp_wrench",		self:GetPackedBool(0))
+	self:ShowHide("brake013",		self:GetPackedBool(22))
+	self:ShowHide("brake334",		not self:GetPackedBool(22))
+	
 	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
 	self:Animate("train_line",		self:GetPackedRatio(5),				0.16, 0.84,  256,2,0.01)
 	self:Animate("brake_cylinder",	self:GetPackedRatio(6),	 			0.17, 0.86,  256,2,0.03)
 	self:Animate("voltmeter",		self:GetPackedRatio(7),				0.38, 0.63)
 	self:Animate("ampermeter",		self:GetPackedRatio(8),				0.38, 0.63)
 	--self:Animate("volt2",			0, 									0.38, 0.63)
-
+	
+	self:Animate("VozvratRP",		self:GetPackedBool(2) and 1 or 0, 	0,1, 16, false)
+	self:Animate("brake_disconnect",self:GetPackedBool(6) and 1 or 0, 	0,0.7, 3, false)
 	self:Animate("battery",			self:GetPackedBool(7) and 1 or 0, 	0,1, 16, false)
+	self:Animate("RezMK",			self:GetPackedBool(8) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VMK",				self:GetPackedBool(9) and 1 or 0, 	0,1, 16, false)
+	self:Animate("KRP",				self:GetPackedBool(113) and 1 or 0, 0,1, 16, false)	
+	self:Animate("BPSNon",			self:GetPackedBool(59) and 1 or 0, 	0,1, 16, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -173,11 +349,28 @@ function ENT:Think()
 	self:ShowHide("gv_wrench",	CurTime() < self.ResetTime)
 	
 	-- Animate doors
-	for i=0,3 do
+	--[[for i=0,3 do
 		for k=0,1 do
 			local n_l = "door"..i.."x"..k.."a"
 			local n_r = "door"..i.."x"..k.."b"
 			local animation = self:Animate(n_l,self:GetPackedBool(21+i+4-k*4) and 1 or 0,0,1, 0.8 + (-0.2+0.4*math.random()),0)
+			local offset_l = Vector(math.abs(31*animation),0,0)
+			local offset_r = Vector(math.abs(32*animation),0,0)
+			if self.ClientEnts[n_l] then
+				self.ClientEnts[n_l]:SetPos(self:LocalToWorld(self.ClientProps[n_l].pos + (1.0 - 2.0*k)*offset_l))
+				self.ClientEnts[n_l]:SetSkin(self:GetSkin())
+			end
+			if self.ClientEnts[n_r] then
+				self.ClientEnts[n_r]:SetPos(self:LocalToWorld(self.ClientProps[n_r].pos - (1.0 - 2.0*k)*offset_r))
+				self.ClientEnts[n_r]:SetSkin(self:GetSkin())
+			end
+		end
+	end]]--
+	for i=0,3 do
+		for k=0,1 do
+			local n_l = "door"..i.."x"..k.."a"
+			local n_r = "door"..i.."x"..k.."b"
+			local animation = self:Animate(n_l,self:GetPackedBool(21+(1-k)*4) and 1 or 0,0,1, 0.8 + (-0.2+0.4*math.random()),0)
 			local offset_l = Vector(math.abs(31*animation),0,0)
 			local offset_r = Vector(math.abs(32*animation),0,0)
 			if self.ClientEnts[n_l] then
@@ -248,6 +441,14 @@ function ENT:Draw()
 	end)
 	self:DrawOnPanel("RearPneumatic",function()
 		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
+	end)
+	self:DrawOnPanel("AirDistributor",function()
+		draw.DrawText(self:GetNWBool("AD") and "Air Distributor ON" or "Air Distributor OFF","Trebuchet24",0,0,Color(0,0,0,255))
+	end)
+	self:DrawOnPanel("AV_Left",function()
+		draw.DrawText("ВП","Trebuchet24",180,100,Color(0,0,0,255))
+		draw.DrawText("НАЗ","Trebuchet24",80,55,Color(0,0,0,255))
+		draw.DrawText("0","Trebuchet24",150,55,Color(0,0,0,255))
 	end)
 	
 	-- Draw train numbers

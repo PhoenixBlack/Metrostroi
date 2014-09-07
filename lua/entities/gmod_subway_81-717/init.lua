@@ -60,6 +60,7 @@ function ENT:Initialize()
 		[KEY_N] = "VZ1Set",
 		
 		[KEY_SPACE] = "PBSet",
+		[KEY_BACKSPACE] = "EmergencyBrake",
 
 		[KEY_LSHIFT] = {
 			[KEY_A] = "DURASelectAlternate",
@@ -100,8 +101,11 @@ function ENT:Initialize()
 			Radius = 16,
 			ID = "GVToggle" },
 		{	Pos = Vector(398.0,-56.0+1.5,25.0),
-			Radius = 16,
+			Radius = 20,
 			ID = "VBToggle" },
+		{	Pos = Vector(-180,68.5,-50),
+			Radius = 20,
+			ID = "AirDistributorDisconnectToggle" },
 	}
 
 	-- Lights
@@ -135,9 +139,9 @@ function ENT:Initialize()
 		[10] = { "dynamiclight",	Vector( 420, 0, 35), Angle(0,0,0), Color(255,255,255), brightness = 0.1, distance = 550 },
 		
 		-- Interior
-		--[11] = { "dynamiclight",	Vector( 250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
+		[11] = { "dynamiclight",	Vector( 250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 400 },
 		[12] = { "dynamiclight",	Vector(   0, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 400 },
-		--[13] = { "dynamiclight",	Vector(-250, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 250 },
+		[13] = { "dynamiclight",	Vector(-350, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 400 },
 		
 		-- Side lights
 		[14] = { "light",			Vector(-50, 68, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
@@ -260,6 +264,12 @@ function ENT:Think()
 		self.KV:TriggerInput("Enabled",self:IsWrenchPresent() and 1 or 0)
 	end
 	
+	-- Set wrench sounds
+	if not self.DriversWrenchSoundsInit then
+		self.KV:TriggerInput("Type",2)
+		self.DriversWrenchSoundsInit = true
+	end
+	
 	-- Headlights
 	local brightness = (math.min(1,self.Panel["HeadLights1"])*0.50 + 
 						math.min(1,self.Panel["HeadLights2"])*0.25 + 
@@ -300,8 +310,17 @@ function ENT:Think()
 	-- Interior/cabin lights
 	self:SetLightPower(10, (self.Panel["CabinLight"] > 0.5) and (self.L_2.Value > 0.5))
 	self:SetLightPower(30, (self.Panel["CabinLight"] > 0.5), 0.03 + 0.97*self.L_2.Value)
-	self:SetLightPower(12, (self.Panel["EmergencyLight"] > 0.5) and ((self.L_1.Value > 0.5) or (self.L_5.Value > 0.5)),
-		0.5*self.L_5.Value + ((self.PowerSupply.XT3_4 > 65.0) and 0.5 or 0))
+	
+	local lightsActive1 = (self.PowerSupply.XT3_4 > 65.0) and
+		((self:ReadTrainWire(33) > 0) or (self:ReadTrainWire(34) > 0))
+	local lightsActive2 = (self.PowerSupply.XT3_4 > 65.0) and
+		(self:ReadTrainWire(33) > 0)
+	self:SetLightPower(11, lightsActive1, 0.2*self:ReadTrainWire(34) + 0.8*self:ReadTrainWire(33))
+	self:SetLightPower(12, lightsActive2, 0.2*self:ReadTrainWire(34) + 0.8*self:ReadTrainWire(33))
+	self:SetLightPower(13, lightsActive1, 0.2*self:ReadTrainWire(34) + 0.8*self:ReadTrainWire(33))
+	--[[self:SetLightPower(12, (self.Panel["EmergencyLight"] > 0.5) and ((self.L_1.Value > 0.5) or (self.L_5.Value > 0.5)),
+		0.5*self.L_5.Value + ((self.PowerSupply.XT3_4 > 65.0) and 0.5 or 0))]]
+		
 	--[[for i=60,69 do
 		self:SetLightPower(i,
 			(self.Panel["EmergencyLight"] > 0.5) and ((self.L_1.Value > 0.5) or (self.L_5.Value > 0.5)),
@@ -666,6 +685,11 @@ function ENT:OnButtonPress(button)
 	if button == "KRP" then 
 		self.KRP:TriggerInput("Set",1)
 		self:OnButtonPress("KRPSet")
+	end
+	if button == "EmergencyBrake" then
+		self.KV:TriggerInput("ControllerSet",-3)
+		self.Pneumatic:TriggerInput("BrakeSet",7)
+		return
 	end
 	
 	-- Special logic
