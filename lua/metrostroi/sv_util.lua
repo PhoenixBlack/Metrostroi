@@ -233,6 +233,61 @@ end)
 
 
 
+
+--------------------------------------------------------------------------------
+-- Failures related stuff
+--------------------------------------------------------------------------------
+concommand.Add("metrostroi_failures", function(ply, _, args)
+	local i = 0
+	for _,class in pairs(Metrostroi.TrainClasses) do
+		local trains = ents.FindByClass(class)
+		for _,train in pairs(trains) do
+			timer.Simple(0.1+i*0.2,function()
+				print("Failures for train "..train:EntIndex())
+				train:TriggerInput("FailSimStatus",1)
+			end)
+			i = i + 1
+		end
+	end
+end)
+
+concommand.Add("metrostroi_fail", function(ply, _, args)
+	local trainList = {}
+	if not IsValid(ply) then
+		for _,class in pairs(Metrostroi.TrainClasses) do
+			local trains = ents.FindByClass(class)
+			for _,train in pairs(trains) do
+				table.insert(trainList,train)
+			end
+		end
+	else
+		local train = ply:GetTrain()
+		if IsValid(train) then
+			train:UpdateWagonList()
+			for k,v in pairs(train.WagonList) do
+				trainList[k] = v
+			end
+		end
+	end
+	
+	local train = table.Random(trainList)
+	if train then
+		if IsValid(ply) then
+			ply:PrintMessage(HUD_PRINTCONSOLE,"Generating random failure in your train!")
+			print("Player generated random failure in train "..train:EntIndex())
+		else
+			print("Generating random failure in train "..train:EntIndex())
+		end		
+		train:TriggerInput("FailSimFail",1)
+	else
+		if IsValid(ply) then
+			ply:PrintMessage(HUD_PRINTCONSOLE,"You must be inside a train to generate a failure!")
+		end
+	end
+end)
+
+
+
 --------------------------------------------------------------------------------
 -- Does current map have any sort of metrostroi support
 --------------------------------------------------------------------------------

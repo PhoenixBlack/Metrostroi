@@ -98,13 +98,13 @@ function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
 	end]]--
 
 	-- Add failure points
-	FailSim.AddFailurePoint(self,	"CloseTime", "Mechanical problem in relay", 
+	FailSim.AddFailurePoint(self,	"CloseTime", "Mechanical problem (close time not nominal)", 
 		{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*openWeight, recurring = true } )
-	FailSim.AddFailurePoint(self,	"OpenTime", "Mechanical problem in relay", 
+	FailSim.AddFailurePoint(self,	"OpenTime", "Mechanical problem (open time not nominal)", 
 		{ type = "precision", 	value = 0.5,	mfr = MFR*0.65*closeWeight , recurring = true } )
-	FailSim.AddFailurePoint(self,	"CloseTime", "Relay stuck closed",
+	FailSim.AddFailurePoint(self,	"CloseTime", "Stuck closed",
 		{ type = "value", 		value = 1e9,	mfr = MFR*0.65*openWeight, dmtbf = 0.2 } )
-	FailSim.AddFailurePoint(self,	"OpenTime", "Relay stuck open",
+	FailSim.AddFailurePoint(self,	"OpenTime", "Stuck open",
 		{ type = "value", 		value = 1e9,	mfr = MFR*0.65*closeWeight , dmtbf = 0.4 } )
 	FailSim.AddFailurePoint(self,	"SpuriousTrip", "Spurious trip",
 		{ type = "on",							mfr = MFR*0.20, dmtbf = 0.4 } )
@@ -186,7 +186,7 @@ function TRAIN_SYSTEM:Think(dT)
 
 	-- Short-circuited relay
 	if FailSim.Value(self,"ShortCircuit") > 0.5 then
-		self.Value = 0.0
+		self.Value = 1.0
 		return
 	end
 	

@@ -215,6 +215,6 @@ function ENT:Think()
 	--if (self:EntIndex() == 2460) then
 		--print(Format("%.3f %.3f %.3f  F = %.4f %s",x,f1,f2,f,(f > 0) and "true" or "false"))
 	--end
-	self:SetSoundState("flange1",speed_mod*f1,pitch)
-	self:SetSoundState("flange2",speed_mod*f2*modulation,pitch)
+	self:SetSoundState("flange1",0,0) --*speed_mod*f1,pitch)
+	self:SetSoundState("flange2",0,0) --*speed_mod*f2*modulation,pitch)
 end

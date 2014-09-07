@@ -33,6 +33,7 @@ function ENT:Initialize()
 	if GetConVarNumber("metrostroi_write_telemetry") == 1 then
 		self:LoadSystem("Telemetry")
 	end
+	self:LoadSystem("FailSim")
 	
 	-- Prop-protection related
 	if CPPI and self.Owner then
@@ -787,7 +788,7 @@ end
 function ENT:CreateSeatEntity(seat_info)
 	-- Create seat entity
 	local seat = ents.Create("prop_vehicle_prisoner_pod")
-	seat:SetModel("models/nova/jeep_seat.mdl") --jalopy
+	seat:SetModel(seat_info.model or "models/nova/jeep_seat.mdl") --jalopy
 	seat:SetPos(self:LocalToWorld(seat_info.offset))
 	seat:SetAngles(self:GetAngles()+Angle(0,-90,0)+seat_info.angle)
 	seat:SetKeyValue("limitview",0)
@@ -823,11 +824,12 @@ end
 --------------------------------------------------------------------------------
 -- Create a seat position
 --------------------------------------------------------------------------------
-function ENT:CreateSeat(type,offset,angle)
+function ENT:CreateSeat(type,offset,angle,model)
 	-- Add a new seat
 	local seat_info = {
 		type = type,
 		offset = offset,
+		model = model,
 		angle = angle or Angle(0,0,0),
 	}
 	table.insert(self.Seats,seat_info)

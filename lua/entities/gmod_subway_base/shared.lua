@@ -339,6 +339,7 @@ function ENT:LoadSystem(a,b,...)
 	if self.Systems[sys_name] then error("System already defined: "..sys_name)  end
 	
 	local no_acceleration = Metrostroi.BaseSystems[name].DontAccelerateSimulation
+	local run_everywhere = Metrostroi.BaseSystems[name].RunEverywhere
 	if SERVER and Turbostroi then
 		-- Load system into turbostroi
 		if (not GLOBAL_SKIP_TRAIN_SYSTEMS) then
@@ -359,8 +360,16 @@ function ENT:LoadSystem(a,b,...)
 		
 		-- Create fake placeholder
 		if not no_acceleration then
-			self[sys_name].TriggerInput = function(system,name,value)
-				Turbostroi.TriggerInput(self,sys_name,name,value)
+			if run_everywhere then
+				local old_func = self[sys_name].TriggerInput
+				self[sys_name].TriggerInput = function(system,name,value)
+					old_func(self,sys_name,name,value)
+					Turbostroi.TriggerInput(self,sys_name,name,value)
+				end
+			else
+				self[sys_name].TriggerInput = function(system,name,value)
+					Turbostroi.TriggerInput(self,sys_name,name,value)
+				end
 			end
 			self[sys_name].Think = function() end
 		end

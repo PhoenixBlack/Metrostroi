@@ -38,6 +38,6 @@ function ENT:PhysicsCollide(data,physobj)
 
 	-- Generate flange sounds
 	if (data.Speed > 115) and (data.DeltaTime > 0.095) then
-		self:EmitSound("subway_trains/flange_"..math.random(1,8)..".wav",59,math.random(80,120))
+		--self:EmitSound("subway_trains/flange_"..math.random(1,8)..".wav",59,math.random(80,120))
 	end
 end

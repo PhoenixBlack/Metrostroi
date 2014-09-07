@@ -162,6 +162,26 @@ end
 --------------------------------------------------------------------------------
 -- Process failures and add object age
 --------------------------------------------------------------------------------
+local function doFailure(parameter,v)
+	if v.type == "value" then
+		parameter.value = v.value
+		parameter.failures[v] = v
+	elseif v.type == "precision" then
+		parameter.instance_precision = parameter.instance_precision + 
+		  math.abs(gauss_random(v.value,v.value*v.precision))
+		parameter.failures[v] = v
+	elseif v.type == "shift" then
+		parameter.value = parameter.value + 
+		  math.abs(gauss_random(v.value,v.value*v.precision))
+		parameter.failures[v] = v
+	end
+	
+	--[[if v.duration then
+		parameter.failure_end_age = object.Age + 
+			gauss_random(v.duration,v.duration*v.duration_precision)
+	end]]--
+end
+
 function FailSim.Age(object, delta_time)
 	local object = FailSim.Objects[object]
 	if not object then return end
@@ -181,26 +201,32 @@ function FailSim.Age(object, delta_time)
 			
 			-- Single-event failures
 			if check_failure(v.mean_time,delta_time) then
-				if v.type == "value" then
-					parameter.value = v.value
-					parameter.failures[v] = v
-				elseif v.type == "precision" then
-					parameter.instance_precision = parameter.instance_precision + 
-					  math.abs(gauss_random(v.value,v.value*v.precision))
-					parameter.failures[v] = v
-				elseif v.type == "shift" then
-					parameter.value = parameter.value + 
-					  math.abs(gauss_random(v.value,v.value*v.precision))
-					parameter.failures[v] = v
-				end
-				
-				--[[if v.duration then
-					parameter.failure_end_age = object.Age + 
-						gauss_random(v.duration,v.duration*v.duration_precision)
-				end]]--
+				doFailure(parameter,v)
 			end
 		end
 	end
+end
+
+function FailSim.RandomFailure()
+	-- List all failures
+	local failureList = {}
+	for _,object in pairs(FailSim.Objects) do
+		for k,v in pairs(object.FailurePoints) do
+			table.insert(failureList,v)
+		end
+	end
+	
+	-- Get random failure
+	local count = #failureList
+	local i = math.floor(rand60()*count)+1
+	if i > count then i = count end
+	if i < 1 then i = 1 end
+	
+	local failure = failureList[i]
+	local parameter = FailSim.Objects[failure.object].Parameters[failure.parameter_name]
+	--print("Generated random failure from total of "..count.." failures:")
+	print("[!FAIL!] "..failure.name.." in "..(failure.object.Name or "?"))
+	doFailure(parameter,failure)
 end
 
 
@@ -250,19 +276,38 @@ end
 --------------------------------------------------------------------------------
 -- Return failures report for object
 --------------------------------------------------------------------------------
-function FailSim.Report(obj)
+function FailSim.Report(obj,type)
+	if not obj then
+		print("Listing all failures:")
+		for k,v in pairs(FailSim.Objects) do
+			FailSim.Report(k,type)
+		end
+		print("...done!")
+		return
+	end		
 	local object = FailSim.Objects[obj]
 	if not object then return end
 	
 	-- Table of failures
-	local report = ""
-	for k,v in pairs(object.Parameters) do
-		for k2,v2 in pairs(v.failures) do
-			report = report..v2.name.."\n"
+	if type == "parameters" then
+		for k,v in pairs(object.Parameters) do
+			print((obj.Name or "Unknown object")..": "..k)
 		end
 	end
-	
-	return report
+	if type == "failure_points" then
+		for k,v in pairs(object.FailurePoints) do
+			print((obj.Name or "Unknown object")..": "..v.name.." ("..v.parameter_name..")")
+		end
+	end
+	if type == "failures" then
+		local any = false
+		for k,v in pairs(object.Parameters) do
+			for k2,v2 in pairs(v.failures) do
+				print((obj.Name or "Unknown object")..": "..v2.name)
+				any = true
+			end
+		end
+	end
 end
 
 

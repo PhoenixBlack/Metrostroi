@@ -8,6 +8,7 @@ function TRAIN_SYSTEM:Initialize()
 	self.ControllerPosition = 0
 	self.ReverserPosition = 0
 	self.RealControllerPosition = 0
+	self.Type = 1
 
 	self.ReverserMatrix = {
 		{"D",		"D1"	},
@@ -74,7 +75,7 @@ function TRAIN_SYSTEM:Initialize()
 end
 
 function TRAIN_SYSTEM:Inputs()
-	return { "Enabled", "ControllerSet", "ReverserSet",
+	return { "Enabled", "ControllerSet", "ReverserSet","Type",
 			 "ControllerUp","ControllerDown","ReverserUp","ReverserDown",
 			 "SetX1", "SetX2", "SetX3", "Set0", "SetT1", "SetT1A", "SetT2" }
 end
@@ -87,7 +88,9 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 	local prevReverserPosition = self.ReverserPosition
 	
 	-- Change position
-	if name == "Enabled" then
+	if name == "Type" then
+		self.Type = math.floor(value)
+	elseif name == "Enabled" then
 		self.Enabled = math.floor(value)
 	elseif name == "ControllerSet" then
 		if (self.Enabled ~= 0) and (self.ReverserPosition ~= 0) and (math.floor(value) ~= self.ControllerPosition) then
@@ -99,17 +102,7 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 			if self.ControllerPosition < -3 then self.ControllerPosition = -3 end
 			
 			-- Play sounds
-			--[[local volume = 1
-			if true then -- Sound type 2
-				local P = prevControllerPosition
-				local N = self.ControllerPosition
-				local D = math.max(-1,math.min(1,N-P))
-				while (P ~= N) do
-					print(P,P+D,N)
-					P = P + D
-				end
-			else]]--
-			if false then
+			if self.Type == 1 then
 				local dC = math.abs(prevControllerPosition - self.ControllerPosition)
 				if dC == 1 then self.Train:PlayOnce("kv1","cabin",0.8) end
 				if dC == 2 then self.Train:PlayOnce("kv2","cabin",0.8) end
@@ -174,7 +167,7 @@ function TRAIN_SYSTEM:Think()
 		self.Timer = CurTime()
 		self.RealControllerPosition = self.RealControllerPosition + 1
 		
-		if true then
+		if self.Type == 2 then
 			local A,B = previousPosition,self.RealControllerPosition
 			if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_0_x1", "cabin",0.9) end
 			if (A ==  1) and (B ==  0) then self.Train:PlayOnce("kv_x1_0", "cabin",0.9) end
@@ -196,7 +189,7 @@ function TRAIN_SYSTEM:Think()
 		self.Timer = CurTime()
 		self.RealControllerPosition = self.RealControllerPosition - 1
 		
-		if true then
+		if self.Type == 2 then
 			local A,B = previousPosition,self.RealControllerPosition
 			if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_0_x1", "cabin",0.9) end
 			if (A ==  1) and (B ==  0) then self.Train:PlayOnce("kv_x1_0", "cabin",0.9) end
