@@ -304,7 +304,11 @@ ENT.ClientProps["door2"] = {
 --------------------------------------------------------------------------------
 function ENT:Think()
 	self.BaseClass.Think(self)
-
+	
+	-- Distance cull
+	local distance = self:GetPos():Distance(LocalPlayer():GetPos())
+	if distance > 1024 then return end
+	
 	local transient = (self.Transient or 0)*0.05
 	if (self.Transient or 0) ~= 0.0 then self.Transient = 0.0 end
 	
@@ -435,6 +439,10 @@ end
 
 function ENT:Draw()
 	self.BaseClass.Draw(self)
+	
+	-- Distance cull
+	local distance = self:GetPos():Distance(LocalPlayer():GetPos())
+	if distance > 1024 then return end
 	
 	self:DrawOnPanel("FrontPneumatic",function()
 		draw.DrawText(self:GetNWBool("FI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))

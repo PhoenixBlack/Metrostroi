@@ -167,7 +167,7 @@ Metrostroi.AnnouncerData =
     --[120] = {"Lesnaya",                 -1                          },
     [121] = {"Minskaya",                false,false,true,true  ,0   },
     [122] = {"Tsarskiye Vorota",        false,true,true,true   ,0   },
-    [123] = {"Mezhdustroyskaya",        false,true,true,true   ,0   },
+    [123] = {"Mezhdustroyskaya",        true,true,true,true   ,0   },
 }
 
 Metrostroi.WorkingStations = {}

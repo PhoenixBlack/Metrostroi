@@ -1,4 +1,4 @@
-timer.Simple(1.0,function()
+timer.Simple(0.0,function()
 	if not file.Exists("metrostroi_data","DATA") then
 		file.CreateDir("metrostroi_data")
 	end
@@ -121,6 +121,11 @@ timer.Simple(1.0,function()
 		file.Write("metrostroi_data/signs_gm_metrostroi_b46.txt",SIGNS)
 		file.Write("metrostroi_data/track_gm_metrostroi_b46.txt",TRACK)
 		file.Write("metrostroi_data/sched_gm_metrostroi_b46.txt",SCHED)
+	end
+	if not file.Exists("metrostroi_data/sched_gm_metrostroi_b47.txt","DATA") then
+		file.Write("metrostroi_data/signs_gm_metrostroi_b47.txt",SIGNS)
+		file.Write("metrostroi_data/track_gm_metrostroi_b47.txt",TRACK)
+		file.Write("metrostroi_data/sched_gm_metrostroi_b47.txt",SCHED)
 	end
 	if not file.Exists("metrostroi_data/sched_gm_metrostroi_b46_lite.txt","DATA") then
 		file.Write("metrostroi_data/signs_gm_metrostroi_b46_lite.txt",SIGNS)

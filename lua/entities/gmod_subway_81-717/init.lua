@@ -600,6 +600,27 @@ function ENT:Think()
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
 	
+	-- Generate bogey sounds
+	local jerk = math.abs((self.Acceleration - (self.PrevAcceleration or 0)) / self.DeltaTime)
+	self.PrevAcceleration = self.Acceleration
+	
+	--print(2.0 + self.Speed/15.0)
+	if jerk > (2.0 + self.Speed/15.0) then
+		self.PrevTriggerTime1 = self.PrevTriggerTime1 or CurTime()
+		self.PrevTriggerTime2 = self.PrevTriggerTime2 or CurTime()
+		
+		if ((math.random() > 0.00) or (jerk > 10)) and (CurTime() - self.PrevTriggerTime1 > 1.5) then
+			self.PrevTriggerTime1 = CurTime()
+			self.FrontBogey:EmitSound("subway_trains/chassis_"..math.random(1,3)..".wav", 70, math.random(90,110))
+		end
+		if ((math.random() > 0.00) or (jerk > 10)) and (CurTime() - self.PrevTriggerTime2 > 1.5) then
+			self.PrevTriggerTime2 = CurTime()
+			self.RearBogey:EmitSound("subway_trains/chassis_"..math.random(1,3)..".wav", 70, math.random(90,110))
+		end
+	end
+	
+	--print(dD1,dD2)
+	
 	-- Temporary hacks
 	--self:SetNWFloat("V",self.Speed)
 	--self:SetNWFloat("A",self.Acceleration)
@@ -689,6 +710,7 @@ function ENT:OnButtonPress(button)
 	if button == "EmergencyBrake" then
 		self.KV:TriggerInput("ControllerSet",-3)
 		self.Pneumatic:TriggerInput("BrakeSet",7)
+		self.DriverValveDisconnect:TriggerInput("Set",1)
 		return
 	end
 	

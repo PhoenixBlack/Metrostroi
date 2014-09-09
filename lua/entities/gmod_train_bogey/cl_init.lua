@@ -197,24 +197,24 @@ function ENT:Think()
 	
 	-- Smooth it out
 	self.SmoothAngleDelta = self.SmoothAngleDelta or 0
-	self.SmoothAngleDelta = self.SmoothAngleDelta + (deltaAngle - self.SmoothAngleDelta)*0.5*dT
+	self.SmoothAngleDelta = self.SmoothAngleDelta + (deltaAngle - self.SmoothAngleDelta)*1.0*dT
 	if (not (self.SmoothAngleDelta <= 0)) and (not (self.SmoothAngleDelta >= 0)) then
 		self.SmoothAngleDelta = 0
 	end
 	
 	-- Create sound
 	local x = self.SmoothAngleDelta
-	local f1 = math.max(0,x-4.0)*0.1
+	local f1 = math.max(0,x-6.0)*0.1
 	local f2 = math.max(0,x-9.0)*0.1
 	local t = RealTime()
 	local modulation = 1.5*math.max(0,0.2+math.sin(t)*math.sin(t*3.12)*math.sin(t*0.24)*math.sin(t*4.0))
-	local pitch = 1.0 --math.abs(speed/40.0)
+	local pitch = math.max(0.8,1.0+(speed-40.0)/160.0)
 	local speed_mod = math.min(1.0,math.max(0.0,(speed-20)*0.1))
 	
 	-- Play it
-	--if (self:EntIndex() == 2460) then
-		--print(Format("%.3f %.3f %.3f  F = %.4f %s",x,f1,f2,f,(f > 0) and "true" or "false"))
-	--end
-	self:SetSoundState("flange1",0,0) --*speed_mod*f1,pitch)
-	self:SetSoundState("flange2",0,0) --*speed_mod*f2*modulation,pitch)
+	if (self:EntIndex() == 2601) then
+		print(Format("%.3f %.3f %.3f  F = %.4f %s %.3f",x,f1,f2,f,(f > 0) and "true" or "false",pitch))
+	end
+	self:SetSoundState("flange1",speed_mod*f1,pitch)
+	self:SetSoundState("flange2",speed_mod*f2*modulation,pitch)
 end
