@@ -216,10 +216,10 @@ function TRAIN_SYSTEM:Think()
 		self["2"] = Ebrake
 		self["20"] = Ebrake
 		self["29"] = Pbrake1
-		self["8"] = Pbrake2
+		self["8"] = Pbrake2*(((CurTime() - self.PV1Timer) > 2.5) and 1 or 0)
 		
 		-- Show lamps
-		self.LKT = (self["33G"] > 0.5) or (self["29"] > 0.5)
+		self.LKT = (self["33G"] > 0.5) or (self["29"] > 0.5) or (Train.Pneumatic.BrakeCylinderPressure > 0.1)
 		self.LVD = self["33D"] < 0.5
 		self.Ring = self.LVD
 	else
