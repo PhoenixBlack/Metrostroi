@@ -44,6 +44,9 @@ function ENT:Initialize()
 		[KEY_7] = "KVSetT2",
 		[KEY_8] = "KRP",
 		
+		[KEY_EQUAL] = "R_Program1Set",
+		[KEY_MINUS] = "R_Program2Set",
+
 		[KEY_G] = "VozvratRPSet",
 		
 		[KEY_0] = "KVReverserUp",
@@ -263,7 +266,7 @@ function ENT:Think()
 	if self.DriversWrenchPresent then
 		self.KV:TriggerInput("Enabled",self:IsWrenchPresent() and 1 or 0)
 	end
-	
+
 	-- Set wrench sounds
 	if not self.DriversWrenchSoundsInit then
 		self.KV:TriggerInput("Type",2)
@@ -604,7 +607,6 @@ function ENT:Think()
 	local jerk = math.abs((self.Acceleration - (self.PrevAcceleration or 0)) / self.DeltaTime)
 	self.PrevAcceleration = self.Acceleration
 	
-	--print(2.0 + self.Speed/15.0)
 	if jerk > (2.0 + self.Speed/15.0) then
 		self.PrevTriggerTime1 = self.PrevTriggerTime1 or CurTime()
 		self.PrevTriggerTime2 = self.PrevTriggerTime2 or CurTime()
@@ -618,9 +620,7 @@ function ENT:Think()
 			self.RearBogey:EmitSound("subway_trains/chassis_"..math.random(1,3)..".wav", 70, math.random(90,110))
 		end
 	end
-	
-	--print(dD1,dD2)
-	
+
 	-- Temporary hacks
 	--self:SetNWFloat("V",self.Speed)
 	--self:SetNWFloat("A",self.Acceleration)

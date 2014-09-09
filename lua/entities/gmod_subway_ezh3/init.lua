@@ -39,6 +39,9 @@ function ENT:Initialize()
 		[KEY_6] = "KVSetT1A",
 		[KEY_7] = "KVSetT2",
 		[KEY_8] = "KRP",
+		
+		[KEY_EQUAL] = "R_Program1Set",
+		[KEY_MINUS] = "R_Program2Set",
 
 		[KEY_G] = "VozvratRPSet",
 		
@@ -55,6 +58,7 @@ function ENT:Initialize()
 		[KEY_L] = "HornEngage",
 		
 		[KEY_SPACE] = "PBSet",
+		[KEY_BACKSPACE] = "EmergencyBrake",
 
 		[KEY_LSHIFT] = {
 			[KEY_A] = "DURASelectAlternate",
@@ -237,6 +241,26 @@ function ENT:Think()
 	self:SetPackedBool(57,self.ALS.Value == 1.0)
 	self:SetPackedBool(58,self.Panel["CabinLight"] > 0.5)
 	self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
+	--[[self:SetPackedBool(114,self.Custom1.Value == 1.0)
+	self:SetPackedBool(115,self.Custom2.Value == 1.0)
+	self:SetPackedBool(116,self.Custom3.Value == 1.0)
+	self:SetPackedBool(117,self.Custom4.Value == 1.0)
+	self:SetPackedBool(118,self.Custom5.Value == 1.0)
+	self:SetPackedBool(119,self.Custom6.Value == 1.0)
+	self:SetPackedBool(120,self.Custom7.Value == 1.0)
+	self:SetPackedBool(121,self.Custom8.Value == 1.0)
+	self:SetPackedBool(122,self.CustomA.Value == 1.0)
+	self:SetPackedBool(123,self.CustomB.Value == 1.0)
+	self:SetPackedBool(124,self.CustomC.Value == 1.0)
+	self:SetLightPower(35,self.CustomD.Value == 1.0)
+	self:SetLightPower(36,self.CustomE.Value == 1.0)
+	self:SetLightPower(37,self.CustomF.Value == 1.0)
+	self:SetLightPower(38,self.CustomG.Value == 1.0)]]--
+	self:SetPackedBool(125,self.R_G.Value == 1.0)
+	self:SetPackedBool(126,self.R_Radio.Value == 1.0)
+	self:SetPackedBool(127,self.R_ZS.Value == 1.0)
+	self:SetPackedBool(128,self.R_Program1.Value == 1.0)
+	self:SetPackedBool(129,self.R_Program2.Value == 1.0)
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -345,6 +369,24 @@ function ENT:Think()
 		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
+	
+	-- Generate bogey sounds
+	local jerk = math.abs((self.Acceleration - (self.PrevAcceleration or 0)) / self.DeltaTime)
+	self.PrevAcceleration = self.Acceleration
+	
+	if jerk > (2.0 + self.Speed/15.0) then
+		self.PrevTriggerTime1 = self.PrevTriggerTime1 or CurTime()
+		self.PrevTriggerTime2 = self.PrevTriggerTime2 or CurTime()
+		
+		if ((math.random() > 0.00) or (jerk > 10)) and (CurTime() - self.PrevTriggerTime1 > 1.5) then
+			self.PrevTriggerTime1 = CurTime()
+			self.FrontBogey:EmitSound("subway_trains/chassis_"..math.random(1,3)..".wav", 70, math.random(90,110))
+		end
+		if ((math.random() > 0.00) or (jerk > 10)) and (CurTime() - self.PrevTriggerTime2 > 1.5) then
+			self.PrevTriggerTime2 = CurTime()
+			self.RearBogey:EmitSound("subway_trains/chassis_"..math.random(1,3)..".wav", 70, math.random(90,110))
+		end
+	end
 
 	-- Temporary hacks
 	--self:SetNWFloat("V",self.Speed)
@@ -431,6 +473,12 @@ function ENT:OnButtonPress(button)
 	if button == "KRP" then 
 		self.KRP:TriggerInput("Set",1)
 		self:OnButtonPress("KRPSet")
+	end
+	if button == "EmergencyBrake" then
+		self.KV:TriggerInput("ControllerSet",-3)
+		self.Pneumatic:TriggerInput("BrakeSet",7)
+		self.DriverValveDisconnect:TriggerInput("Set",1)
+		return
 	end
 	
 	-- Special logic

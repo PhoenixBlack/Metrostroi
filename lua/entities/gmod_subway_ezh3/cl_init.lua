@@ -39,13 +39,13 @@ ENT.ButtonMap["Main"] = {
 		{ID = "KSNSet",			x=240, y=78, radius=20,  tooltip="КСН: Кнопка сигнализации неисправности\nKSN: Failure indication button"},
 		{ID = "KRPSet",			x=192, y=122, radius=20, tooltip="КРП: Кнопка резервного пуска"},
 		
-		{ID = "Program1Set",	x=112, y=127, radius=20, tooltip=""},
-		{ID = "Program2Set",	x=149, y=127, radius=20, tooltip=""},
-		
-		{ID = "",				x=112, y=30, radius=20, tooltip=""},
-		{ID = "",				x=149, y=30, radius=20, tooltip=""},
-		{ID = "",				x=112, y=80, radius=20, tooltip=""},
-		{ID = "",				x=149, y=80, radius=20, tooltip=""},
+		{ID = "R_Program1Set",	x=112, y=127, radius=20, tooltip="Программа 1\nProgram 1"},
+		{ID = "R_Program2Set",	x=149, y=127, radius=20, tooltip="Программа 2\nProgram 2"},
+
+		{ID = "R_UNchToggle",	x=112, y=30, radius=20, tooltip="УНЧ: Усилитель низких частот\nUNCh: Low frequency amplifier"},
+		{ID = "R_ZSToggle",		x=149, y=30, radius=20, tooltip="ЗС: Звук в салоне\nZS: Sound in wagons enable"},
+		{ID = "R_GToggle",		x=112, y=80, radius=20, tooltip="Громкоговоритель\nLoudspeaker: Sound in cabin enable"},
+		{ID = "R_RadioToggle",	x=149, y=80, radius=20, tooltip="Радиоинформатор (встроеный)\nRadioinformator: Announcer (built-in)"},
 		
 	}
 }
@@ -401,6 +401,26 @@ ENT.ClientProps["panellights"] = {
 	ang = Angle(-90,0,0)
 }
 --------------------------------------------------------------------------------
+Metrostroi.ClientPropForButton("R_UNch",{
+	panel = "Main",
+	button = "R_UNchToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("R_ZS",{
+	panel = "Main",
+	button = "R_ZSToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("R_G",{
+	panel = "Main",
+	button = "R_GToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
+Metrostroi.ClientPropForButton("R_Radio",{
+	panel = "Main",
+	button = "R_RadioToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
 Metrostroi.ClientPropForButton("DIPon",{
 	panel = "Main",
 	button = "DIPonSet",	
@@ -496,12 +516,12 @@ Metrostroi.ClientPropForButton("KRP",{
 })
 Metrostroi.ClientPropForButton("Program1",{
 	panel = "Main",
-	button = "Program1Set",	
+	button = "R_Program1Set",	
 	model = "models/metrostroi/81-717/button08.mdl",
 })
 Metrostroi.ClientPropForButton("Program2",{
 	panel = "Main",
-	button = "Program2Set",	
+	button = "R_Program2Set",	
 	model = "models/metrostroi/81-717/button08.mdl",
 })
 
@@ -661,7 +681,7 @@ function ENT:Think()
 	self:Animate("bat2",			self:GetPackedBool(7) and 1 or 0, 	0,1, 16, false)
 	self:Animate("bat3",			self:GetPackedBool(7) and 1 or 0, 	0,1, 16, false)
 	self:Animate("RezMK",			self:GetPackedBool(8) and 1 or 0, 	0,1, 16, false)
-	self:Animate("VMK",				self:GetPackedBool(9) and 1 or 0, 	0,1, 16, false)
+	self:Animate("VMK",				self:GetPackedBool(9) and 0 or 1, 	0,1, 16, false)
 	self:Animate("VAH",				self:GetPackedBool(10) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VAD",				self:GetPackedBool(11) and 1 or 0, 	0,1, 16, false)
 	self:Animate("VUD1",			self:GetPackedBool(12) and 1 or 0, 	0,1, 16, false)
@@ -678,6 +698,23 @@ function ENT:Think()
 	self:Animate("ARS",				self:GetPackedBool(56) and 1 or 0, 	0,1, 16, false)
 	self:Animate("ALS",				self:GetPackedBool(57) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KVT",				self:GetPackedBool(28) and 1 or 0, 	0,1, 16, false)
+	
+	--[[self:Animate("Custom1",			self:GetPackedBool(114) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom2",			self:GetPackedBool(115) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom3",			self:GetPackedBool(116) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom4",			self:GetPackedBool(117) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom5",			self:GetPackedBool(118) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom6",			self:GetPackedBool(119) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom7",			self:GetPackedBool(120) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom8",			self:GetPackedBool(121) and 1 or 0, 0,1, 16, false)
+	self:Animate("CustomA",			self:GetPackedBool(122) and 1 or 0, 0,1, 16, false)
+	self:Animate("CustomB",			self:GetPackedBool(123) and 1 or 0, 0,1, 16, false)
+	self:Animate("CustomC",			self:GetPackedBool(124) and 1 or 0, 0,1, 16, false)]]--
+	self:Animate("R_G",				self:GetPackedBool(125) and 1 or 0, 0,1, 16, false)
+	self:Animate("R_Radio",			self:GetPackedBool(126) and 1 or 0, 0,1, 16, false)
+	self:Animate("R_ZS",			self:GetPackedBool(127) and 1 or 0, 0,1, 16, false)
+	self:Animate("Program1",		self:GetPackedBool(128) and 1 or 0, 0,1, 16, false)
+	self:Animate("Program2",		self:GetPackedBool(129) and 1 or 0, 0,1, 16, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do

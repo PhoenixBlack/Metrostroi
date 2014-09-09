@@ -920,7 +920,7 @@ function ENT:Think()
 	
 	-- Distance cull
 	local distance = self:GetPos():Distance(LocalPlayer():GetPos())
-	if distance > 1024 then return end
+	if distance > 8192 then return end
 
 	local transient = (self.Transient or 0)*0.05
 	if (self.Transient or 0) ~= 0.0 then self.Transient = 0.0 end
