@@ -288,6 +288,97 @@ end)
 
 
 
+
+--------------------------------------------------------------------------------
+-- Electric consumption stats
+--------------------------------------------------------------------------------
+-- Load total kWh
+timer.Create("Metrostroi_TotalkWhTimer",5.00,0,function()
+	file.Write("metrostroi_data/total_kwh.txt",Metrostroi.TotalkWh or 0)
+end)
+Metrostroi.TotalkWh = Metrostroi.TotalkWh or tonumber(file.Read("metrostroi_data/total_kwh.txt")) or 0
+Metrostroi.TotalRateWatts = Metrostroi.TotalRateWatts or 0
+
+local prevTime
+hook.Add("Think", "Metrostroi_ElectricConsumptionThink", function()
+	-- Change in time
+	prevTime = prevTime or CurTime()
+	local deltaTime = (CurTime() - prevTime)
+	prevTime = CurTime()
+	
+	-- Calculate total rate
+	Metrostroi.TotalRateWatts = 0
+	for _,class in pairs(Metrostroi.TrainClasses) do
+		local trains = ents.FindByClass(class)
+		for _,train in pairs(trains) do
+			if train.Electric then
+				Metrostroi.TotalRateWatts = Metrostroi.TotalRateWatts + math.max(0,(train.Electric.EnergyChange or 0))
+			end
+		end
+	end
+	
+	-- Calculate total kWh
+	Metrostroi.TotalkWh = Metrostroi.TotalkWh + (Metrostroi.TotalRateWatts/(3.6e6))*deltaTime
+end)
+
+concommand.Add("metrostroi_electric", function(ply, _, args)
+	local m = Format("[%25s] %010.3f kWh (%.2f$), current: %.3f kW","<total>",Metrostroi.TotalkWh,Metrostroi.GetEnergyCost(Metrostroi.TotalkWh),Metrostroi.TotalRateWatts*1e-3)
+	if IsValid(ply) 
+	then ply:PrintMessage(HUD_PRINTCONSOLE,m)
+	else print(m)
+	end
+			
+	if CPPI then
+		local U = {}
+		local D = {}
+		for _,class in pairs(Metrostroi.TrainClasses) do
+			local trains = ents.FindByClass(class)
+			for _,train in pairs(trains) do
+				local owner = "(disconnected)"
+				if train:CPPIGetOwner() then
+					owner = train:CPPIGetOwner():GetName()
+				end
+				if train.Electric then
+					U[owner] = (U[owner] or 0) + train.Electric.ElectricEnergyUsed
+					D[owner] = (D[owner] or 0) + train.Electric.ElectricEnergyDissipated
+				end
+			end
+		end
+		for player,_ in pairs(U) do --, n=%.0f%%
+			--local m = Format("[%20s] %08.1f KWh (lost %08.1f KWh)",player,U[player]/(3.6e6),D[player]/(3.6e6)) --,100*D[player]/U[player]) --,D[player])
+			local m = Format("[%25s] %010.3f kWh (%.2f$)",player,U[player]/(3.6e6),Metrostroi.GetEnergyCost(U[player]/(3.6e6)))
+			if IsValid(ply) 
+			then ply:PrintMessage(HUD_PRINTCONSOLE,m)
+			else print(m)
+			end
+		end
+	end
+end)
+
+timer.Create("Metrostroi_ElectricConsumptionTimer",0.5,0,function()
+	if CPPI then
+		local U = {}
+		local D = {}
+		for _,class in pairs(Metrostroi.TrainClasses) do
+			local trains = ents.FindByClass(class)
+			for _,train in pairs(trains) do
+				local owner = train:CPPIGetOwner()
+				if owner and (train.Electric) then
+					U[owner] = (U[owner] or 0) + train.Electric.ElectricEnergyUsed
+					D[owner] = (D[owner] or 0) + train.Electric.ElectricEnergyDissipated
+				end
+			end
+		end
+		for player,_ in pairs(U) do
+			if IsValid(player) then
+				player:SetDeaths(10*U[player]/(3.6e6))
+			end
+		end
+	end
+end)
+
+
+
 --------------------------------------------------------------------------------
 -- Does current map have any sort of metrostroi support
 --------------------------------------------------------------------------------

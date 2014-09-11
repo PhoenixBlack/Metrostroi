@@ -1,3 +1,8 @@
+-- FIXME hack
+function Metrostroi.GetEnergyCost(kWh)
+	return kWh*0.08
+end
+
 --Not sure about the quirks related to shared convars like this
 CreateConVar("metrostroi_train_requirethirdrail",1,FCVAR_ARCHIVE,"Whether or not Metrostroi trains require power from the third rail")
 CreateConVar("metrostroi_debugger_update_interval",1,FCVAR_ARCHIVE,"Seconds between debugger data messages")
