@@ -51,6 +51,11 @@ function TRAIN_SYSTEM:Initialize()
 	self.Overheat1 = 0
 	self.Overheat2 = 0
 	
+	-- Total energy used by train
+	self.ElectricEnergyUsed = 0 -- joules
+	self.ElectricEnergyDissipated = 0 -- joules
+	self.EnergyChange = 0
+	
 	-- Need many iterations for engine simulation to converge
 	self.SubIterations = 16
 	
@@ -77,7 +82,8 @@ function TRAIN_SYSTEM:Outputs()
 			 "T1", "T2", "P1", "P2",
 			 "Overheat1","Overheat2",
 			 "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V",
-			 "ThyristorResistance", "ThyristorState" }
+			 "ThyristorResistance", "ThyristorState",
+			 "ElectricEnergyUsed", "ElectricEnergyDissipated", "EnergyChange" }
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)
@@ -412,6 +418,11 @@ function TRAIN_SYSTEM:SolvePowerCircuits(Train,dT)
 		self.Overheat1 + math.max(0,(math.max(0,self.T1-750.0)/400.0)^2)*dT )
 	self.Overheat2 = math.min(1-1e-12,
 		self.Overheat2 + math.max(0,(math.max(0,self.T2-750.0)/400.0)^2)*dT )
+		
+	-- Energy consumption
+	self.ElectricEnergyUsed = self.ElectricEnergyUsed + math.max(0,self.EnergyChange)*dT
+	self.ElectricEnergyDissipated = self.ElectricEnergyDissipated + math.max(0,-self.EnergyChange)*dT
+	--print(self.EnergyChange)
 end
 
 
@@ -430,12 +441,15 @@ function TRAIN_SYSTEM:SolvePS(Train)
 	-- Total resistance (for induction RL circuit)
 	self.R13 = Rtotal
 	self.R24 = Rtotal
-	
+
 	-- Calculate everything else
 	self.I13 = self.Itotal
 	self.I24 = self.Itotal
 	self.U13 = self.Utotal*(1/2)
 	self.U24 = self.Utotal*(1/2)
+	
+	-- Energy consumption
+	self.EnergyChange = math.abs((self.Itotal^2)*Rtotal)
 end
 
 function TRAIN_SYSTEM:SolvePP(Train,inTransition)
@@ -465,6 +479,9 @@ function TRAIN_SYSTEM:SolvePP(Train,inTransition)
 	self.U24 = self.I24*R2
 	self.Utotal = (self.U13 + self.U24)/2
 	self.Itotal = self.I13 + self.I24
+	
+	-- Energy consumption
+	self.EnergyChange = math.abs((self.I13^2)*R1) + math.abs((self.I24^2)*R2)
 end
 
 function TRAIN_SYSTEM:SolvePT(Train)
@@ -492,4 +509,7 @@ function TRAIN_SYSTEM:SolvePT(Train)
 	self.U24 = self.I24*R2
 	self.Utotal = (self.U13 + self.U24)/2
 	self.Itotal = self.I13 + self.I24
+	
+	-- Energy consumption
+	self.EnergyChange = -math.abs(((0.5*self.Itotal)^2)*self.R13)
 end

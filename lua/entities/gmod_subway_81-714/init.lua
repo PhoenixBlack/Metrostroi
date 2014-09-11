@@ -208,6 +208,7 @@ function ENT:Think()
 		(self.Pneumatic.RightDoorState[2] > 0.5) or
 		(self.Pneumatic.RightDoorState[3] > 0.5) or
 		(self.Pneumatic.RightDoorState[4] > 0.5)
+	self:WriteTrainWire(35,(self.Pneumatic.BrakeCylinderPressure > 0.1) and 1 or 0)
 		
 	-- Is there a driver
 	self:SetBodygroup(1,(self:GetDriver() ~= nil) and 1 or 0)

@@ -184,7 +184,7 @@ function ENT:Initialize()
 end
 
 -- Remove entity
-function ENT:OnRemove()
+function ENT:OnRemove()	
 	-- Remove all linked objects
 	constraint.RemoveAll(self)
 	if self.TrainEntities then

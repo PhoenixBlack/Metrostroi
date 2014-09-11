@@ -1160,7 +1160,9 @@ function TRAIN_SYSTEM:Think()
 	-- Build-in Black Phoenix Announcer logic
 	--	self:Announcer1()
 	-- Build-in glebqip Announcer logic
+	if self.Train.Custom3 then
 		self:Announcer2()
+	end
 	-- Check if new announcement must be started from train wire
 	local targetAnnouncement = self.Train:ReadTrainWire(48)
 	local onlyCabin = false
