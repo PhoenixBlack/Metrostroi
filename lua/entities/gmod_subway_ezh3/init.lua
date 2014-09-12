@@ -282,7 +282,8 @@ function ENT:Think()
 	-- NR1
 	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP
-	self:SetPackedBool(35,self.Panel["RedRP"] > 0.5)
+	self:SetPackedBool(35,self.Panel["RedRP"] > 0.75)
+	self:SetPackedBool(131,self.Panel["RedRP"] > 0.25)
 	-- Green RP
 	self:SetPackedBool(36,self.Panel["GreenRP"] > 0.5)
 	-- Cabin heating
