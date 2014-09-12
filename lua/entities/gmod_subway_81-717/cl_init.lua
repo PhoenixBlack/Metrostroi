@@ -1156,13 +1156,18 @@ function ENT:Draw()
 		end
 		
 		------------------------------------------------------------------------
+		local b = self:Animate("light_rLSN",self:GetPackedBool(131) and 1 or 0,0,1,15,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			surface.SetDrawColor(255,40,20)
+			surface.DrawRect(210*10,38*10,8*10,4*10)
+			draw.DrawText("ЛСН","MetrostroiSubway_VerySmallText",210*10+0,38*10-5,Color(0,0,0,255))
+		end
 		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,40,20)
 			surface.DrawRect(201*10,38*10,8*10,4*10)
-			surface.DrawRect(210*10,38*10,8*10,4*10)
-			draw.DrawText("ЛСН","MetrostroiSubway_VerySmallText",210*10+0,38*10-5,Color(0,0,0,255))
 			draw.DrawText("РП","MetrostroiSubway_VerySmallText", 201*10+15,38*10-5,Color(0,0,0,255))
 		end
 		
@@ -1320,15 +1325,22 @@ function ENT:Draw()
 		self:DrawDigit((110+0) *10,	16*10, d2, 0.85, 0.70)
 		self:DrawDigit((110+11)*10,	16*10, d1, 0.85, 0.70)
 
-		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,15,false)
+		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or (self:GetPackedBool(131) and 0.35 or 0),0,1,15,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
+			--surface.SetDrawColor(255,120,50)
+			surface.SetDrawColor(255,40,20)
+			surface.DrawRect(152*10,78*10,17*10,9*10)
+			draw.DrawText("РП","MetrostroiSubway_LargeText2",152*10+30,78*10-5,Color(0,0,0,245))
+		end
+		
+		local b = self:Animate("light_rLSN",self:GetPackedBool(131) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			--surface.SetDrawColor(255,120,50)
 			surface.SetDrawColor(255,40,20)
 			surface.DrawRect(178*10,78*10,17*10,9*10)
-			surface.DrawRect(152*10,78*10,17*10,9*10)
 			draw.DrawText("ЛСН","MetrostroiSubway_LargeText2",178*10+5,78*10-5,Color(0,0,0,245))
-			draw.DrawText("РП","MetrostroiSubway_LargeText2",152*10+30,78*10-5,Color(0,0,0,245))
 		end
 		
 		b = self:Animate("light_KT",self:GetPackedBool(47) and 1 or 0,0,1,15,false)

@@ -83,7 +83,7 @@ function TRAIN_SYSTEM:Think(dT)
 	self.Position = self.Position + math.min(threshold*0.5,self.Velocity * dT)
 	
 	-- Limit motor from moving too far
-	--self.WrapsAround = true
+	--self.WrapsAround = false
 	if not self.WrapsAround then
 		if self.Position > self.MaxPosition+0.1 then
 			self.Position = self.MaxPosition+0.1
@@ -105,7 +105,7 @@ function TRAIN_SYSTEM:Think(dT)
 	self.RKM1 = ((f < -0.30) or  (f > 0.30)) and 1 or 0
 	self.RKM2 = ((f < -0.40) or  (f > 0.40)) and 1 or 0
 	self.RKP  = ((f > -0.10) and (f < 0.10)) and 1 or 0
-	
+
 	-- Update position readout
-	if self.RKP == 1 then self.SelectedPosition = position end
+	if ((f > -0.40) and (f < 0.40)) then self.SelectedPosition = position end
 end

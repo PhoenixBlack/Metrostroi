@@ -26,7 +26,7 @@ function TRAIN_SYSTEM:Initialize()
 		[17] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
 		[18] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1 },
 	}
-	--self.WrapsAround = true
+	self.WrapsAround = true
 	Metrostroi.BaseSystems["EKG"].Initialize(self)
 end
 
