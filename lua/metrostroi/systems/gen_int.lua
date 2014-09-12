@@ -108,6 +108,7 @@ function ParseName(str)
 	if str == "_" then return "COIL" end
 	if str == "B" then return "B" end
 	if str == "HIGH" then return "1" end
+	if str == "MED" then return "0.5" end
 	if str == "LOW" then return "0" end
 	if str == "EMERGENCY_CONTROL" then
 		return "(1-2*Train.RRP.Value)*((1-Train.RRP.Value) + Train.RRP.Value*Train.A39.Value)"
@@ -489,6 +490,7 @@ local S = {}
 local function C(x) return x and 1 or 0 end
 
 local min = math.min
+local max = math.max
 
 ]]
 end
@@ -823,11 +825,11 @@ BaseNetwork = {
 	{	"1G",	"1Zh",	"LK3" },
 		
 	{	"1Zh",	"1K",	"!PS,PP" },
-	{	"1Zh",	"1N",	"!PS,PT1" },
-		
+	{	"1Zh",	"1N",	"!PS,PT1", "Ezh3" },
+
 	{	"1Zh",	"0",	"#LK3" },
 	{	"1K",	"0",	"#LK1" },
-	{	"1N",	"0",	"#RR" },
+	{	"1N",	"0",	"#RR" , "Ezh3" },
 
 	{	"1A",	"1V",	"!RV1" },
 	{	"1V",	"1R",	"!PS" },
@@ -838,6 +840,13 @@ BaseNetwork = {
 	
 	{	"1R",	"0",	"#KSH1" },
 	{	"1R",	"0",	"#KSH2" },
+	
+	-- 81-717 rheostat spinning
+	{	"B2",	"1Na",	"LK3","81_717" },
+	{	"1Na",	"1N",	"!PS,PT1","81_717" },
+	{	"B2",	"1Nb",	"!LK4","81_717" },
+	{	"1Nb",	"1N",	"RK11-18","81_717" },
+	{	"1N",	"0",	"#RR","81_717" },
 	
 	
 	----------------------------------------------------------------------------
@@ -966,13 +975,11 @@ BaseNetwork = {
 	----------------------------------------------------------------------------
 	-- Train wire 18
 	{	"HIGH",		"18s1",	"!RP" }, 	-- This is not how it's implemented on circuit,
-	{	"18s1",		"18s2",	"LK4" },	-- but an equivalent circuit instead
-	{	"18s2",		"18A",	"A14" },	-- Value of 1.0 on TW18 would indicated 'not grounded'
-	{	"18A",		"0",	"#TW[18]" },
+	{	"18s1",		"18A",	"A14" },	-- but an equivalent circuit instead
+	{	"18A",		"0",	"#TW[18]" },-- Value of 1.0 on TW18 would indicated 'not grounded'
 	
 	{	"HIGH",		"18s3",	"!RP" },
 	{	"18s3",		"18Aa",	"A14" },
-	--{	"18Aa",		"0",	"#TW[10AH]" },
 	{	"18Aa",		"10AN",	"1" },
 	
 	
@@ -1033,7 +1040,7 @@ BaseNetwork = {
 	{	"B2",		"10AYa",	"A80" },
 	{	"10AYa",	"10AB",		"!LK3" },
 	{	"10AB",		"10AV",		"RK2-18" },
-	{	"10AV",		"2Ye",		"!LK4" },
+	{	"10AV",		"2Ye10AV",	"!LK4" },
 	
 	-- SDPP movement triggers
 	{	"10AYa",	"10E",		"!LK3" },
@@ -1064,7 +1071,6 @@ BaseNetwork = {
 	{	"B2",		"10AE",		"A30" },
 	{	"10AE",		"10B",		"TR1" },
 	{	"10AE",		"10B",		"RV1" },
-	{	"10AE",		"10B",		"RV1" },
 	{	"10B",		"0",		"#SDRK_Coil" },
 	{	"10AE",		"10Zh",		"1" },
 	
@@ -1082,19 +1088,22 @@ BaseNetwork = {
 	
 	{	"10N",		"0",		"#SDRK" },
 }
-Sources = { "B","HIGH","LOW" }
+Sources = { "B","HIGH","MED","LOW" }
 Drains = { "0" }
 AddToNodes = {
 	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
 	{ "U0a", "(-10*S[\"10AN\"])" },
 	{ "10/4", "(1-Train.VB.Value)*Train:ReadTrainWire(10)" },
-	{ "2-7R-21", "(-10*Train:ReadTrainWire(18))" },
+	{ "2-7R-21", "(-1*max(0,Train:ReadTrainWire(18)))" },
 	{ "10AH", "0" },
 	{ "15", "(-10*Train:ReadTrainWire(11)) + Train.KRU[\"14/1-B3\"]*S[\"B3\"]*20" },
+	{ "18A", "(-0.5*(1.0-Train.LK4.Value))" },
 	{ "2", "Train.ALS_ARS[\"2\"]" },
 	{ "8", "Train.ALS_ARS[\"8\"]" },
 	{ "20", "Train.ALS_ARS[\"20\"]" },
 	{ "29", "Train.ALS_ARS[\"29\"]" },
+	{ "2Ye", "(S[\"2Ye10AV\"])" },
+	{ "2Ye10AV", "0" },
 	
 	{ "1", "(-10*Train.KRU[\"1/3-ZM31\"])" },
 	{ "2", "(-10*Train.KRU[\"2/3-ZM31\"])" },
@@ -1108,7 +1117,7 @@ AddToNodes = {
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
-	{ "10AV", "2Ye" },
+	--{ "10AV", "2Ye" },
 	{ "TW4", "5V" },
 	{ "TW29", "8Zh" },
 	{ "27A", "11B" },
@@ -1148,21 +1157,25 @@ Simplify("Ezh3")
 
 
 --------------------------------------------------------------------------------
-Sources = { "B","HIGH","LOW" }
+Sources = { "B","HIGH","MED","LOW" }
 Drains = { "0" }
 AddToNodes = {
 	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
 	{ "U0a", "(-10*S[\"10AN\"])" },
 	{ "10/4", "(1-Train.VB.Value)*Train:ReadTrainWire(10)" },
-	{ "2-7R-21", "(-10*Train:ReadTrainWire(18))" },
+	{ "2-7R-21", "(-1*max(0,Train:ReadTrainWire(18)))" },
 	{ "10AH", "0" },
 	{ "15", "(-10*Train:ReadTrainWire(11)) + Train.KRU[\"14/1-B3\"]*S[\"B3\"]*20" },
+	{ "18A", "(-0.5*(1.0-Train.LK4.Value))" },
 	{ "2", "Train.ALS_ARS[\"2\"]" },
 	{ "8", "Train.ALS_ARS[\"8\"]" },
 	{ "20", "Train.ALS_ARS[\"20\"]" },
 	{ "29", "Train.ALS_ARS[\"29\"]" },
+	{ "2Ye", "(S[\"2Ye10AV\"])" },
+	{ "2Ye10AV", "0" },
 	
-	--{ "1N","S[\"B2\"]*C((P == 1) or (P == 3))*C((RK >= 11) and (RK <= 18))*(1.0-Train.LK4.Value)" },
+	--*C((P == 1) or (P == 3))
+	--{ "1N","S[\"B2\"]*C((RK >= 11) and (RK <= 18))*(1.0-Train.LK4.Value)" },
 	
 	{ "1", "(-10*Train.KRU[\"1/3-ZM31\"])" },
 	{ "2", "(-10*Train.KRU[\"2/3-ZM31\"])" },
@@ -1176,7 +1189,7 @@ AddToNodes = {
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
-	{ "10AV", "2Ye" },
+	--{ "10AV", "2Ye" },
 	{ "TW4", "5V" },
 	{ "TW29", "8Zh" },
 	{ "27A", "11B" },
@@ -1329,11 +1342,11 @@ BaseNetwork = {
 	{	"1G",	"1Zh",	"LK3" },
 		
 	{	"1Zh",	"1K",	"!PS,PP" },
-	{	"1Zh",	"1N",	"!PS,PT1" },
+	--{	"1Zh",	"1N",	"!PS,PT1" },
 		
 	{	"1Zh",	"0",	"#LK3" },
 	{	"1K",	"0",	"#LK1" },
-	{	"1N",	"0",	"#RR" },
+	--{	"1N",	"0",	"#RR" },
 	
 	{	"1A",	"1V",	"!RV1" },
 	{	"1V",	"1R",	"!PS" },
@@ -1344,6 +1357,13 @@ BaseNetwork = {
 	
 	{	"1R",	"0",	"#KSH1" },
 	{	"1R",	"0",	"#KSH2" },
+	
+	-- 81-717 rheostat spinning
+	{	"B2",	"1Na",	"LK3","81_714" },
+	{	"1Na",	"1N",	"!PS,PT1","81_714" },
+	{	"B2",	"1Nb",	"!LK4","81_714" },
+	{	"1Nb",	"1N",	"RK11-18","81_714" },
+	{	"1N",	"0",	"#RR","81_714" },
 	
 	
 	----------------------------------------------------------------------------
@@ -1458,13 +1478,11 @@ BaseNetwork = {
 	----------------------------------------------------------------------------
 	-- Train wire 18
 	{	"HIGH",		"18s1",	"!RP" }, 	-- This is not how it's implemented on circuit,
-	{	"18s1",		"18s2",	"LK4" },	-- but an equivalent circuit instead
-	{	"18s2",		"18A",	"A14" },	-- Value of 1.0 on TW18 would indicated 'not grounded'
-	{	"18A",		"0",	"#TW[18]" },
+	{	"18s1",		"18A",	"A14" },	-- but an equivalent circuit instead
+	{	"18A",		"0",	"#TW[18]" },-- Value of 1.0 on TW18 would indicated 'not grounded'
 	
 	{	"HIGH",		"18s3",	"!RP" },
 	{	"18s3",		"18Aa",	"A14" },
-	--{	"18Aa",		"0",	"#TW[10AH]" },
 	{	"18Aa",		"10AN",	"1" },
 	
 	
@@ -1525,7 +1543,7 @@ BaseNetwork = {
 	{	"B2",		"10AYa",	"A80" },
 	{	"10AYa",	"10AB",		"!LK3" },
 	{	"10AB",		"10AV",		"RK2-18" },
-	{	"10AV",		"2Ye",		"!LK4" },
+	{	"10AV",		"2Ye10AV",	"!LK4" },
 	
 	-- SDPP movement triggers
 	{	"10AYa",	"10E",		"!LK3" },
@@ -1556,7 +1574,6 @@ BaseNetwork = {
 	{	"B2",		"10AE",		"A30" },
 	{	"10AE",		"10B",		"TR1" },
 	{	"10AE",		"10B",		"RV1" },
-	{	"10AE",		"10B",		"RV1" },
 	{	"10B",		"0",		"#SDRK_Coil" },
 	{	"10AE",		"10Zh",		"1" },
 	
@@ -1574,17 +1591,20 @@ BaseNetwork = {
 	
 	{	"10N",		"0",		"#SDRK" },
 }
-Sources = { "B","HIGH","LOW" }
+Sources = { "B","HIGH","MED","LOW" }
 Drains = { "0" }
 AddToNodes = {
 	{ "10N", "T[\"SDRK_ShortCircuit\"]"},
 	{ "U0a", "(-10*S[\"10AN\"])" },
+	{ "18A", "(-0.5*(1.0-Train.LK4.Value))" },
+	{ "2Ye", "(S[\"2Ye10AV\"])" },
+	{ "2Ye10AV", "0" },
 	
 	--{ "1N","S[\"B2\"]*C((P == 1) or (P == 3))*C((RK >= 11) and (RK <= 18))*(1.0-Train.LK4.Value)" },
 }
 Diodes = {
 	{ "6A", "1P" }, -- Add a diode between these two nodes
-	{ "10AV", "2Ye" },
+	--{ "10AV", "2Ye" },
 	{ "TW4", "5V" },
 	{ "TW29", "8Zh" },
 	{ "27A", "11B" },

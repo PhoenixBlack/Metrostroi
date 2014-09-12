@@ -867,6 +867,17 @@ concommand.Add("metrostroi_load", function(ply, _, args)
 	Metrostroi.Load()
 end)
 
+concommand.Add("metrostroi_cleanup_signals", function(ply, _, args)
+	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
+	
+	Metrostroi.IgnoreEntityUpdates = true
+	local signals_ents = ents.FindByClass("gmod_track_signal")
+	for k,v in pairs(signals_ents) do SafeRemoveEntity(v) end
+	local switch_ents = ents.FindByClass("gmod_track_switch")
+	for k,v in pairs(switch_ents) do SafeRemoveEntity(v) end
+	Metrostroi.IgnoreEntityUpdates = false
+end)
+
 concommand.Add("metrostroi_load_without_signs", function(ply, _, args)
 	if (ply:IsValid()) and (not ply:IsAdmin()) then return end
 	Metrostroi.Load(nil,true)

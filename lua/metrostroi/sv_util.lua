@@ -296,7 +296,7 @@ end)
 timer.Create("Metrostroi_TotalkWhTimer",5.00,0,function()
 	file.Write("metrostroi_data/total_kwh.txt",Metrostroi.TotalkWh or 0)
 end)
-Metrostroi.TotalkWh = Metrostroi.TotalkWh or tonumber(file.Read("metrostroi_data/total_kwh.txt")) or 0
+Metrostroi.TotalkWh = Metrostroi.TotalkWh or tonumber(file.Read("metrostroi_data/total_kwh.txt") or "") or 0
 Metrostroi.TotalRateWatts = Metrostroi.TotalRateWatts or 0
 
 local prevTime

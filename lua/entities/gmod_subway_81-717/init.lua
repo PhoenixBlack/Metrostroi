@@ -437,7 +437,8 @@ function ENT:Think()
 	-- NR1
 	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP
-	self:SetPackedBool(35,self.Panel["RedRP"] > 0.5)
+	self:SetPackedBool(35,self.Panel["RedRP"] > 0.75)
+	self:SetPackedBool(131,self.Panel["RedRP"] > 0.25)
 	-- Green RP
 	self:SetPackedBool(36,self.Panel["GreenRP"] > 0.5)
 	self:SetLightPower(22,self.Panel["GreenRP"] > 0.5)
@@ -498,8 +499,8 @@ function ENT:Think()
 		-- LHRK
 		self:SetLightPower(42,self:GetPackedBool(33) and self:GetPackedBool(32))
 		-- RP LSN
-		self:SetLightPower(43,self:GetPackedBool(35) and self:GetPackedBool(32))
-		self:SetLightPower(44,self:GetPackedBool(35) and self:GetPackedBool(32))
+		self:SetLightPower(43,(self:GetPackedBool(35) or self:GetPackedBool(131)) and self:GetPackedBool(32),self:GetPackedBool(35) and 1 or 0.35)
+		self:SetLightPower(44,self:GetPackedBool(131) and self:GetPackedBool(32))
 		-- Och
 		self:SetLightPower(45,self:GetPackedBool(41) and self:GetPackedBool(32))
 		-- 0
