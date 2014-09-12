@@ -826,12 +826,18 @@ function ENT:Draw()
 		self:DrawDigit((196+0) *10,	35*10, d2, 0.75, 0.55)
 		self:DrawDigit((196+10)*10,	35*10, d1, 0.75, 0.55)
 		
-		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,5,false)
+		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or (self:GetPackedBool(131) and 0.3 or 0),0,1,5,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,50,0)
 			surface.DrawRect(253*10,33*10,16*10,8*10)
+			surface.SetAlphaMultiplier(1)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",253*10+30,33*10-19,Color(0,0,0,255))
+		end
+		
+		local b = self:Animate("light_rLSN",self:GetPackedBool(131) and 1 or 0,0,1,5,false)
+		if b > 0.0 then
+			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,50,0)
 			surface.DrawRect(290*10,33*10,16*10,8*10)
 			draw.DrawText("РП","MetrostroiSubway_LargeText",290*10+30,33*10-19,Color(0,0,0,255))

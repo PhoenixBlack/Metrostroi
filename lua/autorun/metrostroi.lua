@@ -64,7 +64,7 @@ end
 -- Load core files
 --------------------------------------------------------------------------------
 if SERVER then
-	DISABLE_TURBOSTROI = true
+	DISABLE_TURBOSTROI = false
 	if not DISABLE_TURBOSTROI then
 		print("Metrostroi: Trying to load simulation acceleration DLL...")
 		
