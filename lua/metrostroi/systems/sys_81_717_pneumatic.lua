@@ -271,6 +271,9 @@ function TRAIN_SYSTEM:Think(dT)
 		if (self.DriverValvePosition == 3) and (Train.DriverValveDisconnect.Value == 1.0) then
 			equalizePressure("ReservoirPressure", self.BrakeLinePressure, 3.00)
 			equalizePressure("BrakeLinePressure", self.ReservoirPressure, 3.00)
+			
+			-- Typical leak
+			equalizePressure("ReservoirPressure", 0.00, 0.03)
 		end
 		
 		-- 334: 4 Reservoir open to atmosphere, brake line equalizes with reservoir
@@ -289,7 +292,7 @@ function TRAIN_SYSTEM:Think(dT)
 	else
 		-- 013: 1 Overcharge
 		if (self.DriverValvePosition == 1) and (Train.DriverValveDisconnect.Value == 1.0) then
-			equalizePressure("BrakeLinePressure", self.TrainLinePressure, 1.30)
+			equalizePressure("BrakeLinePressure", self.TrainLinePressure, 3.00)
 			trainLineConsumption_dPdT = trainLineConsumption_dPdT + math.max(0,self.BrakeLinePressure_dPdT)
 		end
 		

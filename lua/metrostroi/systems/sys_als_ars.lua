@@ -197,7 +197,19 @@ function TRAIN_SYSTEM:Think()
 		if (Train:ReadTrainWire(1) > 0) then
 			self.PneumaticBrake1 = false
 			self.TW1Timer = CurTime()
-		end		
+		end
+		-- Door close cancel pneumatic brake 1 command trigger
+		if (Train:GetSkin() == 1) and (Train.KD) then
+			-- Prepare
+			if (Train.KD.Value == 0) then
+				self.KDReadyToRelease = true
+			end
+			if (Train.KD.Value == 1) and (self.KDReadyToRelease == true) then
+				self.KDReadyToRelease = false
+				self.PneumaticBrake1 = false
+				self.TW1Timer = CurTime() - 2.0
+			end
+		end
 		-- Check use of valve #1 during overspeed
 		self.PV1Timer = self.PV1Timer or -1e9
 		if ((CurTime() - self.PV1Timer) < 0.45) then self.PneumaticBrake1 = false end

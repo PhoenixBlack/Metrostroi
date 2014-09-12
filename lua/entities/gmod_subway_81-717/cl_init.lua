@@ -945,9 +945,9 @@ function ENT:Think()
 	self:ShowHide("brake334",		not self:GetPackedBool(22))
 	self:ShowHide("brake334_body",	not self:GetPackedBool(22))
 
-	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2,0.01)
-	self:Animate("train_line",		self:GetPackedRatio(5)-transient,	0.16, 0.84,  4096,0,0.01)
-	self:Animate("brake_cylinder",	self:GetPackedRatio(6),	 			0.17, 0.86,  256,2,0.03)
+	self:Animate("brake_line",		self:GetPackedRatio(4),				0.16, 0.84,  256,2)--,0.01)
+	self:Animate("train_line",		self:GetPackedRatio(5)-transient,	0.16, 0.84,  4096,0)--,0.01)
+	self:Animate("brake_cylinder",	self:GetPackedRatio(6),	 			0.17, 0.86,  256,2)--,0.03)
 	self:Animate("voltmeter",		self:GetPackedRatio(7),				0.35, 0.64)
 	self:Animate("ampermeter",		self:GetPackedRatio(8),				0.37, 0.63)
 	
