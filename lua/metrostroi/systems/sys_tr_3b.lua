@@ -74,8 +74,9 @@ function TRAIN_SYSTEM:Think(dT)
 			self.ContactStates[i] = state
 			
 			if true then --state then
+				local sound_source = (i <= 2) and "front_bogey" or "rear_bogey"
 				if state then
-					self.VoltageDrop = -30*(0.5 + 0.5*math.random())
+					self.VoltageDrop = -40*(0.5 + 0.5*math.random())
 				end
 				
 				local dt = CurTime() - self.PlayTime[i]
@@ -83,9 +84,12 @@ function TRAIN_SYSTEM:Think(dT)
 
 				local volume = 0.63
 				if dt < 1.0 then volume = 0.53 end
-				self.Train:PlayOnce("tr","front_bogey",volume,math.random(90,120))
+				self.Train:PlayOnce("tr",sound_source,volume,math.random(90,120))
+				
+				-- Sparking probability
+				local probability = math.min(1.0,math.max(0.0,1.80 - (Metrostroi.Voltage/750.0) - (self.Train.Electric.Itotal/800)))
 
-				if state and (math.random() > 0.50) then
+				if state and (math.random() > probability) then
 					local effectdata = EffectData()
 					if i == 1 then effectdata:SetOrigin(self.Train.FrontBogey:LocalToWorld(Vector(0,-70,-18))) end
 					if i == 2 then effectdata:SetOrigin(self.Train.FrontBogey:LocalToWorld(Vector(0, 70,-18))) end
@@ -101,9 +105,10 @@ function TRAIN_SYSTEM:Think(dT)
 					light:SetKeyValue("distance", 256)
 					light:SetKeyValue("brightness", 5)
 					light:Spawn()
-					light:Fire("TurnOn","","0")
+					light:Fire("TurnOn","","0") 
 
 					timer.Simple(0.1,function() SafeRemoveEntity(light) end)
+					self.Train:PlayOnce("zap",sound_source,0.7*volume,50+math.random(90,120))
 				end
 			end
 		end
@@ -119,6 +124,12 @@ function TRAIN_SYSTEM:Think(dT)
 	-- Detect voltage
 	self.Main750V = 0
 	for i=1,4 do
-		if self.ContactStates[i] then self.Main750V = 750 + self.VoltageDrop end
+		if self.ContactStates[i] then self.Main750V = (Metrostroi.Voltage or 750) + self.VoltageDrop end
+	end
+	
+	-- Too high current
+	if self.Train.Electric.Itotal*self.Main750V > (750*1000) then
+		self.Train:PlayOnce("spark","front_bogey",1.0,math.random(100,150))
+		self.Train:PlayOnce("spark","rear_bogey",1.0,math.random(100,150))
 	end
 end

@@ -12,6 +12,9 @@ CreateConVar("metrostroi_arsmode",1,FCVAR_ARCHIVE)
 CreateConVar("metrostroi_arsmode_nogreen",0,FCVAR_ARCHIVE)
 CreateConVar("metrostroi_write_telemetry",0,FCVAR_ARCHIVE)
 
+CreateConVar("metrostroi_voltage",750,FCVAR_ARCHIVE)
+CreateConVar("metrostroi_current_limit",4000,FCVAR_ARCHIVE)
+
 
 if SERVER then return end
 

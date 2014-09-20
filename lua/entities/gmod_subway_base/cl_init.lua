@@ -129,6 +129,22 @@ surface.CreateFont("MetrostroiSubway_IGLA", {
   additive = false,
   outline = false
 })
+surface.CreateFont("MetrostroiSubway_InfoPanel", {
+  font = "Arial",
+  size = 64,
+  weight = 0,
+  blursize = 0,
+  scanlines = 0,
+  antialias = true,
+  underline = false,
+  italic = false,
+  strikeout = false,
+  symbol = false,
+  rotary = false,
+  shadow = false,
+  additive = false,
+  outline = false
+})
 
 --------------------------------------------------------------------------------
 -- Console commands and convars
@@ -1094,7 +1110,7 @@ local function handleKeyEvent(ply,key,pressed)
 				sendButtonMessage(lastButton)
 			end
 
-			if train.OnButtonReleased then
+			if train.OnButtonReleased and button then
 				train:OnButtonReleased(button.ID)
 			end
 		end

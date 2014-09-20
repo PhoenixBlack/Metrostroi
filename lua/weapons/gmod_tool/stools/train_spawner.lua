@@ -10,7 +10,7 @@ TOOL.ClientConVar["mask"] = 1
 TOOL.ClientConVar["nm"] = 8.2
 TOOL.ClientConVar["battery"] = 0
 TOOL.ClientConVar["switches"] = 1
-TOOL.ClientConVar["switchesr"] = 1
+TOOL.ClientConVar["switchesr"] = 0
 TOOL.ClientConVar["doorsl"] = 0
 TOOL.ClientConVar["doorsr"] = 0
 TOOL.ClientConVar["gv"] = 1
@@ -268,10 +268,9 @@ function TOOL:SpawnWagon(trace)
 	self.rot = false
 end
 function TOOL:LeftClick(trace)
-	if CLIENT then timer.Simple(0.5,function() if self.GhostEntity then self.GhostEntity:Remove() end end) return end
+	if CLIENT then timer.Simple(0.5,function() if self.GhostEntity then RunConsoleCommand("gmod_toolmode", self:GetClientInfo("oldT")) self.GhostEntity:Remove() end end) return end
 	self:SpawnWagon(trace)
 	self:GetOwner():SelectWeapon(self:GetClientInfo("oldW"))
-	RunConsoleCommand("gmod_toolmode", self:GetClientInfo("oldT"))
 end
 
 function TOOL:RightClick(trace)

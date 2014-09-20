@@ -298,6 +298,9 @@ timer.Create("Metrostroi_TotalkWhTimer",5.00,0,function()
 end)
 Metrostroi.TotalkWh = Metrostroi.TotalkWh or tonumber(file.Read("metrostroi_data/total_kwh.txt") or "") or 0
 Metrostroi.TotalRateWatts = Metrostroi.TotalRateWatts or 0
+Metrostroi.Voltage = 750
+Metrostroi.Current = 0
+Metrostroi.VoltageRestoreTimer = 0
 
 local prevTime
 hook.Add("Think", "Metrostroi_ElectricConsumptionThink", function()
@@ -308,21 +311,41 @@ hook.Add("Think", "Metrostroi_ElectricConsumptionThink", function()
 	
 	-- Calculate total rate
 	Metrostroi.TotalRateWatts = 0
+	Metrostroi.Current = 0
 	for _,class in pairs(Metrostroi.TrainClasses) do
 		local trains = ents.FindByClass(class)
 		for _,train in pairs(trains) do
 			if train.Electric then
 				Metrostroi.TotalRateWatts = Metrostroi.TotalRateWatts + math.max(0,(train.Electric.EnergyChange or 0))
+				Metrostroi.Current = Metrostroi.Current  + math.max(0,(train.Electric.Itotal or 0))
 			end
 		end
 	end
 	
+	-- Ignore invalid values
+	if Metrostroi.TotalRateWatts > 1e8 then Metrostroi.TotalRateWatts = 0 end
+	
 	-- Calculate total kWh
 	Metrostroi.TotalkWh = Metrostroi.TotalkWh + (Metrostroi.TotalRateWatts/(3.6e6))*deltaTime
+	
+	-- Check if exceeded global maximum current
+	if Metrostroi.Current > GetConVarNumber("metrostroi_current_limit") then
+		Metrostroi.VoltageRestoreTimer = CurTime() + 7.0
+		print(Format("[!] Power feed protection tripped: current peaked at %.1f A",Metrostroi.Current))
+	end
+
+	-- Calculate new voltage
+	local Rfeed = 0.03 --25
+	Metrostroi.Voltage = math.max(0,GetConVarNumber("metrostroi_voltage") - 0.1 - Metrostroi.Current*Rfeed)
+	if CurTime() < Metrostroi.VoltageRestoreTimer then Metrostroi.Voltage = 0 end
+	
+	--print(Format("%5.1f v %.0f A",Metrostroi.Voltage,Metrostroi.Current))
 end)
 
-concommand.Add("metrostroi_electric", function(ply, _, args)
-	local m = Format("[%25s] %010.3f kWh (%.2f$), current: %.3f kW","<total>",Metrostroi.TotalkWh,Metrostroi.GetEnergyCost(Metrostroi.TotalkWh),Metrostroi.TotalRateWatts*1e-3)
+concommand.Add("metrostroi_electric", function(ply, _, args) -- (%.2f$) Metrostroi.GetEnergyCost(Metrostroi.TotalkWh),
+	local m = Format("[%25s] %010.3f kWh, %.3f kW (%5.1f v, %4.0f A)","<total>",
+		Metrostroi.TotalkWh,Metrostroi.TotalRateWatts*1e-3,
+		Metrostroi.Voltage,Metrostroi.Current)
 	if IsValid(ply) 
 	then ply:PrintMessage(HUD_PRINTCONSOLE,m)
 	else print(m)
@@ -374,6 +397,42 @@ timer.Create("Metrostroi_ElectricConsumptionTimer",0.5,0,function()
 				player:SetDeaths(10*U[player]/(3.6e6))
 			end
 		end
+	end
+end)
+
+local function murder(v)
+	local positions = Metrostroi.GetPositionOnTrack(v:GetPos())
+	for k2,v2 in pairs(positions) do
+		local y,z = v2.y,v2.z
+		y = math.abs(y)
+
+		local y1 = 0.91-0.10
+		local y2 = 1.78 ---0.50
+		if (y > y1) and (y < y2) and (z < -1.70) and (z > -1.72) and (Metrostroi.Voltage > 40) then
+			local pos = v:GetPos()
+			
+			util.BlastDamage(v,v,pos,64,3.0*Metrostroi.Voltage)
+			
+			local effectdata = EffectData()
+			effectdata:SetOrigin(pos + Vector(0,0,-16+math.random()*(40+0)))
+			util.Effect("cball_explode",effectdata,true,true)
+			
+			sound.Play("ambient/energy/zap"..math.random(1,3)..".wav",pos,75,math.random(100,150),1.0)
+			
+			if math.random() > 0.85 then
+				--Metrostroi.VoltageRestoreTimer = CurTime() + 7.0
+				--print("[!] Power feed protection tripped: "..(tostring(v) or "").." died on rails")
+			end
+		end
+	end
+end
+
+timer.Create("Metrostroi_PlayerKillTimer",0.1,0,function()
+	for k,v in pairs(player.GetAll()) do
+		murder(v)
+	end
+	for k,v in pairs(ents.FindByClass("npc_*")) do
+		murder(v)
 	end
 end)
 

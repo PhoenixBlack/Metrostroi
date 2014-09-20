@@ -359,7 +359,7 @@ function ENT:Think()
 	
 	-- Calculate brake squeal
 	local k = ((self.SquealSensitivity or 0.5) - 0.5)*2
-	local brakeSqueal = (math.abs(pneumaticForce)/(40000*(1+0.8*k)))^2
+	local brakeSqueal = (math.abs(pneumaticForce)/(30000*(1+0.8*k)))^2
 
 	-- Send parameters to client
 	if self.DisableSound < 1 then

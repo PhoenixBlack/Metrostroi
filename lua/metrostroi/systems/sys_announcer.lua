@@ -178,8 +178,7 @@ for k,v in pairs(Metrostroi.AnnouncerData) do
 	Metrostroi.WorkingStations[i] = k
 	Metrostroi.WorkingStations[k] = i
 end
-
-Metrostroi.EndStations = {108,109,111,112,113,114,116,121,122,123}
+Metrostroi.EndStations = {108,109,111,112,113,114,116,121,123}
 Metrostroi.PlayingStyles = {"Moscow","St. Petersburg","Kiev"}
 --------------------------------------------------------------------------------
 function TRAIN_SYSTEM:Initialize()
@@ -451,7 +450,7 @@ function TRAIN_SYSTEM:AnnEnd(next)
 end
 
 function TRAIN_SYSTEM:AnnPlayArriving()
-    self:PlayInfQueueSounds(0006,0001,0001,0005)
+    self:PlayInfQueueSounds(0006,0001,0005)
 
     if self.AnnStyle == 1 then
         self:PlayInfQueueSounds(0220,self.AnnStation)
@@ -531,7 +530,7 @@ function TRAIN_SYSTEM:AnnPlayArriving()
 end
 
 function TRAIN_SYSTEM:AnnPlayDepeate()
-    self:PlayInfQueueSounds(0006,0001,0001,0005)
+    self:PlayInfQueueSounds(0006,0001,0005)
 
     if self.AnnStyle == 1 then
         if self:AnnNotLast() then
@@ -586,47 +585,73 @@ function TRAIN_SYSTEM:AnnPlayDepeate()
 end
 
 function TRAIN_SYSTEM:AnnII()
-    self:PlayInfQueueSounds(0006,0001,0001,0005)
+    self:PlayInfQueueSounds(0006,0001,0005)
     if self.AnnStyle == 2 then
         self:PlayInfQueueSounds(0003)
 	end
-    if self.Arrive then
-        if self:AnnEnd() then
-            self:PlayInfQueueSounds(math.random() > 0.5 and 0207 or 0206)
-        else
-            self:PlayInfQueueSounds(math.random() > 0.5 and 0209 or 0208)
-        end
-    else
-		if self.Train.Panel["SD"] <= 0.5 then
-            self:PlayInfQueueSounds(math.random() > 0.5 and 0204 or 0205)
+	if self.AnnState == 8 then
+		self:PlayInfQueueSounds(math.random() > 0.5 and 0207 or 0206)
+	else
+		if self.Arrive then
+			self:PlayInfQueueSounds(math.random() > 0.5 and 0209 or 0208)
+		else
+			if self.Train.Panel["SD"] <= 0.5 then
+				self:PlayInfQueueSounds(math.random() > 0.5 and 0204 or 0205)
 			else
-			if not self.AnnIIalr then
-				self:PlayInfQueueSounds(self.Type == 1 and 0229 or 0217)
-				self.AnnIIalr = true
-			else
-				self:PlayInfQueueSounds(0228)
-				self.AnnIIalr = false
+				if not self.AnnIIalr then
+					self:PlayInfQueueSounds(self.Type == 1 and 0229 or 0217)
+					self.AnnIIalr = true
+				else
+					self:PlayInfQueueSounds(0228)
+					self.AnnIIalr = false
+				end
 			end
 		end
-    end
+	end
     self:PlayInfQueueSounds(0006)
 end
 
+local function PrintToConsole( str )
+	if not DEBUG_ANNOUNCER then return end
+	print("[Announcer Debug]:"..str)
+	--print(utf8toibm866(str))
+end
 function TRAIN_SYSTEM:GetSettings()
+	PrintToConsole("Начало получения настроек...")
+	PrintToConsole("Полуение вагонов в составе...")
 	self.Train:UpdateWagonList()
 	local LastTrain = self.Train.WagonList[#self.Train.WagonList]
-	if #self.Train.WagonList == 1 or LastTrain.SubwayTrain.Name ~= "81-717" then self.AnnState = -1 return end
+	if #self.Train.WagonList == 1 or LastTrain.SubwayTrain.Name ~= "81-717" then
+		PrintToConsole("Последнйи состав не найден!")
+		self.AnnState = -1
+		return
+	end
 	local Settings = LastTrain.Announcer.Settings
-	if LastTrain.R_Radio.Value > 0.5 or Settings.CurTime > self.Settings.CurTime then self.AnnState = -12 return end
+
+	if LastTrain.R_Radio.Value > 0.5 then
+		PrintToConsole("Включён инорматор в задней кабине!")
+		self.AnnState = -12
+		return
+	end
+
+	if Settings.CurTime <= self.Settings.CurTime then
+		PrintToConsole("Взяты настройки из передней кабины.")
+		Settings = self.Settings
+	end
+
 	if not Settings.State then
+		PrintToConsole("State в настройках nil. Начало загрузки сначала...")
 		self.AnnState = -1
 		self.Train:SetNWString("CustomStr0","0x0148adef6af0")
 	else
+		PrintToConsole("Назначение настроек...")
 		self.AnnStartStationT = Settings.StartStationT
 		self.AnnStartStation = Settings.StartStation
-		local StateS = tostring(Settings.State)
-		self.AnnState = 100+tonumber(StateS:sub(#StateS-1,#StateS))
-		--print(100+tonumber(StateS:sub(-1,-2)))
+		local StateS = tostring(math.abs(Settings.State))
+		self.AnnState = 100+tonumber(StateS:sub(-1,-1))
+		PrintToConsole(tostring(StateS:sub(-1,-1)))
+		self.AnnState = self.AnnState*(Settings.State < 0 and -1 or 1)
+		PrintToConsole("State назначен на:"..self.AnnState.." Был:"..Settings.State)
 		self.AnnEndStationT = Settings.EndStationT
 		self.AnnEndStation = Settings.EndStation
 		self.AnnPath = Settings.Path
@@ -668,16 +693,16 @@ function TRAIN_SYSTEM:Announcer2()
 			self.Train:SetNWString("CustomStr13","")
 			self.Train:TriggerInput("CustomDSet", 0)
 			self.Train:TriggerInput("CustomESet", 0)
-			self.Train:TriggerInput("CustomFSet", 0)
+			self.Train:TriggerInput("CustomFSet", 1)
 			self.Train:TriggerInput("CustomGSet", 0)
-			self.Settings.CurTime = CurTime()
+			--self.Settings.CurTime = CurTime()
 			self:GetSettings()
 		end
 
 		if self.AnnState == -2 then
 			if self.Train.Custom3.Value > .5 then
 				self.AnnState = -22
-				self.Settings.CurTime = CurTime()
+				--self.Settings.CurTime = CurTime()
 				self:GetSettings()
 			end
 		end
@@ -728,6 +753,13 @@ function TRAIN_SYSTEM:Announcer2()
 			self.Train:TriggerInput("CustomESet", 0)
 			self.Train:TriggerInput("CustomFSet", 1)
 			self.Train:TriggerInput("CustomGSet", 0)
+			if self.AnnPath and self.AnnPath == 2 then
+				local Start = self.AnnStartStationT
+				self.AnnStartStationT = self.AnnEndStationT
+				self.AnnStartStation = Metrostroi.EndStations[self.AnnStartStationT]
+				self.AnnEndStationT = Start
+				self.AnnEndStation = Metrostroi.EndStations[self.AnnEndStationT]
+			end
 		end
 
 		if self.AnnState == 3 or self.AnnState == 13 or self.AnnState == 23 or self.AnnState == 33 then
@@ -747,13 +779,21 @@ function TRAIN_SYSTEM:Announcer2()
 		end
 
 		if self.AnnState == 3 then
-			if self.Train.Custom2.Value > 0.5 and self.AnnStartStationT < #Metrostroi.EndStations then
-				self.AnnStartStationT = self.AnnStartStationT + 1
+			if self.Train.Custom2.Value > 0.5 then
+				if self.AnnStartStationT < #Metrostroi.EndStations then
+					self.AnnStartStationT = self.AnnStartStationT + 1
+				else
+					self.AnnStartStationT = 1
+				end
 				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnStartStationT]][1])
 				self.AnnState = 23
 			end
-			if self.Train.Custom1.Value > 0.5 and self.AnnStartStationT > 1 then
-				self.AnnStartStationT = self.AnnStartStationT - 1
+			if self.Train.Custom1.Value > 0.5 then
+				if self.AnnStartStationT > 1 then
+					self.AnnStartStationT = self.AnnStartStationT - 1
+				else
+					self.AnnStartStationT = #Metrostroi.EndStations
+				end
 				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnStartStationT]][1])
 				self.AnnState = 13
 			end
@@ -771,7 +811,7 @@ function TRAIN_SYSTEM:Announcer2()
 			self.AnnState = 3
 		end
 		if self.AnnState == 103 then
-			self.AnnStartStationT = self.Settings.StartStationT or 1
+			self.AnnStartStationT = self.Settings.StartStationT or math.random(1,#Metrostroi.EndStations)
 			self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnStartStationT]][1])
 			self.AnnCurTimeM = CurTime()
 			self.AnnCurTime = nil
@@ -799,21 +839,33 @@ function TRAIN_SYSTEM:Announcer2()
 		end
 
 		if self.AnnState == 4 then
-			if self.Train.Custom2.Value > 0.5 and self.AnnEndStationT < #Metrostroi.EndStations then
-				self.AnnEndStationT = self.AnnEndStationT + 1
+			if self.Train.Custom2.Value > 0.5 then
+				if self.AnnEndStationT < #Metrostroi.EndStations then
+					self.AnnEndStationT = self.AnnEndStationT + 1
+				else
+					self.AnnEndStationT = 1
+				end
 
 				if self.AnnEndStationT == self.AnnStartStationT then
 					self.AnnEndStationT = self.AnnEndStationT + 1
+					if self.AnnEndStationT >= #Metrostroi.EndStations then self.AnnEndStationT = 1 end
 				end
+
 				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnEndStationT]][1])
 				self.AnnState = 24
 			end
-			if self.Train.Custom1.Value > 0.5 and self.AnnEndStationT > 1 then
-				self.AnnEndStationT = self.AnnEndStationT - 1
+			if self.Train.Custom1.Value > 0.5 then
+				if self.AnnEndStationT > 1 then
+					self.AnnEndStationT = self.AnnEndStationT - 1
+				else
+					self.AnnEndStationT = #Metrostroi.EndStations
+				end
 
 				if self.AnnEndStationT == self.AnnStartStationT then
 					self.AnnEndStationT = self.AnnEndStationT - 1
+					if self.AnnEndStationT <= 1 then self.AnnEndStationT = #Metrostroi.EndStations end
 				end
+
 				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnEndStationT]][1])
 				self.AnnState = 14
 			end
@@ -832,7 +884,10 @@ function TRAIN_SYSTEM:Announcer2()
 		end
 
 		if self.AnnState == 104 then
-			self.AnnEndStationT = self.Settings.EndStationT or #Metrostroi.EndStations
+			self.AnnEndStationT = self.Settings.EndStationT or math.random(#Metrostroi.EndStations,1)
+			while self.AnnEndStationT == self.AnnStartStation do
+				self.AnnEndStationT = math.random(#Metrostroi.EndStations,1)
+			end
 			self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnEndStationT]][1])
 			self.AnnCurTime = nil
 			self.AnnCurTimeM = CurTime()
@@ -844,43 +899,17 @@ function TRAIN_SYSTEM:Announcer2()
 			self.Train:TriggerInput("CustomGSet", 0)
 		end
 
-		if self.AnnState == 35 and self.Train.Custom3.Value <= 0.5 then
-			self.AnnState = 5
-		end
-		if self.AnnState == 5 then
-			if not self.AnnCurTime or self.AnnCurTime ~= math.floor((CurTime() - self.AnnCurTimeM)%4/2) then
-				self.AnnCurTime = math.floor((CurTime() - self.AnnCurTimeM)%4/2)
-
-				if self.AnnCurTime < 1 then
-					self.Train:SetNWString("CustomStr0","Choose your path")
-				else
-					self.Train:SetNWString("CustomStr0","press MENU button")
-				end
-
-				if self.AnnCurTime < 1 then
-					self.Train:SetNWString("CustomStr1","\"-\" button = I  path")
-				else
-					self.Train:SetNWString("CustomStr1","\"+\" button = II path")
-				end
-			end
-			if self.Train.Custom1.Value > 0.5 then
-				self.AnnPath = 1
-				self.AnnState = 106
-			end
-			if self.Train.Custom2.Value > 0.5 then
-				self.AnnPath = 2
-				self.AnnState = 116
-			end
-		end
-
 		if self.AnnState == 105 then
-			self.AnnState = 35
+			self.AnnState = 106
 			self.AnnCurTime = nil
 			if self.AnnStartStationT > self.AnnEndStationT then
 				local Start = self.AnnStartStationT
 				self.AnnStartStationT = self.AnnEndStationT
 				self.AnnStartStation = Metrostroi.EndStations[self.AnnStartStationT]
 				self.AnnEndStationT = Start
+				self.AnnPath = 2
+			else
+				self.AnnPath = 1
 			end
 			self.AnnEndStation = Metrostroi.EndStations[self.AnnEndStationT]
 			self.Train:TriggerInput("CustomDSet", 0)
@@ -907,13 +936,21 @@ function TRAIN_SYSTEM:Announcer2()
 		end
 
 		if self.AnnState == 6 then
-			if self.Train.Custom2.Value > 0.5 and self.AnnStyle < #Metrostroi.PlayingStyles then
-				self.AnnStyle = self.AnnStyle + 1
+			if self.Train.Custom2.Value > 0.5 then
+				if self.AnnStyle < #Metrostroi.PlayingStyles then
+					self.AnnStyle = self.AnnStyle + 1
+				else
+					self.AnnStyle = 1
+				end
 				self.Train:SetNWString("CustomStr1", Metrostroi.PlayingStyles[self.AnnStyle].." style")
 				self.AnnState = 26
 			end
-			if self.Train.Custom1.Value > 0.5 and self.AnnStyle > 1 then
-				self.AnnStyle = self.AnnStyle - 1
+			if self.Train.Custom1.Value > 0.5 then
+				if self.AnnStyle > 1 then
+					self.AnnStyle = self.AnnStyle - 1
+				else
+					self.AnnStyle = #Metrostroi.PlayingStyles
+				end
 				self.Train:SetNWString("CustomStr1", Metrostroi.PlayingStyles[self.AnnStyle].." style")
 				self.AnnState = 16
 			end
@@ -927,7 +964,10 @@ function TRAIN_SYSTEM:Announcer2()
 		if self.AnnState == 26 and self.Train.Custom2.Value <= 0.5 then
 			self.AnnState = 6
 		end
-		if self.AnnState == 106 or self.AnnState == 116 then
+		if self.AnnState == 36 and self.Train.Custom3.Value <= 0.5 then
+			self.AnnState = 6
+		end
+		if self.AnnState == 106 then
 			self.AnnCurTime = nil
 			self.AnnCurTimeM = CurTime()
 			self.AnnStyle = self.Settings.Style or 1
@@ -936,12 +976,7 @@ function TRAIN_SYSTEM:Announcer2()
 			self.Train:TriggerInput("CustomESet", 0)
 			self.Train:TriggerInput("CustomFSet", 1)
 			self.Train:TriggerInput("CustomGSet", 0)
-		end
-		if self.AnnState == 106 then
-			self.AnnState = 16
-		end
-		if self.AnnState == 116 then
-			self.AnnState = 26
+			self.AnnState = 36
 		end
 
 
@@ -1003,22 +1038,22 @@ function TRAIN_SYSTEM:Announcer2()
 			end
 			if self.Train.R_Program1.Value > 0.5 then
                 if not self.Arrive then
-                    self:AnnPlayArriving()
+					self:AnnPlayArriving()
 					self.Arrive = true
-					self.AnnState = 87
-                else
                     if not self:AnnEnd() then
-                        self:AnnPlayDepeate()
-						self.Arrive = false
-						self.AnnStationT = self.AnnStationT + (self.AnnPath == 1 and 1 or -1)
 						self.AnnState = 87
-                    else
+					else
 						self.AnnPath = self.AnnPath == 1 and 2 or 1
 						self.AnnCurTime = nil
 						self.AnnCurTimeM = CurTime()
 						self.AnnState7NeedRedraw = nil
 						self.AnnState = 108
 					end
+                else
+					self:AnnPlayDepeate()
+					self.Arrive = false
+					self.AnnStationT = self.AnnStationT + (self.AnnPath == 1 and 1 or -1)
+					self.AnnState = 87
                 end
 				self.AnnState7NeedRedraw = true
 			end
@@ -1053,7 +1088,7 @@ function TRAIN_SYSTEM:Announcer2()
 		if self.AnnState == 107 or self.AnnState == 117 then
 			--print(Metrostroi.AnnouncerData[self.AnnStartStation][1].."->"..Metrostroi.AnnouncerData[self.AnnEndStation][1].."\nPath:"..(self.AnnPath == 1 and "I" or "II").."\nStyle:"..Metrostroi.PlayingStyles[self.AnnStyle].." style")
 			if self.AnnState == 117 then
-				self:PlayInfQueueSounds(0006,0001,0001,0005)
+				self:PlayInfQueueSounds(0006,0001,0005)
 				if self.AnnStyle == 2 then
 					self:PlayInfQueueSounds(0003)
 				end
@@ -1103,11 +1138,18 @@ function TRAIN_SYSTEM:Announcer2()
 			if self.Train.Custom3.Value > 0.5  then
 				self.AnnState = 117
 			end
+			if self.Train.R_Program2.Value > 0.5 then
+				self:AnnII()
+				self.AnnState = 98
+			end
 		end
 		if self.AnnState == 38 and self.Train.Custom3.Value <= 0.5 then
 			self.AnnState = 8
 		end
 
+		if self.AnnState == 98 and self.Train.R_Program2.Value <= 0.5 then
+			self.AnnState = 8
+		end
 		if self.AnnState == 108 then
 			self.AnnState = 38
 			self.AnnCurTime = nil
@@ -1132,6 +1174,9 @@ function TRAIN_SYSTEM:Announcer2()
 			self.Settings.Arrive = self.Arrive
 		end
 	else
+		if self.AnnState and self.AnnState < 0 and self.Settings then
+			self.Settings.State = nil
+		end
 		if self.AnnState then
 			self.Train:SetNWString("CustomStr0" ,"")
 			self.Train:SetNWString("CustomStr1" ,"")

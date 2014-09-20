@@ -171,6 +171,15 @@ function ENT:ARSLogic()
 		if speedLimit == 70 then self:SetActiveSignalsBit(11,true) end
 		if speedLimit == 80 then self:SetActiveSignalsBit(10,true) end
 		
+		-- No voltage
+		--[[if Metrostroi.Voltage < 50 then 
+			self:SetActiveSignalsBit(14,false)
+			self:SetActiveSignalsBit(13,false)
+			self:SetActiveSignalsBit(12,false)
+			self:SetActiveSignalsBit(11,false)
+			self:SetActiveSignalsBit(10,false)
+		end]]--
+		
 		-- Generate speed limit in this ARS section
 		self.SpeedLimit = speedLimit
 		--if self:GetActiveSignalsBit(13) then self.SpeedLimit = 40 end
@@ -187,13 +196,13 @@ function ENT:Think()
 	-- Do no interesting logic if there's no traffic light involved
 	if (self:GetTrafficLights() == 0) and (self.ARSOnly == false) then
 		self:ARSLogic()
-		self:NextThink(CurTime() + 1.00)
+		self:NextThink(CurTime() + 1.5)
 		return true
 	end
 	
 	-- Traffic light logic
 	self.PrevTime = self.PrevTime or 0
-	if (CurTime() - self.PrevTime) > 1.0 then
+	if (CurTime() - self.PrevTime) > 1.5 then
 		self.PrevTime = CurTime()+0.2*math.random()
 		self:ARSLogic()
 		
@@ -217,6 +226,11 @@ function ENT:Think()
 				switchAlternate = switchAlternate or switch.AlternateTrack
 			end
 			
+			-- Voltage check
+			if Metrostroi.Voltage < 10 then
+				--trackOccupied = true
+			end
+			
 			-- Execute logic
 			self:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 		else
@@ -235,6 +249,7 @@ function ENT:Think()
 			for light,data in pairs(v[3]) do
 				local state = self:GetActiveSignalsBit(light)
 				if light == 4 then state = state and ((CurTime() % 1.00) > 0.25) end
+				if Metrostroi.Voltage < 50 then state = false end
 				
 				-- The LED glow
 				self:SetSprite(k..light.."a",state,

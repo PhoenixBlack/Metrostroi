@@ -13,7 +13,7 @@ local Settings = {
 	NM = 8.2,
 	Battery = 0,
 	Switches = 1,
-	SwitchesR = 1,
+	SwitchesR = 0,
 	DoorsL = 0,
 	DoorsR = 0,
 	GV = 1,
@@ -102,7 +102,7 @@ local function Draw()
 	local NMPressure = vgui.Create("DNumSlider", frame)--
 	NMPressure:SetPos(5, 28+24*4-5)
 	NMPressure:SetWide(290)
-	NMPressure:SetMinMax(0.1, 10)
+	NMPressure:SetMinMax(0.1, 9)
 	NMPressure:SetDecimals(1)
 	NMPressure:SetText("Train Line Pressure:")
 	NMPressure:SetValue(Settings.NM)
@@ -153,7 +153,7 @@ local function Draw()
 	
 	local SwitchesR = vgui.Create("DCheckBox", frame)
 	SwitchesR:SetPos(220, 28+24*7)
-	SwitchesR:SetValue(Settings.SwitchesR and Settings.Switches)
+	SwitchesR:SetValue(Settings.SwitchesR * Settings.Switches)
 	function SwitchesR:OnChange()
 		if Settings.Switches == 0 and SwitchesR:GetChecked() then
 			SwitchesR:SetValue(Settings.Switches)
@@ -289,7 +289,9 @@ local function createFrame()
 	spawn:SetText("Spawn Tool")
 	
 	spawn.DoClick = function()
-		RunConsoleCommand("train_spawner_oldT", GetConVarString("gmod_toolmode"))
+		local Tool = GetConVarString("gmod_toolmode")
+		if Tool == "train_spawner" then Tool = "weld" end
+		RunConsoleCommand("train_spawner_oldT", Tool)
 		RunConsoleCommand("train_spawner_oldW", LocalPlayer():GetActiveWeapon():GetClass())
 		RunConsoleCommand("gmod_tool", "train_spawner")
 		frame:Close()

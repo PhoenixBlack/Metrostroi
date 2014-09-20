@@ -1432,12 +1432,12 @@ net.Receive("metrostroi-cabin-button", function(len, ply)
 	local eventtype = net.ReadBit()
 	local seat = ply:GetVehicle()
 	local train 
-	
+
 	if seat and IsValid(seat) then 
 		-- Player currently driving
 		train = seat:GetNWEntity("TrainEntity")
 		if (not train) or (not train:IsValid()) then return end
-		if seat != train.DriverSeat then return end
+		if (seat != train.DriverSeat) and (seat != train.InstructorsSeat) then return end
 	else
 		-- Player not driving, check recent train
 		train = ply.lastVehicleDriven:GetNWEntity("TrainEntity")
