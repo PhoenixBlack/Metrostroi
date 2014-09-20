@@ -37,8 +37,10 @@ function TRAIN_SYSTEM:Think(dT)
 		for _,d in ipairs(self.SystemsList) do
 			local k = d
 			local v = self.Train.Systems[d]
-			for i=1,#v.OutputsList do
-				header = header..k.."."..v.OutputsList[i].."\t"
+			if v.OutputsList then
+				for i=1,#v.OutputsList do
+					header = header..k.."."..v.OutputsList[i].."\t"
+				end
 			end
 		end
 		header = header.."\n"
@@ -64,8 +66,10 @@ function TRAIN_SYSTEM:Think(dT)
 		for _,d in ipairs(self.SystemsList) do
 			local k = d
 			local v = self.Train.Systems[d]
-			for i=1,#v.OutputsList do
-				f:write(tostring(v[ v.OutputsList[i] ] or 0).."\t")
+			if v.OutputsList then
+				for i=1,#v.OutputsList do
+					f:write(tostring(v[ v.OutputsList[i] ] or 0).."\t")
+				end
 			end
 		end
 		f:write("\n")

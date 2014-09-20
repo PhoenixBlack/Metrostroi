@@ -300,6 +300,7 @@ Metrostroi.TotalkWh = Metrostroi.TotalkWh or tonumber(file.Read("metrostroi_data
 Metrostroi.TotalRateWatts = Metrostroi.TotalRateWatts or 0
 Metrostroi.Voltage = 750
 Metrostroi.Current = 0
+Metrostroi.PeopleOnRails = 0
 Metrostroi.VoltageRestoreTimer = 0
 
 local prevTime
@@ -327,6 +328,11 @@ hook.Add("Think", "Metrostroi_ElectricConsumptionThink", function()
 	
 	-- Calculate total kWh
 	Metrostroi.TotalkWh = Metrostroi.TotalkWh + (Metrostroi.TotalRateWatts/(3.6e6))*deltaTime
+	
+	-- Calculate total resistance of people on rails and current flowing through
+	local Rperson = 0.613
+	local Iperson = Metrostroi.Voltage / (Rperson/(Metrostroi.PeopleOnRails + 1e-9))
+	Metrostroi.Current = Metrostroi.Current + Iperson
 	
 	-- Check if exceeded global maximum current
 	if Metrostroi.Current > GetConVarNumber("metrostroi_current_limit") then
@@ -418,16 +424,18 @@ local function murder(v)
 			util.Effect("cball_explode",effectdata,true,true)
 			
 			sound.Play("ambient/energy/zap"..math.random(1,3)..".wav",pos,75,math.random(100,150),1.0)
+			Metrostroi.PeopleOnRails = Metrostroi.PeopleOnRails + 1
 			
-			if math.random() > 0.85 then
+			--if math.random() > 0.85 then
 				--Metrostroi.VoltageRestoreTimer = CurTime() + 7.0
 				--print("[!] Power feed protection tripped: "..(tostring(v) or "").." died on rails")
-			end
+			--end
 		end
 	end
 end
 
 timer.Create("Metrostroi_PlayerKillTimer",0.1,0,function()
+	Metrostroi.PeopleOnRails = 0
 	for k,v in pairs(player.GetAll()) do
 		murder(v)
 	end
