@@ -11,6 +11,19 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-	self:SetNWFloat("Total",Metrostroi.TotalkWh)
-	self:SetNWFloat("Rate",Metrostroi.TotalRateWatts)
+	self:SetTotal(Metrostroi.TotalkWh)
+	self:SetRate(Metrostroi.TotalRateWatts)
+	self:SetV(Metrostroi.Voltage)
+	self:SetA(Metrostroi.Current)
+	
+	if Metrostroi.Voltage < 10 then
+		self.SoundTimer = self.SoundTimer or CurTime()
+		if (CurTime() - self.SoundTimer) > 1.0 then
+			self:EmitSound("ambient/alarms/klaxon1.wav", 100, 100)
+			self.SoundTimer = CurTime()
+		end
+	end
+	
+	self:NextThink(CurTime())
+	return true
 end

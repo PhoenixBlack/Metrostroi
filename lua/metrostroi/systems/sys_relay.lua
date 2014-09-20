@@ -192,10 +192,13 @@ function TRAIN_SYSTEM:Think(dT)
 	
 	-- Spurious trip
 	if FailSim.Value(self,"SpuriousTrip") > 0.5 then
-		self.SpuriousTripTimer = self.Time + (0.5 + 1.5*math.random())
-		self:TriggerInput("Toggle",1.0)
+		self.SpuriousTripTimer = self.Time + (0.5 + 2.5*math.random())
 		FailSim.ResetParameter(self,"SpuriousTrip",0.0)
 		FailSim.Age(self,1)
+		
+		-- Simulate switch right away
+		self.Value = 1.0 - self.Value
+		self.ChangeTime = nil
 	end
 	if self.SpuriousTripTimer and (self.Time > self.SpuriousTripTimer) then
 		self.SpuriousTripTimer = nil

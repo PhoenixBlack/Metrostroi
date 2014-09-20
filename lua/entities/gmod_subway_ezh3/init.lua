@@ -154,6 +154,9 @@ function ENT:Initialize()
 	
 	-- KV wrench mode
 	self.KVWrenchMode = 0
+	
+	-- Parking brake ratio
+	self.ParkingBrake = 0.0
 end
 
 
@@ -261,6 +264,8 @@ function ENT:Think()
 	self:SetPackedBool(127,self.R_ZS.Value == 1.0)
 	self:SetPackedBool(128,self.R_Program1.Value == 1.0)
 	self:SetPackedBool(129,self.R_Program2.Value == 1.0)
+	self:SetPackedBool(132,self.ParkingBrake <= 0.001)
+	self:SetPackedBool(133,self.ParkingBrake >= 0.999)
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -282,8 +287,12 @@ function ENT:Think()
 	-- NR1
 	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP
-	self:SetPackedBool(35,self.Panel["RedRP"] > 0.75)
-	self:SetPackedBool(131,self.Panel["RedRP"] > 0.25)
+	local RP = self.Panel["RedRP"] > 0.25
+	local RPr = self.Panel["RedRP"] > 0.75
+	if RP and (not self.RPTimer) then self.RPTimer = CurTime() + 0.10 + 0.05*math.random() end
+	if self.RPTimer and (not RP) then self.RPTimer = nil end
+	self:SetPackedBool(35,(RP and self.RPTimer and (CurTime() < self.RPTimer)) or RPr)
+	self:SetPackedBool(131,RP)
 	-- Green RP
 	self:SetPackedBool(36,self.Panel["GreenRP"] > 0.5)
 	-- Cabin heating
@@ -329,7 +338,7 @@ function ENT:Think()
 		self:SetPackedRatio(4, self.Pneumatic.BrakeLinePressure/16.0)	
 	end	
 	self:SetPackedRatio(5, self.Pneumatic.TrainLinePressure/16.0)
-	self:SetPackedRatio(6, self.Pneumatic.BrakeCylinderPressure/6.0)
+	self:SetPackedRatio(6, (self.Pneumatic.BrakeCylinderPressure + 4.0*self.ParkingBrake)/6.0)
 	self:SetPackedRatio(7, self.Electric.Power750V/1000.0)
 	self:SetPackedRatio(8, math.abs(self.Electric.I24)/1000.0)	
 	self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
@@ -365,10 +374,10 @@ function ENT:Think()
 		
 		-- Apply brakes
 		self.FrontBogey.PneumaticBrakeForce = 40000.0
-		self.FrontBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
+		self.FrontBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure + 7.0*self.ParkingBrake
 		self.FrontBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 		self.RearBogey.PneumaticBrakeForce = 40000.0
-		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure
+		self.RearBogey.BrakeCylinderPressure = self.Pneumatic.BrakeCylinderPressure + 7.0*self.ParkingBrake
 		self.RearBogey.BrakeCylinderPressure_dPdT = -self.Pneumatic.BrakeCylinderPressure_dPdT
 	end
 	
@@ -402,6 +411,19 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
+	-- Parking brake
+	if button == "ParkingBrakeLeft" then
+		self.ParkingBrake = math.max(0.0,self.ParkingBrake - 0.008)
+		if self.ParkingBrake == 0.0 then return end
+		--print(self.ParkingBrake)
+	end
+	if button == "ParkingBrakeRight" then
+		self.ParkingBrake = math.min(1.0,self.ParkingBrake + 0.008)
+		if self.ParkingBrake == 1.0 then return end
+		--print(self.ParkingBrake)
+	end	
+	
+	-- KRU
 	if (self.KVWrenchMode == 2) and (button == "KVReverserUp") then
 		self.KRU:TriggerInput("Up",1)
 		self:OnButtonPress("KRUUp")

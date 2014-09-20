@@ -437,8 +437,12 @@ function ENT:Think()
 	-- NR1
 	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP
-	self:SetPackedBool(35,self.Panel["RedRP"] > 0.75)
-	self:SetPackedBool(131,self.Panel["RedRP"] > 0.25)
+	local RP = self.Panel["RedRP"] > 0.25
+	local RPr = self.Panel["RedRP"] > 0.75
+	if RP and (not self.RPTimer) then self.RPTimer = CurTime() + 0.10 + 0.05*math.random() end
+	if self.RPTimer and (not RP) then self.RPTimer = nil end
+	self:SetPackedBool(35,(RP and self.RPTimer and (CurTime() < self.RPTimer)) or RPr)
+	self:SetPackedBool(131,RP)
 	-- Green RP
 	self:SetPackedBool(36,self.Panel["GreenRP"] > 0.5)
 	self:SetLightPower(22,self.Panel["GreenRP"] > 0.5)
@@ -499,8 +503,10 @@ function ENT:Think()
 		-- LHRK
 		self:SetLightPower(42,self:GetPackedBool(33) and self:GetPackedBool(32))
 		-- RP LSN
-		self:SetLightPower(43,(self:GetPackedBool(35) or self:GetPackedBool(131)) and self:GetPackedBool(32),self:GetPackedBool(35) and 1 or 0.35)
+		self:SetLightPower(43,self:GetPackedBool(35) and self:GetPackedBool(32))
 		self:SetLightPower(44,self:GetPackedBool(131) and self:GetPackedBool(32))
+		--self:SetLightPower(43,(self:GetPackedBool(35) or self:GetPackedBool(131)) and self:GetPackedBool(32),self:GetPackedBool(35) and 1 or 0.35)
+		--self:SetLightPower(44,self:GetPackedBool(131) and self:GetPackedBool(32))
 		-- Och
 		self:SetLightPower(45,self:GetPackedBool(41) and self:GetPackedBool(32))
 		-- 0
@@ -631,9 +637,36 @@ function ENT:Think()
 	return retVal
 end
 
+function ENT:PrepareSigns()
+	if not self.SignsList then
+		self.SignsList = { "" }
+		for k,v in SortedPairs(Metrostroi.StationTitles) do
+			table.insert(self.SignsList,v)
+		end
+		table.insert(self.SignsList,"Испытания")
+		table.insert(self.SignsList,"Обкатка")
+		self.SignsIndex = 1
+	end
+end
+
 
 --------------------------------------------------------------------------------
 function ENT:OnButtonPress(button)
+	if button == "NextSign" then
+		self:PrepareSigns()
+		self.SignsIndex = self.SignsIndex + 1
+		if self.SignsIndex > #self.SignsList then self.SignsIndex = 1 end
+		
+		self:SetNWString("FrontText",self.SignsList[self.SignsIndex])
+	end
+	if button == "PrevSign" then
+		self:PrepareSigns()
+		self.SignsIndex = self.SignsIndex - 1
+		if self.SignsIndex < 1 then self.SignsIndex = #self.SignsList end
+		
+		self:SetNWString("FrontText",self.SignsList[self.SignsIndex])
+	end
+
 	if (self.KVWrenchMode == 2) and (button == "KVReverserUp") then
 		self.KRU:TriggerInput("Up",1)
 		self:OnButtonPress("KRUUp")

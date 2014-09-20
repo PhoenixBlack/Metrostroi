@@ -173,6 +173,20 @@ ENT.ButtonMap["Battery"] = {
 	}
 }
 
+-- Parking brake panel
+ENT.ButtonMap["ParkingBrake"] = {
+	pos = Vector(447,41.0+12.5,2.0),
+	ang = Angle(0,-90,90),
+	width = 400,
+	height = 400,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "ParkingBrakeLeft",x=0, y=0, w=200, h=400, tooltip=""},
+		{ID = "ParkingBrakeRight",x=200, y=0, w=200, h=400, tooltip=""},
+	}
+}
+
 -- Train driver helpers panel
 ENT.ButtonMap["HelperPanel"] = {
 	pos = Vector(444.7,62,30.4),
@@ -347,6 +361,11 @@ ENT.ClientProps["brake_disconnect"] = {
 	model = "models/metrostroi/81-717/uava.mdl",
 	pos = Vector(429.5,-61.0,-25),
 	ang = Angle(-30,0,0)
+}
+ENT.ClientProps["parking_brake"] = {
+	model = "models/metrostroi/81-717/ezh_koleso.mdl",
+	pos = Vector(446,41.0,-10.0),
+	ang = Angle(-90,0,0)
 }
 --------------------------------------------------------------------------------
 ENT.ClientProps["train_line"] = {
@@ -652,6 +671,14 @@ function ENT:Think()
 
 	local transient = (self.Transient or 0)*0.05
 	if (self.Transient or 0) ~= 0.0 then self.Transient = 0.0 end
+	
+	-- Parking brake animation
+	self.ParkingBrakeAngle = self.ParkingBrakeAngle or 0
+	self.TrueBrakeAngle = self.TrueBrakeAngle or 0
+	self.TrueBrakeAngle = self.TrueBrakeAngle + (self.ParkingBrakeAngle - self.TrueBrakeAngle)*2.0*(self.DeltaTime or 0)
+	if self.ClientEnts and self.ClientEnts["parking_brake"] then
+		self.ClientEnts["parking_brake"]:SetPoseParameter("position",1.0-((self.TrueBrakeAngle % 360)/360))
+	end
 
 	-- Simulate pressure gauges getting stuck a little 
 	self:Animate("brake334", 		1-self:GetPackedRatio(0), 			0.00, 0.65,  256,24)
@@ -826,7 +853,7 @@ function ENT:Draw()
 		self:DrawDigit((196+0) *10,	35*10, d2, 0.75, 0.55)
 		self:DrawDigit((196+10)*10,	35*10, d1, 0.75, 0.55)
 		
-		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or (self:GetPackedBool(131) and 0.3 or 0),0,1,5,false)
+		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,5,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(255,50,0)
@@ -958,7 +985,7 @@ function ENT:Draw()
 		surface.SetAlphaMultiplier(1.0)
 	end)
 	
-	self:DrawOnPanel("FrontPneumatic",function()
+	self:DrawOnPanel("FrontPneumatic",function() 
 		draw.DrawText(self:GetNWBool("FI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
 	end)
 	self:DrawOnPanel("RearPneumatic",function()
@@ -978,5 +1005,14 @@ end
 function ENT:OnButtonPressed(button)
 	if button == "ShowHelp" then
 		RunConsoleCommand("metrostroi_train_manual")
+	end
+	local bp_press = self:GetPackedRatio(6)
+	local blocked_l = self:GetPackedBool(132) and 0 or 1
+	local blocked_r = self:GetPackedBool(133) and 0 or 1
+	if button == "ParkingBrakeLeft" then
+		self.ParkingBrakeAngle = (self.ParkingBrakeAngle or 0) - blocked_l*45
+	end
+	if button == "ParkingBrakeRight" then
+		self.ParkingBrakeAngle = (self.ParkingBrakeAngle or 0) + blocked_r*45
 	end
 end

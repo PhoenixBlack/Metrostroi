@@ -422,6 +422,28 @@ ENT.ButtonMap["TrainNumber2"] = {
 	scale = 0.20,
 }
 
+-- Front info table
+ENT.ButtonMap["InfoTable"] = {
+	pos = Vector(454.0,-27.0,2.0),
+	ang = Angle(0,90,90),
+	width = 540,
+	height = 100,
+	scale = 0.1,
+}
+ENT.ButtonMap["InfoTableSelect"] = {
+	pos = Vector(454.0,27.0,17.0),
+	ang = Angle(0,-90,90),
+	width = 540,
+	height = 100,
+	scale = 0.1,
+		
+	
+	buttons = {
+		{ID = "PrevSign",x=0,y=0,w=50,h=100, tooltip="Предыдущая надпись\nPrevious sign"},
+		{ID = "NextSign",x=100,y=0,w=50,h=100, tooltip="Следующая надпись\nNext sign"},
+	}
+}
+
 
 
 
@@ -1119,6 +1141,31 @@ end
 function ENT:Draw()
 	self.BaseClass.Draw(self)
 	
+	--local dc = render.GetLightColor(self:LocalToWorld(Vector(460.0,0.0,5.0)))
+	self:DrawOnPanel("InfoTable",function()
+		surface.SetDrawColor(0,0,0) --255*dc.x,250*dc.y,220*dc.z)
+		surface.DrawRect(0,0,540,100)
+		draw.Text({
+			text = self:GetNWString("FrontText",""),
+			font = "MetrostroiSubway_InfoPanel",--..self:GetNWInt("Style",1),
+			pos = { 260, 50 },
+			xalign = TEXT_ALIGN_CENTER,
+			yalign = TEXT_ALIGN_CENTER,
+			color = Color(250,200,20,255)})
+	end)
+
+	if self.InfoTableTimeout and (CurTime() < self.InfoTableTimeout) then
+		self:DrawOnPanel("InfoTableSelect",function()
+			draw.Text({
+				text = self:GetNWString("FrontText",""),
+				font = "MetrostroiSubway_InfoPanel",--..self:GetNWInt("Style",1),
+				pos = { 260, 50 },
+				xalign = TEXT_ALIGN_CENTER,
+				yalign = TEXT_ALIGN_CENTER,
+				color = Color(255,255,255,255)})
+		end)
+	end
+	
 	-- Distance cull
 	local distance = self:GetPos():Distance(LocalPlayer():GetPos())
 	if distance > 1024 then return end
@@ -1325,12 +1372,13 @@ function ENT:Draw()
 		self:DrawDigit((110+0) *10,	16*10, d2, 0.85, 0.70)
 		self:DrawDigit((110+11)*10,	16*10, d1, 0.85, 0.70)
 
-		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or (self:GetPackedBool(131) and 0.35 or 0),0,1,15,false)
+		local b = self:Animate("light_rRP",self:GetPackedBool(35) and 1 or 0,0,1,15,false)
 		if b > 0.0 then
 			surface.SetAlphaMultiplier(b)
 			--surface.SetDrawColor(255,120,50)
 			surface.SetDrawColor(255,40,20)
 			surface.DrawRect(152*10,78*10,17*10,9*10)
+			surface.SetAlphaMultiplier(1)
 			draw.DrawText("РП","MetrostroiSubway_LargeText2",152*10+30,78*10-5,Color(0,0,0,245))
 		end
 		
@@ -1612,6 +1660,8 @@ function ENT:Draw()
 	self:DrawOnPanel("TrainNumber2",function()
 		draw.DrawText(Format("%04d",self:EntIndex()),"MetrostroiSubway_LargeText3",0,0,Color(255*dc.x,255*dc.y,255*dc.z,255))
 	end)
+	
+	
 	--self:DrawOnPanel("DURA",function()
 		--surface.SetDrawColor(50,255,50)
 		--surface.DrawRect(0,0,240,80)
@@ -1621,5 +1671,11 @@ end
 function ENT:OnButtonPressed(button)
 	if button == "ShowHelp" then
 		RunConsoleCommand("metrostroi_train_manual")
+	end
+	if button == "PrevSign" then
+		self.InfoTableTimeout = CurTime() + 1.0
+	end
+	if button == "NextSign" then
+		self.InfoTableTimeout = CurTime() + 1.0
 	end
 end

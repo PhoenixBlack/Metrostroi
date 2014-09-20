@@ -237,6 +237,20 @@ function ENT:InitializeSounds()
 		"subway_trains/tr_5.wav",
 	}
 	
+	self.SoundNames["zap"] = {
+		"ambient/energy/zap1.wav",
+		"ambient/energy/zap2.wav",
+		"ambient/energy/zap3.wav",
+	}
+	
+	self.SoundNames["spark"] = {
+		"ambient/energy/spark1.wav",
+		"ambient/energy/spark2.wav",
+		"ambient/energy/spark3.wav",
+		"ambient/energy/spark4.wav",
+		"ambient/energy/spark5.wav",
+	}	
+	
 	self.SoundTimeout = {}
 end
 
@@ -458,6 +472,7 @@ local bitband = bit.band
 -- Set/get tightly packed float (for speed, pneumatic gauges, etc)
 --------------------------------------------------------------------------------
 function ENT:SetPackedRatio(vecn,ratio)
+	if not self._PackedVec then return end
 	local int = 1
 	if vecn >= 3 then int = 2 vecn = vecn-3 end
 	if vecn >= 3 then int = 3 vecn = vecn-3 end
@@ -468,7 +483,8 @@ function ENT:SetPackedRatio(vecn,ratio)
 	if vecn == 2 then self._PackedVec[int].z = ratio end
 end
 
-function ENT:GetPackedRatio(vecn)	
+function ENT:GetPackedRatio(vecn)
+	if not self._PackedVec then return end
 	local int = 1
 	if vecn >= 3 then int = 2 vecn = vecn-3 end
 	if vecn >= 3 then int = 3 vecn = vecn-3 end
@@ -483,6 +499,7 @@ end
 -- Set/get tightly packed boolean (for gauges, lights)
 --------------------------------------------------------------------------------
 function ENT:SetPackedBool(idx,value)
+	if not self._PackedInt then return end
 	local int = 1
 	if idx >= 32 then int = 2 idx = idx-32 end
 	if idx >= 32 then int = 3 idx = idx-32 end
@@ -499,6 +516,7 @@ function ENT:SetPackedBool(idx,value)
 end
 
 function ENT:GetPackedBool(idx)
+	if not self._PackedInt then return end
 	local int = 1
 	if idx >= 32 then int = 2 idx = idx-32 end
 	if idx >= 32 then int = 3 idx = idx-32 end
