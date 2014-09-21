@@ -21,7 +21,8 @@
 
 	<h3>Basic controls (all trains):</h3>
 	<table class="listing">
-	<tr><td><kbd>W</kbd></td><td>Controller notch up</td></tr>
+	<tr><td><kbd>W</kbd></td><td>Controller notch up (does not disengage braking circuits)</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>W</kbd></td><td>Controller notch up (pull fixation - allows to disengage from braking circuits)</td></tr>
 	<tr><td><kbd>S</kbd></td><td>Controller notch down</td></tr>
 	<tr><td><kbd>1</kbd></td><td>Controller to <var>X1</var> (manuvering)</td></tr>
 	<tr><td><kbd>2</kbd></td><td>Controller to <var>X2</var> (<var>Ezh3</var>: series, <var>81-717</var>: series-parallel)</td></tr>
@@ -30,7 +31,7 @@
 	<tr><td><kbd>5</kbd></td><td>Controller to <var>T1</var> (engage brake)</td></tr>
 	<tr><td><kbd>6</kbd></td><td>Controller to <var>T1A</var> (manual brake)</td></tr>
 	<tr><td><kbd>7</kbd></td><td>Controller to <var>T2</var> (automatic brake)</td></tr>
-	<tr><td><kbd>8</kbd></td><td>Emergency start button</td></tr>
+	<tr><td><kbd>8</kbd></td><td>Emergency start button (<var>81-714</var>: start button)</td></tr>
 	<tr><td><kbd>9</kbd></td><td>Reverser notch down</td></tr>
 	<tr><td><kbd>0</kbd></td><td>Reverser notch up</td></tr>
 	<tr><td><kbd>R</kbd></td><td>Drivers valve notch down (release)</td></tr>
@@ -40,6 +41,9 @@
 	<tr><td><kbd>A</kbd></td><td>Open left doors</td></tr>
 	<tr><td><kbd>D</kbd></td><td>Open right doors</td></tr>
 	<tr><td><kbd>V</kbd></td><td>Close all doors</td></tr>
+	<tr><td><kbd>N</kbd></td><td><var>81-717</var>: Pneumatic valve #1</td></tr>
+	<tr><td><kbd>-</kbd></td><td>Program 2 (announce utility message)</td></tr>
+	<tr><td><kbd>=</kbd></td><td>Program 1 (announce station arrival/departure)</td></tr>
 	<tr><td><kbd>Space</kbd></td><td>Attention pedal (cancel ARS emergency brake)</td></tr>
 	<tr><td><kbd>Shift</kbd>+<kbd>L</kbd></td><td>Open/close drivers valve disconnect valve</td></tr>
 	<tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>DURA Select alternate path</td></tr>
@@ -321,7 +325,7 @@
 		<p>
 		When the electric brakes reach position #18, the pneumatic brakes will be automatically activated by
 		turning on pneumatic valve #1 (which creates pressure in braking cylinders of <var>0.8-1.2 atm</var>).
-		When using <var>T2</var> mode, this typically happens at roughly 5-10 km/h.
+		When using <var>T2</var> mode, this typically happens at roughly 5-10 km/h. Pneumatic valve #1 can be triggered manually on the <var>81-717</var> train by pressing the PN#1 button.
 		</p>
 		
 		<p>
@@ -381,6 +385,18 @@
 		<aside class="info"><p>
 		When driver encounters a prohibiting ARS signal (<var>0</var>), he must make a full stop and then move at no faster than 15-20 km/h to the next red light.
 		</p></aside>
+	</section>
+	
+	<section>
+		<h3>UPPS</h3>
+
+		<p>
+		UPPS is the station overrun protection signal. If UPPS is enabled, it will automatically turn on when train reverser is put into forward. UPPS signal will be emitted whenever train is entering the station.
+		</p>
+		
+		<p>
+		UPPS can be enabled server-wide by using <kbd>metrostroi_upps 1</kbd> server command.
+		</p>
 	</section>
 	
 	<section>
