@@ -54,6 +54,16 @@ function ENT:SetSprite(index,active,model,scale,brightness,pos,color)
 	end
 end
 
+function ENT:GetNoFreq()
+	if self:GetActiveSignalsBit(14) or
+	   self:GetActiveSignalsBit(13) or
+	   self:GetActiveSignalsBit(12) or
+	   self:GetActiveSignalsBit(11) or
+	   self:GetActiveSignalsBit(10) then return false end
+	
+	return true
+end
+
 function ENT:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 	-- Should alternate/main position block the path
 	if self:GetRedWhenMain() then
@@ -142,8 +152,10 @@ function ENT:ARSLogic()
 		end
 		
 		-- Reset to zero when traffic light is red
+		self.AbsoluteStop = false
 		self.NextRed = false
 		if nextARS and nextARS.RedState then
+			self.AbsoluteStop = true
 			self.NextRed = true
 			speedLimit = 0
 		end
@@ -171,6 +183,10 @@ function ENT:ARSLogic()
 		if speedLimit == 70 then self:SetActiveSignalsBit(11,true) end
 		if speedLimit == 80 then self:SetActiveSignalsBit(10,true) end
 		
+		if self.AbsoluteStop and ((CurTime() % 2.0) > 1.0) then
+			self:SetActiveSignalsBit(14,false)
+		end
+		
 		-- No voltage
 		--[[if Metrostroi.Voltage < 50 then 
 			self:SetActiveSignalsBit(14,false)
@@ -196,13 +212,13 @@ function ENT:Think()
 	-- Do no interesting logic if there's no traffic light involved
 	if (self:GetTrafficLights() == 0) and (self.ARSOnly == false) then
 		self:ARSLogic()
-		self:NextThink(CurTime() + 1.5)
+		self:NextThink(CurTime() + 1.0)
 		return true
 	end
 	
 	-- Traffic light logic
 	self.PrevTime = self.PrevTime or 0
-	if (CurTime() - self.PrevTime) > 1.5 then
+	if (CurTime() - self.PrevTime) > 1.0 then
 		self.PrevTime = CurTime()+0.2*math.random()
 		self:ARSLogic()
 		
@@ -215,7 +231,7 @@ function ENT:Think()
 			local trackOccupied = Metrostroi.IsTrackOccupied(node,pos.x,pos.forward,self.ARSOnly and "ars" or "light")
 			local nextLight = Metrostroi.GetNextTrafficLight(node,pos.x,pos.forward)
 			local nextRed = false
-			if nextLight then nextRed = nextLight:GetRed() end
+			if nextLight then nextRed = nextLight:GetRed() or nextLight:GetNoFreq() end
 			
 			-- Check if there's a track switch and it's set to alternate
 			local switchAlternate = false

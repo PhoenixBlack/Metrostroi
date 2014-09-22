@@ -94,4 +94,6 @@ function ENT:InitializeSystems()
 	self:LoadSystem("CustomE","Relay","Switch")
 	self:LoadSystem("CustomF","Relay","Switch")
 	self:LoadSystem("CustomG","Relay","Switch")
+	
+	self:LoadSystem("Autodrive","Relay","Switch")
 end

@@ -496,7 +496,7 @@ function TRAIN_SYSTEM:AnnPlayArriving()
         end
 
         if self.NextNonWorkingStation then
-            self:PlayInfQueueSounds(0230,self.AnnNext)
+            self:PlayInfQueueSounds(0230,self.NextNonWorkingStation)
         end
         self:PlayInfQueueSounds(0002,0219,self.AnnNext)
         if Metrostroi.AnnouncerData[self.AnnNext][2] then
@@ -1013,6 +1013,7 @@ function TRAIN_SYSTEM:Announcer2()
 			self.Train:SetNWString("CustomStr1",str2)
 			self.Train:TriggerInput("CustomDSet", self:AnnEnd())
 			self.Train:TriggerInput("CustomESet", Metrostroi.AnnouncerData[self.AnnStation][2])
+			self.Train:TriggerInput("CustomFSet", 0)
 			self.AnnState7NeedRedraw = nil
 		end
 		if self.AnnState == 7 then
@@ -1098,10 +1099,10 @@ function TRAIN_SYSTEM:Announcer2()
 				self.Arrive = true
 				self.AnnStationT = Metrostroi.WorkingStations[self.AnnPath == 2 and self.AnnEndStation or self.AnnStartStation]
 			end
-			self.Train:TriggerInput("CustomDSet", 0)
-			self.Train:TriggerInput("CustomESet", 0)
-			self.Train:TriggerInput("CustomFSet", 0)
-			self.Train:TriggerInput("CustomGSet", 0)
+			--self.Train:TriggerInput("CustomDSet", 0)
+			--self.Train:TriggerInput("CustomESet", 0)
+			--self.Train:TriggerInput("CustomFSet", 0)
+			--self.Train:TriggerInput("CustomGSet", 0)
 			self.AnnState = 37
 		end
 

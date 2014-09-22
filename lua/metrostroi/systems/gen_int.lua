@@ -856,6 +856,10 @@ BaseNetwork = {
 	{	"2Zh",	"2A",	"!KSB1" },
 	{	"2Zh",	"2A",	"!TR1" },
 	
+	{	"2A",	"2A8Zh","PT", "81_717" },
+	{	"2A8Zh","8Zh",	"RK17-18", "81_717" },
+	{	"8Zh",	"0",	"#PneumaticNo1", "81_717" },
+	
 	{	"2Zh",	"2A",	"KSB2","Ezh3" },	-- HACK: not in original schematics, but
 											-- for purely rheostat braking the rheostat must be powered by circuitry
 											-- which otherwise indicates ready state of thyristor controller
@@ -916,8 +920,8 @@ BaseNetwork = {
 	----------------------------------------------------------------------------
 	-- Train wire 8
 	{	"TW[8]","8A",	"A8" },
-	{	"8A",	"8Zh",	"RK17-18" },
-	{	"8Zh",	"0",	"#PneumaticNo1" },
+	{	"8A",	"8Zh",	"RK17-18", "Ezh3" },
+	{	"8Zh",	"0",	"#PneumaticNo1", "Ezh3" },
 	
 	{	"8A",	"8Ye",	"RK1" },
 	{	"8A",	"8Ye",	"!LK4" },
@@ -1373,6 +1377,10 @@ BaseNetwork = {
 	{	"2Zh",	"2A",	"!KSB1" },
 	{	"2Zh",	"2A",	"!TR1" },
 	
+	{	"2A",	"2A8Zh","PT", "81_714" },
+	{	"2A8Zh","8Zh",	"RK17-18", "81_714" },
+	{	"8Zh",	"0",	"#PneumaticNo1", "81_714" },
+	
 	{	"2Zh",	"2A",	"KSB2","Ezh3" },	-- HACK: not in original schematics, but
 											-- for purely rheostat braking the rheostat must be powered by circuitry
 											-- which otherwise indicates ready state of thyristor controller
@@ -1433,8 +1441,8 @@ BaseNetwork = {
 	----------------------------------------------------------------------------
 	-- Train wire 8
 	{	"TW[8]","8A",	"A8" },
-	{	"8A",	"8Zh",	"RK17-18" },
-	{	"8Zh",	"0",	"#PneumaticNo1" },
+	{	"8A",	"8Zh",	"RK17-18", "Ema508" },
+	{	"8Zh",	"0",	"#PneumaticNo1", "Ema508" },
 	
 	{	"8A",	"8Ye",	"RK1" },
 	{	"8A",	"8Ye",	"!LK4" },
