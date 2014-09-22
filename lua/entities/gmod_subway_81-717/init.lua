@@ -51,8 +51,8 @@ function ENT:Initialize()
 		
 		[KEY_0] = "KVReverserUp",
 		[KEY_9] = "KVReverserDown",
-		[KEY_W] = "KVControllerUp",
-		[KEY_S] = "KVControllerDown",
+		[KEY_W] = "KVUp",
+		[KEY_S] = "KVDown",
 		[KEY_F] = "PneumaticBrakeUp",
 		[KEY_R] = "PneumaticBrakeDown",
 		
@@ -66,6 +66,8 @@ function ENT:Initialize()
 		[KEY_BACKSPACE] = "EmergencyBrake",
 
 		[KEY_LSHIFT] = {
+			[KEY_W] = "KVUp_Unlocked",
+		
 			[KEY_A] = "DURASelectAlternate",
 			[KEY_D] = "DURASelectMain",
 			[KEY_V] = "DURAToggleChannel",
@@ -416,7 +418,10 @@ function ENT:Think()
 	self:SetPackedBool(127,self.R_ZS.Value == 1.0)
 	self:SetPackedBool(128,self.R_Program1.Value == 1.0)
 	self:SetPackedBool(129,self.R_Program2.Value == 1.0)
-	self:SetPackedBool(130,self.RC1.Value == 1.0)	
+	self:SetPackedBool(130,self.RC1.Value == 1.0)
+	if self.Autodrive then
+		self:SetPackedBool(132,self.Autodrive.Value == 1.0)
+	end
 	
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -438,10 +443,10 @@ function ENT:Think()
 	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP
 	local RP = self.Panel["RedRP"] > 0.25
-	local RPr = self.Panel["RedRP"] > 0.75
-	if RP and (not self.RPTimer) then self.RPTimer = CurTime() + 0.10 + 0.05*math.random() end
-	if self.RPTimer and (not RP) then self.RPTimer = nil end
-	self:SetPackedBool(35,(RP and self.RPTimer and (CurTime() < self.RPTimer)) or RPr)
+	--local RPr = self.Panel["RedRP"] > 0.75
+	--if RP and (not self.RPTimer) then self.RPTimer = CurTime() + 0.10 + 0.05*math.random() end
+	--if self.RPTimer and (not RP) then self.RPTimer = nil end
+	self:SetPackedBool(35,RP) --(RP and self.RPTimer and (CurTime() < self.RPTimer)) or RPr)
 	self:SetPackedBool(131,RP)
 	-- Green RP
 	self:SetPackedBool(36,self.Panel["GreenRP"] > 0.5)
@@ -666,6 +671,18 @@ function ENT:OnButtonPress(button)
 		
 		self:SetNWString("FrontText",self.SignsList[self.SignsIndex])
 	end
+	
+	if button == "KVUp" then
+		if self.KV.ControllerPosition ~= -1 then
+			self.KV:TriggerInput("ControllerUp",1.0)
+		end
+	end
+	if button == "KVUp_Unlocked" then
+		self.KV:TriggerInput("ControllerUp",1.0)
+	end
+	if button == "KVDown" then
+		self.KV:TriggerInput("ControllerDown",1.0)
+	end
 
 	if (self.KVWrenchMode == 2) and (button == "KVReverserUp") then
 		self.KRU:TriggerInput("Up",1)
@@ -690,7 +707,7 @@ function ENT:OnButtonPress(button)
 	if (self.KVWrenchMode == 2) and (button == "KVSet0") then
 		self.KRU:TriggerInput("Set0",1)
 		self:OnButtonPress("KRUSet0")
-	end		
+	end	
 
 	if button == "KVSetT1A" then
 		if self.KV.ControllerPosition == -2 then

@@ -4,6 +4,26 @@
 Metrostroi.DefineSystem("ALS_ARS")
 TRAIN_SYSTEM.DontAccelerateSimulation = true
 
+if CreateConVar then
+	--[[concommand.Add("metrostroi_give_upps", function(ply, _, args)
+		print("Trains on server: "..Metrostroi.TrainCount())
+		if CPPI then
+			local N = {}
+			for k,v in pairs(Metrostroi.TrainClasses) do
+				local ents = ents.FindByClass(v)
+				for k2,v2 in pairs(ents) do
+					N[v2:CPPIGetOwner() or "(disconnected)"] = (N[v2:CPPIGetOwner() or "(disconnected)"] or 0) + 1
+				end
+			end
+			for k,v in pairs(N) do
+				print(k,"Trains count: "..v)
+			end
+		end
+	end)]]--
+
+	CreateConVar("metrostroi_upps",0,FCVAR_ARCHIVE)
+end
+
 function TRAIN_SYSTEM:Initialize()	
 	-- ALS state
 	self.Signal80 = false
@@ -78,6 +98,13 @@ function TRAIN_SYSTEM:Think()
 	if (Train.PB) and ((Train.PB.Value+Train.KVT.Value) >= 1.0) then self.AttentionPedal = true end
 	if (Train.PB) and ((Train.PB.Value+Train.KVT.Value) <  1.0) then self.AttentionPedal = false end
 	
+	-- Ignore pedal
+	if self.IgnorePedal and self.AttentionPedal then
+		self.AttentionPedal = false
+	else
+		self.IgnorePedal = false
+	end
+	
 	-- Speed check and update speed data
 	if CurTime() - (self.LastSpeedCheck or 0) > 0.5 then
 		self.LastSpeedCheck = CurTime()
@@ -140,7 +167,7 @@ function TRAIN_SYSTEM:Think()
 		if self.Signal80 then Vlimit = 80 end
 
 		self.Overspeed = false
-		if (not self.AttentionPedal) and (V > Vlimit) and (V > 3) then self.Overspeed = true end
+		if (not self.AttentionPedal) and (V > Vlimit) and (V > (self.NoFreq and 0 or 3)) then self.Overspeed = true end
 		if (    self.AttentionPedal) and (Vlimit ~= 0) and (V > Vlimit) then self.Overspeed = true end
 		if (    self.AttentionPedal) and (Vlimit == 0) and (V > 20) then self.Overspeed = true end
 
@@ -168,6 +195,11 @@ function TRAIN_SYSTEM:Think()
 	end
 	
 	if EnableARS then
+		-- Check absolute stop
+		if self.NoFreq and (not self.PrevNoFreq) then
+			self.IgnorePedal = true
+		end	
+		self.PrevNoFreq = self.NoFreq
 		-- Check overspeed
 		if self.Overspeed then
 			self.ElectricBrake = true
@@ -287,8 +319,137 @@ function TRAIN_SYSTEM:Think()
 		self["32"] = 0
 	end
 	
+	-- 81-717 autodrive/autostop
+	if Train.Autodrive and (Train.Autodrive.Value > 0.0) then
+		-- Calculate distance to station
+		local Station = Train:ReadCell(49160)
+		local Corrections = {
+			[114] = 0.70,
+			[123] = 3.20,
+		}
+		local dX = Train:ReadCell(49165)-10-5 + 6.5 - 3.3 + (Corrections[Station] or 0)
+		
+		-- Target and real RK position (0 if not braking)
+		local TargetRKPosition = 0
+		local RKPosition = math.floor(Train.RheostatController.Position+0.5)
+		
+		-- If standing on station and controller in zero, arm the autodrive
+		if (self.Speed < 0.1) and (Train.KV.ControllerPosition == 0.0) then self.AutodriveArmed = true end
+		
+		-- Calculate next speed limit
+		local speedLimit = self.NextLimit
+		if speedLimit == 0 then speedLimit = 20 end
+		
+		-- Check speed constraints
+		if self.Speed > (speedLimit - 3) then	self.NoAcceleration = true end
+		if self.Speed < (speedLimit - 7) then	self.NoAcceleration = false end
+		
+		-- Check slope
+		local Slope = (Train:GetAngles().pitch > 3.0)
+		local Wire2 = false
+
+		-- Slow down if overspeeding soon
+		local threshold = 1.0
+		if Slope and (self.NextLimit == 40) then TargetRKPosition = 7 end
+		if Slope and (self.NextLimit == 60) then TargetRKPosition = 1 Wire2 = (self.Speed > 55) end
+		if Slope and (self.NextLimit == 80) then TargetRKPosition = 1 Wire2 = (self.Speed > 75) end
+		if (self.Speed > (speedLimit - threshold)) then TargetRKPosition = 18 Wire2 = true end
+		
+		-- threshold = 5 
+		-- threshold = 10
+		
+		-- Full stop command
+		if self.SpeedLimit < 30 then TargetRKPosition = 18 Wire2 = true end
+		
+		-- Calculate RK position based on distance and autodrive profile
+		if self.AutodriveArmed ~= true then
+			if dX < 160   then TargetRKPosition = 1 end
+			if dX < 70+35 then TargetRKPosition = 3 end
+			if dX < 50+30 then TargetRKPosition = 5 end
+			if dX < 20+25 then TargetRKPosition = 9 end
+			if dX < 10+20 then TargetRKPosition = 12 end
+			if dX < 15    then TargetRKPosition = 13 end
+			if dX < 12    then TargetRKPosition = 15 end
+			if dX <  8    then TargetRKPosition = 16 end
+			if dX <  5    then TargetRKPosition = 18 end
+		else
+			if dX > 5.0 then self.AutodriveArmed = false end
+		end
+
+		-- Generate commands
+		local DriveDisabled = self.NoAcceleration and 1 or 0
+		local ElectricBrakeActive = (FullStop or (TargetRKPosition > 0)) and 1 or 0
+		local RheostatRotating = (Wire2 or (RKPosition < TargetRKPosition)) and 1 or 0
+		local PneumaticValve1 = ((dX < 1.55) and (self.Speed > 0.1) and (self.AutodriveArmed ~= true)) and 1 or 0
+		local FastEngageBrakes = (Wire2 and 1 or 0)*0
+		
+		-- Prevent engaging circuits
+		local NoPowerCircuits = 0
+		if self["33G"] > 0 then self.BrakeEngageTimer = CurTime()+0.5 end
+		if self.BrakeEngageTimer and (CurTime() < self.BrakeEngageTimer) then NoPowerCircuits = 1 end
+		
+		-- Send commands
+		self["33D"] = (1-ElectricBrakeActive)*(1-DriveDisabled)*(1-NoPowerCircuits) -- Block drive circuit
+		self["33G"] = ElectricBrakeActive -- Engage electric braking
+		self["33Zh"] = 1-ElectricBrakeActive -- Block manual brake
+		self["2"] = ElectricBrakeActive*RheostatRotating -- Rheostat rotate
+		self["20"] = ElectricBrakeActive -- Engage power circuits
+		self["29"] = PneumaticValve1-- Engage PN1
+		self["8"] = FastEngageBrakes -- Engage PN2
+		
+		-- Light up lamps
+		self.LKT = (self["33G"] > 0.5) or (self["29"] > 0.5) or (Train:ReadTrainWire(35) > 0)
+		self.LVD = self["33D"] < 0.5
+		self.Ring = (self.Speed > math.max(10,self.SpeedLimit))
+		
+		-- Drive hack
+		if (Train.KV.ControllerPosition == 1.0) and (self["33D"] > 0.5) then
+			Train:WriteCell(2,1)
+			Train:WriteCell(3,1)
+		else
+			Train:WriteCell(2,0)
+			Train:WriteCell(3,0)
+		end
+	else
+		self.AutodriveArmed = nil
+		self.NoAcceleration = nil
+		Train:WriteCell(2,0)
+		Train:WriteCell(3,0)
+	end
+	
 	-- 81-717 special VZ1 button
 	if self.Train.VZ1 then
 		self["29"] = self["29"] + self.Train.VZ1.Value
+	end
+	
+	-- Special UPPS behavior
+	if GetConVarNumber("metrostroi_upps") > 0 then
+		local distance = Train:ReadCell(49165)
+		local skip_station = false
+		
+		-- Check if station must be skipped
+		local station = Train:ReadCell(49161)
+		if Metrostroi.StationNamesConfiguration[station] then
+			if (Metrostroi.StationNamesConfiguration[station][4] or 1) < 1 then
+				skip_station = true
+			end
+		end
+		
+		-- Default trigger
+		if (distance > 100) and (distance < 210) and (not skip_station) then self.UPPSArmed1 = true end
+		if self.UPPSArmed1 and (distance < 100) then
+			Train:PlayOnce("upps","cabin",0.6,100.0)
+			self.UPPSArmed1 = false
+		end
+		
+		-- KV trigger
+		if Train.KV and (Train.KV.ReverserPosition == 0.0) then
+			self.UPPSArmed2 = true
+			--self.UPPSTimer2 = CurTime() + 1.5
+		end
+		if self.UPPSArmed2 and Train.KV and (Train.KV.ReverserPosition == 1.0) then --and self.UPPSTimer2 and (CurTime() > self.UPPSTimer2) then
+			Train:PlayOnce("upps","cabin",0.6,100.0)
+			self.UPPSArmed2 = false
+		end
 	end
 end
