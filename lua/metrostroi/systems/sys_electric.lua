@@ -56,6 +56,9 @@ function TRAIN_SYSTEM:Initialize()
 	self.ElectricEnergyDissipated = 0 -- joules
 	self.EnergyChange = 0
 	
+	-- Signal resistor
+	self.RPSignalResistor = FailSim.AddParameter(self,"SignalResistor", { value = 1.0, precision = 0.20 })
+	
 	-- Need many iterations for engine simulation to converge
 	self.SubIterations = 16
 	
@@ -83,7 +86,8 @@ function TRAIN_SYSTEM:Outputs()
 			 "Overheat1","Overheat2",
 			 "Main750V", "Power750V", "Aux750V", "Aux80V", "Lights80V",
 			 "ThyristorResistance", "ThyristorState",
-			 "ElectricEnergyUsed", "ElectricEnergyDissipated", "EnergyChange" }
+			 "ElectricEnergyUsed", "ElectricEnergyDissipated", "EnergyChange",
+			 "RPSignalResistor" }
 end
 
 function TRAIN_SYSTEM:TriggerInput(name,value)

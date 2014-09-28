@@ -523,6 +523,26 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Utility functions
+--------------------------------------------------------------------------------
+function ENT:PrepareSigns()
+	if not self.SignsList then
+		self.SignsList = { "" }
+		for k,v in SortedPairs(Metrostroi.StationTitles) do
+			table.insert(self.SignsList,v)
+		end
+		table.insert(self.SignsList,"Еду на море")
+		table.insert(self.SignsList,"Испытания")
+		table.insert(self.SignsList,"Обкатка")
+		table.insert(self.SignsList,"В депо")
+		self.SignsIndex = 1
+	end
+end
+
+
+
+
+--------------------------------------------------------------------------------
 -- Train wire I/O
 --------------------------------------------------------------------------------
 function ENT:TrainWireCanWrite(k)

@@ -72,8 +72,8 @@ function TRAIN_SYSTEM:Initialize(parameters,extra_parameters)
 
 	----------------------------------------------------------------------------
 	-- Relay parameters
-	FailSim.AddParameter(self,"CloseTime", 		{ value = parameters.close_time, min = 0.010, varies = true })
-	FailSim.AddParameter(self,"OpenTime", 		{ value = parameters.open_time, min = 0.010, varies = true })
+	FailSim.AddParameter(self,"CloseTime", 		{ value = parameters.close_time, precision = self.contactor and 0.35 or 0.10, min = 0.010, varies = true })
+	FailSim.AddParameter(self,"OpenTime", 		{ value = parameters.open_time, precision = self.contactor and 0.35 or 0.10, min = 0.010, varies = true })
 	-- Did relay short-circuit?
 	FailSim.AddParameter(self,"ShortCircuit",	{ value = 0.000, precision = 0.00 })
 	-- Was there a spurious trip?

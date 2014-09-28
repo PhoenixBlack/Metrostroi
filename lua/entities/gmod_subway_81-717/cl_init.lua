@@ -27,7 +27,7 @@ ENT.ButtonMap["Main"] = {
 		{ID = "KVT2Set",		x=295, y=33, radius=20, tooltip="КБ: Кнопка Бдительности\nKB: Attention button"},
 		{ID = "VZ1Set",			x=350, y=33, radius=20, tooltip="ВЗ1: Вентиль замещения №1\nVZ1: Pneumatic valve #1"},
 		
-		{ID = "AutodriveToggle",x=420, y=92, radius=20, tooltip="Автоматическая остановка\nAutomatic stop"},
+		--{ID = "AutodriveToggle",x=420, y=92, radius=20, tooltip="Автоматическая остановка\nAutomatic stop"},
 		
 		{ID = "VUD1Toggle",		x=54, y=105, radius=40, tooltip="ВУД: Выключатель управления дверьми\nVUD: Door control toggle (close doors)"},
 		{ID = "KDLSet",			x=50, y=180, radius=20, tooltip="КДЛ: Кнопка левых дверей\nKDL: Left doors open"},
@@ -853,11 +853,11 @@ Metrostroi.ClientPropForButton("CustomG",{
 	button = "CustomG",
 	model = "models/metrostroi/81-717/light02.mdl",
 })
-Metrostroi.ClientPropForButton("Autodrive",{
-	panel = "Main",
-	button = "AutodriveToggle",
-	model = "models/metrostroi/81-717/switch04.mdl",
-})
+--Metrostroi.ClientPropForButton("Autodrive",{
+--	panel = "Main",
+--	button = "AutodriveToggle",
+--	model = "models/metrostroi/81-717/switch04.mdl",
+--})
 
 
 --------------------------------------------------------------------------------
@@ -1030,7 +1030,7 @@ function ENT:Think()
 	self:Animate("R_ZS",			self:GetPackedBool(127) and 1 or 0, 0,1, 16, false)
 	self:Animate("R_Program",		self:GetPackedBool(128) and 0 or (self:GetPackedBool(129) and 1 or 0.5), 0,1, 16, false)
 	self:Animate("rc1",				self:GetPackedBool(130) and 0.87 or 1, 	0,1, 1, false)
-	self:Animate("Autodrive",		self:GetPackedBool(132) and 1 or 0,	0,1, 16, false)
+	--self:Animate("Autodrive",		self:GetPackedBool(132) and 1 or 0,	0,1, 16, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do

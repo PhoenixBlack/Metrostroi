@@ -442,12 +442,16 @@ function ENT:Think()
 	-- NR1
 	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP
-	local RP = self.Panel["RedRP"] > 0.25
+	--local RP = self.Panel["RedRP"] > 0.25
 	--local RPr = self.Panel["RedRP"] > 0.75
 	--if RP and (not self.RPTimer) then self.RPTimer = CurTime() + 0.10 + 0.05*math.random() end
 	--if self.RPTimer and (not RP) then self.RPTimer = nil end
-	self:SetPackedBool(35,RP) --(RP and self.RPTimer and (CurTime() < self.RPTimer)) or RPr)
-	self:SetPackedBool(131,RP)
+	--self:SetPackedBool(35,RP) --(RP and self.RPTimer and (CurTime() < self.RPTimer)) or RPr)
+	--self:SetPackedBool(131,RP)
+	local RTW18 = self:GetTrainWire18Resistance()
+	if (self.KV.ControllerPosition == 0) or (self.Panel["V1"] < 0.5) then RTW18 = 1e9 end
+	self:SetPackedBool(35,RTW18 < 0.40)
+	self:SetPackedBool(131,RTW18 < 100)
 	-- Green RP
 	self:SetPackedBool(36,self.Panel["GreenRP"] > 0.5)
 	self:SetLightPower(22,self.Panel["GreenRP"] > 0.5)
@@ -633,25 +637,35 @@ function ENT:Think()
 		end
 	end
 
+	if self:EntIndex() == 2561 then
+		--print(Format("Train Wire 18 R=%.3f Ohm",RTW18)) --self:GetTrainWire18Resistance()))
+	end
 	-- Temporary hacks
 	--self:SetNWFloat("V",self.Speed)
 	--self:SetNWFloat("A",self.Acceleration)
+	
+	--print(self.Electric.RPSignalResistor)
 
 	-- Send networked variables
 	self:SendPackedData()
 	return retVal
 end
 
-function ENT:PrepareSigns()
-	if not self.SignsList then
-		self.SignsList = { "" }
-		for k,v in SortedPairs(Metrostroi.StationTitles) do
-			table.insert(self.SignsList,v)
-		end
-		table.insert(self.SignsList,"Испытания")
-		table.insert(self.SignsList,"Обкатка")
-		self.SignsIndex = 1
+function ENT:GetTrainWire18Resistance()
+	self:UpdateWagonList()
+	
+	-- Total resistance
+	local Rtotal = 0.0
+	for i,train in ipairs(self.WagonList) do
+		local RLK4 = train.Electric.RPSignalResistor + train.LK4.Value*1e9
+		local RRP = (1-train.RPvozvrat.Value)*1e9
+		local Rtrain = ((RRP^-1) + (RLK4^-1))^-1
+		Rtotal = Rtotal + (Rtrain^-1)
 	end
+	
+	-- Mask for panel RP light info
+	--local Mask = (self.Panel["RedRP"] > 0.25) and 0 or 1e9
+	return Rtotal^-1
 end
 
 

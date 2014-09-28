@@ -628,7 +628,7 @@ function TRAIN_SYSTEM:GetSettings()
 	end
 	local Settings = LastTrain.Announcer.Settings
 
-	if LastTrain.R_Radio.Value > 0.5 then
+	if LastTrain.R_Radio and LastTrain.R_Radio.Value > 0.5 and LastTrain.KV.ReverserPosition == 1.0 then
 		PrintToConsole("Включён инорматор в задней кабине!")
 		self.AnnState = -12
 		return
@@ -674,7 +674,7 @@ end
 --7   - Normal state
 --8   - Confim a settings (on last stations)
 function TRAIN_SYSTEM:Announcer2()
-	if self.Train.R_Radio and (self.Train.R_Radio.Value > 0.5) then
+	if self.Train.R_Radio and self.Train.R_Radio.Value > 0.5 and self.Train.KV.ReverserPosition == 1.0 then
 		--table.ForEach(self.Settings,print)
 		--self.Train:UpdateWagonList()
 		--self.Train.WagonList[#self.Train.WagonList].Announcer
@@ -683,14 +683,14 @@ function TRAIN_SYSTEM:Announcer2()
 			self.Train:SetNWString("CustomStr3","+")
 			self.Train:SetNWString("CustomStr4","Menu")
 			self.Train:SetNWString("CustomStr5","")
-			self.Train:SetNWString("CustomStr6","")
+			--self.Train:SetNWString("CustomStr6","")
 			self.Train:SetNWString("CustomStr7","")
 			self.Train:SetNWString("CustomStr8","")
 			self.Train:SetNWString("CustomStr9","")
-			self.Train:SetNWString("CustomStr10","")
-			self.Train:SetNWString("CustomStr11","")
-			self.Train:SetNWString("CustomStr12","")
-			self.Train:SetNWString("CustomStr13","")
+			--self.Train:SetNWString("CustomStr10","")
+			--self.Train:SetNWString("CustomStr11","")
+			--self.Train:SetNWString("CustomStr12","")
+			--self.Train:SetNWString("CustomStr13","")
 			self.Train:TriggerInput("CustomDSet", 0)
 			self.Train:TriggerInput("CustomESet", 0)
 			self.Train:TriggerInput("CustomFSet", 1)
@@ -722,6 +722,7 @@ function TRAIN_SYSTEM:Announcer2()
 			if not self.loadRand then self.loadRand = math.floor(math.random(8,30)) end
 			if self.loadState < self.loadRand then
 				timer.Simple(math.random(0.15,0.50),function()
+					if not self.AnnState then return end
 					local chars = ""
 					for i=1,20 do
 						chars = chars..string[math.random() > 0.5 and "upper" or "lower"](self.AnnChars[math.random(1,#self.AnnChars)])
@@ -981,6 +982,46 @@ function TRAIN_SYSTEM:Announcer2()
 
 
 		if self.AnnState == 7 or self.AnnState == 17 or self.AnnState == 27 or self.AnnState == 37 or self.AnnState == 87 or self.AnnState == 97 then
+			if self.Train.CustomC.Value > 0.5 then
+				local Station = self.Train:ReadCell(49160) > 0 and self.Train:ReadCell(49160) or self.Train:ReadCell(49161)
+				local Path = self.Train:ReadCell(65510)
+				if Station and Station ~= 0 and Path and Path ~= 0 then
+					local StatID = Metrostroi.WorkingStations[Station] or Metrostroi.WorkingStations[Station + (Path == 1 and 1 or -1)] or 0
+					local Curr,Next
+					if StatID ~= 0 then
+						Curr = Metrostroi.AnnouncerData[Metrostroi.WorkingStations[StatID]]
+						Next = Metrostroi.AnnouncerData[Metrostroi.WorkingStations[StatID + (Path == 1 and 1 or -1)]]
+					end
+
+					-- Set announcer settings
+					if Path ~= self.AnnPath or StatID ~= self.AnnStationT then
+						self.AnnPath = Path > 1 and 2 or 1
+						self.AnnStationT = StatID
+						self.AnnState7NeedRedraw = true
+					end
+
+					local dX = self.Train:ReadCell(49165)
+					if 45 < dX and dX < 75 and not self.Arrive and Metrostroi.WorkingStations[Station] then
+						self:AnnPlayArriving()
+						self.Arrive = true
+						if not self:AnnEnd() then
+							self.AnnState = 87
+						else
+							self.AnnPath = self.AnnPath == 1 and 2 or 1
+							self.AnnCurTime = nil
+							self.AnnCurTimeM = CurTime()
+							self.AnnState7NeedRedraw = nil
+							self.AnnState = 108
+						end
+						self.AnnState7NeedRedraw = true
+					end
+
+					if dX > 75 and self.Arrive then
+						self.Arrive = false
+						self.AnnState7NeedRedraw = nil
+					end
+				end
+			end
 			self.AnnStation = Metrostroi.WorkingStations[self.AnnStationT]
 			self.AnnNextT = self.AnnStationT + (self.AnnPath == 1 and 1 or -1)
 			self.AnnNext = Metrostroi.WorkingStations[self.AnnNextT]
@@ -1027,6 +1068,7 @@ function TRAIN_SYSTEM:Announcer2()
 				self.AnnState = 17
 				self.AnnState7NeedRedraw = true
 			end
+
 			if self.Train.Custom2.Value > 0.5 and (
 			(self.AnnPath == 2 and self.AnnStation > self.AnnStartStation) or
 			(self.AnnPath == 1 and self.AnnEndStation > self.AnnStation))then
@@ -1039,16 +1081,18 @@ function TRAIN_SYSTEM:Announcer2()
 			end
 			if self.Train.R_Program1.Value > 0.5 then
                 if not self.Arrive then
-					self:AnnPlayArriving()
-					self.Arrive = true
-                    if not self:AnnEnd() then
-						self.AnnState = 87
-					else
-						self.AnnPath = self.AnnPath == 1 and 2 or 1
-						self.AnnCurTime = nil
-						self.AnnCurTimeM = CurTime()
-						self.AnnState7NeedRedraw = nil
-						self.AnnState = 108
+					if self.Train.CustomC.Value < 0.5 then
+						self:AnnPlayArriving()
+						self.Arrive = true
+						if not self:AnnEnd() then
+							self.AnnState = 87
+						else
+							self.AnnPath = self.AnnPath == 1 and 2 or 1
+							self.AnnCurTime = nil
+							self.AnnCurTimeM = CurTime()
+							self.AnnState7NeedRedraw = nil
+							self.AnnState = 108
+						end
 					end
                 else
 					self:AnnPlayDepeate()
@@ -1185,14 +1229,14 @@ function TRAIN_SYSTEM:Announcer2()
 			self.Train:SetNWString("CustomStr3" ,"")
 			self.Train:SetNWString("CustomStr4" ,"")
 			self.Train:SetNWString("CustomStr5" ,"")
-			self.Train:SetNWString("CustomStr6" ,"")
+			--self.Train:SetNWString("CustomStr6" ,"")
 			self.Train:SetNWString("CustomStr7" ,"")
 			self.Train:SetNWString("CustomStr8" ,"")
 			self.Train:SetNWString("CustomStr9" ,"")
-			self.Train:SetNWString("CustomStr10","")
-			self.Train:SetNWString("CustomStr11","")
-			self.Train:SetNWString("CustomStr12","")
-			self.Train:SetNWString("CustomStr13","")
+			--self.Train:SetNWString("CustomStr10","")
+			--self.Train:SetNWString("CustomStr11","")
+			--self.Train:SetNWString("CustomStr12","")
+			--self.Train:SetNWString("CustomStr13","")
 			self.Train:TriggerInput("CustomDSet", 0)
 			self.Train:TriggerInput("CustomESet", 0)
 			self.Train:TriggerInput("CustomFSet", 0)
@@ -1207,7 +1251,11 @@ function TRAIN_SYSTEM:Think()
 	--	self:Announcer1()
 	-- Build-in glebqip Announcer logic
 	if self.Train.Custom3 then
+		xpcall(function() 
 		self:Announcer2()
+		end, function(err)
+			print("ERROR:", err)
+		end)
 	end
 	-- Check if new announcement must be started from train wire
 	local targetAnnouncement = self.Train:ReadTrainWire(48)
