@@ -212,9 +212,6 @@ function ENT:Think()
 	local speed_mod = math.min(1.0,math.max(0.0,(speed-20)*0.1))
 	
 	-- Play it
-	if (self:EntIndex() == 2601) then
-		print(Format("%.3f %.3f %.3f  F = %.4f %s %.3f",x,f1,f2,f,(f > 0) and "true" or "false",pitch))
-	end
 	self:SetSoundState("flange1",speed_mod*f1,pitch)
 	self:SetSoundState("flange2",speed_mod*f2*modulation,pitch)
 end

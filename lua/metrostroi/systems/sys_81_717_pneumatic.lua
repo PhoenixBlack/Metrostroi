@@ -350,7 +350,7 @@ function TRAIN_SYSTEM:Think(dT)
 			--if self.DriversValve == 1 then
 				--equalizePressure("BrakeCylinderPressure", targetPressure, 2.00, 3.50, nil, 1.0) --0.75, 1.25)
 			--else
-				equalizePressure("BrakeCylinderPressure", targetPressure, 2.00, 6.50, nil, 1.0) --0.75, 1.25)
+				equalizePressure("BrakeCylinderPressure", targetPressure, 1.50, 6.50, nil, 1.0) --0.75, 1.25)
 			--end
 		end
 		
