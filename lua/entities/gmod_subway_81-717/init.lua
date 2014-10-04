@@ -657,10 +657,12 @@ function ENT:GetTrainWire18Resistance()
 	-- Total resistance
 	local Rtotal = 0.0
 	for i,train in ipairs(self.WagonList) do
-		local RLK4 = train.Electric.RPSignalResistor + train.LK4.Value*1e9
-		local RRP = (1-train.RPvozvrat.Value)*1e9
-		local Rtrain = ((RRP^-1) + (RLK4^-1))^-1
-		Rtotal = Rtotal + (Rtrain^-1)
+		if train.Electric then
+			local RLK4 = train.Electric.RPSignalResistor + train.LK4.Value*1e9
+			local RRP = (1-train.RPvozvrat.Value)*1e9
+			local Rtrain = ((RRP^-1) + (RLK4^-1))^-1
+			Rtotal = Rtotal + (Rtrain^-1)
+		end
 	end
 	
 	-- Mask for panel RP light info
