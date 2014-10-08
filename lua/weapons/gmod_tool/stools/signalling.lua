@@ -165,6 +165,7 @@ function TOOL.BuildCPanel(panel)
 	panel:AddControl("Checkbox", { Label = "Red when main track", Command = "signalling_settings10" })
 	panel:AddControl("Checkbox", { Label = "Invert switch channel 1 (section prior)", Command = "signalling_settings11" })
 	panel:AddControl("Checkbox", { Label = "Invert switch channel 2 (section prior)", Command = "signalling_settings12" })
+	panel:AddControl("Checkbox", { Label = "Don't generate ARS zero signal", Command = "signalling_settings18" })
 
 	panel:AddControl("Label", {Text = "ARS signals in the following segment:"})
 	panel:AddControl("Checkbox", { Label = "No ARS equipment", Command = "signalling_settings13" })

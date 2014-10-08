@@ -82,6 +82,9 @@ Metrostroi.Announcements = {
 	[0323] = { 1.384, "subway_announcer/03_23.mp3" },
 
 	[0415] = { 1.149, "subway_announcer/04_15.mp3" },
+	
+	[0521] = { 1.959, "subway_announcer/05_22.mp3" }, -- Yes, these are swapped.
+	[0522] = { 1.515, "subway_announcer/05_21.mp3" }, -- It is supposed to be so!
 
 	[9999] = { 3.0,   "subway_announcer/00_00.mp3" },
 }

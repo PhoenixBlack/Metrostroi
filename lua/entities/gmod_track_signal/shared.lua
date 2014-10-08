@@ -199,6 +199,9 @@ addBitParameter("NoARS",			"Settings",13)
 
 addBitParameter("IsolatingLight",	"Settings",16)
 addBitParameter("IsolatingSwitch",	"Settings",17)
+addBitParameter("DontPropagate",	"Settings",18)
+-- 19 Special logic 1
+-- 20 Special logic 2
 
 addBitParameter("Red",			"ActiveSignals",0)
 addBitParameter("Yellow",		"ActiveSignals",1)
