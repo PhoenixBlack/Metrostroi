@@ -39,6 +39,7 @@ function ENT:SendSignal(index,channel)
 	if index == "main" then self.AlternateTrack = false end
 	
 	-- Remember this signal
+	self.LastSignal = index
 	self.LastSignalTime = CurTime()
 end
 
@@ -68,8 +69,13 @@ function ENT:Think()
 		for k,v in pairs(self.TrackSwitches) do v:Fire("Close","","0") end
 	end
 	
+	-- Force signal
+	if self.LockedSignal then
+		self:SendSignal(self.LockedSignal,self:GetChannel())
+	end
+	
 	-- Return switch to original position
-	if (self.InhibitSwitching == false) and (self.AlternateTrack == true) and 
+	if (self.InhibitSwitching == false) and (self.AlternateTrack == true) and
 	   (CurTime() - self.LastSignalTime > 20.0) then
 		self:SendSignal("main",self:GetChannel())
 	end

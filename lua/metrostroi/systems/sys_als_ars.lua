@@ -650,7 +650,7 @@ function TRAIN_SYSTEM:Think()
 	end
 
 	-- Special UPPS behavior
-	if GetConVarNumber("metrostroi_upps") > 0 then
+	if (GetConVarNumber("metrostroi_upps") > 0) and (Train.KV) then
 		local distance = Train:ReadCell(49165)
 		local skip_station = false
 
