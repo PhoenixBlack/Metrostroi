@@ -42,10 +42,22 @@ function Metrostroi.AddStationSign(ent)
 		
 		-- Bad hit workaround
 		if (not tr.Hit) or (tr.Fraction < 0.05) then
-			--print("STATION",ent.StationIndex,tr.Hit,tr.Fraction)
+			--print("STATION BAD HIT 1",ent.StationIndex,tr.Hit,tr.Fraction)
 
 			pos = (platformStart + platformDir*X[i]) + Vector(0,0,64+32) + platformN*0
 			tr = trace(pos,platformN*384)
+		end
+		if (not tr.Hit) or (tr.Fraction < 0.05) then
+			--print("STATION BAD HIT 3",ent.StationIndex,tr.Hit,tr.Fraction)
+
+			pos = (platformStart + platformDir*X[i]) + Vector(0,0,64+32) + platformN*0
+			tr = trace(pos,-platformN*384)
+		end
+		if (not tr.Hit) or (tr.Fraction < 0.05) then
+			--print("STATION BAD HIT 2",ent.StationIndex,tr.Hit,tr.Fraction)
+
+			pos = (platformStart + platformDir*X[i]) + Vector(0,0,64+32) + platformN*96
+			tr = trace(pos,-platformN*384)
 		end
 		
 		local sign = ents.Create("gmod_track_sign")
@@ -56,6 +68,7 @@ function Metrostroi.AddStationSign(ent)
 			else
 				sign:SetPos(tr.HitPos + tr.HitNormal*4)
 				sign:SetAngles(-platformN:Angle())
+				print(Format("Metrostroi: Could not find a nice way to place station names for %03d",ent.StationIndex))
 			end
 			sign:Spawn()
 			
@@ -63,21 +76,57 @@ function Metrostroi.AddStationSign(ent)
 			sign:SetNWString("Name",Metrostroi.StationNames[ent.StationIndex])
 			sign:SetNWInt("ID",ent.StationIndex)
 			sign:SetNWInt("Platform",ent.PlatformIndex)
-
-			-- Get stations list
-			local stationList = {}
+			
+			-- Get path of this station
 			local path1 = math.floor(ent.StationIndex/100)
-			for k,v in pairs(Metrostroi.StationNames) do
+			
+			-- List of change stations
+			local ChangeStations = {
+				[122] = 321,
+				[321] = 122,
+			}
+			
+			-- Store up to two changes
+			local change2List = {}
+			local change3List = {}
+			local change2Used = nil
+			local change3Used = nil
+			for k,v in pairs(ChangeStations) do
 				local path2 = math.floor(k/100)
 				if path1 == path2 then
+					if not change2Used then
+						change2Used = k
+						sign:SetNWInt("Change2",k)
+						sign:SetNWInt("Change2ID",v)
+					elseif not change3Used then
+						change3Used = k
+						sign:SetNWInt("Change3",k)
+						sign:SetNWInt("Change3ID",v)
+					end
+				end
+			end
+
+			-- Get stations list
+			local change2_path = math.floor((ChangeStations[change2Used or 0] or 0)/100)
+			local change3_path = math.floor((ChangeStations[change3Used or 0] or 0)/100)
+			local stationList = {}
+			for k,v in pairs(Metrostroi.StationNames) do
+				local path2 = math.floor(k/100)
+				if (path1 == path2) or (change2_path == path2) or (change3_path == path2) then
 					local R = (Metrostroi.StationNamesConfiguration[k] or {})[1] or 0
 					local G = (Metrostroi.StationNamesConfiguration[k] or {})[2] or 0
 					local B = (Metrostroi.StationNamesConfiguration[k] or {})[3] or 0
 					local Use = (Metrostroi.StationNamesConfiguration[k] or {})[4] or 0
 					if (Use > 0) then
-						if ((ent.PlatformIndex == 2) and (ent.StationIndex >= k)) or
-						   ((ent.PlatformIndex == 1) and (ent.StationIndex <= k)) then
-							table.insert(stationList,k)
+						if (change2_path == path2) and (path2 ~= path1) then
+							table.insert(change2List,k)
+						elseif (change3_path == path3) and (path2 ~= path1) then
+							table.insert(change3List,k)
+						else
+							if ((ent.PlatformIndex == 2) and (ent.StationIndex >= k)) or
+							   ((ent.PlatformIndex == 1) and (ent.StationIndex <= k)) then
+								table.insert(stationList,k)
+							end
 						end
 					end
 				end
@@ -89,6 +138,8 @@ function Metrostroi.AddStationSign(ent)
 			else
 				table.sort(stationList, function(a, b) return a > b end)
 			end
+			table.sort(change2List, function(a, b) return a < b end)
+			table.sort(change3List, function(a, b) return a < b end)
 			
 			-- Send stations list
 			sign:SetNWInt("StationList#",#stationList)
@@ -100,7 +151,27 @@ function Metrostroi.AddStationSign(ent)
 				sign:SetNWInt("StationList"..k.."[G]",(Metrostroi.StationNamesConfiguration[v] or {})[2])
 				sign:SetNWInt("StationList"..k.."[B]",(Metrostroi.StationNamesConfiguration[v] or {})[3])
 				--sign:SetNWInt("StationList"..k.."[R]",(Metrostroi.StationNamesConfiguration[v.ID] or {})[1])
-			end			
+			end
+			
+			-- Send change lists
+			sign:SetNWInt("Change2List#",#change2List)
+			for k,v in ipairs(change2List) do
+				sign:SetNWInt("Change2List"..k.."[ID]",v)
+				sign:SetNWString("Change2List"..k.."[Name1]",Metrostroi.StationTitles[v])
+				sign:SetNWString("Change2List"..k.."[Name2]",Metrostroi.StationNames[v])
+				sign:SetNWInt("Change2List"..k.."[R]",(Metrostroi.StationNamesConfiguration[v] or {})[1])
+				sign:SetNWInt("Change2List"..k.."[G]",(Metrostroi.StationNamesConfiguration[v] or {})[2])
+				sign:SetNWInt("Change2List"..k.."[B]",(Metrostroi.StationNamesConfiguration[v] or {})[3])
+			end
+			sign:SetNWInt("Change3List#",#change3List)
+			for k,v in ipairs(change3List) do
+				sign:SetNWInt("Change3List"..k.."[ID]",v)
+				sign:SetNWString("Change3List"..k.."[Name1]",Metrostroi.StationTitles[v])
+				sign:SetNWString("Change3List"..k.."[Name2]",Metrostroi.StationNames[v])
+				sign:SetNWInt("Change3List"..k.."[R]",(Metrostroi.StationNamesConfiguration[v] or {})[1])
+				sign:SetNWInt("Change3List"..k.."[G]",(Metrostroi.StationNamesConfiguration[v] or {})[2])
+				sign:SetNWInt("Change3List"..k.."[B]",(Metrostroi.StationNamesConfiguration[v] or {})[3])
+			end
 			
 			--[[sign:MakeStationSign(
 				Metrostroi.StationTitles[ent.StationIndex] or Metrostroi.StationNames[ent.StationIndex],

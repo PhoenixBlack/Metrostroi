@@ -778,6 +778,7 @@ function Metrostroi.Load(name,keep_signs)
 					end
 					if v.Class == "gmod_track_switch" then
 						ent:SetChannel(v.Channel or 1)
+						ent.LockedSignal = v.LockedSignal
 					end
 				end
 			end
@@ -841,6 +842,7 @@ function Metrostroi.Save(name)
 			Pos = v:GetPos(),
 			Angles = v:GetAngles(),
 			Channel = v:GetChannel(),
+			LockedSignal = v.LockedSignal
 		})
 	end
 

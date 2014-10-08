@@ -436,12 +436,12 @@ end
 
 timer.Create("Metrostroi_PlayerKillTimer",0.1,0,function()
 	Metrostroi.PeopleOnRails = 0
-	for k,v in pairs(player.GetAll()) do
-		murder(v)
-	end
-	for k,v in pairs(ents.FindByClass("npc_*")) do
-		murder(v)
-	end
+	--for k,v in pairs(player.GetAll()) do
+		--murder(v)
+	--end
+	--for k,v in pairs(ents.FindByClass("npc_*")) do
+		--murder(v)
+	--end
 end)
 
 

@@ -49,6 +49,68 @@ function ENT:Initialize()
 		Vector(16,768,64))
 end
 
+local P1 = -2
+local P2 = 3
+function ENT:DrawStation(x,y,ID,currentStation,R1,G1,B1,W,H,text1,text2,text3)		
+	local R2 = 225
+	local G2 = 205
+	local B2 = 0
+
+	if currentStation then
+		local R,G,B = R2,G2,B2
+		R2,G2,B2 = R1,G1,B1
+		R1,G1,B1 = R,G,B
+	end
+
+	self.LastColor = self.LastColor or Color(R1,G1,B1,255)
+	
+	surface.SetDrawColor(0,0,0,255)
+	surface.DrawRect(x+P1,y,W-P1*2,H)
+	
+	surface.SetDrawColor(R1,G1,B1,255)
+	surface.DrawRect(x+P1+P2,y+P2,W-P1*2-P2*2,H-P2*2)
+	
+	local cx = x+W*0.1
+	local cy = y+H*0.5
+	local N = 10
+	local radius = 23
+	local step = 2*math.pi/N
+	local vertexBuffer = { {}, {}, {} }
+
+	surface.SetDrawColor(255,255,255,255)
+	for i=1,N do
+		vertexBuffer[1].x = cx + radius*math.sin(step*(i+0))
+		vertexBuffer[1].y = cy + radius*math.cos(step*(i+0))
+		vertexBuffer[2].x = cx
+		vertexBuffer[2].y = cy
+		vertexBuffer[3].x = cx + radius*math.sin(step*(i+1))
+		vertexBuffer[3].y = cy + radius*math.cos(step*(i+1))
+		surface.DrawPoly(vertexBuffer)
+	end
+
+	draw.Text({
+		text = text1,
+		font = "MetrostroiSubway_StationList3",
+		pos = { x+W*0.1, y+H*0.5},
+		xalign = TEXT_ALIGN_CENTER,
+		yalign = TEXT_ALIGN_CENTER,
+		color = Color(0,0,0,255)})
+	draw.Text({
+		text = text2,
+		font = "MetrostroiSubway_StationList1",
+		pos = { x+W*0.55, y+H*0.25},
+		xalign = TEXT_ALIGN_CENTER,
+		yalign = TEXT_ALIGN_CENTER,
+		color = Color(0,0,0,255)})
+	draw.Text({
+		text = text3,
+		font = "MetrostroiSubway_StationList2",
+		pos = { x+W*0.55, y+H*0.75},
+		xalign = TEXT_ALIGN_CENTER,
+		yalign = TEXT_ALIGN_CENTER,
+		color = Color(0,0,0,255)})
+end
+
 function ENT:Draw()
 	local pos = self:LocalToWorld(Vector(4,0,16))
 	local ang = self:LocalToWorldAngles(Angle(0,90,90))
@@ -73,10 +135,8 @@ function ENT:Draw()
 		local N = self:GetNWInt("StationList#")
 		local W = 320
 		local H = 64
-		local P1 = -2
-		local P2 = 3
 		local X = -N*W*0.5
-		local LastColor = nil
+		self.LastColor = nil
 		for i=1,N do
 			local x = X+W*(i-1)
 			local ID = self:GetNWInt("StationList"..i.."[ID]")
@@ -85,64 +145,42 @@ function ENT:Draw()
 			local R1 = self:GetNWInt("StationList"..i.."[R]")
 			local G1 = self:GetNWInt("StationList"..i.."[G]")
 			local B1 = self:GetNWInt("StationList"..i.."[B]")
-			local R2 = 225
-			local G2 = 205
-			local B2 = 0
+			
+			self:DrawStation(x,0,ID,currentStation,R1,G1,B1,W,H,
+				self:GetNWString("StationList"..i.."[ID]"),
+				self:GetNWString("StationList"..i.."[Name1]"),
+				self:GetNWString("StationList"..i.."[Name2]"))
+				
+			-- Draw change
+			if self:GetNWInt("Change2") == tonumber(self:GetNWString("StationList"..i.."[ID]")) then
+				local Nc = self:GetNWInt("Change2List#")
+				local ChangeStation = self:GetNWInt("Change2ID")
+				local N2 = 0
+				for j=1,Nc do
+					if self:GetNWInt("Change2List"..j.."[ID]") < ChangeStation then
+						N2 = N2 + 1
+					end
+				end
+				
+				for j=1,Nc do
+					local ID = self:GetNWInt("Change2List"..j.."[ID]")
+					local R2 = self:GetNWInt("Change2List"..j.."[R]")
+					local G2 = self:GetNWInt("Change2List"..j.."[G]")
+					local B2 = self:GetNWInt("Change2List"..j.."[B]")
+					
+					local H2 = H*0.85
+					local y = 0
+					if j <= N2 
+					then y = -H2*(N2-j+1)
+					else y = 0+H+H2*(j-N2-1)
+					end
 
-			if currentStation then
-				local R,G,B = R2,G2,B2
-				R2,G2,B2 = R1,G1,B1
-				R1,G1,B1 = R,G,B
+					self:DrawStation(x,y,ID,false,R2,G2,B2,W,H2,
+						self:GetNWString("Change2List"..j.."[ID]"),
+						self:GetNWString("Change2List"..j.."[Name1]"),
+						self:GetNWString("Change2List"..j.."[Name2]"))
+				end
 			end
-
-			LastColor = LastColor or Color(R1,G1,B1,255)
-			
-			surface.SetDrawColor(0,0,0,255)
-			surface.DrawRect(x+P1,0,W-P1*2,H)
-			
-			surface.SetDrawColor(R1,G1,B1,255)
-			surface.DrawRect(x+P1+P2,0+P2,W-P1*2-P2*2,H-P2*2)
-			
-			local cx = x+W*0.1
-			local cy = 0+H*0.5
-			local N = 10
-			local radius = 23
-			local step = 2*math.pi/N
-			local vertexBuffer = { {}, {}, {} }
-
-			surface.SetDrawColor(255,255,255,255)
-			for i=1,N do
-				vertexBuffer[1].x = cx + radius*math.sin(step*(i+0))
-				vertexBuffer[1].y = cy + radius*math.cos(step*(i+0))
-				vertexBuffer[2].x = cx
-				vertexBuffer[2].y = cy
-				vertexBuffer[3].x = cx + radius*math.sin(step*(i+1))
-				vertexBuffer[3].y = cy + radius*math.cos(step*(i+1))
-				surface.DrawPoly(vertexBuffer)
-			end
-	
-			
-			draw.Text({
-				text = self:GetNWString("StationList"..i.."[ID]"),
-				font = "MetrostroiSubway_StationList3",
-				pos = { x+W*0.1, 0+H*0.5},
-				xalign = TEXT_ALIGN_CENTER,
-				yalign = TEXT_ALIGN_CENTER,
-				color = Color(0,0,0,255)})
-			draw.Text({
-				text = self:GetNWString("StationList"..i.."[Name1]"),
-				font = "MetrostroiSubway_StationList1",
-				pos = { x+W*0.55, 0+H*0.25},
-				xalign = TEXT_ALIGN_CENTER,
-				yalign = TEXT_ALIGN_CENTER,
-				color = Color(0,0,0,255)})
-			draw.Text({
-				text = self:GetNWString("StationList"..i.."[Name2]"),
-				font = "MetrostroiSubway_StationList2",
-				pos = { x+W*0.55, 0+H*0.75},
-				xalign = TEXT_ALIGN_CENTER,
-				yalign = TEXT_ALIGN_CENTER,
-				color = Color(0,0,0,255)})
 		end
 		
 		-- Inner part of arrow
@@ -168,7 +206,7 @@ function ENT:Draw()
 			v.x = v.x - (N*0.5)*W
 		end
 		
-		surface.SetDrawColor(LastColor or Color(0,0,0,0))
+		surface.SetDrawColor(self.LastColor or Color(0,0,0,0))
 		surface.DrawPoly(arrow)
 	cam.End3D2D()
 end
