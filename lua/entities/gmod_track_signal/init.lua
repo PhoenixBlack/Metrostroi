@@ -5,14 +5,17 @@ include("shared.lua")
 function ENT:Initialize()
 	self:SetModel("models/metrostroi/signals/ars_box.mdl")
 	self.Sprites = {}
+	self.CacheData = {}
 	Metrostroi.UpdateSignalEntities()
 	
 	-- Setup nominal signals (give it few seconds to establish)
 	self.NominalSignals = 0
 	self.NoNominalSignals = true
 	self.GetNominalSignals = function(self) return self.NominalSignals end
+	self.SkipCache = true
 	timer.Simple(16.0,function()
 		if IsValid(self) and self.GetActiveSignals then
+			self.SkipCache = false
 			self.NoNominalSignals = false
 			self.NominalSignals = self:GetActiveSignals()
 		end
@@ -115,8 +118,8 @@ function ENT:ARSLogic()
 		self.ARSPath = pos.path.id
 
 		-- Check if there is a train anywhere on the isolated area
-		local nextARS = Metrostroi.GetARSJoint(node,pos.x,    pos.forward)
-		local prevARS = Metrostroi.GetARSJoint(node,pos.x,not pos.forward)
+		local nextARS = self:Cache("nextARS",function() return Metrostroi.GetARSJoint(node,pos.x,    pos.forward) end)
+		local prevARS = self:Cache("prevARS",function() return Metrostroi.GetARSJoint(node,pos.x,not pos.forward) end)
 
 		-- Get nominal ARS signals
 		local ARS80 = self:GetSettingsBit(0)
@@ -146,6 +149,11 @@ function ENT:ARSLogic()
 		if ARS70 then speedLimit = 70 end
 		if ARS80 then speedLimit = 80 end
 		
+		-- Special setting 1
+		if self:GetSettingsBit(19) and self.SwitchAlternate then
+			speedLimit = 40
+		end
+		
 		-- If ARS data is invalid, use next speed limit
 		if (not ARSdata) and prevARS then
 			speedLimit = prevARS.SpeedLimit or 0
@@ -154,14 +162,15 @@ function ENT:ARSLogic()
 		-- Reset to zero when traffic light is red
 		self.AbsoluteStop = false
 		self.NextRed = false
-		if nextARS and nextARS.RedState then
+		if nextARS and nextARS.RedState and (not self:GetDontPropagate()) then
+			--print(self:EntIndex(),self:GetDontPropagate())
 			self.AbsoluteStop = true
 			self.NextRed = true
 			speedLimit = 0
 		end
 
 		-- Reset to zero when next section is also at zero
-		if nextARS and nextARS.NextRed then
+		if nextARS and nextARS.NextRed and (not self:GetDontPropagate()) then
 			speedLimit = 0
 		end
 
@@ -205,6 +214,16 @@ function ENT:ARSLogic()
 	end
 end
 
+function ENT:Cache(name,value_func)
+	-- Old entry
+	self.CacheData = self.CacheData or {}
+	if self.CacheData[name] and (not self.SkipCache) then return self.CacheData[name] end
+	
+	-- New entry
+	self.CacheData[name] = value_func()
+	return self.CacheData[name]
+end
+
 function ENT:Think()
 	self.ARSOnly = GetConVarNumber("metrostroi_arsmode") > 0.5
 	self.ARSNoGreen = GetConVarNumber("metrostroi_arsmode_nogreen") > 0.5
@@ -212,14 +231,14 @@ function ENT:Think()
 	-- Do no interesting logic if there's no traffic light involved
 	if (self:GetTrafficLights() == 0) and (self.ARSOnly == false) then
 		self:ARSLogic()
-		self:NextThink(CurTime() + 1.0)
+		self:NextThink(CurTime() + 1.0 + 0.5*math.random())
 		return true
 	end
 	
 	-- Traffic light logic
 	self.PrevTime = self.PrevTime or 0
 	if (CurTime() - self.PrevTime) > 1.0 then
-		self.PrevTime = CurTime()+0.2*math.random()
+		self.PrevTime = CurTime()+0.5*math.random()
 		self:ARSLogic()
 		
 		-- Get position of the traffic light
@@ -229,14 +248,14 @@ function ENT:Think()
 		if node and pos then
 			-- Check if there is a train anywhere on the isolated area
 			local trackOccupied = Metrostroi.IsTrackOccupied(node,pos.x,pos.forward,self.ARSOnly and "ars" or "light")
-			local nextLight = Metrostroi.GetNextTrafficLight(node,pos.x,pos.forward)
+			local nextLight = self:Cache("nextLight",function() return Metrostroi.GetNextTrafficLight(node,pos.x,pos.forward) end)
 			local nextRed = false
 			if nextLight then nextRed = nextLight:GetRed() or nextLight:GetNoFreq() end
 			
 			-- Check if there's a track switch and it's set to alternate
 			local switchAlternate = false
 			local switchBlocked = false
-			local switches = Metrostroi.GetTrackSwitches(node,pos.x,pos.forward)
+			local switches = self:Cache("switches",function() return Metrostroi.GetTrackSwitches(node,pos.x,pos.forward) end)
 			for _,switch in pairs(switches) do
 				switchBlocked = switchBlocked or (switch.AlternateTrack and self.InhibitSwitching)
 				switchAlternate = switchAlternate or switch.AlternateTrack
@@ -246,6 +265,9 @@ function ENT:Think()
 			if Metrostroi.Voltage < 10 then
 				--trackOccupied = true
 			end
+			
+			-- Store some flags
+			self.SwitchAlternate = switchAlternate
 			
 			-- Execute logic
 			self:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)

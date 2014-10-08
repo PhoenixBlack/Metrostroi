@@ -108,7 +108,7 @@ function ENT:PopulatePlatform(platformStart,platformEnd,stationCenter)
 	
 	-- Fill pool
 	math.randomseed(self:Seed() + #self.Pool)
-	local N = math.min(self:PoolSize() - #self.Pool,128)
+	local N = math.min(self:PoolSize() - #self.Pool,32)
 	for i=1,N do
 		local pedestrian = {}
 		local iterations = 1

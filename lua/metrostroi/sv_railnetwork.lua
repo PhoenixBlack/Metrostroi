@@ -268,7 +268,9 @@ function Metrostroi.UpdateARSSections()
 	Metrostroi.IgnoreEntityUpdates = true
 	for k,v in pairs(Metrostroi.SignalEntityPositions) do
 		-- Find signal which sits BEFORE this signal
-		local signal = Metrostroi.GetNextTrafficLight(v.node1,v.x,not v.forward,true)
+		local signal = Metrostroi.GetARSJoint(v.node1,v.x,false)
+		
+		--Metrostroi.GetNextTrafficLight(v.node1,v.x,not v.forward,true)
 		if IsValid(k) and signal then
 			local pos = Metrostroi.SignalEntityPositions[signal]
 			--debugoverlay.Line(k:GetPos(),signal:GetPos(),10,Color(0,0,255),true)
@@ -378,7 +380,7 @@ function Metrostroi.ScanTrack(itype,node,func,x,dir,checked)
 	if result ~= nil then return result end
 
 	-- First check all the branches, whose positions fall within min_x..max_x
-	if node.branches then
+	if node.branches and (itype ~= "ars") then
 		for k,v in pairs(node.branches) do
 			if (v[1] >= min_x) and (v[1] <= max_x) then
 				-- FIXME: somehow define direction and X!
@@ -942,7 +944,10 @@ concommand.Add("metrostroi_track_arstest", function(ply, _, args)
 	-- Trigger all track switches
 	local results = Metrostroi.GetPositionOnTrack(ply:GetPos(),ply:GetAimVector():Angle())
 	for k,v in pairs(results) do
-		local ars = Metrostroi.GetNextTrafficLight(v.node1,v.x,v.forward,true)
+	    --Metrostroi.GetARSJoint(pos.node1,pos.x,false)
+		local ars = Metrostroi.GetARSJoint(v.node1,v.x,false)
+		
+		--Metrostroi.GetNextTrafficLight(v.node1,v.x,v.forward,true)
 		if ars then
 			local ARS80 = ars:GetActiveSignalsBit(10)
 			local ARS70 = ars:GetActiveSignalsBit(11)
@@ -952,9 +957,10 @@ concommand.Add("metrostroi_track_arstest", function(ply, _, args)
 			local ARSsp = ars:GetActiveSignalsBit(15)
 
 			if not (ARS80 or ARS70 or ARS60 or ARS40 or ARS0 or ARSsp) then
-				print("ARS: NO SIGNAL")
+				print(Format("[%d] ARS: NO SIGNAL",k))
 			else
-				print(Format("ARS: 80:%d 70:%d 60:%d 40:%d 0:%d Sp:%d",
+				print(Format("[%d] ARS: 80:%d 70:%d 60:%d 40:%d 0:%d Sp:%d",
+					k,
 					ARS80 and 1 or 0,
 					ARS70 and 1 or 0,
 					ARS60 and 1 or 0,
@@ -963,7 +969,7 @@ concommand.Add("metrostroi_track_arstest", function(ply, _, args)
 					ARSsp and 1 or 0))
 			end			
 		else
-			print("ARS: NO SIGNAL (NO ARS)")
+			print(Format("[%d] ARS: NO SIGNAL (NO ARS)",k))
 		end
 	end
 end)

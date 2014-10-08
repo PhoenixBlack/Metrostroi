@@ -67,7 +67,7 @@ function ENT:Draw()
 		local ang = self:LocalToWorldAngles(Angle(0,180,90))
 		cam.Start3D2D(pos, ang, 0.25)
 			surface.SetDrawColor(self:GetNoARS() and 255 or 125, 125, 0, 255)
-			surface.DrawRect(0, 0, 256, 320)
+			surface.DrawRect(0, 0, 256, 340)
 
 			draw.DrawText("Joint Information ("..self:EntIndex().."):","Trebuchet24",5,0,Color(0,0,0,255))
 			draw.DrawText("Always red: "..				(self:GetAlwaysRed() and "Yes" or "No"),"Trebuchet24",			15, 20,Color(0,0,0,255))
@@ -79,15 +79,16 @@ function ENT:Draw()
 			
 			draw.DrawText("Invert switch chan #1: "..	(self:GetInvertChannel1() and "Yes" or "No"),"Trebuchet24",	15,120,Color(0,0,0,255))
 			draw.DrawText("Invert switch chan #2: "..	(self:GetInvertChannel2() and "Yes" or "No"),"Trebuchet24",	15,140,Color(0,0,0,255))
+			draw.DrawText("ARS don't propagate 0: "..   (self:GetDontPropagate() and "Yes" or "No"),"Trebuchet24",	15,160,Color(0,0,0,255))
 			--draw.DrawText("ARS speed warning: "..		(self:GetARSSpeedWarning() and "Yes" or "No"),"Trebuchet24",	15,100,Color(0,0,0,255))
 			
 			
-			draw.DrawText("(75  Hz) 80 KM/H","Trebuchet24",15,180,Color(self:GetSettingsBit(0) and 255 or 0,0,self:GetActiveSignalsBit(10) and 255 or 0,255))
-			draw.DrawText("(125 Hz) 70 KM/H","Trebuchet24",15,200,Color(self:GetSettingsBit(1) and 255 or 0,0,self:GetActiveSignalsBit(11) and 255 or 0,255))
-			draw.DrawText("(175 Hz) 60 KM/H","Trebuchet24",15,220,Color(self:GetSettingsBit(2) and 255 or 0,0,self:GetActiveSignalsBit(12) and 255 or 0,255))
-			draw.DrawText("(225 Hz) 40 KM/H","Trebuchet24",15,240,Color(self:GetSettingsBit(3) and 255 or 0,0,self:GetActiveSignalsBit(13) and 255 or 0,255))
-			draw.DrawText("(275 Hz)  0 KM/H","Trebuchet24",15,260,Color(self:GetSettingsBit(4) and 255 or 0,0,self:GetActiveSignalsBit(14) and 255 or 0,255))
-			draw.DrawText("(325 Hz) Special","Trebuchet24",15,280,Color(self:GetSettingsBit(5) and 255 or 0,0,self:GetActiveSignalsBit(15) and 255 or 0,255))
+			draw.DrawText("(75  Hz) 80 KM/H","Trebuchet24",15,200,Color(self:GetSettingsBit(0) and 255 or 0,0,self:GetActiveSignalsBit(10) and 255 or 0,255))
+			draw.DrawText("(125 Hz) 70 KM/H","Trebuchet24",15,220,Color(self:GetSettingsBit(1) and 255 or 0,0,self:GetActiveSignalsBit(11) and 255 or 0,255))
+			draw.DrawText("(175 Hz) 60 KM/H","Trebuchet24",15,240,Color(self:GetSettingsBit(2) and 255 or 0,0,self:GetActiveSignalsBit(12) and 255 or 0,255))
+			draw.DrawText("(225 Hz) 40 KM/H","Trebuchet24",15,260,Color(self:GetSettingsBit(3) and 255 or 0,0,self:GetActiveSignalsBit(13) and 255 or 0,255))
+			draw.DrawText("(275 Hz)  0 KM/H","Trebuchet24",15,280,Color(self:GetSettingsBit(4) and 255 or 0,0,self:GetActiveSignalsBit(14) and 255 or 0,255))
+			draw.DrawText("(325 Hz) Special","Trebuchet24",15,300,Color(self:GetSettingsBit(5) and 255 or 0,0,self:GetActiveSignalsBit(15) and 255 or 0,255))
 		cam.End3D2D()
 	end
 	
