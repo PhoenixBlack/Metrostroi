@@ -1257,7 +1257,7 @@ function TRAIN_SYSTEM:Think()
 		xpcall(function() 
 		self:Announcer2()
 		end, function(err)
-			print("ERROR:", err)
+			--print("ERROR:", err)
 		end)
 	end
 	-- Check if new announcement must be started from train wire
