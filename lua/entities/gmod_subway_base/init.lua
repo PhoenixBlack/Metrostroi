@@ -1,3 +1,7 @@
+--Add a new net ID's
+util.AddNetworkString("metrostroi-train")
+util.AddNetworkString("metrostroi-train-sync")
+
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
@@ -6,6 +10,12 @@ include("shared.lua")
 
 --------------------------------------------------------------------------------
 function ENT:Initialize()
+	--Create a 1 sec sync table
+	--[[
+	timer.Create("metrostroi-train-sync-"..self:EntIndex(),5,0,function()
+		local plytbl = self:GetPlayersInRange()
+		self:SendAllToClient(plytbl)
+	end)]]
 	-- Initialize physics for the selected model
 	if self:GetModel() == "models/error.mdl" then
 		self:SetModel("models/props_lab/reciever01a.mdl")
@@ -184,7 +194,7 @@ function ENT:Initialize()
 end
 
 -- Remove entity
-function ENT:OnRemove()	
+function ENT:OnRemove()
 	-- Remove all linked objects
 	constraint.RemoveAll(self)
 	if self.TrainEntities then
@@ -265,7 +275,7 @@ function ENT:GetDebugVars()
 	
 	-- System variables
 	for k,v in pairs(self.Systems) do
-		for _,output in pairs(v.OutputsList) do
+		for _,output in pairs(v.OutputsList or {}) do
 			self.DebugVars[(v.Name or "")..output] = v[output] or 0
 		end
 	end
@@ -1171,12 +1181,28 @@ end
 --------------------------------------------------------------------------------
 -- Think and execute systems stuff
 function ENT:Think()
+	local CT = CurTime()%3/3 > 0.5
+	if self.SyncCurTime == nil or CT ~= self.SyncCurTime then
+		if CT then
+			local plytbl = self:GetPlayersInRange()
+			self:SendAllToClient(plytbl)
+		end
+		self.SyncCurTime = CT
+	end
+	--Check, if new player is joined to sync range
+	local plytbl = self:GetPlayersInRange()
+	local OldPlayers = {}
+	local NewPlayers = {}
+	for k,v in pairs(self._OldPlys or {}) do OldPlayers[v] = true end
+	for k,v in pairs(plytbl) do
+		if not OldPlayers[v] then table.insert(NewPlayers,v) end
+	end
+	self:SendAllToClient(NewPlayers)
+	self._OldPlys = plytbl
+
 	self.PrevTime = self.PrevTime or CurTime()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
-	
-	-- Read networked variables
-	self:RecvPackedData()
 	
 	-- Calculate train acceleration
 	--[[self.PreviousVelocity = self.PreviousVelocity or self:GetVelocity()

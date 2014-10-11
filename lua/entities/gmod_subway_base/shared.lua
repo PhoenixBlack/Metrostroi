@@ -11,8 +11,6 @@ ENT.Spawnable       = true
 ENT.AdminSpawnable  = false
 
 
-
-
 --------------------------------------------------------------------------------
 -- Default initializer only loads up DURA
 --------------------------------------------------------------------------------
@@ -413,21 +411,7 @@ end
 -- Setup datatables for faster, more optimized transmission
 --------------------------------------------------------------------------------
 function ENT:SetupDataTables()
-	-- Int0,Int1,Int2,Int3: packet bit values
-	self:NetworkVar("Int", 0, "PackedInt0")
-	self:NetworkVar("Int", 1, "PackedInt1")
-	self:NetworkVar("Int", 2, "PackedInt2")
-	self:NetworkVar("Int", 3, "PackedInt3")
-
-	-- Vec0,Vec1,Vec2,Vec3: floating point values
-	self:NetworkVar("Vector", 0, "PackedVec0")
-	self:NetworkVar("Vector", 1, "PackedVec1")
-	self:NetworkVar("Vector", 2, "PackedVec2")
-	self:NetworkVar("Vector", 3, "PackedVec3")
-	
-	-- Other variables
-	self:NetworkVar("Float", 0, "PackedInt4")
-	self:NetworkVar("Float", 1, "PackedInt5")
+	self._NetData = {{},{}}
 	self:NetworkVar("Float", 2, "PassengerCount")	
 end
 
@@ -435,6 +419,7 @@ end
 -- Prepare networking functions
 --------------------------------------------------------------------------------
 function ENT:SendPackedData()
+	--[[
 	self:SetPackedInt0(self._PackedInt[1])
 	self:SetPackedInt1(self._PackedInt[2])
 	self:SetPackedInt2(self._PackedInt[3])
@@ -446,86 +431,79 @@ function ENT:SendPackedData()
 	self:SetPackedVec1(self._PackedVec[2])
 	self:SetPackedVec2(self._PackedVec[3])
 	self:SetPackedVec3(self._PackedVec[4])
+	]]
 end
-
-function ENT:RecvPackedData()
-	self._PackedInt = self._PackedInt or {}
-	self._PackedInt[1] = self:GetPackedInt0()
-	self._PackedInt[2] = self:GetPackedInt1()
-	self._PackedInt[3] = self:GetPackedInt2()
-	self._PackedInt[4] = self:GetPackedInt3()
-	self._PackedInt[5] = self:GetPackedInt4()
-	self._PackedInt[6] = self:GetPackedInt5()
-
-	self._PackedVec = self._PackedVec or {}
-	self._PackedVec[1] = self:GetPackedVec0()
-	self._PackedVec[2] = self:GetPackedVec1()
-	self._PackedVec[3] = self:GetPackedVec2()
-	self._PackedVec[4] = self:GetPackedVec3()
-end
-
 -- Quick shortcuts
+
 local bitlshift = bit.lshift
 local bitbnot = bit.bnot
 local bitbor = bit.bor
 local bitband = bit.band
 
 --------------------------------------------------------------------------------
--- Set/get tightly packed float (for speed, pneumatic gauges, etc)
+-- Finds players in given range(8192 and 768)
 --------------------------------------------------------------------------------
+function ENT:GetPlayersInRange()
+	local plytbl = {}
+	local entpos = self:GetPos()
+	for _,player in pairs(player.GetAll()) do
+		local vec = entpos - player:GetPos()
+		local dx,dy,dz = vec.x,vec.y,vec.z
+		if (math.abs(dx) + math.abs(dy)) < 8192 and math.abs(dz) < 768 then
+			table.insert(plytbl, player)
+		end
+	end
+	return plytbl
+end
+---------------------------------------------------------------------------------------
+-- Checks, if float changed and sends a net message (for speed, pneumatic gauges, etc)
+---------------------------------------------------------------------------------------
 function ENT:SetPackedRatio(vecn,ratio)
-	if not self._PackedVec then return end
-	local int = 1
-	if vecn >= 3 then int = 2 vecn = vecn-3 end
-	if vecn >= 3 then int = 3 vecn = vecn-3 end
-	if vecn >= 3 then int = 4 vecn = vecn-3 end
+	local ratio = math.Round(ratio,2)
+	if self._NetData[2][vecn] ~= nil and self._NetData[2][vecn] == ratio then return end
 
-	if vecn == 0 then self._PackedVec[int].x = ratio end
-	if vecn == 1 then self._PackedVec[int].y = ratio end
-	if vecn == 2 then self._PackedVec[int].z = ratio end
+	local plytbl = self:GetPlayersInRange()
+	--print("Changed a "..vecn.." to "..ratio)
+	net.Start("metrostroi-train")
+		net.WriteEntity(self)
+		net.WriteBit(true)
+		net.WriteInt(vecn,16)
+		net.WriteFloat(ratio)
+	net.Send(plytbl)
+	self._NetData[2][vecn] = ratio
 end
 
 function ENT:GetPackedRatio(vecn)
-	if not self._PackedVec then return end
-	local int = 1
-	if vecn >= 3 then int = 2 vecn = vecn-3 end
-	if vecn >= 3 then int = 3 vecn = vecn-3 end
-	if vecn >= 3 then int = 4 vecn = vecn-3 end
-
-	if vecn == 0 then return self._PackedVec[int].x end
-	if vecn == 1 then return self._PackedVec[int].y end
-	if vecn == 2 then return self._PackedVec[int].z end
+	return self._NetData[2][vecn] or 0
 end
 
 --------------------------------------------------------------------------------
--- Set/get tightly packed boolean (for gauges, lights)
+-- Checks, if bool changed and sends a net message
 --------------------------------------------------------------------------------
 function ENT:SetPackedBool(idx,value)
-	if not self._PackedInt then return end
-	local int = 1
-	if idx >= 32 then int = 2 idx = idx-32 end
-	if idx >= 32 then int = 3 idx = idx-32 end
-	if idx >= 32 then int = 4 idx = idx-32 end
-	if idx >= 32 then int = 5 idx = idx-32 end
-	if idx >= 32 then int = 6 idx = idx-32 end
-	
-	-- Pack value
-	local packed_value = bitlshift(value and 1 or 0,idx)
-	local mask = bitbnot(bitlshift(1,idx))
+	if self._NetData[1][idx] ~= nil and self._NetData[1][idx] == value then return end
 
-	-- Create total packed integer
-	self._PackedInt[int] = bitbor(bitband(self._PackedInt[int],mask),packed_value)
+	local plytbl = self:GetPlayersInRange()
+	net.Start("metrostroi-train")
+		net.WriteEntity(self)
+		net.WriteBit(false)
+		net.WriteInt(idx,16)
+		net.WriteBit(value)
+	net.Send(plytbl)
+	self._NetData[1][idx] = value
+end
+
+--------------------------------------------------------------------------------
+-- Check a ply and sends full data
+--------------------------------------------------------------------------------
+function ENT:SendAllToClient(ply)
+	if not ply or (type(ply) == "table" and #ply == 0) then return end
+	net.Start("metrostroi-train-sync")
+		net.WriteEntity(self)
+		net.WriteTable(self._NetData)
+	net.Send(ply)
 end
 
 function ENT:GetPackedBool(idx)
-	if not self._PackedInt then return end
-	local int = 1
-	if idx >= 32 then int = 2 idx = idx-32 end
-	if idx >= 32 then int = 3 idx = idx-32 end
-	if idx >= 32 then int = 4 idx = idx-32 end
-	if idx >= 32 then int = 5 idx = idx-32 end
-	if idx >= 32 then int = 6 idx = idx-32 end
-	
-	local mask = bitlshift(1,idx)
-	return bitband(self._PackedInt[int],mask) ~= 0
+	return self._NetData[1][idx] ~= nil and self._NetData[1][idx] or false
 end
