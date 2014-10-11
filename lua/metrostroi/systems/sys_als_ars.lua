@@ -1,4 +1,4 @@
-﻿--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- АРС-АЛС
 --------------------------------------------------------------------------------
 Metrostroi.DefineSystem("ALS_ARS")
@@ -123,6 +123,7 @@ function TRAIN_SYSTEM:UPPS(Train)
 		[121] = -0.10,
 		[122] = -0.10,
 		[123] =  3.00,
+		[322] =  3.00,
 	}
 	local dX = Train:ReadCell(49165) - 10 - 5 + 6.5 - 3.3 + (Corrections[Station] or 0)
 
@@ -167,6 +168,7 @@ function TRAIN_SYSTEM:Autodrive(Train)
 		[121] = -0.10,
 		[122] = -0.10,
 		[123] =  3.00,
+		[322] =  3.00,
 	}
 	local dX = Train:ReadCell(49165) - 10 - 5 + 6.5 - 3.3 + (Corrections[Station] or 0)
 
@@ -213,7 +215,7 @@ function TRAIN_SYSTEM:Autodrive(Train)
 	-- Full stop command
 	if self.SpeedLimit < 30 then TargetBrakeRKPosition = 18 Brake = true end
 
-	local OnStation = dX < (160+35*mu - (speedLimit == 40 and 30 or 0)) and not self.StartMoving and Metrostroi.WorkingStations[Station]
+	local OnStation = dX < (160+35*mu - (speedLimit == 40 and 30 or 0)) and not self.StartMoving and Metrostroi.AnnouncerData[Station]
 	-- Calculate RK position based on distance and autodrive profile
 	if OnStation then
 		TargetBrakeRKPosition = GetStationRK(mu, dX)
@@ -243,7 +245,7 @@ function TRAIN_SYSTEM:Autodrive(Train)
 	--or (Train:ReadCell(6) > 0 and Train:ReadCell(18) < 1 and Slope > 1)
 
 	--Disable autodrive on end of station brake
-	local StatID = Metrostroi.WorkingStations[Station] or Metrostroi.WorkingStations[Station + (Path == 1 and 1 or -1)] or 0
+	--local StatID = Metrostroi.WorkingStations[Station] or Metrostroi.WorkingStations[Station + (Path == 1 and 1 or -1)] or 0
 
 	if (TargetBrakeRKPosition == 18 and self.Speed < 0.1 and not self.StartMoving and OnStation) or (self.StartMoving and 5 < dX and dX < 160) then
 		if (TargetBrakeRKPosition == 18 and self.Speed < 0.1 and not self.StartMoving and OnStation) then
@@ -253,11 +255,9 @@ function TRAIN_SYSTEM:Autodrive(Train)
 			self.VUDOverride = true
 
 			local Station = self.Train:ReadCell(49160) > 0 and self.Train:ReadCell(49160) or self.Train:ReadCell(49161)
-			local StatID = Metrostroi.WorkingStations[Station] or Metrostroi.WorkingStations[Station + (Path == 1 and 1 or -1)] or 0
-			local Curr
-			if StatID ~= 0 then
-				Curr = Metrostroi.AnnouncerData[Metrostroi.WorkingStations[StatID]]
-			end
+			if Station == 0 then return end
+			--local StatID = Metrostroi.WorkingStations[Station] or Metrostroi.WorkingStations[Station + (Path == 1 and 1 or -1)] or 0
+			local Curr = Metrostroi.AnnouncerData[Station]
 
 			if Train.CustomA.Value < 0.5 then
 				if Curr[2] then
@@ -662,7 +662,9 @@ function TRAIN_SYSTEM:Think()
 			end
 		end
 
-		if (self.AttentionPedal and distance < 120 and not self.UPPSOverride) or self.AutodriveEnabled or not Train.KV or Train.KV.ReverserPosition ~= 1.0 or Train.VB.Value ~= 1.0 or Train.KV.ControllerPosition <= -0.5 then
+		if (self.AttentionPedal and distance < 120 and not self.UPPSOverride)
+			or self.AutodriveEnabled or not Train.KV or Train.KV.ReverserPosition ~= 1.0 or Train.VB.Value ~= 1.0
+			or Train.KV.ControllerPosition <= -0.5 or not EnableARS or not EnableALS or (self.Train.RC1 and (self.Train.RC1.Value == 0))then
 			self.UPPSOverride = true
 		end
 		if distance > 120 then

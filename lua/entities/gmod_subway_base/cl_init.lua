@@ -1,5 +1,14 @@
 ﻿include("shared.lua")
-
+net.Receive("metrostroi-train",function()
+	local self =  net.ReadEntity()
+	local TYPE = net.ReadBit() + 1
+	if not self._NetData or not self._NetData[TYPE] then return end
+	self._NetData[TYPE][net.ReadInt(16)] = net["Read"..(TYPE == 2 and "Float" or "Type")](TYPE)
+end)
+net.Receive("metrostroi-train-sync",function()
+	local self =  net.ReadEntity()
+	self._NetData = net.ReadTable()
+end)
 
 surface.CreateFont("MetrostroiSubway_LargeText", {
   font = "Arial",
@@ -274,6 +283,7 @@ function ENT:Initialize()
 	-- Create sounds
 	self:InitializeSounds()
 	self.Sounds = {}
+	--self:EntIndex()
 end
 
 function ENT:OnRemove()
@@ -287,6 +297,7 @@ function ENT:OnRemove()
 	for k,v in pairs(self.PassengerEnts) do
 		v:Remove()
 	end
+	self = nil
 end
 
 
@@ -299,9 +310,6 @@ function ENT:Think()
 	self.PrevTime = self.PrevTime or RealTime()
 	self.DeltaTime = (RealTime() - self.PrevTime)
 	self.PrevTime = RealTime()
-	
-	-- Read networked variables
-	self:RecvPackedData()
 
 	-- Simulate systems
 	if self.Systems then

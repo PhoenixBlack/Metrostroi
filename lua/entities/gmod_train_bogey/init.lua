@@ -1,3 +1,7 @@
+--Add a new net ID's
+util.AddNetworkString("metrostroi-bogey")
+util.AddNetworkString("metrostroi-bogey-sync")
+
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
@@ -263,6 +267,24 @@ end
 
 
 function ENT:Think()
+	local CT = CurTime()%1/1 > 0.5
+	if self.SyncCurTime == nil or CT ~= self.SyncCurTime then
+		if CT then
+			local plytbl = self:GetPlayersInRange()
+			self:SendAllToClient(plytbl)
+		end
+		self.SyncCurTime = CT
+	end
+	--Check, if new player is joined to sync range
+	local plytbl = self:GetPlayersInRange()
+	local OldPlayers = {}
+	local NewPlayers = {}
+	for k,v in pairs(self._OldPlys or {}) do OldPlayers[v] = true end
+	for k,v in pairs(plytbl) do
+		if not OldPlayers[v] then table.insert(NewPlayers,v) end
+	end
+	self:SendAllToClient(NewPlayers)
+	self._OldPlys = plytbl
 	-- Re-initialize wheels
 	if (not self.Wheels) or
 		(not self.Wheels:IsValid()) or

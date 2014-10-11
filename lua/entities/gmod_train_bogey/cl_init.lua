@@ -1,4 +1,14 @@
 include("shared.lua")
+net.Receive("metrostroi-bogey",function()
+	self = net.ReadEntity()
+	if not self._Net then return end
+	local ID,val = net.ReadInt(3)+1,net.ReadFloat()
+	self._Net[ID] = val
+end)
+net.Receive("metrostroi-bogey-sync",function()
+	self =  net.ReadEntity()
+	self._Net = net.ReadTable()
+end)
 
 
 --------------------------------------------------------------------------------
