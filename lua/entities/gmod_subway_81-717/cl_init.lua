@@ -435,7 +435,7 @@ ENT.ButtonMap["InfoTable"] = {
 ENT.ButtonMap["InfoTableSelect"] = {
 	pos = Vector(454.0,27.0,17.0),
 	ang = Angle(0,-90,90),
-	width = 540,
+	width = 160,
 	height = 100,
 	scale = 0.1,
 		
@@ -864,12 +864,12 @@ Metrostroi.ClientPropForButton("CustomG",{
 ENT.ClientProps["gv"] = {
 	model = "models/metrostroi/81-717/gv.mdl",
 	pos = Vector(154,62.5+1.5,-65),
-	ang = Angle(180,0,-90)
+	ang = Angle(-90,0,-90)
 }
 ENT.ClientProps["gv_wrench"] = {
 	model = "models/metrostroi/81-717/reverser.mdl",
 	pos = Vector(154,62.5+1.5,-65),
-	ang = Angle(-50,0,0)
+	ang = Angle(0,0,0)
 }
 --------------------------------------------------------------------------------
 for x=0,11 do
@@ -1040,10 +1040,10 @@ function ENT:Think()
 	
 	-- Main switch
 	if self.LastValue ~= self:GetPackedBool(5) then
-		self.ResetTime = CurTime()+2.0
+		self.ResetTime = CurTime()+1.5
 		self.LastValue = self:GetPackedBool(5)
 	end	
-	self:Animate("gv_wrench",	1-(self:GetPackedBool(5) and 1 or 0), 	0,0.35, 32,  4,false)
+	self:Animate("gv_wrench",	(self:GetPackedBool(5) and 1 or 0), 	0,0.51, 128,  1,false)
 	self:ShowHide("gv_wrench",	CurTime() < self.ResetTime)
 	
 	-- Animate doors
@@ -1522,7 +1522,7 @@ function ENT:Draw()
 		surface.SetAlphaMultiplier(1.0)
 	end)
 	self:DrawOnPanel("IGLA",function()
-		if not self:GetPackedBool(32) then return end
+		if not self:GetPackedBool(32) or not self:GetPackedBool(78) then return end
 		local text1 = ""
 		local text2 = ""
 		local C1 = Color(0,200,255,255)

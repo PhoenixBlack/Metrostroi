@@ -196,6 +196,7 @@ function ENT:Think()
 	self:SetPackedBool(59,self.BPSNon.Value == 1.0)
 	self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
 	self:SetPackedBool(113,self.KRP.Value == 1.0)
+	self:SetPackedBool(132,self:ReadTrainWire(48) ~= -1)
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -310,7 +311,15 @@ function ENT:OnCouple(train,isfront)
 	end
 end
 function ENT:OnButtonPress(button)
-	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
+	if button == "AirDistributorDisconnectToggle" then return end
+	if button == "GVToggle" then
+		if self.GV.Value > 0.5 then
+			self:PlayOnce("revers_f",nil,0.7)
+		else
+			self:PlayOnce("revers_b",nil,0.7)
+		end
+		return
+	end
 	if (button == "VUToggle") or ((string.sub(button,1,1) == "A") and (tonumber(string.sub(button,2,2)))) then
 		local name = string.sub(button,1,(string.find(button,"Toggle") or 0)-1)
 		if self[name] then
@@ -322,17 +331,29 @@ function ENT:OnButtonPress(button)
 		end
 		return
 	end
-
+	
 	if button == "DriverValveDisconnectToggle" then
 		if self.DriverValveDisconnect.Value == 1.0 then
-			self:PlayOnce("pneumo_disconnect2","cabin",0.9)
+			if self.Pneumatic.ValveType == 2 then
+				self:PlayOnce("pneumo_disconnect2","cabin",0.9)
+			end
 		else
 			self:PlayOnce("pneumo_disconnect1","cabin",0.9)
 		end
+		return
 	end
 	if (not string.find(button,"KVT")) and string.find(button,"KV") then return end
 	if string.find(button,"KRU") then return end
 	
+
+	if button == "VBToggle" then 
+		if self.VUD1.Value > 0.5 then
+			self:PlayOnce("vu22_off","cabin")
+		else
+			self:PlayOnce("vu22_on","cabin")
+		end
+		return
+	end
 	-- Generic button or switch sound
 	if string.find(button,"Set") then
 		self:PlayOnce("button_press","cabin")

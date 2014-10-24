@@ -21,7 +21,7 @@ if CreateConVar then
 		end
 	end)]]--
 
-	CreateConVar("metrostroi_upps",0,FCVAR_ARCHIVE)
+	--CreateConVar("metrostroi_upps",0,FCVAR_ARCHIVE)
 end
 
 function TRAIN_SYSTEM:Initialize()
@@ -650,7 +650,7 @@ function TRAIN_SYSTEM:Think()
 	end
 
 	-- Special UPPS behavior
-	if (GetConVarNumber("metrostroi_upps") > 0) and (Train.KV) then
+	if self.Train.A45 and self.Train.A45.Value == 1 and (Train.KV) then
 		local distance = Train:ReadCell(49165)
 		local skip_station = false
 
@@ -720,5 +720,14 @@ function TRAIN_SYSTEM:Think()
 			Train:PlayOnce("upps","cabin",0.55,100.0)
 			self.UPPSArmed2 = false
 		end
+	elseif self.UPPSBraking then
+		self["2"] = 0
+		self["6"] = 0
+		self["20"] = 0
+		self["33D"] = 1
+		self["33G"] = 0
+		self["33Zh"] = 1
+		timer.Remove("UPPSAlarm"..Train:EntIndex())
+		self.UPPSBraking = false
 	end
 end

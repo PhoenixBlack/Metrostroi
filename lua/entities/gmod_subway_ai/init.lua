@@ -356,7 +356,7 @@ function ENT:Think()
 	self.DeltaTime = (CurTime() - self.PrevTime)
 	self.PrevTime = CurTime()
 	
-	self:RecvPackedData()
+	--self:RecvPackedData()
 	self:NextThink(CurTime()+0.10)
 	
 	-- Simulate equipment specific to trains

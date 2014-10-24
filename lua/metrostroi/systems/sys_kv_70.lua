@@ -100,14 +100,6 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 			-- Limit motion
 			if self.ControllerPosition >  3 then self.ControllerPosition =  3 end
 			if self.ControllerPosition < -3 then self.ControllerPosition = -3 end
-			
-			-- Play sounds
-			if self.Type == 1 then
-				local dC = math.abs(prevControllerPosition - self.ControllerPosition)
-				if dC == 1 then self.Train:PlayOnce("kv1","cabin",0.8) end
-				if dC == 2 then self.Train:PlayOnce("kv2","cabin",0.8) end
-				if dC >= 3 then self.Train:PlayOnce("kv3","cabin",0.8) end
-			end
 		end		
 		
 	elseif name == "ReverserSet" then
@@ -116,9 +108,10 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 			self.ReverserPosition = math.floor(value)
 			if self.ReverserPosition >  1 then self.ReverserPosition =  1 end
 			if self.ReverserPosition < -1 then self.ReverserPosition = -1 end
-			
 			if prevReverserPosition ~= self.ReverserPosition then
-				self.Train:PlayOnce("kv1","cabin",0.7,120.0)
+				if self.ReverserPosition == -1 then self.Train:PlayOnce("revers_b","cabin",0.7) end
+				if self.ReverserPosition == 0  then self.Train:PlayOnce("revers_0","cabin",0.7) end
+				if self.ReverserPosition == 1  then self.Train:PlayOnce("revers_f","cabin",0.7) end
 			end
 		end
 	elseif (name == "ControllerUp") and (value > 0.5) then
@@ -149,15 +142,14 @@ end
 
 function TRAIN_SYSTEM:Think()
 	local Train = self.Train
+	
 	if (self.Enabled == 0) and (self.ReverserPosition ~= 0) then
 		self.ReverserPosition = 0
 		self.ControllerPosition = 0
-		self.Train:PlayOnce("kv1","cabin",0.6)
 	end
 	if (self.ReverserPosition == 0) and (self.ControllerPosition ~= 0) then
 		self.ReverserPosition = 0
 		self.ControllerPosition = 0
-		self.Train:PlayOnce("kv1","cabin",0.6)
 	end
 	
 	-- Move controller
@@ -167,44 +159,29 @@ function TRAIN_SYSTEM:Think()
 		self.Timer = CurTime()
 		self.RealControllerPosition = self.RealControllerPosition + 1
 		
-		if self.Type == 2 then
-			local A,B = previousPosition,self.RealControllerPosition
-			if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_0_x1", "cabin",0.9) end
-			if (A ==  1) and (B ==  0) then self.Train:PlayOnce("kv_x1_0", "cabin",0.9) end
-			if (A ==  1) and (B ==  2) then self.Train:PlayOnce("kv_x1_x2", "cabin",0.9) end
-			if (A ==  2) and (B ==  1) then self.Train:PlayOnce("kv_x2_x1", "cabin",0.9) end
-			if (A ==  2) and (B ==  3) then self.Train:PlayOnce("kv_x2_x3", "cabin",0.9) end
-			if (A ==  3) and (B ==  2) then self.Train:PlayOnce("kv_x3_x2", "cabin",0.9) end
-			
-			if (A ==  0) and (B == -1) then self.Train:PlayOnce("kv_0_t1",  "cabin",0.8) end
-			if (A == -1) and (B ==  0) then self.Train:PlayOnce("kv_t1_0",  "cabin",0.8) end
-			if (A == -1) and (B == -2) then self.Train:PlayOnce("kv_t1_t1a",  "cabin",0.8) end
-			if (A == -2) and (B == -1) then self.Train:PlayOnce("kv_t1a_t1",  "cabin",0.8) end
-			if (A == -2) and (B == -3) then self.Train:PlayOnce("kv_t1a_t2",  "cabin",0.8) end
-			if (A == -3) and (B == -2) then self.Train:PlayOnce("kv_t2_t1a",  "cabin",0.8) end
-		end
+		local A,B = previousPosition,self.RealControllerPosition
+
+		if (A == -3) and (B == -2) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_t2_t1a",  "cabin",0.8) end
+		if (A == -2) and (B == -1) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_t1a_t1",  "cabin",0.8) end
+		if (A == -1) and (B ==  0) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_t1_0",  "cabin",0.8) end
+
+		if (A ==  0) and (B ==  1) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_0_x1", "cabin",0.9) end
+		if (A ==  1) and (B ==  2) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_x1_x2", "cabin",0.9) end
+		if (A ==  2) and (B ==  3) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_x2_x3", "cabin",0.9) end
 	end
 	if ((CurTime() - self.Timer > 0.10) and (self.ControllerPosition < self.RealControllerPosition)) then
 		local previousPosition = self.RealControllerPosition
 		self.Timer = CurTime()
 		self.RealControllerPosition = self.RealControllerPosition - 1
 		
-		if self.Type == 2 then
-			local A,B = previousPosition,self.RealControllerPosition
-			if (A ==  0) and (B ==  1) then self.Train:PlayOnce("kv_0_x1", "cabin",0.9) end
-			if (A ==  1) and (B ==  0) then self.Train:PlayOnce("kv_x1_0", "cabin",0.9) end
-			if (A ==  1) and (B ==  2) then self.Train:PlayOnce("kv_x1_x2", "cabin",0.9) end
-			if (A ==  2) and (B ==  1) then self.Train:PlayOnce("kv_x2_x1", "cabin",0.9) end
-			if (A ==  2) and (B ==  3) then self.Train:PlayOnce("kv_x2_x3", "cabin",0.9) end
-			if (A ==  3) and (B ==  2) then self.Train:PlayOnce("kv_x3_x2", "cabin",0.9) end
-			
-			if (A ==  0) and (B == -1) then self.Train:PlayOnce("kv_0_t1",  "cabin",0.8) end
-			if (A == -1) and (B ==  0) then self.Train:PlayOnce("kv_t1_0",  "cabin",0.8) end
-			if (A == -1) and (B == -2) then self.Train:PlayOnce("kv_t1_t1a",  "cabin",0.8) end
-			if (A == -2) and (B == -1) then self.Train:PlayOnce("kv_t1a_t1",  "cabin",0.8) end
-			if (A == -2) and (B == -3) then self.Train:PlayOnce("kv_t1a_t2",  "cabin",0.8) end
-			if (A == -3) and (B == -2) then self.Train:PlayOnce("kv_t2_t1a",  "cabin",0.8) end
-		end
+		local A,B = previousPosition,self.RealControllerPosition
+		if (A ==  3) and (B ==  2) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_x3_x2", "cabin",0.9) end
+		if (A ==  2) and (B ==  1) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_x2_x1", "cabin",0.9) end
+		if (A ==  1) and (B ==  0) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_x1_0", "cabin",0.9) end
+		
+		if (A ==  0) and (B == -1) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_0_t1",  "cabin",0.8) end
+		if (A == -1) and (B == -2) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_t1_t1a",  "cabin",0.8) end
+		if (A == -2) and (B == -3) then self.Train:PlayOnce((self.Type == 1 and "ezh_" or "").."kv_t1a_t2",  "cabin",0.8) end
 	end
 	
 	-- Update contacts

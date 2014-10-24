@@ -77,12 +77,12 @@ ENT.ClientProps["battery"] = {
 ENT.ClientProps["gv"] = {
 	model = "models/metrostroi/81-717/gv.mdl",
 	pos = Vector(154,62.5+1.5,-65),
-	ang = Angle(180,0,-90)
+	ang = Angle(-90,0,-90)
 }
 ENT.ClientProps["gv_wrench"] = {
 	model = "models/metrostroi/81-717/reverser.mdl",
 	pos = Vector(154,62.5+1.5,-65),
-	ang = Angle(-50,0,0)
+	ang = Angle(0,0,0)
 }
 --------------------------------------------------------------------------------
 --[[for x=0,11 do
@@ -169,7 +169,7 @@ function ENT:Think()
 		self.ResetTime = CurTime()+2.0
 		self.LastValue = self:GetPackedBool(5)
 	end	
-	self:Animate("gv_wrench",	1-(self:GetPackedBool(5) and 1 or 0), 	0,0.35, 32,  4,false)
+	self:Animate("gv_wrench",	(self:GetPackedBool(5) and 1 or 0), 	0,0.51, 128,  1,false)
 	self:ShowHide("gv_wrench",	CurTime() < self.ResetTime)
 	
 	-- Animate doors

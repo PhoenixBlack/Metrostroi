@@ -217,7 +217,7 @@ end
 function ENT:Cache(name,value_func)
 	-- Old entry
 	self.CacheData = self.CacheData or {}
-	if self.CacheData[name] and (not self.SkipCache) then return self.CacheData[name] end
+	if self.CacheData[name] and (not self.SkipCache) and IsValid(self.CacheData[name]) then return self.CacheData[name] end
 	
 	-- New entry
 	self.CacheData[name] = value_func()

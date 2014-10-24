@@ -63,6 +63,7 @@ Metrostroi.Announcements = {
 	[0230] = { 1.411, "subway_announcer/02_30.mp3" },
 	[0231] = { 1.358, "subway_announcer/02_31.mp3" },
 	[0232] = { 7.602, "subway_announcer/02_32.mp3" },
+	[0233] = { 1.220, "subway_announcer/02_33.mp3" },
 
 	[0308] = { 1.228, "subway_announcer/03_08.mp3" },
 	[0309] = { 1.358, "subway_announcer/03_09.mp3" },
@@ -169,7 +170,7 @@ Metrostroi.AnnouncerData =
 	[119] = {"Sineozernaya",            false,true ,false,false,0   },
 	--[120] = {"Lesnaya",                 -1                          },
 	[121] = {"Minskaya",                false,false,true,true  ,0   },
-	[122] = {"Tsarskiye Vorota",        false,true,true,true   ,0   ,true},
+	[122] = {"Tsarskiye Vorota",        false,true,true,true   ,0   ,1},
 	[123] = {"Mezhdustroyskaya",        true,true,true,true    ,0   },
 	[321] = {"Muzey Skulptur",		    false,true,true,true   ,0   },
 	[322] = {"Avtostanciya Yuzhnaya",	false,true,true,true   ,0   },
@@ -261,7 +262,8 @@ end
 
 function TRAIN_SYSTEM:ClientThink()
 	local active = self.Train:GetNWBool("BPSNBuzz",false)
-	self.Train:SetSoundState("bpsn_ann",active and 0.175 or 0,1)
+	self.Train:SetSoundState("bpsn_ann",(active and (self.Train:GetPackedBool(127) or self.Train:GetPackedBool(132))) and 0.175 or 0,1)
+	self.Train:SetSoundState("bpsn_ann_cab",(active and self.Train:GetPackedBool(125)) and 0.175 or 0,1)
 end
 
 function TRAIN_SYSTEM:PlayInfQueueSounds(...)
@@ -483,6 +485,9 @@ function TRAIN_SYSTEM:AnnPlayArriving()
 			self.AnnState = 7
             return
         end
+		if Metrostroi.AnnouncerData[self.AnnStation][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnStation][7] then
+            self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation,0002)
+		end
         if Metrostroi.AnnouncerData[self.AnnStation][3] then
             self:PlayInfQueueSounds(0230,0232)
         end
@@ -511,6 +516,10 @@ function TRAIN_SYSTEM:AnnPlayArriving()
             self:PlayInfQueueSounds(0202,0203,Metrostroi.AnnouncerData[self.AnnStation][6])
         end
 
+		if Metrostroi.AnnouncerData[self.AnnStation][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnStation][7] then
+            self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation)
+		end
+
         if self.NextNonWorkingStation then
             self:PlayInfQueueSounds(0230,self.NextNonWorkingStation)
         end
@@ -522,12 +531,15 @@ function TRAIN_SYSTEM:AnnPlayArriving()
         if Metrostroi.AnnouncerData[self.AnnNext][6] > 0 then
             self:PlayInfQueueSounds(0202,0203,Metrostroi.AnnouncerData[self.AnnNext][6])
         end
+
+		if Metrostroi.AnnouncerData[self.AnnNext][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnNext][7] then
+            self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation)
+		end
     else
         self:PlayInfQueueSounds(0220,self.AnnStation)
         if Metrostroi.AnnouncerData[self.AnnStation][2] then
             self:PlayInfQueueSounds(0215)
         end
-
         if Metrostroi.AnnouncerData[self.AnnStation][6] > 0 then
             self:PlayInfQueueSounds(0202,0203,Metrostroi.AnnouncerData[self.AnnStation][6])
         end
@@ -537,6 +549,9 @@ function TRAIN_SYSTEM:AnnPlayArriving()
 			self.AnnState = 7
             return
         end
+		if Metrostroi.AnnouncerData[self.AnnStation][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnStation][7] then
+            self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation)
+		end
         if Metrostroi.AnnouncerData[self.AnnStation][4] then
             self:PlayInfQueueSounds(0230,0226)
         end
@@ -551,7 +566,9 @@ function TRAIN_SYSTEM:AnnPlayDepeate()
     if self.AnnStyle == 1 then
         if self:AnnNotLast() then
             self:PlayInfQueueSounds(0223,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation,0002)
-        end
+        elseif Metrostroi.AnnouncerData[self.AnnStation][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnStation][7] then
+            self:PlayInfQueueSounds(0230,0233,0223,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation,0002)
+		end
         if self.NextNonWorkingStation then
             self:PlayInfQueueSounds(0230,self.NextNonWorkingStation)
         end
@@ -559,11 +576,16 @@ function TRAIN_SYSTEM:AnnPlayDepeate()
         if Metrostroi.AnnouncerData[self.AnnNext][2] then
             self:PlayInfQueueSounds(0231)
         end
+		if Metrostroi.AnnouncerData[self.AnnNext][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnNext][7] then
+            self:PlayInfQueueSounds(0230,0233,0223,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation)
+		end
     elseif self.AnnStyle == 2 then
         self:PlayInfQueueSounds(0003)
         if self:AnnNotLast() then
             self:PlayInfQueueSounds(0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation,0002)
-        end
+        elseif Metrostroi.AnnouncerData[self.AnnStation][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnStation][7] then
+            self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation,0002)
+		end
         self:PlayInfQueueSounds(0218)
 
         if self.NextNonWorkingStation then
@@ -577,10 +599,15 @@ function TRAIN_SYSTEM:AnnPlayDepeate()
         if Metrostroi.AnnouncerData[self.AnnNext][6] > 0 then
             self:PlayInfQueueSounds(0202,0203,Metrostroi.AnnouncerData[self.AnnNext][6])
         end
+		if Metrostroi.AnnouncerData[self.AnnNext][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnNext][7] then
+            self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation)
+		end
     else
         if self:AnnNotLast() then
             self:PlayInfQueueSounds(0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation,0002)
-        end
+        elseif Metrostroi.AnnouncerData[self.AnnStation][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnStation][7] then
+            self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation,0002)
+		end
 
         if self.NextNonWorkingStation then
             self:PlayInfQueueSounds(0230,self.NextNonWorkingStation)
@@ -590,6 +617,9 @@ function TRAIN_SYSTEM:AnnPlayDepeate()
         if Metrostroi.AnnouncerData[self.AnnNext][2] then
             self:PlayInfQueueSounds(0215)
         end
+		if Metrostroi.AnnouncerData[self.AnnNext][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnNext][7] then
+            self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation)
+		end
         if Metrostroi.AnnouncerData[self.AnnNext][3] then
             self:PlayInfQueueSounds(0214)
         end
@@ -809,7 +839,6 @@ function TRAIN_SYSTEM:Announcer2()
 
 		if self.AnnState == 2 then
 			if self.Train.Custom2.Value > 0.5 then
-				print(self.AnnRoute,self.AnnRoute < #Metrostroi.EndStations,#Metrostroi.EndStations)
 				if self.AnnRoute < #Metrostroi.EndStations then
 					self.AnnRoute = self.AnnRoute + 1
 				else
@@ -820,7 +849,6 @@ function TRAIN_SYSTEM:Announcer2()
 				self.AnnCurTimeM = CurTime()
 			end
 			if self.Train.Custom1.Value > 0.5  then
-				print(self.AnnRoute,self.AnnRoute > 1,#Metrostroi.EndStations)
 				if self.AnnRoute > 1 then
 					self.AnnRoute = self.AnnRoute - 1
 				else
@@ -1381,6 +1409,7 @@ function TRAIN_SYSTEM:Think()
 	end
 	-- Check if new announcement must be started from train wire
 	local targetAnnouncement = self.Train:ReadTrainWire(48)
+	if targetAnnouncement < 0 then targetAnnouncement = 0 end
 	local onlyCabin = false
 	if (targetAnnouncement == 0) then targetAnnouncement = self.Fake48 or 0  onlyCabin = true end
 	if (targetAnnouncement > 0) and (targetAnnouncement ~= self.Announcement) and (CurTime() > self.EndTime) then
@@ -1431,6 +1460,7 @@ function TRAIN_SYSTEM:Think()
 		table.remove(self.Schedule,1)
 	end
 
+
 	-- Check if schedule announcement is playing
 	if self.ScheduleAnnouncement ~= 0 then
 		if self.Train.DriverSeat and (self.Train.R_ZS.Value < 0.5) then
@@ -1444,5 +1474,13 @@ function TRAIN_SYSTEM:Think()
 			self.Fake48 = 0
 			self.Train:WriteTrainWire(48,0)
 		end
+	end
+	if self.Train.R_ZS and self.Train.KV then
+		if self.Train.R_ZS.Value < 0.5 and self.Train.KV.ReverserPosition == 1.0 then
+			self.Train:WriteTrainWire(48,-1)
+		elseif self.Train:ReadTrainWire(48) == -1 then
+			self.Train:WriteTrainWire(48,0)
+		end
+		return
 	end
 end

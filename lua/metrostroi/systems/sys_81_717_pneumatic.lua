@@ -93,6 +93,8 @@ function TRAIN_SYSTEM:Initialize()
 	self.PlayOpen = 1e9
 	self.PlayClosed = 1e9
 	self.TrainLineOpen = false
+
+	self.OldValuePos = self.DriverValvePosition
 end
 
 function TRAIN_SYSTEM:Inputs()
@@ -114,8 +116,6 @@ function TRAIN_SYSTEM:TriggerInput(name,value)
 			if self.DriverValvePosition < 1 then self.DriverValvePosition = 1 end
 			if self.DriverValvePosition > 7 then self.DriverValvePosition = 7 end
 		end
-		
-		self.Train:PlayOnce("switch",true)
 	elseif (name == "BrakeUp") and (value > 0.5) then
 		self:TriggerInput("BrakeSet",self.DriverValvePosition+1)
 	elseif (name == "BrakeDown") and (value > 0.5) then
@@ -513,7 +513,7 @@ function TRAIN_SYSTEM:Think(dT)
 	----------------------------------------------------------------------------
 	if self.DriverValveDisconnectPrevious ~= Train.DriverValveDisconnect.Value then
 		self.DriverValveDisconnectPrevious = Train.DriverValveDisconnect.Value
-		if Train.DriverValveDisconnect.Value == 0 then
+		if Train.DriverValveDisconnect.Value == 0 and self.ValveType == 2 then
 			self.BrakeLinePressure = math.max(0.0,self.BrakeLinePressure - 3.0)
 		end
 	end
@@ -524,4 +524,16 @@ function TRAIN_SYSTEM:Think(dT)
 	Train:SetNWBool("FI",Train.FrontBrakeLineIsolation.Value ~= 0)
 	Train:SetNWBool("RI",Train.RearBrakeLineIsolation.Value ~= 0)
 	Train:SetNWBool("AD",Train.AirDistributorDisconnect.Value == 0)
+	
+
+	local ValveType = self.ValveType > 1
+	local PBP = self.DriverValvePosition
+	if self.OldValuePos ~= PBP then
+		if not ValveType then
+			self.Train:PlayOnce("br_334","cabin")
+		else
+			self.Train	:PlayOnce("br_013","cabin")
+		end
+		self.OldValuePos = PBP
+	end
 end
