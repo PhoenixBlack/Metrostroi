@@ -98,7 +98,7 @@ function ENT:Think()
 	--motorPower = 1.0
 	if (speed > 1.0) and (math.abs(motorPower) >= 0.0) then
 		local t = RealTime()*2.5
-		local modulation = 1.5*math.max(0,0.2+math.sin(t)*math.sin(t*3.12)*math.sin(t*0.24)*math.sin(t*4.0))
+		local modulation = 0.2 + 1.0*math.max(0,0.2+math.sin(t)*math.sin(t*3.12)*math.sin(t*0.24)*math.sin(t*4.0))
 		local mod2 = 1.0-math.min(1.0,(math.abs(motorPower)/0.1))
 		local startVolRamp = 0.2 + 0.8*math.max(0.0,math.min(1.0,(speed - 1.0)*0.5))
 		local powerVolRamp = 0.3*modulation*mod2 + 2*math.abs(motorPower)--2.0*(math.abs(motorPower)^2)

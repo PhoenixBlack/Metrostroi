@@ -310,6 +310,13 @@ ENT.ButtonMap["RearPneumatic"] = {
 	height = 100,
 	scale = 0.1,
 }
+ENT.ButtonMap["AirDistributor"] = {
+	pos = Vector(-180,70,-50),
+	ang = Angle(0,180,90),
+	width = 80,
+	height = 40,
+	scale = 0.1,
+}
 
 -- Wagon numbers
 ENT.ButtonMap["TrainNumber1"] = {
@@ -577,12 +584,12 @@ Metrostroi.ClientPropForButton("VDL",{
 ENT.ClientProps["gv"] = {
 	model = "models/metrostroi/81-717/gv.mdl",
 	pos = Vector(154,62.5,-65),
-	ang = Angle(180,0,-90)
+	ang = Angle(-90,0,-90)
 }
 ENT.ClientProps["gv_wrench"] = {
 	model = "models/metrostroi/81-717/reverser.mdl",
 	pos = Vector(154,62.5,-65),
-	ang = Angle(-50,0,0)
+	ang = Angle(0,0,0)
 }
 --------------------------------------------------------------------------------
 for x=0,11 do
@@ -751,10 +758,10 @@ function ENT:Think()
 	
 	-- Main switch
 	if self.LastValue ~= self:GetPackedBool(5) then
-		self.ResetTime = CurTime()+2.0
+		self.ResetTime = CurTime()+1.5
 		self.LastValue = self:GetPackedBool(5)
 	end	
-	self:Animate("gv_wrench",	1-(self:GetPackedBool(5) and 1 or 0), 	0,0.35, 32,  4,false)
+	self:Animate("gv_wrench",	(self:GetPackedBool(5) and 1 or 0), 	0,0.51, 128,  1,false)
 	self:ShowHide("gv_wrench",	CurTime() < self.ResetTime)
 	
 	-- Animate doors
@@ -990,6 +997,9 @@ function ENT:Draw()
 	end)
 	self:DrawOnPanel("RearPneumatic",function()
 		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
+	end)
+	self:DrawOnPanel("AirDistributor",function()
+		draw.DrawText(self:GetNWBool("AD") and "Air Distributor ON" or "Air Distributor OFF","Trebuchet24",0,0,Color(0,0,0,255))
 	end)
 	
 	-- Draw train numbers

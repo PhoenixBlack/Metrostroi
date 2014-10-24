@@ -40,6 +40,9 @@ function ENT:Initialize()
 		{	Pos = Vector(446.0,0.0,50),
 			Radius = 16,
 			ID = "VBToggle" },
+		{	Pos = Vector(-180,68.5,-50),
+			Radius = 20,
+			ID = "AirDistributorDisconnectToggle" },
 	}
 
 	-- Lights
@@ -216,7 +219,23 @@ function ENT:OnCouple(train,isfront)
 	end
 end
 function ENT:OnButtonPress(button)
-	if button == "GVToggle" then self:PlayOnce("switch4",nil,0.7) return end
+	if button == "AirDistributorDisconnectToggle" then return end
+	if button == "VBToggle" then
+		if self.VB.Value == 1 then
+			self:PlayOnce("vu22_on",nil)
+		else
+			self:PlayOnce("vu22_off",nil)
+		end
+		return
+	end
+	if button == "GVToggle" then
+		if self.GV.Value > 0.5 then
+			self:PlayOnce("revers_f",nil,0.7)
+		else
+			self:PlayOnce("revers_b",nil,0.7)
+		end
+		return
+	end
 	
 	-- Generic button or switch sound
 	if string.find(button,"Set") then
