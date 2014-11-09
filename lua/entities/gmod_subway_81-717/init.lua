@@ -420,6 +420,8 @@ function ENT:Think()
 	self:SetPackedBool(129,self.R_Program2.Value == 1.0)
 	self:SetPackedBool(130,self.RC1.Value == 1.0)
 	self:SetPackedBool(132,self:ReadTrainWire(48) ~= -1)
+	self:SetPackedBool(134,self.UOS.Value == 1.0)
+	self:SetPackedBool(135,self.BPS.Value == 1.0)
 	
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 

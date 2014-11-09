@@ -466,13 +466,13 @@ local bitband = bit.band
 --------------------------------------------------------------------------------
 -- Finds players in given range(8192 and 768)
 --------------------------------------------------------------------------------
+local plytbl = {}
+local vec = Vector()
 function ENT:GetPlayersInRange()
-	local plytbl = {}
-	local entpos = self:GetPos()
+	plytbl = {}
 	for _,player in pairs(player.GetAll()) do
-		local vec = entpos - player:GetPos()
-		local dx,dy,dz = vec.x,vec.y,vec.z
-		if (math.abs(dx) + math.abs(dy)) < 8192 and math.abs(dz) < 768 then
+		vec = self:GetPos() - player:GetPos()
+		if (math.abs(vec.x) + math.abs(vec.y)) < 8192 and math.abs(vec.z) < 768 then
 			table.insert(plytbl, player)
 		end
 	end
@@ -485,14 +485,13 @@ function ENT:SetPackedRatio(vecn,ratio)
 	local ratio = math.Round(ratio,2)
 	if self._NetData[2][vecn] ~= nil and self._NetData[2][vecn] == ratio then return end
 
-	local plytbl = self:GetPlayersInRange()
 	--print("Changed a "..vecn.." to "..ratio)
 	net.Start("metrostroi-train")
 		net.WriteEntity(self)
 		net.WriteBit(true)
 		net.WriteInt(vecn,16)
 		net.WriteFloat(ratio)
-	net.Send(plytbl)
+	net.Send(self:GetPlayersInRange())
 	self._NetData[2][vecn] = ratio
 end
 
@@ -506,13 +505,12 @@ end
 function ENT:SetPackedBool(idx,value)
 	if self._NetData[1][idx] ~= nil and self._NetData[1][idx] == value then return end
 
-	local plytbl = self:GetPlayersInRange()
 	net.Start("metrostroi-train")
 		net.WriteEntity(self)
 		net.WriteBit(false)
 		net.WriteInt(idx,16)
 		net.WriteBit(value)
-	net.Send(plytbl)
+	net.Send(self:GetPlayersInRange())
 	self._NetData[1][idx] = value
 end
 
@@ -528,5 +526,5 @@ function ENT:SendAllToClient(ply)
 end
 
 function ENT:GetPackedBool(idx)
-	return self._NetData[1][idx] ~= nil and self._NetData[1][idx] or false
+	return self._NetData[1][idx] or false
 end

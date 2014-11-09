@@ -190,7 +190,7 @@ ENT.ButtonMap["AV"] = {
 	pos = Vector(387.0,-8.0,44.5),
 	ang = Angle(0,90,90),
 	width = 590,
-	height = 580,
+	height = 640,
 	scale = 0.0625,
 	
 	buttons = {
@@ -243,6 +243,7 @@ ENT.ButtonMap["AV"] = {
 		{ID = "A12Toggle", x=16+51*7,  y=60+165*3, radius=30, tooltip="A12 Emergency door close"},
 		{ID = "A7Toggle",  x=16+51*8,  y=60+165*3, radius=30, tooltip="A7  Red lamp"},
 		{ID = "A9Toggle",  x=16+51*9,  y=60+165*3, radius=30, tooltip="A9  Red lamp"},
+		{ID = "BPSToggle", x=16+51*9,  y=60+165*3+60, radius=30, tooltip="РЦ-БПС: Блок ПротивоСкатывания\nRC-BPS: Against Rolling System"}, 
 		{ID = "A46Toggle", x=16+51*10, y=60+165*3, radius=30, tooltip="A46 White lamp"},
 		{ID = "A47Toggle", x=16+51*11, y=60+165*3, radius=30, tooltip="A47 White lamp"},
 	}
@@ -252,13 +253,14 @@ ENT.ButtonMap["AV"] = {
 ENT.ButtonMap["Battery"] = {
 	pos = Vector(398.0,-54.5,25.0),
 	ang = Angle(0,90,90),
-	width = 140,
+	width = 270,
 	height = 260,
 	scale = 0.0625,
 	
 	buttons = {
 		{ID = "VBToggle", x=64, y=185, radius=70, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
 		{ID = "RC1Toggle", x=64, y=71, radius=70, tooltip="РЦ-1: Разъединитель цепей АРС\nRC-1: ARS circuits disconnect"},
+		{ID = "UOSToggle", x=204, y=71, radius=70, tooltip="РЦ-УОС: Устройство ограничения скорости\nRC-UOS: Speed Limitation Device"}, 
 	}
 }
 
@@ -892,6 +894,18 @@ Metrostroi.ClientPropForButton("rc1",{
 	model = "models/metrostroi/81-717/rc.mdl",
 })
 
+Metrostroi.ClientPropForButton("UOS",{
+	panel = "Battery",
+	button = "UOSToggle",	
+	model = "models/metrostroi/81-717/rc.mdl",
+})
+
+Metrostroi.ClientPropForButton("BPS",{
+	panel = "AV",
+	button = "BPSToggle",	
+	model = "models/metrostroi/81-717/rc.mdl",
+})
+
 --------------------------------------------------------------------------------
 ENT.ClientProps["book"] = {
 	model = "models/props_lab/binderredlabel.mdl",
@@ -939,8 +953,6 @@ ENT.ClientProps["door3"] = {
 	pos = Vector(424.3,65.0,-2.8),
 	ang = Angle(0,0,0)
 }
-
-
 
 
 --------------------------------------------------------------------------------
@@ -1030,6 +1042,8 @@ function ENT:Think()
 	self:Animate("R_ZS",			self:GetPackedBool(127) and 1 or 0, 0,1, 16, false)
 	self:Animate("R_Program",		self:GetPackedBool(128) and 0 or (self:GetPackedBool(129) and 1 or 0.5), 0,1, 16, false)
 	self:Animate("rc1",				self:GetPackedBool(130) and 0.87 or 1, 	0,1, 1, false)
+	self:Animate("UOS",				self:GetPackedBool(134) and 0.87 or 1, 	0,1, 1, false)
+	self:Animate("BPS",				self:GetPackedBool(135) and 0.87 or 1, 	0,1, 1, false)
 	--self:Animate("Autodrive",		self:GetPackedBool(132) and 1 or 0,	0,1, 16, false)
 	
 	-- Animate AV switches

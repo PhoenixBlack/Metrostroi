@@ -297,7 +297,6 @@ function ENT:OnRemove()
 	for k,v in pairs(self.PassengerEnts) do
 		v:Remove()
 	end
-	self = nil
 end
 
 

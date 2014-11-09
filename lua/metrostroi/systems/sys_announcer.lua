@@ -246,6 +246,8 @@ end
 function TRAIN_SYSTEM:Queue(id)
 	if (not Metrostroi.Announcements[id]) and
 		(not Metrostroi.AnnouncementSequences[id]) then return end
+	if self.Train and self.Train.SubwayTrain.Name and self.Train.SubwayTrain.Name:sub(1,-2) ~= "81-71" and 
+		(id == 5 or id == 6) then return end
 
 	-- Add announcement to queue
 	if #self.Schedule < 16 then
@@ -261,7 +263,7 @@ end
 
 
 function TRAIN_SYSTEM:ClientThink()
-	local active = self.Train:GetNWBool("BPSNBuzz",false)
+	local active = self.Train:GetNWBool("BPSNBuzz",false) and self.Train:GetPackedBool(52)
 	self.Train:SetSoundState("bpsn_ann",(active and (self.Train:GetPackedBool(127) or self.Train:GetPackedBool(132))) and 0.175 or 0,1)
 	self.Train:SetSoundState("bpsn_ann_cab",(active and self.Train:GetPackedBool(125)) and 0.175 or 0,1)
 end
@@ -468,7 +470,7 @@ function TRAIN_SYSTEM:AnnEnd(next)
 end
 
 function TRAIN_SYSTEM:AnnPlayArriving()
-    self:PlayInfQueueSounds(0006,0001,0005)
+    self:PlayInfQueueSounds(0005)
 
     if self.AnnStyle == 1 then
         self:PlayInfQueueSounds(0220,self.AnnStation)
@@ -561,7 +563,7 @@ function TRAIN_SYSTEM:AnnPlayArriving()
 end
 
 function TRAIN_SYSTEM:AnnPlayDepeate()
-    self:PlayInfQueueSounds(0006,0001,0005)
+    self:PlayInfQueueSounds(0005)
 
     if self.AnnStyle == 1 then
         if self:AnnNotLast() then
@@ -631,7 +633,7 @@ function TRAIN_SYSTEM:AnnPlayDepeate()
 end
 
 function TRAIN_SYSTEM:AnnII()
-    self:PlayInfQueueSounds(0006,0001,0005)
+    self:PlayInfQueueSounds(0005)
     if self.AnnStyle == 2 then
         self:PlayInfQueueSounds(0003)
 	end
@@ -667,20 +669,18 @@ function TRAIN_SYSTEM:GetSettings()
 	PrintToConsole("Полуение вагонов в составе...")
 	self.Train:UpdateWagonList()
 	local LastTrain = self.Train.WagonList[#self.Train.WagonList]
-	if #self.Train.WagonList == 1 or LastTrain.SubwayTrain.Name ~= "81-717" then
-		PrintToConsole("Последнйи состав не найден!")
-		self.AnnState = -1
-		return
-	end
+	PrintToConsole(LastTrain.SubwayTrain.Name)
 	local Settings = LastTrain.Announcer.Settings
 
-	if LastTrain.R_Radio and LastTrain.R_Radio.Value > 0.5 and LastTrain.KV.ReverserPosition == 1.0 then
+	if #self.Train.WagonList == 1 or not LastTrain.Custom3 then
+		PrintToConsole("Последнйи состав не найден!")
+		Settings = self.Settings
+		--return
+	elseif LastTrain.R_Radio and LastTrain.R_Radio.Value > 0.5 and LastTrain.KV.ReverserPosition == 1.0 then
 		PrintToConsole("Включён инорматор в задней кабине!")
 		self.AnnState = -12
 		return
-	end
-
-	if Settings.CurTime <= self.Settings.CurTime then
+	elseif Settings.CurTime <= self.Settings.CurTime then
 		PrintToConsole("Взяты настройки из передней кабины.")
 		Settings = self.Settings
 	end
@@ -721,7 +721,7 @@ end
 --7   - Normal state
 --8   - Confim a settings (on last stations)
 function TRAIN_SYSTEM:Announcer2()
-	if self.Train.R_Radio and self.Train.R_Radio.Value > 0.5 and self.Train.KV.ReverserPosition == 1.0 then
+	if self.Train.R_Radio and self.Train.R_Radio.Value > 0.5 and self.Train.KV.ReverserPosition == 1.0 and self.Train.VB.Value > 0.5 then
 		--table.ForEach(self.Settings,print)
 		--self.Train:UpdateWagonList()
 		--self.Train.WagonList[#self.Train.WagonList].Announcer
@@ -1260,7 +1260,7 @@ function TRAIN_SYSTEM:Announcer2()
 		if self.AnnState == 107 or self.AnnState == 117 then
 			--print(Metrostroi.AnnouncerData[self.AnnStartStation][1].."->"..Metrostroi.AnnouncerData[self.AnnEndStation][1].."\nPath:"..(self.AnnPath == 1 and "I" or "II").."\nStyle:"..Metrostroi.PlayingStyles[self.AnnStyle].." style")
 			if self.AnnState == 117 then
-				self:PlayInfQueueSounds(0006,0001,0005)
+				self:PlayInfQueueSounds(0005)
 				if self.AnnStyle == 2 then
 					self:PlayInfQueueSounds(0003)
 				end

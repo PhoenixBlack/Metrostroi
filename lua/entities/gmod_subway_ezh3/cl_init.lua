@@ -97,6 +97,19 @@ ENT.ButtonMap["ARS"] = {
 	}
 }
 
+-- ARS/Speedometer panel
+ENT.ButtonMap["Autodrive"] = {
+	pos = Vector(440.1,-37.3,4.9),
+	ang = Angle(0,-97.9,69),
+	width = 410*10,
+	height = 95*10,
+	scale = 0.0625/10,
+
+	buttons = {
+		{x=1080+380*1,y=363,tooltip="РП: Зелёная лампа реле перегрузки\nRP: Green overload relay light (overload relay open on current train)",radius=120},
+	}
+}
+
 -- AV panel
 ENT.ButtonMap["AV"] = {
 	pos = Vector(394.0,-53.5,44.5),
@@ -159,17 +172,41 @@ ENT.ButtonMap["AV"] = {
 		{ID = "A47Toggle", x=16+44*11, y=110+129*3, radius=30, tooltip="A47 White lamp"},
 	}
 }
-
--- Battery panel
-ENT.ButtonMap["Battery"] = {
-	pos = Vector(394.5,24.0-5,28.0+5),
+-- AV panel
+ENT.ButtonMap["BPS"] = {
+	pos = Vector(392.0,-53.5,44.5),
 	ang = Angle(0,90,90),
-	width = 210+10/0.0625,
-	height = 90+10/0.0625,
+	width = 520,
+	height = 630,
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "VBToggle", x=0, y=0, w=210+10/0.0625, h=90+10/0.0625, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
+		{ID = "BPSToggle", x=16+51*9,  y=110+129*3+100, radius=30, tooltip="РЦ-БПС: Блок ПротивоСкатывания\nRC-BPS: Against Rolling System"}, 
+	}
+}
+-- Battery panel
+ENT.ButtonMap["Battery"] = {
+	pos = Vector(394.5,29.5-5,28.0+5-5),
+	ang = Angle(0,90,90),
+	width = 200+0,
+	height = 90+0/0.0625,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "VBToggle", x=0, y=0, w=200+0/0.0625, h=90+0/0.0625, tooltip="ВБ: Выключатель батареи\nVB: Battery on/off"},
+	}
+}
+-- Battery panel
+ENT.ButtonMap["RC1"] = {
+	pos = Vector(392.5,19.0,29),
+	ang = Angle(0,90,90),
+	width = 80,
+	height = 130,
+	scale = 0.0625,
+	
+	buttons = {
+		{ID = "RC1Toggle", x=40, y=30, radius=35, tooltip="РЦ-1: Разъединитель цепей АРС\nRC-1: ARS circuits disconnect"}, 
+		{ID = "UOSToggle", x=40, y=100, radius=35, tooltip="РЦ-УОС: Устройство ограничения скорости\nRC-UOS: Speed Limitation Device"}, 
 	}
 }
 
@@ -246,12 +283,47 @@ ENT.ButtonMap["DURA"] = {
 	scale = 0.0625,
 	
 	buttons = {
-		{ID = "DURASelectMain", x=95, y=43, radius=20, tooltip="DURA Select Main"}, -- NEEDS TRANSLATING
-		{ID = "DURASelectAlternate", x=60, y=43, radius=20, tooltip="DURA Select Alternate"}, -- NEEDS TRANSLATING
-		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip="DURA Toggle Channel"}, -- NEEDS TRANSLATING
+		{ID = "DURASelectMain", x=95, y=43, radius=20, tooltip="DURA Основной путь\nDURA Select Main"}, -- NEEDS TRANSLATING
+		{ID = "DURASelectAlternate", x=60, y=43, radius=20, tooltip="DURA Альтернативный путь\nDURA Select Alternate"}, -- NEEDS TRANSLATING
+		{ID = "DURAToggleChannel", x=140, y=30, radius=20, tooltip="DURA Выбор канала\nDURA Toggle Channel"}, -- NEEDS TRANSLATING
 	}
 }
 
+ENT.ButtonMap["Announcer"] = {
+	pos = Vector(449.3,-53,17.4),
+	ang = Angle(0,-127,90),
+	width = 170,
+	height = 100,
+	scale = 0.0625,
+	
+	buttons = {
+		
+		{ID = "Custom2Set", x=155, y=15, radius=15, tooltip="+"},
+		{ID = "Custom1Set", x=155, y=42, radius=15, tooltip="-"},
+		{ID = "Custom3Set", x=85, y=72, radius=20, tooltip="Меню\nMenu"},
+		{ID = "CustomCToggle", x=20, y=28, radius=20, tooltip="Автоинформатор\nAutoannouncer"},
+		
+		{ID = "CustomD", x=95+20*-3, y=72, radius=10, tooltip="Информатор: Конечная\nAnnouncer: Last statuon"},
+		{ID = "CustomE", x=95+20*-2, y=72, radius=10, tooltip="Информатор: Платформа справа\nAnnouncer: Right side"},
+		{ID = "CustomF", x=95+20*1, y=72, radius=10, tooltip="Информатор: Необходима настройка\nAnnouncer: Need setup"},
+		{ID = "CustomG", x=95+20*2, y=72, radius=10, tooltip="Информатор: Проигрывание объявления\nAnnouncer: Playing announce"},
+	}
+}
+-- Announcer panel
+ENT.ButtonMap["AnnouncerDisplay"] = {
+	pos = Vector(449.3,-53,17.4),
+	ang = Angle(0,-127,90),
+	width = 10,
+	height = 10,
+	scale = 0.012,
+}
+ENT.ButtonMap["IGLA"] = {
+	pos = Vector(404.6,-59.985,27.9),
+	ang = Angle(-0.5,180,90),
+	width = 440,
+	height = 100,
+	scale = 0.014,
+}
 ENT.ButtonMap["Meters"] = {
 	pos = Vector(449.3,-53,27.5),
 	ang = Angle(0,-125,90),
@@ -419,12 +491,12 @@ ENT.ClientProps["volt2"] = {
 ENT.ClientProps["headlights"] = {
 	model = "models/metrostroi/81-717/switch04.mdl",
 	pos = Vector(443.1,-60.0,0.5),
-	ang = Angle(-90,0,0)
+	ang = Angle(-74,0,0)
 }
 ENT.ClientProps["panellights"] = {
 	model = "models/metrostroi/81-717/switch04.mdl",
 	pos = Vector(444.1,-59.3,3.3),
-	ang = Angle(-90,0,0)
+	ang = Angle(-74,0,0)
 }
 --------------------------------------------------------------------------------
 Metrostroi.ClientPropForButton("R_UNch",{
@@ -577,8 +649,65 @@ Metrostroi.ClientPropForButton("VDL",{
 	button = "VDLSet",	
 	model = "models/metrostroi/81-717/switch01.mdl",
 })
+Metrostroi.ClientPropForButton("Custom1",{
+	panel = "Announcer",
+	button = "Custom1Set",
+	model = "models/metrostroi/81-717/button10.mdl"
+})
+Metrostroi.ClientPropForButton("Custom2",{
+	panel = "Announcer",
+	button = "Custom2Set",
+	model = "models/metrostroi/81-717/button10.mdl"
+})
+Metrostroi.ClientPropForButton("Custom3",{
+	panel = "Announcer",
+	button = "Custom3Set",
+	model = "models/metrostroi/81-717/button07.mdl"
+})
+Metrostroi.ClientPropForButton("CustomC",{
+	panel = "Announcer",
+	button = "CustomCToggle",
+	model = "models/metrostroi/81-717/switch04.mdl",
+})
 
+Metrostroi.ClientPropForButton("CustomD",{
+	panel = "Announcer",
+	button = "CustomD",
+	model = "models/metrostroi/81-717/light01.mdl",
+})
+Metrostroi.ClientPropForButton("CustomE",{
+	panel = "Announcer",
+	button = "CustomE",
+	model = "models/metrostroi/81-717/light03.mdl",
+})
+Metrostroi.ClientPropForButton("CustomF",{
+	panel = "Announcer",
+	button = "CustomF",
+	model = "models/metrostroi/81-717/light04.mdl",
+})
+Metrostroi.ClientPropForButton("CustomG",{
+	panel = "Announcer",
+	button = "CustomG",
+	model = "models/metrostroi/81-717/light02.mdl",
+})
 
+Metrostroi.ClientPropForButton("rc1",{
+	panel = "RC1",
+	button = "RC1Toggle",	
+	model = "models/metrostroi/81-717/rc.mdl",
+})
+
+Metrostroi.ClientPropForButton("UOS",{
+	panel = "RC1",
+	button = "UOSToggle",	
+	model = "models/metrostroi/81-717/rc.mdl",
+})
+
+Metrostroi.ClientPropForButton("BPS",{
+	panel = "BPS",
+	button = "BPSToggle",	
+	model = "models/metrostroi/81-717/rc.mdl",
+})
 
 --------------------------------------------------------------------------------
 ENT.ClientProps["gv"] = {
@@ -733,22 +862,25 @@ function ENT:Think()
 	self:Animate("ALS",				self:GetPackedBool(57) and 1 or 0, 	0,1, 16, false)
 	self:Animate("KVT",				self:GetPackedBool(28) and 1 or 0, 	0,1, 16, false)
 	
-	--[[self:Animate("Custom1",			self:GetPackedBool(114) and 1 or 0, 0,1, 16, false)
+	self:Animate("Custom1",			self:GetPackedBool(114) and 1 or 0, 0,1, 16, false)
 	self:Animate("Custom2",			self:GetPackedBool(115) and 1 or 0, 0,1, 16, false)
 	self:Animate("Custom3",			self:GetPackedBool(116) and 1 or 0, 0,1, 16, false)
-	self:Animate("Custom4",			self:GetPackedBool(117) and 1 or 0, 0,1, 16, false)
+	--[[self:Animate("Custom4",			self:GetPackedBool(117) and 1 or 0, 0,1, 16, false)
 	self:Animate("Custom5",			self:GetPackedBool(118) and 1 or 0, 0,1, 16, false)
 	self:Animate("Custom6",			self:GetPackedBool(119) and 1 or 0, 0,1, 16, false)
 	self:Animate("Custom7",			self:GetPackedBool(120) and 1 or 0, 0,1, 16, false)
 	self:Animate("Custom8",			self:GetPackedBool(121) and 1 or 0, 0,1, 16, false)
 	self:Animate("CustomA",			self:GetPackedBool(122) and 1 or 0, 0,1, 16, false)
-	self:Animate("CustomB",			self:GetPackedBool(123) and 1 or 0, 0,1, 16, false)
-	self:Animate("CustomC",			self:GetPackedBool(124) and 1 or 0, 0,1, 16, false)]]--
+	self:Animate("CustomB",			self:GetPackedBool(123) and 1 or 0, 0,1, 16, false)]]--
+	self:Animate("CustomC",			self:GetPackedBool(124) and 1 or 0, 0,1, 16, false)
 	self:Animate("R_G",				self:GetPackedBool(125) and 1 or 0, 0,1, 16, false)
 	self:Animate("R_Radio",			self:GetPackedBool(126) and 1 or 0, 0,1, 16, false)
 	self:Animate("R_ZS",			self:GetPackedBool(127) and 1 or 0, 0,1, 16, false)
 	self:Animate("Program1",		self:GetPackedBool(128) and 1 or 0, 0,1, 16, false)
 	self:Animate("Program2",		self:GetPackedBool(129) and 1 or 0, 0,1, 16, false)
+	self:Animate("rc1",				self:GetPackedBool(130) and 0.87 or 1, 	0,1, 1, false)
+	self:Animate("UOS",				self:GetPackedBool(134) and 0.87 or 1, 	0,1, 1, false)
+	self:Animate("BPS",				self:GetPackedBool(135) and 0.87 or 1, 	0,1, 1, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -991,7 +1123,102 @@ function ENT:Draw()
 		
 		surface.SetAlphaMultiplier(1.0)
 	end)
+
+	self:DrawOnPanel("IGLA",function()
+		local plus = ((not self:GetPackedBool(32) or not self:GetPackedBool(78)) and 1 or 0)
+		surface.SetDrawColor(50 - plus*40,255 - plus*220,40 - plus*40)
+		surface.DrawRect(0,-4,360,60)
+		if not self:GetPackedBool(32) or not self:GetPackedBool(78) then return end
+		local text1 = ""
+		local text2 = ""
+		local C1 = Color(0,0,0,255)
+		local C2 = Color(50,200,50,255)
+		local flash = false
+		local T = self:GetPackedRatio(11)
+		local Ptrain = self:GetPackedRatio(5)*16.0
+		local Pcyl = self:GetPackedRatio(6)*6.0
+		local date = os.date("!*t",os_time)
+		-- Default IGLA text
+		text1 = "IGLA-01K     RK TEMP"
+		text2 = Format("%02d:%02d:%02d       %3d C",date.hour,date.min,date.sec,T)
+		
+		-- Modifiers and conditions
+		if self:GetPackedBool(25) then text1 = " !!  Right Doors !!" end
+		if self:GetPackedBool(21) then text1 = " !!  Left Doors  !!" end
+		
+		if T > 300 then text1 = "Temperature warning!" end
+		
+		if self:GetPackedBool(50) and (Pcyl > 1.1) then
+			text1 = "FAIL PNEUMATIC BRAKE"
+			flash = true
+		end
+		if self:GetPackedBool(35) and
+		   self:GetPackedBool(28) then
+			text1 = "FAIL AVU/BRAKE PRESS"
+			flash = true
+		end
+		if self:GetPackedBool(35) and
+		   (not self:GetPackedBool(40)) then
+			text1 = "FAIL SD/DOORS OPEN  "
+			flash = true
+		end
+		if self:GetPackedBool(36) then
+			text1 = "FAIL OVERLOAD RELAY "
+			flash = true
+		end
+		if Ptrain < 5.5 then
+			text1 = "FAIL TRAIN LINE LEAK"
+			flash = true
+		end
+		
+		if T > 400 then flash = true end
+		if T > 500 then text1 = "!Disengage circuits!" end
+		if T > 750 then text1 = " !! PIZDA POEZDU !! " end
+		
+		-- Draw text
+		if flash and ((RealTime() % 1.0) > 0.5) then
+			C2,C1 = C1,C2
+		end
+		for i=1,20 do
+			surface.SetDrawColor(C2)
+			surface.DrawRect(3+(i-1)*17.7+1,0+4,16,22)			
+			draw.DrawText(string.upper(text1[i] or ""),"MetrostroiSubway_IGLA",3+(i-1)*17.7,0+0,C1)
+		end
+		for i=1,20 do
+			surface.SetDrawColor(C2)
+			surface.DrawRect(3+(i-1)*17.7+1,0+24+4,16,22)
+			draw.DrawText(string.upper(text2[i] or ""),"MetrostroiSubway_IGLA",3+(i-1)*17.7,0+24,C1)
+		end
+	end)
 	
+	self:DrawOnPanel("AnnouncerDisplay",function()
+		local plus = (not self:GetPackedBool(32) and 1 or 0)
+		surface.SetDrawColor(50 - plus*40,255 - plus*220,40 - plus*40)
+		surface.DrawRect(260,80,390,150)
+		if not self:GetPackedBool(32) then return end
+		
+		-- Custom announcer display
+		local C1 = Color(0,0,0,210)
+		local C2 = Color(50,200,50,255)
+		local flash = false
+		text1 = self:GetNWString("CustomStr0")
+		text2 = self:GetNWString("CustomStr1")
+		
+		-- Draw text
+		if flash and ((RealTime() % 1.0) > 0.5) then
+			C2,C1 = C1,C2
+		end
+		for i=1,20 do
+			surface.SetDrawColor(C2)
+			surface.DrawRect(280+(i-1)*17.7+1,124+4,16,20)			
+			draw.DrawText(string.upper(text1[i] or ""),"MetrostroiSubway_IGLA",280+(i-1)*17.7,124+0,C1)
+		end
+		for i=1,20 do
+			surface.SetDrawColor(C2)
+			surface.DrawRect(280+(i-1)*17.7+1,124+31+4,16,20)
+			draw.DrawText(string.upper(text2[i] or ""),"MetrostroiSubway_IGLA",280+(i-1)*17.7,124+31,C1)
+		end
+	end)
 	self:DrawOnPanel("FrontPneumatic",function() 
 		draw.DrawText(self:GetNWBool("FI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
 	end)

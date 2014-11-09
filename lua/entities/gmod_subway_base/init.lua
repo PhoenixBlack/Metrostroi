@@ -1225,6 +1225,9 @@ function ENT:Think()
 		if self.VAH then
 			self.VAH:TriggerInput("Close",1)
 		end
+		if self.RC1 then
+			self.RC1:TriggerInput("Set",0)
+		end
 	end
 	
 	-- Calculate turn information, unused right now

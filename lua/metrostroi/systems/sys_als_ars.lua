@@ -25,6 +25,8 @@ if CreateConVar then
 end
 
 function TRAIN_SYSTEM:Initialize()
+	self.Train:LoadSystem("UOS","Relay","Switch")
+	self.Train:LoadSystem("BPS","Relay","Switch",{ normally_closed = true })
 	-- ALS state
 	self.Signal80 = false
 	self.Signal70 = false
@@ -43,6 +45,7 @@ function TRAIN_SYSTEM:Initialize()
 	self.ElectricBrake = false
 	self.PneumaticBrake1 = false
 	self.PneumaticBrake2 = true
+	self.PneumaticBrake2_1 = false
 	self.AttentionPedal = false
 
 	-- ARS wires
@@ -300,9 +303,10 @@ function TRAIN_SYSTEM:Think()
 	end
 
 	-- ALS, ARS state
-	local EnableARS = OverrideState or ((Train.ARS.Value == 1.0) and (Train.VB.Value == 1.0) and (Train.KV.ReverserPosition ~= 0.0))
+	local KRUEnabled =  Train.KRU and Train.KRU.Position > 0
+	local EnableARS = OverrideState or ((Train.ARS.Value == 1.0) and (Train.VB.Value == 1.0) and (Train.KV.ReverserPosition ~= 0.0 or KRUEnabled))
 	local EnableALS = OverrideState or ((Train.ALS.Value == 1.0) and (Train.VB.Value == 1.0))
-
+	local EnableUOS = (Train.UOS.Value == 1.0) and (Train.VB.Value == 1.0) and ((Train.KV.ReverserPosition ~= 0.0) or KRUEnabled)
 	-- Pedal state
 	if (Train.PB) and ((Train.PB.Value+Train.KVT.Value) >= 1.0) then self.AttentionPedal = true end
 	if (Train.PB) and ((Train.PB.Value+Train.KVT.Value) <  1.0) then self.AttentionPedal = false end
@@ -321,7 +325,7 @@ function TRAIN_SYSTEM:Think()
 	end
 
 	-- Check ARS signals
-	if EnableALS then
+	if EnableALS --[[or EnableUOS]] then
 		self.Timer = self.Timer or CurTime()
 		if CurTime() - self.Timer > 1.00 then
 			self.Timer = CurTime()
@@ -367,8 +371,8 @@ function TRAIN_SYSTEM:Think()
 	end
 
 	-- ARS system placeholder logic
-	if EnableALS then
-		local V = math.floor(self.Speed+0.05)
+	if EnableALS --[[or EnableUOS]] then
+		local V = math.floor(self.Speed +0.05)
 		local Vlimit = 0
 		if self.Signal40 then Vlimit = 40 end
 		if self.Signal60 then Vlimit = 60 end
@@ -390,19 +394,30 @@ function TRAIN_SYSTEM:Think()
 		if self.Signal60 then self.NextLimit = 60 end
 		if self.Signal40 then self.NextLimit = 40 end
 		if self.Signal0  then self.NextLimit =  0 end
-
+		--[=[if EnableUOS then
+			--hack
+			--[[
+			if self.NextLimit >= 60 then
+				self.SpeedLimit = 40
+			else
+				self.SpeedLimit = 20
+			end]]
+			self.SpeedLimit = 40
+			self.Overspeed = false
+			if (not self.AttentionPedal) then self.Overspeed = true end
+			if (    self.AttentionPedal) and (V > self.SpeedLimit) then self.Overspeed = true end
+		else]=]
 		if not EnableARS then
 			self.ElectricBrake = false
 			self.PneumaticBrake1 = false
 			self.PneumaticBrake2 = true
 		end
+		--self.Ring = false
 	else
 		self.SpeedLimit = 0
 		self.NextLimit = 0
 		self.Overspeed = true
-		--self.Ring = false
 	end
-
 	if EnableARS then
 		-- Check absolute stop
 		if self.NoFreq and (not self.PrevNoFreq) then
@@ -424,23 +439,41 @@ function TRAIN_SYSTEM:Think()
 		-- Parking brake limit
 		triggerSpeed = 5.0
 		if (Train:ReadTrainWire(6) > 0) then triggerSpeed = 0.25 end
-
+		local BPSWorking = (Train:GetAngles().pitch > 1 or Train:GetAngles().pitch < -1) and (Train.BPS ~= nil and Train.BPS.Value > 0.5) and not KRUEnabled
 		-- Check parking brake functionality
 		self.TW1Timer = self.TW1Timer or -1e9
-		if (self.Speed < triggerSpeed) and
-		   ((CurTime() - self.TW1Timer) > 5) and
-		   ((Train:ReadTrainWire(2) > 0) or
+		if (self.Speed < triggerSpeed + (BPSWorking and 5 or 0)) and
+		   (((CurTime() - self.TW1Timer) > 5) or BPSWorking) and
+		   ((Train:ReadTrainWire(2)  > 0) or
 		    (Train:ReadTrainWire(6) < 1)) then
 			self.PneumaticBrake1 = true
+			self.PneumaticBrake2_1 = BPSWorking
+		end
+		if BPSWorking and Train.Panel and Train.Panel["GreenRP"] > 0.5 and self.Speed < 5 then
+			self.StoppedOnSlopeByRP = true
 		end
 		-- Check cancel pneumatic brake 1 command
 		--if (Train.RV2) and (Train.RV2.Value > 0) then
-		if (Train:ReadTrainWire(1) > 0) then
-			self.PneumaticBrake1 = false
-			self.TW1Timer = CurTime()
+		if (Train:ReadTrainWire(1) > 0 or (KRUEnabled and Train.KRP.Value > 0 and not self.ElectricBrake)) then
+			if Train.Pneumatic.BrakeCylinderPressure < 2.1 then
+				Train.AVT:TriggerInput("Set",1)
+			else
+				self.PneumaticBrake2_1 = false
+				if Train.Panel and Train.Panel["GreenRP"] < 0.5 then
+					self.StoppedOnSlopeByRP = nil
+				end
+			end
+			if (BPSWorking and Train.LK4.Value > 0 and Train.KV.ControllerPosition > 0) or not BPSWorking then
+				self.PneumaticBrake1 = false
+				self.PneumaticBrake2_1 = false
+				if Train.Panel and Train.Panel["GreenRP"] < 0.5 then
+					self.StoppedOnSlopeByRP = nil
+				end
+				self.TW1Timer = CurTime()
+			end
 		end
 		-- Door close cancel pneumatic brake 1 command trigger
-		if (Train:GetSkin() == 1) and (Train.KD) then
+		if (Train:GetSkin() == 1) and (Train.KD) and Train.SubwayTrain.Name:sub(1,-2) ~= "81-71" then
 			-- Prepare
 			if (Train.KD.Value == 0) then
 				self.KDReadyToRelease = true
@@ -468,38 +501,58 @@ function TRAIN_SYSTEM:Think()
 		self["33Zh"] = 1-Ebrake
 		self["2"] = Ebrake
 		self["20"] = Ebrake
-		self["29"] = Pbrake1
-		self["8"] = Pbrake2*(((CurTime() - self.PV1Timer) > 2.5) and 1 or 0)
+		self["29"] = Pbrake1 + ((self.PneumaticBrake2_1 or self.StoppedOnSlopeByRP) and 1 or 0)
+		--print(Train.Speed)
+		self["8"] = Pbrake2*((((CurTime() - self.PV1Timer) > 2.5) and 1 or 0) + ((KRUEnabled) and 1 or 0)*Ebrake) + ((self.PneumaticBrake2_1 or self.StoppedOnSlopeByRP or (self.SpeedLimit < 20 and not self.AttentionPedal)) and 1 or 0)
 
 		-- Show lamps
 		self.LKT = (self["33G"] > 0.5) or (self["29"] > 0.5) or (Train:ReadTrainWire(35) > 0)
 		self.LVD = self["33D"] < 0.5
 		self.Ring = self.LVD or self.KSZD
-	else
-		if (Train.RPB) and (not self.AttentionPedal) then
+	elseif EnableUOS then
+		if (Train.RPB) and not self.AttentionPedal then
 			Train.RPB:TriggerInput("Open",1)
 		end
-		self.ElectricBrake = true
-		self.PneumaticBrake1 = false
-		self.PneumaticBrake2 = true
+		local KRP = (Train.KRP ~= nil and Train.KRP.Value > 0.5) and self.Speed + 0.5 <= 40 and 1 or 0
+		--local Pbrake2 = (self.Overspeed and 1 or 0)
 
-		self["33D"] = 1
+		-- Apply ARS system commands
+
+		self["33D"] = KRP
 		self["33G"] = 0
-		self["33Zh"] = 1
+		self["33Zh"] = KRP
 		self["2"] = 0
 		self["20"] = 0
 		self["29"] = 0
+		self["8"] = (self.Speed + 0.5 > 40) and 1 or 0--Pbrake2
+
+		self.LKT = false
+		self.LVD = false
+		self.Ring = false
+	else
+		if (Train.RPB) and not self.AttentionPedal then
+			Train.RPB:TriggerInput("Open",1)
+		end
+		
+		self.ElectricBrake = true
+		self.PneumaticBrake1 = false
+		self.PneumaticBrake2 = true
+		self["33D"] = 1
+		self["33Zh"] = 1
 		self["8"] = 0
+		self["33G"] = 0
+		self["2"] = 0
+		self["20"] = 0
+		self["29"] = 0
 
 		self.LKT = false
 		self.LVD = false
 		self.Ring = false
 	end
-
 	-- ARS signalling train wires
 	if EnableALS and EnableARS then
 		self.Train:WriteTrainWire(21,self.LVD and 1 or 0)--self.LKT and 1 or 0)
-	else
+	else--if not EnableUOS then
 		self.Train:WriteTrainWire(21,0)
 	end
 
@@ -517,13 +570,17 @@ function TRAIN_SYSTEM:Think()
 
 	-- RC1 operation
 	if self.Train.RC1 and (self.Train.RC1.Value == 0) then
-		self["33D"] = 1
+		if not EnableUOS then
+			self["33D"] = 1
+			self["33Zh"] = 1
+			self["8"] = 0
+		end
 		self["33G"] = 0
-		self["33Zh"] = 1
+		--
 		self["2"] = 0
 		self["20"] = 0
 		self["29"] = 0
-		self["8"] = 0
+		--
 		self["31"] = 0
 		self["32"] = 0
 	end
@@ -674,7 +731,7 @@ function TRAIN_SYSTEM:Think()
 			self.UPPSBraking = true
 			Train:PlayOnce("dura1","cabin",0.5,50.0)
 			timer.Create("UPPSAlarm"..Train:EntIndex(),4,0,function()
-				if Train then
+				if IsValid(Train) then
 					Train:PlayOnce("dura1","cabin",0.5,50.0)
 				else
 					timer.Remove("UPPSAlarm"..Train:EntIndex())

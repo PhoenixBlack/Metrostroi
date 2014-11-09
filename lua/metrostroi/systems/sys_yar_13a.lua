@@ -75,8 +75,8 @@ function TRAIN_SYSTEM:Think()
 	local Train = self.Train
 	
 	-- Zero relay operation
-	Train.NR:TriggerInput("Close",Train.Electric.Power750V > 360) -- 360 - 380 V 
-	Train.NR:TriggerInput("Open", Train.Electric.Power750V < 150) -- 120 - 190 V
+	Train.NR:TriggerInput("Close",Train.Electric.Aux750V > 360) -- 360 - 380 V 
+	Train.NR:TriggerInput("Open", Train.Electric.Aux750V < 150) -- 120 - 190 V
 	
 	-- Overload relays operation
 	Train.RP1_3:TriggerInput("Set",Train.Electric.I13)

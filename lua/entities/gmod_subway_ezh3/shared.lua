@@ -77,4 +77,14 @@ function ENT:InitializeSystems()
 	self:LoadSystem("ALS_ARS")
 	self:LoadSystem("Horn")
 	self:LoadSystem("Announcer")
+
+	self:LoadSystem("Custom1","Relay","Switch")
+	self:LoadSystem("Custom2","Relay","Switch")
+	self:LoadSystem("Custom3","Relay","Switch")
+	self:LoadSystem("CustomC","Relay","Switch")
+	self:LoadSystem("CustomD","Relay","Switch")
+	self:LoadSystem("CustomE","Relay","Switch")
+	self:LoadSystem("CustomF","Relay","Switch")
+	self:LoadSystem("CustomG","Relay","Switch")
+	
 end

@@ -224,7 +224,7 @@ function FailSim.RandomFailure()
 	
 	local failure = failureList[i]
 	local parameter = FailSim.Objects[failure.object].Parameters[failure.parameter_name]
-	--print("Generated random failure from total of "..count.." failures:")
+	print("Generated random failure from total of "..count.." failures:")
 	print("[!FAIL!] "..failure.name.." in "..(failure.object.Name or "?"))
 	doFailure(parameter,failure)
 end

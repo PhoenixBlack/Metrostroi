@@ -117,7 +117,7 @@ function TRAIN_SYSTEM:Think(dT)
 	-- Non-metrostroi maps
 	if (not (GetConVarNumber("metrostroi_train_requirethirdrail") > 0)) or 
 	   (not Metrostroi.MapHasFullSupport()) then
-		self.Main750V = 750
+		self.Main750V = (Metrostroi.Voltage or 750) + self.VoltageDrop
 		return 
 	end
 

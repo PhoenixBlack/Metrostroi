@@ -18,6 +18,13 @@ ENT.ButtonMap["RearPneumatic"] = {
 	height = 100,
 	scale = 0.1,
 }
+ENT.ButtonMap["AirDistributor"] = {
+	pos = Vector(-180,70,-50),
+	ang = Angle(0,180,90),
+	width = 80,
+	height = 40,
+	scale = 0.1,
+}
 
 -- Wagon numbers
 ENT.ButtonMap["TrainNumber1"] = {
@@ -250,7 +257,13 @@ function ENT:Draw()
 	self:DrawOnPanel("RearPneumatic",function()
 		draw.DrawText(self:GetNWBool("RI") and "Isolated" or "Open","Trebuchet24",150,30,Color(0,0,0,255))
 	end)
+	self:DrawOnPanel("AirDistributor",function()
+		draw.DrawText(self:GetNWBool("AD") and "Air Distributor ON" or "Air Distributor OFF","Trebuchet24",0,0,Color(0,0,0,255))
+	end)
 	
+	self:DrawOnPanel("AirDistributor",function()
+		draw.DrawText(self:GetNWBool("AD") and "Air Distributor ON" or "Air Distributor OFF","Trebuchet24",0,0,Color(0,0,0,255))
+	end)
 	-- Draw train numbers
 	local dc = render.GetLightColor(self:GetPos())
 	self:DrawOnPanel("TrainNumber1",function()

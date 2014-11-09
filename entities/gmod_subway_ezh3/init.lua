@@ -139,17 +139,8 @@ function ENT:Initialize()
 		[19] = { "light",			Vector(390, -69, 51), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[20] = { "light",			Vector(390, -69, 48), Angle(0,0,0), Color(0,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[21] = { "light",			Vector(390, -69, 45), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		
-		-- Custom D
-		[35] = { "light", 			Vector(447.7,-54.5,17.4-4.4), Angle(0,-0,0), Color(255,0,0), brightness = 1.0, scale = 0.020 },
-		-- Custom E
-		[36] = { "light", 			Vector(447,-55.5,17.4-4.4), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
-		-- Custom F
-		[37] = { "light", 			Vector(444.7,-58.5,17.4-4.4), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
-		-- Custom G
-		[38] = { "light", 			Vector(444,-59.5,17.4-4.4), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
 	}
-
+	
 	-- Cross connections in train wires
 	self.TrainWireCrossConnections = {
 		[5] = 4, -- Reverser F<->B
@@ -215,9 +206,6 @@ function ENT:Think()
 	
 	self:SetLightPower(17, self.Panel["TrainBrakes"] > 0.5)
 	self:SetLightPower(21, self.Panel["TrainBrakes"] > 0.5)
-
-	-- Total temperature
-	local IGLA_Temperature = math.max(self.Electric.T1,self.Electric.T2)
 	
 	-- Switch and button states
 	self:SetPackedBool(0,self:IsWrenchPresent())
@@ -259,31 +247,28 @@ function ENT:Think()
 	self:SetPackedBool(57,self.ALS.Value == 1.0)
 	self:SetPackedBool(58,self.Panel["CabinLight"] > 0.5)
 	self:SetPackedBool(112,(self.RheostatController.Velocity ~= 0.0))
-	self:SetPackedBool(114,self.Custom1.Value == 1.0)
+	--[[self:SetPackedBool(114,self.Custom1.Value == 1.0)
 	self:SetPackedBool(115,self.Custom2.Value == 1.0)
 	self:SetPackedBool(116,self.Custom3.Value == 1.0)
-	self:SetPackedBool(124,self.CustomC.Value == 1.0)
-	--[[self:SetPackedBool(117,self.Custom4.Value == 1.0)
+	self:SetPackedBool(117,self.Custom4.Value == 1.0)
 	self:SetPackedBool(118,self.Custom5.Value == 1.0)
 	self:SetPackedBool(119,self.Custom6.Value == 1.0)
 	self:SetPackedBool(120,self.Custom7.Value == 1.0)
 	self:SetPackedBool(121,self.Custom8.Value == 1.0)
 	self:SetPackedBool(122,self.CustomA.Value == 1.0)
-	self:SetPackedBool(124,self.CustomC.Value == 1.0)]]--
+	self:SetPackedBool(123,self.CustomB.Value == 1.0)
+	self:SetPackedBool(124,self.CustomC.Value == 1.0)
 	self:SetLightPower(35,self.CustomD.Value == 1.0)
 	self:SetLightPower(36,self.CustomE.Value == 1.0)
 	self:SetLightPower(37,self.CustomF.Value == 1.0)
-	self:SetLightPower(38,self.CustomG.Value == 1.0)
+	self:SetLightPower(38,self.CustomG.Value == 1.0)]]--
 	self:SetPackedBool(125,self.R_G.Value == 1.0)
 	self:SetPackedBool(126,self.R_Radio.Value == 1.0)
 	self:SetPackedBool(127,self.R_ZS.Value == 1.0)
 	self:SetPackedBool(128,self.R_Program1.Value == 1.0)
 	self:SetPackedBool(129,self.R_Program2.Value == 1.0)
-	self:SetPackedBool(130,self.RC1.Value == 1.0)
 	self:SetPackedBool(132,self.ParkingBrake <= 0.001)
 	self:SetPackedBool(133,self.ParkingBrake >= 0.999)
-	self:SetPackedBool(134,self.UOS.Value == 1.0)
-	self:SetPackedBool(135,self.BPS.Value == 1.0)
 
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -335,8 +320,6 @@ function ENT:Think()
 	self:SetPackedBool(47,self.ALS_ARS.LKT)
 	-- KVD
 	self:SetPackedBool(48,self.ALS_ARS.LVD)
-	-- LVD
-	self:SetPackedBool(50,self:ReadTrainWire(1) > 0.5)
 	
 	-- AV states
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -361,7 +344,6 @@ function ENT:Think()
 	self:SetPackedRatio(8, math.abs(self.Electric.I24)/1000.0)	
 	self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
 	self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 100.0)
-	self:SetPackedRatio(11,IGLA_Temperature)
 	
 	-- Update ARS system
 	self:SetPackedRatio(3, self.ALS_ARS.Speed/100.0)

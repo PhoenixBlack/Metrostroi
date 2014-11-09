@@ -342,7 +342,7 @@ hook.Add("Think", "Metrostroi_ElectricConsumptionThink", function()
 
 	-- Calculate new voltage
 	local Rfeed = 0.03 --25
-	Metrostroi.Voltage = math.max(0,GetConVarNumber("metrostroi_voltage") - 0.1 - Metrostroi.Current*Rfeed)
+	Metrostroi.Voltage = math.max(0,GetConVarNumber("metrostroi_voltage") - Metrostroi.Current*Rfeed)
 	if CurTime() < Metrostroi.VoltageRestoreTimer then Metrostroi.Voltage = 0 end
 	
 	--print(Format("%5.1f v %.0f A",Metrostroi.Voltage,Metrostroi.Current))
