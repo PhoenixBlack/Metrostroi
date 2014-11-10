@@ -245,7 +245,7 @@ function ENT:Think()
 	end
 	
 	-- DIP sound
-	self:SetSoundState("bpsn1",self:GetPackedBool(52) and 1 or 0,1.0)
+	--self:SetSoundState("bpsn1",self:GetPackedBool(52) and 1 or 0,1.0)
 end
 
 function ENT:Draw()

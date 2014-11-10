@@ -20,14 +20,20 @@ function ENT:Initialize()
 	
 	-- Create seat entities
 	self.DriverSeat = self:CreateSeat("driver",Vector(410,0,-23+2.5))
-	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,44,-28+4))
-	self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-40,-28+1))
+	self.InstructorsSeat = self:CreateSeat("instructor",Vector(420,50,-28+3),Angle(0,270,0))
+	self.ExtraSeat1 = self:CreateSeat("instructor",Vector(410,-40,-28+1))
+	self.ExtraSeat2 = self:CreateSeat("instructor",Vector(415,-50,-43),Angle(0,180,0),"models/vehicles/prisoner_pod_inner.mdl")
+	self.ExtraSeat3 = self:CreateSeat("instructor",Vector(392,50,-43),Angle(0,-40+90,0),"models/vehicles/prisoner_pod_inner.mdl")
 
 	-- Hide seats
 	self.DriverSeat:SetColor(Color(0,0,0,0))
 	self.DriverSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
-	self.ExtraSeat:SetColor(Color(0,0,0,0))
-	self.ExtraSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
+	self.ExtraSeat1:SetColor(Color(0,0,0,0))
+	self.ExtraSeat1:SetRenderMode(RENDERMODE_TRANSALPHA)
+	self.ExtraSeat2:SetColor(Color(0,0,0,0))
+	self.ExtraSeat2:SetRenderMode(RENDERMODE_TRANSALPHA)
+	self.ExtraSeat3:SetColor(Color(0,0,0,0))
+	self.ExtraSeat3:SetRenderMode(RENDERMODE_TRANSALPHA)
 	
 	-- Create bogeys
 	self.FrontBogey = self:CreateBogey(Vector( 325-20,0,-80),Angle(0,180,0),true)
@@ -149,18 +155,18 @@ function ENT:Initialize()
 		[13] = { "dynamiclight",	Vector(-350, 0, 5), Angle(0,0,0), Color(255,255,255), brightness = 3, distance = 400 },
 		
 		-- Side lights
-		[14] = { "light",			Vector(-50, 68, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[15] = { "light",			Vector(4,   68, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[16] = { "light",			Vector(1,   68, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[17] = { "light",			Vector(-2,  68, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[14] = { "light",			Vector(-50, 68, 53.7), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[15] = { "light",			Vector(6,   68, 53.7), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[16] = { "light",			Vector(3,   68, 53.7), Angle(0,0,0), Color(50,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[17] = { "light",			Vector(-0,  68, 53.7), Angle(0,0,0), Color(255,150,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		
-		[18] = { "light",			Vector(-50, -69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[19] = { "light",			Vector(5,   -69, 54), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[20] = { "light",			Vector(2,   -69, 54), Angle(0,0,0), Color(0,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[21] = { "light",			Vector(-1,  -69, 54), Angle(0,0,0), Color(255,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[18] = { "light",			Vector(-50, -69, 53.7), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[19] = { "light",			Vector(6,   -69, 53.7), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[20] = { "light",			Vector(3,   -69, 53.7), Angle(0,0,0), Color(50,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[21] = { "light",			Vector(-0,  -69, 53.7), Angle(0,0,0), Color(255,150,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 
 		-- Green RP
-		[22] = { "light",			Vector(439.8,12.5+1.5-9.6,-6.1), Angle(0,0,0), Color(100,255,0), brightness = 1.0, scale = 0.020 },
+		[22] = { "light",			Vector(439.8,12.5+1.5-9.6,-6.1), Angle(0,0,0), Color(0,255,0), brightness = 1.0, scale = 0.020 },
 		-- AVU
 		[23] = { "light",			Vector(441.6,12.5+1.5-20.3,-4.15), Angle(0,0,0), Color(255,40,0), brightness = 1.0, scale = 0.020 },
 		-- LKVP
@@ -190,7 +196,7 @@ function ENT:Initialize()
 		-- Custom D
 		[35] = { "light", 			Vector(443.2,25.0-1.8*0,1.15), Angle(0,0,0), Color(255,0,0), brightness = 1.0, scale = 0.020 },
 		-- Custom E
-		[36] = { "light", 			Vector(443.2,25.0-1.8*1,1.15), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
+		[36] = { "light", 			Vector(443.2,25.0-1.8*1,1.15), Angle(0,0,0), Color(255,255,255), brightness = 1.0, scale = 0.020 },
 		-- Custom F
 		[37] = { "light", 			Vector(443.2,25.0-1.8*2,1.15), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
 		-- Custom G
@@ -262,8 +268,8 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:Think()
-	local retVal = self.BaseClass.Think(self)
-
+	self.RetVal = self.BaseClass.Think(self)
+	
 	-- Check if wrench was pulled out
 	if self.DriversWrenchPresent then
 		self.KV:TriggerInput("Enabled",self:IsWrenchPresent() and 1 or 0)
@@ -442,16 +448,10 @@ function ENT:Think()
 	-- NR1
 	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP
-	--local RP = self.Panel["RedRP"] > 0.25
-	--local RPr = self.Panel["RedRP"] > 0.75
-	--if RP and (not self.RPTimer) then self.RPTimer = CurTime() + 0.10 + 0.05*math.random() end
-	--if self.RPTimer and (not RP) then self.RPTimer = nil end
-	--self:SetPackedBool(35,RP) --(RP and self.RPTimer and (CurTime() < self.RPTimer)) or RPr)
-	--self:SetPackedBool(131,RP)
-	local RTW18 = self:GetTrainWire18Resistance()
-	if (self.KV.ControllerPosition == 0) or (self.Panel["V1"] < 0.5) then RTW18 = 1e9 end
-	self:SetPackedBool(35,RTW18 < 0.40)
-	self:SetPackedBool(131,RTW18 < 100)
+	self.RTW18 = self:GetTrainWire18Resistance()
+	if (self.KV.ControllerPosition == 0) or (self.Panel["V1"] < 0.5) then self.RTW18 = 1e9 end
+	self:SetPackedBool(35,self.RTW18 < 0.40)
+	self:SetPackedBool(131,self.RTW18 < 100)
 	-- Green RP
 	self:SetPackedBool(36,self.Panel["GreenRP"] > 0.5)
 	self:SetLightPower(22,self.Panel["GreenRP"] > 0.5)
@@ -648,26 +648,7 @@ function ENT:Think()
 
 	-- Send networked variables
 	self:SendPackedData()
-	return retVal
-end
-
-function ENT:GetTrainWire18Resistance()
-	self:UpdateWagonList()
-	
-	-- Total resistance
-	local Rtotal = 0.0
-	for i,train in ipairs(self.WagonList) do
-		if train.Electric then
-			local RLK4 = train.Electric.RPSignalResistor + train.LK4.Value*1e9
-			local RRP = (1-train.RPvozvrat.Value)*1e9
-			local Rtrain = ((RRP^-1) + (RLK4^-1))^-1
-			Rtotal = Rtotal + (Rtrain^-1)
-		end
-	end
-	
-	-- Mask for panel RP light info
-	--local Mask = (self.Panel["RedRP"] > 0.25) and 0 or 1e9
-	return Rtotal^-1
+	return self.RetVal
 end
 
 
@@ -846,8 +827,24 @@ function ENT:OnButtonPress(button)
 		end
 		return
 	end
+	if button == "VUD2Toggle" then 
+		if self.VUD2.Value > 0.5 then
+			self:PlayOnce("vu22_off","instructor")
+		else
+			self:PlayOnce("vu22_on","instructor")
+		end
+		return
+	end
 	if button == "VUD1Set" then 
 		self:PlayOnce("vu22_on","cabin")
+		return
+	end
+	if button == "VUD2Set" then 
+		self:PlayOnce("vu22_on","instructor")
+		return
+	end
+	if button == "VDLSet" then
+		self:PlayOnce("vu22_on","instructor")
 		return
 	end
 	
@@ -864,10 +861,21 @@ function ENT:OnButtonPress(button)
 	if (not string.find(button,"KVT")) and string.find(button,"KV") then return end
 	if string.find(button,"KRU") then return end
 
+	if button == "R_Program1Helper" then
+		self.R_Program1:TriggerInput("Set",1)
+		self:PlayOnce("inf_on","instructor",0.7)
+		return
+	end
+	if button == "R_Program2Helper" then
+		self.R_Program2:TriggerInput("Set",1)
+		self:PlayOnce("inf_on","instructor",0.7)
+		return
+	end
 	if string.find(button,"R_Program") then
 		self:PlayOnce("inf_on","cabin",0.7)
 		return
 	end
+	
 	-- Generic button or switch sound
 	if string.find(button,"Set") or string.find(button,"DURASelect") then
 		self:PlayOnce("button_press","cabin")
@@ -886,7 +894,7 @@ function ENT:OnButtonRelease(button)
 		self.KRP:TriggerInput("Set",0)
 		self:OnButtonRelease("KRPSet")
 	end
-	
+
 	if button == "PBSet" then self:PlayOnce("switch6_off","cabin",0.55,100) return end
 	--[[
 	if (button == "PneumaticBrakeDown") and (self.Pneumatic.DriverValvePosition == 1) then
@@ -902,10 +910,28 @@ function ENT:OnButtonRelease(button)
 		self:PlayOnce("vu22_off","cabin")
 		return
 	end
+	if button == "VUD2Set" then 
+		self:PlayOnce("vu22_off","cabin")
+		return
+	end
+	if button == "VDLSet" then
+		self:PlayOnce("vu22_off","instructor")
+		return
+	end
 	
 	if (not string.find(button,"KVT")) and string.find(button,"KV") then return end
 	if string.find(button,"KRU") then return end
 
+	if button == "R_Program1Helper" then
+		self.R_Program1:TriggerInput("Set",0)
+		self:PlayOnce("inf_off","instructor",0.7)
+		return
+	end
+	if button == "R_Program2Helper" then
+		self.R_Program2:TriggerInput("Set",0)
+		self:PlayOnce("inf_off","instructor",0.7)
+		return
+	end
 	if string.find(button,"R_Program") then
 		self:PlayOnce("inf_off","cabin",0.7)
 		return

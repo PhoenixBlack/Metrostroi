@@ -26,8 +26,8 @@ function ENT:Initialize()
 	self.RearBogey  = self:CreateBogey(Vector(-150,0,-60),Angle(0,0,0),false,"tatra")
 	
 	-- Create joins
-	self:CreateJoin(Vector(350,0,-50),false)
-	self:CreateJoin(Vector(-350,0,-50),true)
+	self.FrontJoin = self:CreateJoin(Vector(350,0,-50),false)
+	self.RearJoin = self:CreateJoin(Vector(-350,0,-50),true)
 	
 	-- Initialize key mapping
 	self.KeyMap = {

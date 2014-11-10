@@ -284,6 +284,16 @@ function ENT:Initialize()
 	self:InitializeSounds()
 	self.Sounds = {}
 	--self:EntIndex()
+	self.PassengerModels = {
+		"models/metrostroi/passengers/f1.mdl",
+		"models/metrostroi/passengers/f2.mdl",
+		"models/metrostroi/passengers/f3.mdl",
+		"models/metrostroi/passengers/f4.mdl",
+		"models/metrostroi/passengers/m1.mdl",
+		"models/metrostroi/passengers/m2.mdl",
+		"models/metrostroi/passengers/m4.mdl",
+		"models/metrostroi/passengers/m5.mdl",
+	}
 end
 
 function ENT:OnRemove()
@@ -298,9 +308,6 @@ function ENT:OnRemove()
 		v:Remove()
 	end
 end
-
-
-
 
 --------------------------------------------------------------------------------
 -- Default think function
@@ -375,17 +382,6 @@ function ENT:Think()
 	
 	-- Update passengers
 	if #self.PassengerEnts ~= self:GetPassengerCount() then
-		-- FIXME put this into global table
-		local passengerModels = {
-			"models/metrostroi/passengers/f1.mdl",
-			"models/metrostroi/passengers/f2.mdl",
-			"models/metrostroi/passengers/f3.mdl",
-			"models/metrostroi/passengers/f4.mdl",
-			"models/metrostroi/passengers/m1.mdl",
-			"models/metrostroi/passengers/m2.mdl",
-			"models/metrostroi/passengers/m4.mdl",
-			"models/metrostroi/passengers/m5.mdl",
-		}
 
 		-- Passengers go out
 		while #self.PassengerEnts > self:GetPassengerCount() do
@@ -400,7 +396,7 @@ function ENT:Think()
 			local min,max = self:GetStandingArea()
 			local pos = min + Vector((max.x-min.x)*math.random(),(max.y-min.y)*math.random(),(max.z-min.z)*math.random())
 			
-			local ent = ClientsideModel(table.Random(passengerModels),RENDERGROUP_OPAQUE)
+			local ent = ClientsideModel(table.Random(self.PassengerModels),RENDERGROUP_OPAQUE)
 			ent:SetPos(self:LocalToWorld(pos))
 			ent:SetAngles(Angle(0,math.random(0,360),0))
 			ent:SetSkin(math.floor(ent:SkinCount()*math.random()))

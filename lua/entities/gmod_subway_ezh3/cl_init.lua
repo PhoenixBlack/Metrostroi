@@ -1110,7 +1110,7 @@ function ENT:Draw()
 			surface.SetAlphaMultiplier(b)
 			surface.SetDrawColor(50,255,50)
 			surface.DrawRect(255*10,53*10,16*10,8*10)
-			draw.DrawText("75","MetrostroiSubway_LargeText",255*10+30,53*10-10,Color(0,0,0,255))
+			draw.DrawText("70","MetrostroiSubway_LargeText",255*10+30,53*10-10,Color(0,0,0,255))
 		end
 			
 		b = self:Animate("light_80",self:GetPackedBool(46) and 1 or 0,0,1,5,false)

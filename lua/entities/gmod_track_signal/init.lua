@@ -81,8 +81,8 @@ function ENT:Logic(trackOccupied,nextRed,switchBlocked,switchAlternate)
 	self:SetRed(self.RedState or (self.ARSOnly and (self.SpeedLimit == 0)))
 	
 	-- Use normal logic or ARS-only logic
-	self:SetBlue(self.ARSOnly and (not self.RedState) and (not switchAlternate))
-	local blueLight = self.ARSOnly and 
+	self:SetBlue(self.ARSFake and self.ARSOnly and (not self.RedState) and (not switchAlternate))
+	local blueLight = self.ARSFake and self.ARSOnly and 
 		(self:GetTrafficLightsBit(3) or self:GetTrafficLightsBit(7) or self.ARSNoGreen)
 	
 	-- Yellow if next light is red or switch set to alternate
@@ -225,7 +225,8 @@ function ENT:Cache(name,value_func)
 end
 
 function ENT:Think()
-	self.ARSOnly = GetConVarNumber("metrostroi_arsmode") > 0.5
+	self.ARSOnly = true
+	self.ARSFake = GetConVarNumber("metrostroi_arsmode") > 0.5
 	self.ARSNoGreen = GetConVarNumber("metrostroi_arsmode_nogreen") > 0.5
 
 	-- Do no interesting logic if there's no traffic light involved

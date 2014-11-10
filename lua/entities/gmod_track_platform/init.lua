@@ -132,12 +132,13 @@ function ENT:FireHorliftDoors(input)
 	end
 end
 
+local dT = 0.25
+local trains 
 function ENT:Think()
 	-- Rate of boarding
-	local dT = 0.25
 
 	-- Find all potential trains
-	local trains = {}
+	trains = {}
 	for k,v in pairs(Metrostroi.TrainClasses) do
 		merge(trains,ents.FindByClass(v))
 	end
@@ -170,7 +171,6 @@ function ENT:Think()
 		if vertical_distance > 192 then doors_open = false end		
 		if (train_start < 0) and (train_end < 0) then doors_open = false end
 		if (train_start > 1) and (train_end > 1) then doors_open = false end
-
 		-- Check horizontal lift station logic
 		local passengers_can_board = false
 		if (platform_distance < 256) and (doors_open) then

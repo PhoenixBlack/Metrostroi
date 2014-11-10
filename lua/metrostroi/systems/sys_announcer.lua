@@ -18,8 +18,8 @@ Metrostroi.Announcements = {
 	[0002] = { 1.500, "" },
 	[0003] = { 1.123, "subway_announcer/00_03.mp3" },
 	[0004] = { 3.109, "subway_announcer/00_04.mp3" },
-	[0005] = { 0.940, "subway_announcer/00_05.mp3" },
-	[0006] = { 1.149, "subway_announcer/00_06.mp3" },
+	[0005] = { 0.200, "subway_announcer/00_05.mp3" },
+	[0006] = { 0.800, "subway_announcer/00_06.mp3" },
 
 	[0101] = { 2.194, "subway_announcer/01_01.mp3" },
 	[0102] = { 1.202, "subway_announcer/01_02.mp3" },
@@ -31,61 +31,61 @@ Metrostroi.Announcements = {
 	[0108] = { 7.784, "subway_announcer/01_08.mp3" },
 	[0109] = { 4.624, "subway_announcer/01_09.mp3" },
 
-	[0201] = { 2.168, "subway_announcer/02_01.mp3" },
-	[0202] = { 0.679, "subway_announcer/02_02.mp3" },
-	[0203] = { 0.967, "subway_announcer/02_03.mp3" },
-	[0204] = { 3.239, "subway_announcer/02_04.mp3" },
-	[0205] = { 4.023, "subway_announcer/02_05.mp3" },
-	[0206] = { 3.997, "subway_announcer/02_06.mp3" },
-	[0207] = { 3.997, "subway_announcer/02_07.mp3" },
-	[0208] = { 3.683, "subway_announcer/02_08.mp3" },
-	[0209] = { 5.564, "subway_announcer/02_09.mp3" },
-	[0210] = { 2.247, "subway_announcer/02_10.mp3" },
-	[0211] = { 1.907, "subway_announcer/02_11.mp3" },
-	[0212] = { 7.628, "subway_announcer/02_12.mp3" },
-	[0213] = { 5.512, "subway_announcer/02_13.mp3" },
-	[0214] = { 8.464, "subway_announcer/02_14.mp3" },
-	[0215] = { 2.299, "subway_announcer/02_15.mp3" },
-	[0216] = { 1.437, "subway_announcer/02_16.mp3" },
-	[0217] = { 6.060, "subway_announcer/02_17.mp3" },
-	[0218] = { 2.299, "subway_announcer/02_18.mp3" },
-	[0219] = { 1.358, "subway_announcer/02_19.mp3" },
-	[0220] = { 0.888, "subway_announcer/02_20.mp3" },
-	[0221] = { 2.429, "subway_announcer/02_21.mp3" },
-	[0222] = { 3.579, "subway_announcer/02_22.mp3" },
-	[0223] = { 1.933, "subway_announcer/02_23.mp3" },
-	[0224] = { 4.153, "subway_announcer/02_24.mp3" },
-	[0225] = { 3.553, "subway_announcer/02_25.mp3" },
-	[0226] = { 3.082, "subway_announcer/02_26.mp3" },
-	[0227] = { 3.579, "subway_announcer/02_27.mp3" },
-	[0228] = { 4.519, "subway_announcer/02_28.mp3" },
-	[0229] = { 5.564, "subway_announcer/02_29.mp3" },
-	[0230] = { 1.411, "subway_announcer/02_30.mp3" },
-	[0231] = { 1.358, "subway_announcer/02_31.mp3" },
-	[0232] = { 7.602, "subway_announcer/02_32.mp3" },
-	[0233] = { 1.220, "subway_announcer/02_33.mp3" },
+	[0201] = { 2.038, "subway_announcer/02_01.mp3" },
+	[0202] = { 0.701, "subway_announcer/02_02.mp3" },
+	[0203] = { 0.995, "subway_announcer/02_03.mp3" },
+	[0204] = { 2.562, "subway_announcer/02_04.mp3" },
+	[0205] = { 3.428, "subway_announcer/02_05.mp3" },
+	[0206] = { 3.946, "subway_announcer/02_06.mp3" },
+	[0207] = { 3.648, "subway_announcer/02_07.mp3" },
+	[0208] = { 3.033, "subway_announcer/02_08.mp3" },
+	[0209] = { 5.298, "subway_announcer/02_09.mp3" },
+	[0210] = { 1.972, "subway_announcer/02_10.mp3" },
+	[0211] = { 1.611, "subway_announcer/02_11.mp3" },
+	[0212] = { 7.345, "subway_announcer/02_12.mp3" },
+	[0213] = { 4.756, "subway_announcer/02_13.mp3" },
+	[0214] = { 7.926, "subway_announcer/02_14.mp3" },
+	[0215] = { 2.133, "subway_announcer/02_15.mp3" },
+	[0216] = { 1.470, "subway_announcer/02_16.mp3" },
+	[0217] = { 5.981, "subway_announcer/02_17.mp3" },
+	[0218] = { 2.639, "subway_announcer/02_18.mp3" },
+	[0219] = { 1.460, "subway_announcer/02_19.mp3" },
+	[0220] = { 1.122, "subway_announcer/02_20.mp3" },
+	[0221] = { 2.317, "subway_announcer/02_21.mp3" },
+	[0222] = { 3.468, "subway_announcer/02_22.mp3" },
+	[0223] = { 2.243, "subway_announcer/02_23.mp3" },
+	[0224] = { 4.114, "subway_announcer/02_24.mp3" },
+	[0225] = { 3.900, "subway_announcer/02_25.mp3" },
+	[0226] = { 3.160, "subway_announcer/02_26.mp3" },
+	[0227] = { 3.272, "subway_announcer/02_27.mp3" },
+	[0228] = { 4.383, "subway_announcer/02_28.mp3" },
+	[0229] = { 5.577, "subway_announcer/02_29.mp3" },
+	[0230] = { 1.596, "subway_announcer/02_30.mp3" },
+	[0231] = { 1.643, "subway_announcer/02_31.mp3" },
+	[0232] = { 7.295, "subway_announcer/02_32.mp3" },
+	[0233] = { 1.710, "subway_announcer/02_33.mp3" },
 
-	[0308] = { 1.228, "subway_announcer/03_08.mp3" },
-	[0309] = { 1.358, "subway_announcer/03_09.mp3" },
-	[0310] = { 1.228, "subway_announcer/03_10.mp3" },
-	[0311] = { 1.228, "subway_announcer/03_11.mp3" },
-	[0312] = { 1.358, "subway_announcer/03_12.mp3" },
-	[0313] = { 1.358, "subway_announcer/03_13.mp3" },
-	[0314] = { 1.097, "subway_announcer/03_14.mp3" },
-	[0315] = { 1.176, "subway_announcer/03_15.mp3" },
-	[0316] = { 1.149, "subway_announcer/03_16.mp3" },
-	[0317] = { 1.698, "subway_announcer/03_17.mp3" },
-	[0318] = { 1.123, "subway_announcer/03_18.mp3" },
-	[0319] = { 1.280, "subway_announcer/03_19.mp3" },
-	[0320] = { 3.709, "subway_announcer/03_20.mp3" },
-	[0321] = { 1.489, "subway_announcer/03_21.mp3" },
-	[0322] = { 1.358, "subway_announcer/03_22.mp3" },
-	[0323] = { 1.384, "subway_announcer/03_23.mp3" },
+	[0308] = { 1.276, "subway_announcer/03_08.mp3" },
+	[0309] = { 1.239, "subway_announcer/03_09.mp3" },
+	[0310] = { 1.327, "subway_announcer/03_10.mp3" },
+	[0311] = { 1.274, "subway_announcer/03_11.mp3" },
+	[0312] = { 1.487, "subway_announcer/03_12.mp3" },
+	[0313] = { 1.387, "subway_announcer/03_13.mp3" },
+	[0314] = { 1.217, "subway_announcer/03_14.mp3" },
+	[0315] = { 1.285, "subway_announcer/03_15.mp3" },
+	[0316] = { 1.301, "subway_announcer/03_16.mp3" },
+	[0317] = { 1.657, "subway_announcer/03_17.mp3" },
+	[0318] = { 1.261, "subway_announcer/03_18.mp3" },
+	[0319] = { 1.306, "subway_announcer/03_19.mp3" },
+	[0320] = { 3.542, "subway_announcer/03_20.mp3" },
+	[0321] = { 1.033, "subway_announcer/03_21.mp3" },
+	[0322] = { 1.317, "subway_announcer/03_22.mp3" },
+	[0323] = { 1.289, "subway_announcer/03_23.mp3" },
 
-	[0415] = { 1.149, "subway_announcer/04_15.mp3" },
+	[0415] = { 1.210, "subway_announcer/04_15.mp3" },
 	
-	[0521] = { 1.959, "subway_announcer/05_22.mp3" }, -- Yes, these are swapped.
-	[0522] = { 1.515, "subway_announcer/05_21.mp3" }, -- It is supposed to be so!
+	[0521] = { 1.476, "subway_announcer/05_21.mp3" }, -- Yes, these are swapped.
+	[0522] = { 1.777, "subway_announcer/05_22.mp3" }, -- It is supposed to be so!
 
 	[9999] = { 3.0,   "subway_announcer/00_00.mp3" },
 }
@@ -270,10 +270,12 @@ end
 
 function TRAIN_SYSTEM:PlayInfQueueSounds(...)
 	for _,v in pairs({...}) do
-		if Metrostroi.AnnouncerData[v] or v == 2215 or v == 120 then
-			self:Queue(tonumber(tostring(v):sub(-3,-1)) + 200)
-		else
-			self:Queue(v)
+		if v ~= nil then
+			if Metrostroi.AnnouncerData[v] or v == 2215 or v == 120 then
+				self:Queue(tonumber(tostring(v):sub(-3,-1)) + 200)
+			else
+				self:Queue(v)
+			end
 		end
 	end
 end
@@ -488,14 +490,11 @@ function TRAIN_SYSTEM:AnnPlayArriving()
             return
         end
 		if Metrostroi.AnnouncerData[self.AnnStation][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnStation][7] then
-            self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation,0002)
+            self:PlayInfQueueSounds(0230,0233,0223,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation,0002)
 		end
-        if Metrostroi.AnnouncerData[self.AnnStation][3] then
-            self:PlayInfQueueSounds(0230,0232)
-        end
         if Metrostroi.AnnouncerData[self.AnnStation][4] then
-            if not Metrostroi.AnnouncerData[self.AnnStation][3] then self:PlayInfQueueSounds(0230) end
-            self:PlayInfQueueSounds(0227)
+			if not (Metrostroi.AnnouncerData[self.AnnStation][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnStation][7]) then self:PlayInfQueueSounds(0230) end
+            self:PlayInfQueueSounds(math.random() > 0.5 and 0226 or nil,0227)
         end
     elseif self.AnnStyle == 2 then
         self:PlayInfQueueSounds(0003)
@@ -555,7 +554,8 @@ function TRAIN_SYSTEM:AnnPlayArriving()
             self:PlayInfQueueSounds(0230,0233,0210,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation)
 		end
         if Metrostroi.AnnouncerData[self.AnnStation][4] then
-            self:PlayInfQueueSounds(0230,0226)
+            if not (Metrostroi.AnnouncerData[self.AnnStation][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnStation][7]) then self:PlayInfQueueSounds(0230) end
+            self:PlayInfQueueSounds(0226)
         end
 
     end
@@ -581,6 +581,10 @@ function TRAIN_SYSTEM:AnnPlayDepeate()
 		if Metrostroi.AnnouncerData[self.AnnNext][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnNext][7] then
             self:PlayInfQueueSounds(0230,0233,0223,self.AnnPath == 1 and self.AnnEndStation or self.AnnStartStation)
 		end
+        if Metrostroi.AnnouncerData[self.AnnStation][3] then
+			if not (Metrostroi.AnnouncerData[self.AnnNext][7] and self.AnnPath == Metrostroi.AnnouncerData[self.AnnNext][7]) then self:PlayInfQueueSounds(0230) end
+            self:PlayInfQueueSounds(0232)
+        end
     elseif self.AnnStyle == 2 then
         self:PlayInfQueueSounds(0003)
         if self:AnnNotLast() then
@@ -1206,7 +1210,7 @@ function TRAIN_SYSTEM:Announcer2()
 				self.AnnState = 27
 				self.AnnState7NeedRedraw = true
 			end
-			if self.Train.R_Program1.Value > 0.5 then
+			if self.Train.R_Program1.Value > 0.5 and #self.Schedule == 0 then
                 if not self.Arrive then
 					if self.Train.CustomC.Value < 0.5 then
 						self:AnnPlayArriving()
@@ -1229,7 +1233,7 @@ function TRAIN_SYSTEM:Announcer2()
                 end
 				self.AnnState7NeedRedraw = true
 			end
-			if self.Train.R_Program2.Value > 0.5 then
+			if self.Train.R_Program2.Value > 0.5 and #self.Schedule == 0 then
 				self:AnnII()
 				self.AnnState = 97
 			end

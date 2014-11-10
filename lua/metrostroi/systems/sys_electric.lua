@@ -171,14 +171,14 @@ function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 			Train.InternalCircuits.Solve81_714(Train,self.Triggers)
 		end
 	end
-	if self.TrainSolver == "Ezh3" then
+	if (self.TrainSolver == "Ezh3") or (self.TrainSolver == "Ema508") then
 		local KSH1,KSH2 = 0,0
 		local SDRK_Shunt = 1.0
 		self.Triggers = { -- FIXME
-			["KSH1"]		= function(V) KSH1 = KSH1 + V end,
-			["KSH2"]		= function(V) KSH2 = KSH2 + V end,
-			["KSB1"]		= function(V) Train.KSB1:TriggerInput("Set",V) KSH1 = KSH1 + V end,
-			["KSB2"]		= function(V) Train.KSB2:TriggerInput("Set",V) KSH2 = KSH2 + V end,
+			--["KSH1"]		= function(V) KSH1 = KSH1 + V end,
+			--["KSH2"]		= function(V) KSH2 = KSH2 + V end,
+			--["KSB1"]		= function(V) Train.KSB1:TriggerInput("Set",V) KSH1 = KSH1 + V end,
+			--["KSB2"]		= function(V) Train.KSB2:TriggerInput("Set",V) KSH2 = KSH2 + V end,
 			["KPP"]			= function(V) Train.KPP:TriggerInput("Close",V) end,
 
 			["RPvozvrat"]	= function(V) Train.RPvozvrat:TriggerInput("Open",V) end,
@@ -201,9 +201,15 @@ function TRAIN_SYSTEM:SolveInternalCircuits(Train,dT)
 			["ReverserForward"]		= function(V) Train.RKR:TriggerInput("Open",V) end,
 			["ReverserBackward"]	= function(V) Train.RKR:TriggerInput("Close",V) end,
 		}
-		local S = Train.InternalCircuits.SolveEzh3(Train,self.Triggers)
-		Train.KSH1:TriggerInput("Set",KSH1)
-		Train.KSH2:TriggerInput("Set",KSH2)
+		--local S = Train.InternalCircuits.SolveEzh3(Train,self.Triggers)
+		--Train.KSH1:TriggerInput("Set",KSH1)
+		--Train.KSH2:TriggerInput("Set",KSH2)
+		
+		if self.TrainSolver == "Ezh3" then
+			Train.InternalCircuits.SolveEzh3(Train,self.Triggers)
+		else
+			Train.InternalCircuits.SolveEma508(Train,self.Triggers)
+		end
 	end
 end
 

@@ -10,7 +10,6 @@ function ENT:Initialize()
 		Name = "",
 	}
 	if not self.TrainType then self.TrainType = "81-717" end
-
 	-- Set model and initialize
 	self.NoPhysics = true
 	if self.TrainType == "81-717" then self:SetModel("models/metrostroi/81/81-717b.mdl") end
@@ -27,13 +26,13 @@ function ENT:Initialize()
 		--self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28))
 		--self.ExtraSeat = self:CreateSeat("instructor",Vector(410,-35,-28))
 	end
-	
+	--[[
 	for i=1,1 do --17
 		local pos = Vector(280-(i-1)*30-math.floor((i-1)/5)*80,-47,-32)
 		local p1 = self:CreateSeat("passenger",pos,Angle(0,90,0))
 		pos.y = -pos.y
 		local p2 = self:CreateSeat("passenger",pos,Angle(0,270,0))
-	end
+	end]]
 
 	-- Setup door positions
 	self.LeftDoorPositions = {}
@@ -110,6 +109,10 @@ function ENT:Initialize()
 		}	
 	end
 
+	-- Prop-protection related
+	if CPPI and IsValid(self.Owner) then
+		self:CPPISetOwner(self.Owner)
+	end
 	-- Spawn a dummy consist
 	if (self.TrainType == "81-717") and (not self.TrainHead) then
 		for i=2,5 do
@@ -120,10 +123,12 @@ function ENT:Initialize()
 			end
 			ent.TrainIndex = i
 			ent.TrainHead = self
+			ent.Owner = self.Owner
 			ent:Spawn()
+			table.insert(self.TrainEntities,ent)
 		end
 	end
-
+	--self:Remove()
 	-- Type
 	self:SetNWString("TrainType",self.TrainType)
 end

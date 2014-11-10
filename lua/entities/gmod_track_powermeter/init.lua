@@ -14,6 +14,20 @@ function ENT:Initialize()
 	end
 end
 
+function ENT:Use(ply)
+	--if not ply:IsAdmin() then return end
+	if Metrostroi.Voltage == 0 then
+		RunConsoleCommand("metrostroi_voltage",Metrostroi.OldVoltage ~= 0 and Metrostroi.OldVoltage or 750)
+		Metrostroi.OldVoltage = 0
+	else
+		Metrostroi.OldVoltage = GetConVarNumber("metrostroi_voltage")
+		RunConsoleCommand("metrostroi_voltage",0)
+		Metrostroi.Voltage = 0
+		Metrostroi.VoltageOffByPlayerUse = true
+	end
+	self:EmitSound("buttons/lever8.wav",100,100)
+end
+
 function ENT:Think()
 	self:SetTotal(Metrostroi.TotalkWh)
 	self:SetRate(Metrostroi.TotalRateWatts)
@@ -33,19 +47,6 @@ function ENT:Think()
 	
 	self:NextThink(CurTime())
 	return true
-end
-
-function ENT:Use(ply)
-	--if not ply:IsAdmin() then return end
-	if Metrostroi.Voltage == 0 then
-		RunConsoleCommand("metrostroi_voltage",Metrostroi.OldVoltage ~= 0 and Metrostroi.OldVoltage or 750)
-		Metrostroi.OldVoltage = 0
-	else
-		Metrostroi.OldVoltage = GetConVarNumber("metrostroi_voltage")
-		RunConsoleCommand("metrostroi_voltage",0)
-		Metrostroi.VoltageOffByPlayerUse = true
-	end
-	self:EmitSound("buttons/lever8.wav",100,100)
 end
 
 function ENT:OnRemove()

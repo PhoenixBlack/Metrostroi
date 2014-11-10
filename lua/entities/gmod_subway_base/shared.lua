@@ -344,6 +344,11 @@ function ENT:PlayOnce(soundid,location,range,pitch)
 		if IsValid(self.DriverSeat) then
 			self.DriverSeat:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
 		end
+	elseif (location == true) or (location == "instructor") then
+		if CLIENT then self.InstructorsSeat = self:GetNWEntity("seat_instructor") end				
+		if IsValid(self.InstructorsSeat) then
+			self.InstructorsSeat:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))
+		end
 	elseif location == "front_bogey" then
 		if IsValid(self.FrontBogey) then
 			self.FrontBogey:EmitSound(sound, 100*(range or default_range),pitch or math.random(95,105))

@@ -5,8 +5,8 @@ ENT.ClientPropsInitialized = false
 
 --------------------------------------------------------------------------------
 function ENT:Props81717()
-	if self.PropsInit then return end
-	self.PropsInit = true
+	--if self.PropsInit then return end
+	--self.PropsInit = true
 
 	local function GetDoorPosition(i,k,j)
 		if j == 0 
@@ -49,7 +49,10 @@ function ENT:Think()
 	self.BaseClass.Think(self)
 
 	local trainType = self:GetNWString("TrainType")
-	if trainType == "81-717" then self:Props81717()	end
+	if trainType == "81-717" and not self.ClientProps["d1"] then
+		self:Props81717()
+		print(1)
+	end
 	
 	-- Animate doors
 	for i=0,3 do
@@ -114,4 +117,15 @@ function ENT:Think()
 	
 	-- DIP sound
 	self:SetSoundState("bpsn1",self:GetPackedBool(52) and 1 or 0,1.0)
+end
+
+function ENT:OnRemove()
+	for k,v in pairs(self.ClientProps) do
+		self.ClientProps[k] = nil
+	end
+	for k,v in pairs(self.ClientEnts) do
+		v:Remove()
+	end
+	self.ClientEnts = nil
+	self.ClientProps = {}
 end

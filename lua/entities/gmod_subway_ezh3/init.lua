@@ -19,11 +19,20 @@ function ENT:Initialize()
 	
 	-- Create seat entities
 	self.DriverSeat = self:CreateSeat("driver",Vector(418,-45,-28+4))
-	self.InstructorsSeat = self:CreateSeat("instructor",Vector(410,35,-28+4))
+	self.InstructorsSeat = self:CreateSeat("instructor",Vector(430,40,-48+6+2.5),Angle(0,90,0),"models/vehicles/prisoner_pod_inner.mdl")
+	self.ExtraSeat1 = self:CreateSeat("instructor",Vector(443,0,-48+6+2.5),Angle(0,90,0),"models/vehicles/prisoner_pod_inner.mdl")
+	self.ExtraSeat2 = self:CreateSeat("instructor",Vector(420,-20,-48+6),Angle(0,90,0),"models/vehicles/prisoner_pod_inner.mdl")
 
 	-- Hide seats
 	self.DriverSeat:SetColor(Color(0,0,0,0))
 	self.DriverSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
+	self.InstructorsSeat:SetColor(Color(0,0,0,0))
+	self.InstructorsSeat:SetRenderMode(RENDERMODE_TRANSALPHA)
+	
+	self.ExtraSeat1:SetColor(Color(0,0,0,0))
+	self.ExtraSeat1:SetRenderMode(RENDERMODE_TRANSALPHA)
+	self.ExtraSeat2:SetColor(Color(0,0,0,0))
+	self.ExtraSeat2:SetRenderMode(RENDERMODE_TRANSALPHA)
 	
 	-- Create bogeys
 	self.FrontBogey = self:CreateBogey(Vector( 325-10,0,-80),Angle(0,180,0),true)
@@ -109,17 +118,17 @@ function ENT:Initialize()
 	-- Lights
 	self.Lights = {
 		-- Head
-		[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0), Color(176,161,132), fov = 100 },
+		[1] = { "headlight",		Vector(465,0,-20), Angle(0,0,0), Color(216,161,92), fov = 100 },
 		[2] = { "glow",				Vector(460, 49,-28), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 1.0 },
 		[3] = { "glow",				Vector(460,-49,-28), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 1.0 },
-		[4] = { "glow",				Vector(458,-15, 55), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
-		[5] = { "glow",				Vector(458,-5,  55), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
-		[6] = { "glow",				Vector(458, 5,  55), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
-		[7] = { "glow",				Vector(458, 15, 55), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
+		[4] = { "glow",				Vector(458,-15, 57), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
+		[5] = { "glow",				Vector(458,-5,  57), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
+		[6] = { "glow",				Vector(458, 5,  57), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
+		[7] = { "glow",				Vector(458, 15, 57), Angle(0,0,0), Color(255,220,180), brightness = 1, scale = 0.5 },
 		
 		-- Reverse
-		[8] = { "light",			Vector(458,-27, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
-		[9] = { "light",			Vector(458, 27, 55), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
+		[8] = { "light",			Vector(458,-31, 58), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
+		[9] = { "light",			Vector(458, 31, 58), Angle(0,0,0), Color(255,0,0),     brightness = 10, scale = 1.0 },
 		
 		-- Cabin
 		[10] = { "dynamiclight",	Vector( 420, -40, 35), Angle(0,0,0), Color(255,255,255), brightness = 0.1, distance = 550 },
@@ -132,18 +141,18 @@ function ENT:Initialize()
 		-- Side lights
 		[14] = { "light",			Vector(390, 69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[15] = { "light",			Vector(390, 69, 51), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[16] = { "light",			Vector(390, 69, 48), Angle(0,0,0), Color(0,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[17] = { "light",			Vector(390, 69, 45), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[16] = { "light",			Vector(390, 69, 48), Angle(0,0,0), Color(50,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[17] = { "light",			Vector(390, 69, 45), Angle(0,0,0), Color(255,150,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		
 		[18] = { "light",			Vector(390, -69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[19] = { "light",			Vector(390, -69, 51), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[20] = { "light",			Vector(390, -69, 48), Angle(0,0,0), Color(0,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[21] = { "light",			Vector(390, -69, 45), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[20] = { "light",			Vector(390, -69, 48), Angle(0,0,0), Color(50,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[21] = { "light",			Vector(390, -69, 45), Angle(0,0,0), Color(255,150,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		
 		-- Custom D
 		[35] = { "light", 			Vector(447.7,-54.5,17.4-4.4), Angle(0,-0,0), Color(255,0,0), brightness = 1.0, scale = 0.020 },
 		-- Custom E
-		[36] = { "light", 			Vector(447,-55.5,17.4-4.4), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
+		[36] = { "light", 			Vector(447,-55.5,17.4-4.4), Angle(0,0,0), Color(255,255,255), brightness = 1.0, scale = 0.020 },
 		-- Custom F
 		[37] = { "light", 			Vector(444.7,-58.5,17.4-4.4), Angle(0,0,0), Color(255,160,0), brightness = 1.0, scale = 0.020 },
 		-- Custom G
@@ -174,25 +183,22 @@ end
 
 --------------------------------------------------------------------------------
 function ENT:Think()
-	local retVal = self.BaseClass.Think(self)
+	self.RetVal = self.BaseClass.Think(self)
 
 	-- Check if wrench was pulled out
 	if self.DriversWrenchPresent then
 		self.KV:TriggerInput("Enabled",self:IsWrenchPresent() and 1 or 0)
 	end
-
-	-- Headlights
-	local brightness = (math.min(1,self.Panel["HeadLights1"])*0.50 + 
+	self:SetLightPower(1, self.Panel["HeadLights3"] > 0.5,(math.min(1,self.Panel["HeadLights1"])*0.50 + 
 						math.min(1,self.Panel["HeadLights2"])*0.25 + 
 						math.min(1,self.Panel["HeadLights3"])*0.25)
-	self:SetLightPower(1, self.Panel["HeadLights3"] > 0.5,brightness)
+	)
 	self:SetLightPower(2, self.Panel["HeadLights3"] > 0.5)
 	self:SetLightPower(3, self.Panel["HeadLights3"] > 0.5)
 	self:SetLightPower(4, self.Panel["HeadLights2"] > 0.5)
 	self:SetLightPower(5, self.Panel["HeadLights1"] > 0.5)
 	self:SetLightPower(6, self.Panel["HeadLights1"] > 0.5)
 	self:SetLightPower(7, self.Panel["HeadLights2"] > 0.5)
-	
 	-- Reverser lights
 	self:SetLightPower(8, self.Panel["RedLightRight"] > 0.5)
 	self:SetLightPower(9, self.Panel["RedLightLeft"] > 0.5)
@@ -424,26 +430,7 @@ function ENT:Think()
 
 	-- Send networked variables
 	self:SendPackedData()
-	return retVal
-end
-
-function ENT:GetTrainWire18Resistance()
-	self:UpdateWagonList()
-	
-	-- Total resistance
-	local Rtotal = 0.0
-	for i,train in ipairs(self.WagonList) do
-		if train.Electric then
-			local RLK4 = train.Electric.RPSignalResistor + train.LK4.Value*1e9
-			local RRP = (1-train.RPvozvrat.Value)*1e9
-			local Rtrain = ((RRP^-1) + (RLK4^-1))^-1
-			Rtotal = Rtotal + (Rtrain^-1)
-		end
-	end
-	
-	-- Mask for panel RP light info
-	--local Mask = (self.Panel["RedRP"] > 0.25) and 0 or 1e9
-	return Rtotal^-1
+	return self.RetVal
 end
 
 --------------------------------------------------------------------------------
@@ -569,20 +556,12 @@ function ENT:OnButtonPress(button)
 		return
 	end
 	if button == "VDLSet" then
-		self:PlayOnce("vu22_on","cabin")
+		self:PlayOnce("vu22_on","instructor")
 		return
 	end
 	-- Special logic
 	if (button == "VDL") or (button == "KDL") or (button == "KDP") then
 		self.VUD1:TriggerInput("Open",1)
-	end
-	if (button == "VDL") or (button == "KDL") then
-		if self.VUD1.Value > 0.5 or self.VUD2.Value > 0.5 then
-			self:PlayOnce("vu22_off","cabin")
-		else
-			self:PlayOnce("vu22_on","cabin")
-		end
-		--self.DoorSelect:TriggerInput("Open",1)
 	end
 	if (button == "KDP") then
 		--self.DoorSelect:TriggerInput("Close",1)
@@ -616,11 +595,19 @@ function ENT:OnButtonPress(button)
 		return
 	end
 
-	if button == "VUD1Toggle" or button == "VUD2Toggle" then 
-		if self.VUD1.Value > 0.5 or self.VUD2.Value > 0.5 then
+	if button == "VUD1Toggle" then 
+		if self.VUD1.Value > 0.5 then
 			self:PlayOnce("vu22_off","cabin")
 		else
 			self:PlayOnce("vu22_on","cabin")
+		end
+		return
+	end
+	if button == "VUD2Toggle" then 
+		if self.VUD2.Value > 0.5 then
+			self:PlayOnce("vu22_off","instructor")
+		else
+			self:PlayOnce("vu22_on","instructor")
 		end
 		return
 	end
@@ -657,7 +644,7 @@ function ENT:OnButtonRelease(button)
 	if button == "KDP" then self.KDP:TriggerInput("Open",1) self:OnButtonRelease("KDPSet") end
 	if button == "VDL" then self.VDL:TriggerInput("Open",1) self:OnButtonRelease("VDLSet") end
 	if button == "VDLSet" then
-		self:PlayOnce("vu22_off","cabin")
+		self:PlayOnce("vu22_off","instructor")
 		return
 	end
 	if button == "KRP" then 
@@ -676,7 +663,7 @@ function ENT:OnButtonRelease(button)
 		end
 	end
 	]]
-	if button == "VUD1Set" then 
+	if button == "VUD1Set" then
 		self:PlayOnce("vu22_off","cabin")
 		return
 	end

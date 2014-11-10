@@ -16,6 +16,60 @@ COUPLE_MAX_DISTANCE = COUPLE_MAX_DISTANCE ^ 2
 COUPLE_MAX_ANGLE = math.cos(math.rad(COUPLE_MAX_ANGLE))
 
 --------------------------------------------------------------------------------
+function ENT:PreEntityCopy()
+	local BogeyDupe = {}
+	if IsValid(self.Wheels) then
+		BogeyDupe.Wheels = self.Wheels:EntIndex()
+	end
+	BogeyDupe.BogeyType = self.BogeyType
+	if WireAddon then
+		BogeyDupe.WireData = WireLib.BuildDupeInfo( self.Entity )
+	end
+	BogeyDupe.NoPhysics = self.NoPhysics
+	
+
+	duplicator.StoreEntityModifier(self, "BogeyDupe", BogeyDupe)
+end
+duplicator.RegisterEntityModifier( "BogeyDupe" , function() end)
+
+function ENT:PostEntityPaste(ply,ent,createdEntities)
+	local BogeyDupe = ent.EntityMods.BogeyDupe
+	if IsValid(self.Wheels) then 
+		self.Wheels:SetParent()
+		self.Wheels:Remove()
+	end
+	self.Wheels = createdEntities[BogeyDupe.Wheels]
+	self.BogeyType = BogeyDupe.BogeyType
+	
+	if self.BogeyType == "tatra" then
+		self:SetModel("models/metrostroi/tatra_t3/tatra_bogey.mdl")
+	else
+		self:SetModel("models/metrostroi/metro/metro_bogey.mdl")
+	end
+	if IsValid(self.Wheels) then
+		if self.BogeyType == "tatra" then
+			self.Wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-3)))
+			self.Wheels:SetAngles(self:GetAngles() + Angle(0,0,0))
+		else
+			self.Wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-10)))
+			self.Wheels:SetAngles(self:GetAngles() + Angle(0,90,0))
+		end
+		self.Wheels.WheelType = self.BogeyType
+		self.Wheels.NoPhysics = BogeyDupe.NoPhysics
+
+		if self.NoPhysics then
+			self.Wheels:SetParent(self)
+		else
+			self.Wheels:PhysicsInit(SOLID_VPHYSICS)
+			self.Wheels:SetMoveType(MOVETYPE_VPHYSICS)
+			self.Wheels:SetSolid(SOLID_VPHYSICS)
+			constraint.Weld(self,self.Wheels,0,0,0,1,0)
+		end
+		if CPPI then self.Wheels:CPPISetOwner(self:CPPIGetOwner()) end
+		self.Wheels:SetNWEntity("TrainBogey",self)
+	end
+
+end
 function ENT:Initialize()
 	if self.BogeyType == "tatra" then
 		self:SetModel("models/metrostroi/tatra_t3/tatra_bogey.mdl")
@@ -66,17 +120,10 @@ function ENT:Initialize()
 end
 
 function ENT:InitializeWheels()
-	-- Check if wheels are already connected
-	local c_ents = constraint.FindConstraints(self,"Weld")
-	local wheels = nil
-	for k,v in pairs(c_ents) do
-		if v.Ent2:GetClass() == "gmod_train_wheels" then
-			wheels = v.Ent2
-		end
-	end
-
+	--print(wheels)
 	-- Create missing wheels
-	if not wheels then
+	if not IsValid(self.Wheels) then
+		--print(1)
 		wheels = ents.Create("gmod_train_wheels")
 		if self.BogeyType == "tatra" then
 			wheels:SetPos(self:LocalToWorld(Vector(0,0.0,-3)))
@@ -97,10 +144,10 @@ function ENT:InitializeWheels()
 		else
 			constraint.Weld(self,wheels,0,0,0,1,0)
 		end
+		if CPPI then wheels:CPPISetOwner(self:CPPIGetOwner() or self:GetNWEntity("TrainEntity"):GetOwner()) end
+		wheels:SetNWEntity("TrainBogey",self)
+		self.Wheels = wheels
 	end
-	if CPPI then wheels:CPPISetOwner(self:CPPIGetOwner()) end
-	wheels:SetNWEntity("TrainBogey",self)
-	self.Wheels = wheels
 end
 
 function ENT:OnRemove()
@@ -216,6 +263,7 @@ function ENT:Use(ply)
 	if self.CoupledBogey ~= nil then
 		self:Decouple()
 	end
+	PrintTable(constraint.FindConstraints(self,"Weld"))
 end
 
 local function removeAdvBallSocketBetweenEnts(ent1,ent2)
@@ -265,20 +313,22 @@ function ENT:OnDecouple()
 	end
 end
 
-
+local OldPlayers = {}
+local NewPlayers = {}
+local CT
+local plytbl
 function ENT:Think()
-	local CT = CurTime()%1/1 > 0.5
+	CT = CurTime()%1/1 > 0.5
+	plytbl = self:GetPlayersInRange()
 	if self.SyncCurTime == nil or CT ~= self.SyncCurTime then
 		if CT then
-			local plytbl = self:GetPlayersInRange()
 			self:SendAllToClient(plytbl)
 		end
 		self.SyncCurTime = CT
 	end
+	OldPlayers = {}
+	NewPlayers = {}
 	--Check, if new player is joined to sync range
-	local plytbl = self:GetPlayersInRange()
-	local OldPlayers = {}
-	local NewPlayers = {}
 	for k,v in pairs(self._OldPlys or {}) do OldPlayers[v] = true end
 	for k,v in pairs(plytbl) do
 		if not OldPlayers[v] then table.insert(NewPlayers,v) end
@@ -456,6 +506,28 @@ function ENT:SpawnFunction(ply, tr)
 	ent:Activate()
 	
 	if not inhibitrerail then Metrostroi.RerailBogey(ent) end
-	
 	return ent
 end
+--[[
+hook.Add("AdvDupe_FinishPasting","bogeyspawned",function(tbl) 
+	local Type = 0
+	for k,v in pairs(tbl) do
+		if string.find("gmod_subway",v:GetClass()) then
+			Type = 2
+			break
+		end
+		if v:GetClass() == "gmod_train_bogey" then
+			Type = 1
+		end
+	end
+	if Type == 0 then break end
+	for k,v in pairs(tbl) do
+		if string.find("gmod_subway",v:GetClass()) then
+			Type = 2
+			break
+		end
+		if v:GetClass() == "gmod_train_bogey" then
+			Type = 1
+		end
+	end
+end)]]

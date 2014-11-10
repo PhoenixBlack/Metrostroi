@@ -6,17 +6,91 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
+-----------------------------------DUPLICATOR----------------------------------
 
+function ENT:PreEntityCopy()
+	local BaseDupe = {}
+	local Tbl = {}
+	if IsValid(self.FrontBogey) then
+		Tbl[1] = {
+			self.FrontBogey:EntIndex(),
+			self.FrontBogey.NoPhysics,
+			self.FrontBogey:GetAngles(),
+		}
+	end
+	if IsValid(self.FrontJoin) then
+		Tbl[1][4] = self.FrontJoin:EntIndex()
+	end
+	if IsValid(self.RearBogey) then
+		Tbl[2] = {
+			self.RearBogey:EntIndex(),
+			self.RearBogey.NoPhysics,
+			self.RearBogey:GetAngles(),
+		}
+	end
+	if IsValid(self.RearJoin) then
+		Tbl[2][4] = self.RearJoin:EntIndex()
+	end
 
+	BaseDupe.Tbl = Tbl
+	duplicator.StoreEntityModifier(self, "BaseDupe", BaseDupe)
+end
+duplicator.RegisterEntityModifier( "BaseDupe" , function() end)
+
+function ENT:PostEntityPaste(ply,ent,createdEntities)
+	local BaseDupe = ent.EntityMods.BaseDupe
+	local Tbl = BaseDupe.Tbl
+	for k,v in pairs(Tbl) do
+		BaseDupe.Tbl[k][1] = createdEntities[BaseDupe.Tbl[k][1]] or nil
+		BaseDupe.Tbl[k][4] = createdEntities[BaseDupe.Tbl[k][4]] or nil
+	end
+	if IsValid(self.FrontBogey) and IsValid(BaseDupe.Tbl[1][1]) then self.FrontBogey:Remove() end
+	if IsValid(self.RearBogey) and IsValid(BaseDupe.Tbl[2][1]) then self.RearBogey:Remove() end
+	if IsValid(self.FrontJoin) and IsValid(BaseDupe.Tbl[1][4]) then self.FrontJoin:Remove() end
+	if IsValid(self.RearJoin) and IsValid(BaseDupe.Tbl[2][4]) then self.RearJoin:Remove() end
+	if IsValid(self.FrontBogey) and IsValid(self.RearBogey) then
+		for i = 1,#self.TrainEntities do
+			if IsValid(self.TrainEntities[i]) and self.TrainEntities[i]:GetClass() == "gmod_train_bogey" then
+				table.remove(self.TrainEntities,i)
+			end
+		end
+	end
+	self.FrontBogey = Tbl[1][1] or nil
+	self.RearBogey = Tbl[2][1] or nil
+	for k,v in pairs(Tbl) do
+		if IsValid(v[1]) then
+			v[1].NoPhysics = v[2] or nil
+
+			-- Assign ownership
+			if CPPI and IsValid(self:CPPIGetOwner()) then v[1]:CPPISetOwner(self:CPPIGetOwner()) end
+			
+			-- Some shared general information about the bogey
+			self.SquealSound = self.SquealSound or math.floor(4*math.random())
+			self.SquealSensitivity = self.SquealSensitivity or math.random()
+			v[1].SquealSensitivity = self.SquealSensitivity
+			v[1]:SetNWInt("SquealSound",self.SquealSound)
+			v[1]:SetNWBool("IsForwardBogey", k == 1)
+			v[1]:SetNWEntity("TrainEntity", self)
+
+			-- Constraint bogey to the train
+			if self.NoPhysics then
+				v[1]:SetParent(self)
+			else
+				constraint.Axis(v[1],self,0,0,
+					Vector(0,0,0),Vector(0,0,0),
+					0,0,0,1,Vector(0,0,1),false)
+			end
+
+			if self.SubwayTrain.Type == "Tatra" then
+				v[1]:SetAngles(self:GetAngles() + Angle(0,(1-k)*180,0))
+			end
+			table.insert(self.TrainEntities,v[1])
+		end
+	end
+	self.Owner = ply
+end
 --------------------------------------------------------------------------------
 function ENT:Initialize()
-	--Create a 1 sec sync table
-	--[[
-	timer.Create("metrostroi-train-sync-"..self:EntIndex(),5,0,function()
-		local plytbl = self:GetPlayersInRange()
-		self:SendAllToClient(plytbl)
-	end)]]
-	-- Initialize physics for the selected model
 	if self:GetModel() == "models/error.mdl" then
 		self:SetModel("models/props_lab/reciever01a.mdl")
 	end
@@ -44,9 +118,9 @@ function ENT:Initialize()
 		self:LoadSystem("Telemetry")
 	end
 	self:LoadSystem("FailSim")
-	
+
 	-- Prop-protection related
-	if CPPI and self.Owner then
+	if CPPI and IsValid(self.Owner) then
 		self:CPPISetOwner(self.Owner)
 	end
 
@@ -190,6 +264,13 @@ function ENT:Initialize()
 	-- Get default train mass
 	if IsValid(self:GetPhysicsObject()) then
 		self.NormalMass = self:GetPhysicsObject():GetMass()
+	end
+	if self.SubwayTrain and self.SubwayTrain.Type ~= "AI" then
+		local AI = ents.Create("gmod_subway_ai")
+		AI:SetPos(Vector())
+		AI.Owner = self.Owner
+		AI:Spawn()
+		timer.Simple(0.3,function() if IsValid(AI) then AI:Remove() end end)
 	end
 end
 
@@ -694,6 +775,25 @@ function ENT:SetTrainWires(coupledTrain)
 	updateWires(self,{})
 end
 
+function ENT:GetTrainWire18Resistance()
+	self:UpdateWagonList()
+	
+	-- Total resistance
+	local Rtotal = 0.0
+	for i,train in ipairs(self.WagonList) do
+		if train.Electric then
+			local RLK4 = train.Electric.RPSignalResistor + train.LK4.Value*1e9
+			local RRP = (1-train.RPvozvrat.Value)*1e9
+			local Rtrain = ((RRP^-1) + (RLK4^-1))^-1
+			Rtotal = Rtotal + (Rtrain^-1)
+		end
+	end
+	
+	-- Mask for panel RP light info
+	--local Mask = (self.Panel["RedRP"] > 0.25) and 0 or 1e9
+	return Rtotal^-1
+end
+
 
 
 
@@ -771,9 +871,6 @@ function ENT:UpdateCoupledTrains()
 	end
 end
 
-
-
-
 --------------------------------------------------------------------------------
 -- Create a bogey for the train
 --------------------------------------------------------------------------------
@@ -787,7 +884,7 @@ function ENT:CreateBogey(pos,ang,forward,type)
 	bogey:Spawn()
 
 	-- Assign ownership
-	if CPPI then bogey:CPPISetOwner(self:CPPIGetOwner()) end
+	if CPPI and IsValid(self:CPPIGetOwner()) then bogey:CPPISetOwner(self:CPPIGetOwner()) end
 	
 	-- Some shared general information about the bogey
 	self.SquealSound = self.SquealSound or math.floor(4*math.random())
@@ -827,7 +924,7 @@ function ENT:CreateSeatEntity(seat_info)
 	seat:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	
 	--Assign ownership
-	if CPPI then seat:CPPISetOwner(self:CPPIGetOwner()) end
+	if CPPI and IsValid(self:CPPIGetOwner()) then seat:CPPISetOwner(self:CPPIGetOwner()) end
 	
 	-- Hide the entity visually
 	if seat_info.type == "passenger" then
@@ -1175,24 +1272,26 @@ function ENT:HandleKeyboardInput(ply)
 	end
 
 end
-
 --------------------------------------------------------------------------------
 -- Process train logic
 --------------------------------------------------------------------------------
 -- Think and execute systems stuff
+local CT
+local plytbl
+local OldPlayers = {}
+local NewPlayers = {}
 function ENT:Think()
+	plytbl = self:GetPlayersInRange()
 	local CT = CurTime()%3/3 > 0.5
 	if self.SyncCurTime == nil or CT ~= self.SyncCurTime then
 		if CT then
-			local plytbl = self:GetPlayersInRange()
 			self:SendAllToClient(plytbl)
 		end
 		self.SyncCurTime = CT
 	end
+	OldPlayers = {}
+	NewPlayers = {}
 	--Check, if new player is joined to sync range
-	local plytbl = self:GetPlayersInRange()
-	local OldPlayers = {}
-	local NewPlayers = {}
 	for k,v in pairs(self._OldPlys or {}) do OldPlayers[v] = true end
 	for k,v in pairs(plytbl) do
 		if not OldPlayers[v] then table.insert(NewPlayers,v) end
@@ -1302,16 +1401,16 @@ function ENT:Think()
 	end
 	
 	-- Wire outputs
-	local triggerOutput = self.TriggerOutput
+	--local triggerOutput = self.TriggerOutput
 	for _,name in pairs(self.WireIOSystems) do
 		local system = self.Systems[name]
 		if system and system.OutputsList then
 			for _,name in pairs(system.OutputsList) do
 				local varname = (system.Name or "")..name
 				if type(system[name]) ==  "boolean" then
-					triggerOutput(self,varname,system[name] and 1 or 0)
+					self.TriggerOutput(self,varname,system[name] and 1 or 0)
 				else
-					triggerOutput(self,varname,tonumber(system[name]) or 0)
+					self.TriggerOutput(self,varname,tonumber(system[name]) or 0)
 				end
 			end
 		end
@@ -1324,20 +1423,23 @@ function ENT:Think()
 		if v > 0 then writeTrainWire(self,k,v) end
 	end
 	for i=1,32 do
-		triggerOutput(self,"TrainWire"..i,readTrainWire(self,i))
+		self.TriggerOutput(self,"TrainWire"..i,readTrainWire(self,i))
 	end
 	
 	-- Calculate own speed and acceleration
 	local speed,acceleration = 0,0
 	if IsValid(self.FrontBogey) and IsValid(self.RearBogey) then
-		speed = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
-		acceleration = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2
+		self.Speed = (self.FrontBogey.Speed + self.RearBogey.Speed)/2
+		self.Acceleration = (self.FrontBogey.Acceleration + self.RearBogey.Acceleration)/2
+	else
+		self.Acceleration = 0
+		self.Speed = 0
 	end
-	
+	--[[
 	-- Update speed and acceleration
 	self.Speed = speed
 	self.Acceleration = acceleration
-
+]]
 	-- Go to next think
 	self:NextThink(CurTime()+0.05)
 	return true

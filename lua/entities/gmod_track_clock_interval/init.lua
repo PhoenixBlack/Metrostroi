@@ -20,7 +20,7 @@ function ENT:Think()
 	end
 
 	-- Check if train passes the sign
-	local sensingTrain = false
+	self.SensingTrain = false
 	for ray=0,6 do
 		local trace = {
 			start = self:GetPos() - self:GetRight()*16 + self:GetForward()*50*(ray-3) + Vector(0,0,64),
@@ -37,21 +37,21 @@ function ENT:Think()
 		if result.Hit and (not result.HitWorld) then
 			--debugoverlay.Sphere(result.HitPos,5,1,Color(0,0,255),true)
 			if result.Entity and (not result.Entity:IsPlayer()) then
-				sensingTrain = true
+				self.SensingTrain = true
 			end
 		end
 	end
 
 	-- If only sensing train for the first time, reset
 	self.SensingTime = self.SensingTime or (os.time())
-	if sensingTrain and (not self.IntervalReset) then
+	if self.SensingTrain and (not self.IntervalReset) then
 		self:SetIntervalResetTime(os.time()-1396011937)
 		self.SensingTime = os.time()
 		self.IntervalReset = true
 	end
 	
 	-- If not sensing anything for more than 3 seconds, expect something again
-	if (not sensingTrain) and (os.time() - self.SensingTime > 7.0) then
+	if (not self.SensingTrain) and (os.time() - self.SensingTime > 7.0) then
 		self.IntervalReset = false
 	end
 	self:NextThink(CurTime() + 0.25)
