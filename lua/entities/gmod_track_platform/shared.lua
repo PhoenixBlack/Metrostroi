@@ -6,7 +6,7 @@ ENT.Spawnable		= false
 ENT.AdminSpawnable	= false
 
 function ENT:PoolSize()
-	return 2048
+	return 1024
 end
 
 function ENT:Seed()

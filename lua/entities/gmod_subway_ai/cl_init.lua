@@ -51,7 +51,6 @@ function ENT:Think()
 	local trainType = self:GetNWString("TrainType")
 	if trainType == "81-717" and not self.ClientProps["d1"] then
 		self:Props81717()
-		print(1)
 	end
 	
 	-- Animate doors
@@ -62,10 +61,10 @@ function ENT:Think()
 			local animation = self:Animate(n_l,self:GetPackedBool(21+i+4-k*4) and 1 or 0,0,1, 0.8 + (-0.2+0.4*math.random()),0)
 			local offset_l = Vector(math.abs(31*animation),0,0)
 			local offset_r = Vector(math.abs(32*animation),0,0)
-			if self.ClientEnts[n_l] then
+			if self.ClientEnts[n_l] and IsValid(self.ClientEnts[n_l]) then
 				self.ClientEnts[n_l]:SetPos(self:LocalToWorld(self.ClientProps[n_l].pos + (1.0 - 2.0*k)*offset_l))
 			end
-			if self.ClientEnts[n_r] then
+			if self.ClientEnts[n_r] and IsValid(self.ClientEnts[n_r]) then
 				self.ClientEnts[n_r]:SetPos(self:LocalToWorld(self.ClientProps[n_r].pos - (1.0 - 2.0*k)*offset_r))
 			end
 		end

@@ -142,12 +142,12 @@ function ENT:Initialize()
 		[14] = { "light",			Vector(390, 69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[15] = { "light",			Vector(390, 69, 51), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[16] = { "light",			Vector(390, 69, 48), Angle(0,0,0), Color(50,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[17] = { "light",			Vector(390, 69, 45), Angle(0,0,0), Color(255,150,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[17] = { "light",			Vector(390, 69, 45), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		
 		[18] = { "light",			Vector(390, -69, 54), Angle(0,0,0), Color(255,0,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[19] = { "light",			Vector(390, -69, 51), Angle(0,0,0), Color(150,255,255), brightness = 0.6, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[20] = { "light",			Vector(390, -69, 48), Angle(0,0,0), Color(50,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[21] = { "light",			Vector(390, -69, 45), Angle(0,0,0), Color(255,150,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[21] = { "light",			Vector(390, -69, 45), Angle(0,0,0), Color(255,255,0), brightness = 0.5, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		
 		-- Custom D
 		[35] = { "light", 			Vector(447.7,-54.5,17.4-4.4), Angle(0,-0,0), Color(255,0,0), brightness = 1.0, scale = 0.020 },
@@ -307,7 +307,7 @@ function ENT:Think()
 	-- DIP/power
 	self:SetPackedBool(32,self.Panel["V1"] > 0.5)
 	-- LxRK
-	self:SetPackedBool(33,self.RheostatController.MotorCoilState ~= 0.0)
+	self:SetPackedBool(33,false)--self.RheostatController.MotorCoilState ~= 0.0)
 	-- NR1
 	self:SetPackedBool(34,(self.NR.Value == 1.0) or (self.RPU.Value == 1.0))
 	-- Red RP

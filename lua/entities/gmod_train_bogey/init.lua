@@ -263,7 +263,6 @@ function ENT:Use(ply)
 	if self.CoupledBogey ~= nil then
 		self:Decouple()
 	end
-	PrintTable(constraint.FindConstraints(self,"Weld"))
 end
 
 local function removeAdvBallSocketBetweenEnts(ent1,ent2)

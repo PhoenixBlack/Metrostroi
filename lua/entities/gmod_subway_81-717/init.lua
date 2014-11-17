@@ -158,12 +158,12 @@ function ENT:Initialize()
 		[14] = { "light",			Vector(-50, 68, 53.7), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[15] = { "light",			Vector(6,   68, 53.7), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[16] = { "light",			Vector(3,   68, 53.7), Angle(0,0,0), Color(50,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[17] = { "light",			Vector(-0,  68, 53.7), Angle(0,0,0), Color(255,150,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[17] = { "light",			Vector(-0,  68, 53.7), Angle(0,0,0), Color(255,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		
 		[18] = { "light",			Vector(-50, -69, 53.7), Angle(0,0,0), Color(255,0,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[19] = { "light",			Vector(6,   -69, 53.7), Angle(0,0,0), Color(150,255,255), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 		[20] = { "light",			Vector(3,   -69, 53.7), Angle(0,0,0), Color(50,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
-		[21] = { "light",			Vector(-0,  -69, 53.7), Angle(0,0,0), Color(255,150,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
+		[21] = { "light",			Vector(-0,  -69, 53.7), Angle(0,0,0), Color(255,255,0), brightness = 0.9, scale = 0.10, texture = "models/metrostroi_signals/signal_sprite_002.vmt" },
 
 		-- Green RP
 		[22] = { "light",			Vector(439.8,12.5+1.5-9.6,-6.1), Angle(0,0,0), Color(0,255,0), brightness = 1.0, scale = 0.020 },

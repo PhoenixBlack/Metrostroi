@@ -265,6 +265,8 @@ function ENT:Initialize()
 	if IsValid(self:GetPhysicsObject()) then
 		self.NormalMass = self:GetPhysicsObject():GetMass()
 	end
+	--Spawn a AI Train(shit hack)
+	--[[
 	if self.SubwayTrain and self.SubwayTrain.Type ~= "AI" then
 		local AI = ents.Create("gmod_subway_ai")
 		AI:SetPos(Vector())
@@ -272,6 +274,7 @@ function ENT:Initialize()
 		AI:Spawn()
 		timer.Simple(0.3,function() if IsValid(AI) then AI:Remove() end end)
 	end
+	]]
 end
 
 -- Remove entity

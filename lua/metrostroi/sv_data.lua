@@ -8,20 +8,21 @@ timer.Simple(0.0,function()
 {
 	"Routes":{
 		"Line1_Platform1":{
-			"1":{"1":109, "2":1},
-			"2":{"1":110, "2":1},
-			"3":{"1":111, "2":1},
-			"4":{"1":112, "2":1},
-			"5":{"1":113, "2":1},
-			"6":{"1":114, "2":1},
-			"7":{"1":115, "2":1},
-			"8":{"1":116, "2":1},
-			"9":{"1":117, "2":1},
-			"10":{"1":118, "2":1},
-			"11":{"1":119, "2":1},
-			"12":{"1":121, "2":1},
-			"13":{"1":122, "2":1},
-			"14":{"1":123, "2":1}
+			"1":{"1":108, "2":1},
+			"2":{"1":109, "2":1},
+			"3":{"1":110, "2":1},
+			"4":{"1":111, "2":1},
+			"5":{"1":112, "2":1},
+			"6":{"1":113, "2":1},
+			"7":{"1":114, "2":1},
+			"8":{"1":115, "2":1},
+			"9":{"1":116, "2":1},
+			"10":{"1":117, "2":1},
+			"11":{"1":118, "2":1},
+			"12":{"1":119, "2":1},
+			"13":{"1":121, "2":1},
+			"14":{"1":122, "2":1},
+			"15":{"1":123, "2":1}
 		},
 		"Line1_Platform2":{
 			"1":{"1":123, "2":2},
@@ -37,7 +38,8 @@ timer.Simple(0.0,function()
 			"11":{"1":112, "2":2},
 			"12":{"1":111, "2":2},
 			"13":{"1":110, "2":2},
-			"14":{"1":109, "2":2}
+			"14":{"1":109, "2":2},
+			"15":{"1":108, "2":2}
 		}
 	},
 	"Configuration":{
@@ -99,7 +101,7 @@ timer.Simple(0.0,function()
 		"322":"Автостанция Южная"
 	},
 	"StationNamesConfiguration":{
-		"108":{ "1":0, "2":151, "3":54, "4":0 },
+		"108":{ "1":0, "2":151, "3":54, "4":1 },
 		"109":{ "1":0, "2":151, "3":54, "4":1 },
 		"110":{ "1":0, "2":151, "3":54, "4":1 },
 		"111":{ "1":0, "2":151, "3":54, "4":1 },
@@ -120,10 +122,20 @@ timer.Simple(0.0,function()
 	}
 }]]
 
+	if not file.Exists("metrostroi_data/sched_gm_metrostroi_b50.txt","DATA") then
+		file.Write("metrostroi_data/signs_gm_metrostroi_b50.txt",SIGNS)
+		file.Write("metrostroi_data/track_gm_metrostroi_b50.txt",TRACK)
+		file.Write("metrostroi_data/sched_gm_metrostroi_b50.txt",SCHED)
+	end
 	if not file.Exists("metrostroi_data/sched_gm_metrostroi_b49.txt","DATA") then
 		file.Write("metrostroi_data/signs_gm_metrostroi_b49.txt",SIGNS)
 		file.Write("metrostroi_data/track_gm_metrostroi_b49.txt",TRACK)
 		file.Write("metrostroi_data/sched_gm_metrostroi_b49.txt",SCHED)
+	end
+	if not file.Exists("metrostroi_data/sched_gm_metrostroi_b47.txt","DATA") then
+		file.Write("metrostroi_data/signs_gm_metrostroi_b47.txt",SIGNS)
+		file.Write("metrostroi_data/track_gm_metrostroi_b47.txt",TRACK)
+		file.Write("metrostroi_data/sched_gm_metrostroi_b47.txt",SCHED)
 	end
 	if not file.Exists("metrostroi_data/sched_gm_metrostroi_b46_lite.txt","DATA") then
 		file.Write("metrostroi_data/signs_gm_metrostroi_b46_lite.txt",SIGNS)
