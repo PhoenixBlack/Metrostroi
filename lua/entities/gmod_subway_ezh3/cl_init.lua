@@ -823,7 +823,7 @@ function ENT:Think()
 	self:Animate("reverser",		self:GetPackedRatio(2),				0.20, 0.55,  4,false)
 	self:Animate("volt1", 			self:GetPackedRatio(10),			0.38,0.64)
 	self:ShowHide("reverser",		self:GetPackedBool(0))
-	
+
 	self:ShowHide("brake013",		self:GetPackedBool(22))
 	self:ShowHide("brake334",		not self:GetPackedBool(22))
 	self:ShowHide("brake334_body",	not self:GetPackedBool(22))

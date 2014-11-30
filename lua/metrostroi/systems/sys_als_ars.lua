@@ -473,7 +473,7 @@ function TRAIN_SYSTEM:Think()
 			end
 		end
 		-- Door close cancel pneumatic brake 1 command trigger
-		if (Train:GetSkin() == 1) and (Train.KD) and Train.SubwayTrain.Name:sub(1,-2) ~= "81-71" then
+		if (Train:GetSkin() == 1) and (Train.KD) and Train.SubwayTrain.Name:sub(1,-2) == "81-71" then
 			-- Prepare
 			if (Train.KD.Value == 0) then
 				self.KDReadyToRelease = true

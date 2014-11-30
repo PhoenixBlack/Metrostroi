@@ -443,10 +443,11 @@ function TRAIN_SYSTEM:SolvePS(Train)
 	-- Calculate total resistance of the entire series circuit
 	local Rtotal = self.Ranchor13 + self.Ranchor24 + self.Rstator13 + self.Rstator24 +
 		self.R1 + self.R2 + self.R3 + self.ExtraResistanceLK5
+	local CircuitClosed = (self.Power750V > 0) and 1 or 0
 		
 	-- Calculate total current
 	self.Utotal = (self.Power750V - Train.Engines.E13 - Train.Engines.E24)*Train.LK1.Value
-	self.Itotal = self.Utotal / Rtotal
+	self.Itotal = (self.Utotal / Rtotal)*CircuitClosed
 	
 	-- Total resistance (for induction RL circuit)
 	self.R13 = Rtotal
@@ -470,6 +471,7 @@ function TRAIN_SYSTEM:SolvePP(Train,inTransition)
 	local R1 = self.Ranchor13 + self.Rstator13 + self.R1 + extraR + self.ExtraResistanceLK5
 	local R2 = self.Ranchor24 + self.Rstator24 + self.R2 + extraR + self.ExtraResistanceLK5
 	local R3 = 0
+	local CircuitClosed = (self.Power750V > 0) and 1 or 0
 	
 	-- Main circuit parameters
 	local V = self.Power750V*Train.LK1.Value
@@ -477,8 +479,8 @@ function TRAIN_SYSTEM:SolvePP(Train,inTransition)
 	local E2 = Train.Engines.E24
 
 	-- Calculate current through engines 13, 24
-	self.I13 = -((E1*R2 + E1*R3 - E2*R3 - R2*V)/(R1*R2 + R1*R3 + R2*R3))
-	self.I24 = -((E2*R1 - E1*R3 + E2*R3 - R1*V)/(R1*R2 + R1*R3 + R2*R3))
+	self.I13 = -((E1*R2 + E1*R3 - E2*R3 - R2*V)/(R1*R2 + R1*R3 + R2*R3))*CircuitClosed
+	self.I24 = -((E2*R1 - E1*R3 + E2*R3 - R1*V)/(R1*R2 + R1*R3 + R2*R3))*CircuitClosed
 	
 	-- Total resistance (for induction RL circuit)
 	self.R13 = R1

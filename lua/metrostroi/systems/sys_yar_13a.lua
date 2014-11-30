@@ -5,7 +5,7 @@ Metrostroi.DefineSystem("YAR_13A")
 
 function TRAIN_SYSTEM:Initialize()
 	-- Реле перегрузки (РПЛ)
-	self.Train:LoadSystem("RPL","Relay","RM3001")
+	self.Train:LoadSystem("RPL","Relay","RM3001", { trigger_level = 1300 })
 	-- Групповое реле перегрузки 1-3 (РП1-3)
 	self.Train:LoadSystem("RP1_3","Relay","RM3001",{ trigger_level = 760 }) --630 })
 	-- Групповое реле перегрузки 2-4 (РП2-4)
@@ -79,8 +79,9 @@ function TRAIN_SYSTEM:Think()
 	Train.NR:TriggerInput("Open", Train.Electric.Aux750V < 150) -- 120 - 190 V
 	
 	-- Overload relays operation
-	Train.RP1_3:TriggerInput("Set",Train.Electric.I13)
-	Train.RP2_4:TriggerInput("Set",Train.Electric.I24)
+	Train.RP1_3:TriggerInput("Set",math.abs(Train.Electric.I13))
+	Train.RP2_4:TriggerInput("Set",math.abs(Train.Electric.I24))
+	--Train.RPL:TriggerInput("Set",Train.Electric.Itotal)
 	
 	-- RUT operation
 	self.RUTCurrent = (math.abs(Train.Electric.I13) + math.abs(Train.Electric.I24))/2
@@ -97,6 +98,8 @@ function TRAIN_SYSTEM:Think()
 
 	-- RPvozvrat operation
 	Train.RPvozvrat:TriggerInput("Close",
+		(Train.DR1.Value == 1.0) or
+		(Train.DR2.Value == 1.0) or
 		(Train.RPL.Value == 1.0) or
 		(Train.RP1_3.Value == 1.0) or
 		(Train.RP2_4.Value == 1.0) or

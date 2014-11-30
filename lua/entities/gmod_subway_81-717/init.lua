@@ -428,6 +428,8 @@ function ENT:Think()
 	self:SetPackedBool(132,self:ReadTrainWire(48) ~= -1)
 	self:SetPackedBool(134,self.UOS.Value == 1.0)
 	self:SetPackedBool(135,self.BPS.Value == 1.0)
+	self:SetPackedBool(150,self.ARS13.Value == 1.0)
+	self:SetPackedBool(151,self.Radio13.Value == 1.0)
 	
 	-- Signal if doors are open or no to platform simulation
 	self.LeftDoorsOpen = 
@@ -575,7 +577,14 @@ function ENT:Think()
 	else
 		self:SetPackedRatio(9, self.Pneumatic.BrakeLinePressure_dPdT or 0)
 	end
-	self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 150.0)
+	if (self.ARS13) and (self.ARS13.Value > 0) then
+		local EnableARS = (self.ARS.Value == 1.0) and (self.VB.Value == 1.0) and (self.KV.ReverserPosition ~= 0.0)
+		self:SetPackedRatio(10,(EnableARS and 13.0 or 0.0) / 150.0)
+	elseif (self.Radio13) and (self.Radio13.Value > 0) then
+		self:SetPackedRatio(10,0.0)
+	else
+		self:SetPackedRatio(10,(self.Panel["V1"] * self.Battery.Voltage) / 150.0)
+	end
 	self:SetPackedRatio(11,IGLA_Temperature)
 	self:SetLightPower(39,(self.Electric.Overheat1 > 0) or (self.Electric.Overheat2 > 0))
 
@@ -607,6 +616,9 @@ function ENT:Think()
 		if self.Speed < 10 then P = P*(1.0 + 0.5*(10.0-self.Speed)/10.0) end
 		self.RearBogey.MotorPower  = P*0.5*((A > 0) and 1 or -1)
 		self.FrontBogey.MotorPower = P*0.5*((A > 0) and 1 or -1)
+		--self.RearBogey.MotorPower  = P*0.5
+		--self.FrontBogey.MotorPower = P*0.5
+		
 		--self.Acc = (self.Acc or 0)*0.95 + self.Acceleration*0.05
 		--print(self.Acc)
 		

@@ -95,8 +95,8 @@ ENT.ButtonMap["BPSNFront"] = {
 		{ID = "BPSNonToggle",x=83,  y=28, radius=20, tooltip="БПСН: Блок питания собственных нужд\nBPSN: Train power supply"},
 		{ID = "L_5Toggle",x=126, y=28, radius=20, tooltip="Аварийное освещение\nEmergency lighting"},
 		
-		{ID = "PS9", x=83, y=80, radius=20, tooltip="(placeholder) Radio 13V"},
-		{ID = "PS10",x=126, y=80, radius=20, tooltip="(placeholder) ARS 13V"},
+		{ID = "Radio13Set", x=83, y=80, radius=20, tooltip="Радио 13В: Проверка батареи радиостанции\nRadio 13V: Radiostation battery check"},
+		{ID = "ARS13Set",x=126, y=80, radius=20, tooltip="АРС 13В: Проверка стабилизированого напряжения АРС\nARS 13V: ARS stabilized voltage check"},
 	}
 }
 
@@ -791,14 +791,14 @@ Metrostroi.ClientPropForButton("L_5",{
 	button = "L_5Toggle",
 	model = "models/metrostroi/81-717/switch04.mdl"
 })
-Metrostroi.ClientPropForButton("PS9",{
+Metrostroi.ClientPropForButton("ARS13",{
 	panel = "BPSNFront",
-	button = "PS9",
+	button = "ARS13Set",
 	model = "models/metrostroi/81-717/button07.mdl"
 })
-Metrostroi.ClientPropForButton("PS10",{
+Metrostroi.ClientPropForButton("Radio13",{
 	panel = "BPSNFront",
-	button = "PS10",
+	button = "Radio13Set",
 	model = "models/metrostroi/81-717/button07.mdl"
 })
 Metrostroi.ClientPropForButton("PS20",{
@@ -1083,6 +1083,8 @@ function ENT:Think()
 	self:Animate("UOS",				self:GetPackedBool(134) and 0.87 or 1, 	0,1, 1, false)
 	self:Animate("BPS",				self:GetPackedBool(135) and 0.87 or 1, 	0,1, 1, false)
 	--self:Animate("Autodrive",		self:GetPackedBool(132) and 1 or 0,	0,1, 16, false)
+	self:Animate("ARS13",			self:GetPackedBool(150) and 1 or 0, 0,1, 16, false)
+	self:Animate("Radio13",			self:GetPackedBool(151) and 1 or 0, 0,1, 16, false)
 	
 	-- Animate AV switches
 	for i,v in ipairs(self.Panel.AVMap) do
@@ -1132,7 +1134,6 @@ function ENT:Think()
 		self.Transient = 1.00
 	end
 
-	
 	-- Brake-related sounds
 	local brakeLinedPdT = self:GetPackedRatio(9)
 	local dT = self.DeltaTime

@@ -487,7 +487,7 @@ end
 -- Checks, if float changed and sends a net message (for speed, pneumatic gauges, etc)
 ---------------------------------------------------------------------------------------
 function ENT:SetPackedRatio(vecn,ratio)
-	local ratio = math.Round(ratio,2)
+	local ratio = math.Round(ratio,3)
 	if self._NetData[2][vecn] ~= nil and self._NetData[2][vecn] == ratio then return end
 
 	--print("Changed a "..vecn.." to "..ratio)
