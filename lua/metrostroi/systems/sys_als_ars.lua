@@ -454,7 +454,7 @@ function TRAIN_SYSTEM:Think()
 		end
 		-- Check cancel pneumatic brake 1 command
 		--if (Train.RV2) and (Train.RV2.Value > 0) then
-		if (Train:ReadTrainWire(1) > 0 or (KRUEnabled and Train.KRP.Value > 0 and not self.ElectricBrake)) then
+		if ((Train:ReadTrainWire(1) > 0) or (KRUEnabled and Train.KRP.Value > 0 and not self.ElectricBrake)) then
 			if Train.Pneumatic.BrakeCylinderPressure < 2.1 then
 				Train.AVT:TriggerInput("Set",1)
 			else
@@ -712,11 +712,9 @@ function TRAIN_SYSTEM:Think()
 		local skip_station = false
 
 		-- Check if station must be skipped
-		local station = Train:ReadCell(49161)
-		if Metrostroi.StationNamesConfiguration[station] then
-			if (Metrostroi.StationNamesConfiguration[station][4] or 1) < 1 then
-				skip_station = true
-			end
+		local station = Train:ReadCell(49160) > 0 and Train:ReadCell(49160) or Train:ReadCell(49161)
+		if not Metrostroi.AnnouncerData[station] then
+			skip_station = true
 		end
 
 		if (self.AttentionPedal and distance < 120 and not self.UPPSOverride)
@@ -727,7 +725,7 @@ function TRAIN_SYSTEM:Think()
 		if distance > 120 then
 			self.UPPSOverride = false
 		end
-		if distance < 120 and Train.KV.ControllerPosition > -0.5 and not self.UPPSBraking and not self.UPPSOverride then
+		if distance < 120 and Train.KV.ControllerPosition > -0.5 and not self.UPPSBraking and not self.UPPSOverride and not skip_station then
 			self.UPPSBraking = true
 			Train:PlayOnce("dura1","cabin",0.5,50.0)
 			timer.Create("UPPSAlarm"..Train:EntIndex(),4,0,function()
@@ -739,7 +737,7 @@ function TRAIN_SYSTEM:Think()
 			end)
 		end
 
-		if (distance > 120 or self.UPPSOverride) and self.UPPSBraking then
+		if ((distance > 120 or self.UPPSOverride) and self.UPPSBraking) or skip_station then
 			self["2"] = 0
 			self["6"] = 0
 			self["20"] = 0

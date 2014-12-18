@@ -134,7 +134,7 @@ function TRAIN_SYSTEM:UpdatePressures(Train,dT)
 	local rearBrakeOpen = Train.RearBrakeLineIsolation.Value == 0
 
 	-- Check if both valve on this train and connected train are open
-	if Train.FrontTrain then
+	if Train.FrontTrain and Train.FrontTrain.FrontBrakeLineIsolation then
 		Train.FrontTrain.FrontBrakeLineIsolation = Train.FrontTrain.FrontBrakeLineIsolation or
 			{ Value = 1 }
 		Train.FrontTrain.RearBrakeLineIsolation = Train.FrontTrain.RearBrakeLineIsolation or
@@ -145,7 +145,7 @@ function TRAIN_SYSTEM:UpdatePressures(Train,dT)
 			frontBrakeOpen = frontBrakeOpen and (Train.FrontTrain.RearBrakeLineIsolation.Value == 0)
 		end
 	end
-	if Train.RearTrain then
+	if Train.RearTrain and Train.RearTrain.FrontBrakeLineIsolation then
 		Train.RearTrain.FrontBrakeLineIsolation = Train.RearTrain.FrontBrakeLineIsolation or
 			{ Value = 1 }
 		Train.RearTrain.RearBrakeLineIsolation = Train.RearTrain.RearBrakeLineIsolation or
@@ -384,7 +384,7 @@ function TRAIN_SYSTEM:Think(dT)
 	----------------------------------------------------------------------------
 	-- Simulate compressor operation and train line depletion
 	self.Compressor = Train.KK.Value * ((Train.Electric.Power750V > 550) and 1 or 0)
-	self.TrainLinePressure = self.TrainLinePressure - 0.100*trainLineConsumption_dPdT*dT -- 0.190
+	self.TrainLinePressure = self.TrainLinePressure - 0.170*trainLineConsumption_dPdT*dT -- 0.190
 	if self.Compressor == 1 then equalizePressure("TrainLinePressure", 10.0, 0.04) end
 	
 	-- Overpressure

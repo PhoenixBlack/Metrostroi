@@ -83,9 +83,9 @@ Metrostroi.Announcements = {
 	[0323] = { 1.289, "subway_announcer/03_23.mp3" },
 
 	[0415] = { 1.210, "subway_announcer/04_15.mp3" },
-	
-	[0521] = { 1.476, "subway_announcer/05_22.mp3" }, -- Yes, these are swapped.
-	[0522] = { 1.777, "subway_announcer/05_21.mp3" }, -- It is supposed to be so!
+
+	[0521] = { 1.476, "subway_announcer/05_21.mp3" }, -- Yes, these are swapped.
+	[0522] = { 1.777, "subway_announcer/05_22.mp3" }, -- It is supposed to be so!
 
 	[9999] = { 3.0,   "subway_announcer/00_00.mp3" },
 }
@@ -182,21 +182,35 @@ Metrostroi.PathConverter = {
 	[30] = 2,
 }
 Metrostroi.WorkingStations = {
-	{108,109,110,111,112,113,114,115,116,117,118,119,121,122,123},
-	{108,109,110,111,112,113,114,115,116,117,118,119,121,122,321,322},
+	["gm_metrostroi"] = {
+		{108,109,110,111,112,113,114,115,116,117,118,119,121,122,123},
+		{108,109,110,111,112,113,114,115,116,117,118,119,121,122,321,322},
+	},
+	["gm_metrostroi_lite"] = {
+		{108,109,110,111,112,113,114},
+	},
 }
-for k, v in pairs(Metrostroi.WorkingStations) do	
+for k, v in pairs(Metrostroi.WorkingStations) do
 	for k1, v1 in pairs(v) do
-		Metrostroi.WorkingStations[k][v1] = k1
+		for k2, v2 in pairs(v1) do
+			Metrostroi.WorkingStations[k][k1][v2] = k2
+		end
 	end
 end
 
 Metrostroi.EndStations = {
-	{108,109,111,112,113,114,116,121,123},
-	{108,109,111,112,113,114,116,121,322},
+	["gm_metrostroi"] = {
+		{108,111,114,121,123},
+		{108,111,114,121,322},
+	},
+	["gm_metrostroi_lite"] = {
+		{108,111,114},
+	},
 }
 Metrostroi.PlayingStyles = {"Moscow","St. Petersburg","Kiev"}
+
 --------------------------------------------------------------------------------
+
 function TRAIN_SYSTEM:Initialize()
 	for k,v in pairs(Metrostroi.Announcements) do
 		util.PrecacheSound(v[2])
@@ -211,19 +225,39 @@ function TRAIN_SYSTEM:Initialize()
 	-- Fake wire 49
 	self.Fake48 = 0
 
-	self.Settings = {
-		Route = 1,
-		StartStationT = 1,
-		State = nil,
-		StartStation = Metrostroi.EndStations[self.AnnRoute or 1][1],
-		EndStationT = #Metrostroi.EndStations,
-		EndStation = Metrostroi.EndStations[self.AnnRoute or 1][#Metrostroi.EndStations[self.AnnRoute or 1]],
-		Path = 1,
-		Style = 1,
-		StationT = 1,
-		CurTime = CurTime(),
-		Arrive = true,
-	}
+	--Map
+	self.AnnMap = ""
+	local Map = game.GetMap() or ""
+	if Map:find("gm_metrostroi") and Map:find("lite") then
+		self.AnnMap = "gm_metrostroi_lite"
+	elseif Map:find("gm_metrostroi") then
+		self.AnnMap = "gm_metrostroi"
+	--[[elseif Map:find("gm_mus_orange_line") and Map:find("long") then
+		self.AnnMap = "gm_orange"
+	elseif Map:find("gm_mus_orange_line") then
+		self.AnnMap = "gm_orange_lite"]]
+	end
+	self.SignsIDs = {}
+	local i = 2
+	for k in SortedPairs(Metrostroi.StationTitles) do
+		self.SignsIDs[k] = i
+		i = i + 1
+	end
+	if(Metrostroi.EndStations[self.AnnMap]) then
+		self.Settings = {
+			Route = 1,
+			StartStationT = 1,
+			State = nil,
+			StartStation = Metrostroi.EndStations[self.AnnMap][self.AnnRoute or 1][1],
+			EndStationT = #Metrostroi.EndStations,
+			EndStation = Metrostroi.EndStations[self.AnnMap][self.AnnRoute or 1][#Metrostroi.EndStations[self.AnnMap][self.AnnRoute or 1]],
+			Path = 1,
+			Style = 1,
+			StationT = 1,
+			CurTime = CurTime(),
+			Arrive = true,
+		}
+	end
 	self.AnnCurTimeM = 0
 	self.AnnCurTimeM1 = 0
 	self.AnnChars = "abcdefghijklmnopqrstuvwxyz1234567890-=\\+/."
@@ -246,7 +280,7 @@ end
 function TRAIN_SYSTEM:Queue(id)
 	if (not Metrostroi.Announcements[id]) and
 		(not Metrostroi.AnnouncementSequences[id]) then return end
-	if self.Train and self.Train.SubwayTrain.Name and self.Train.SubwayTrain.Name:sub(1,-2) ~= "81-71" and 
+	if self.Train and self.Train.SubwayTrain.Name and self.Train.SubwayTrain.Name:sub(1,-2) ~= "81-71" and
 		(id == 5 or id == 6) then return end
 
 	-- Add announcement to queue
@@ -457,7 +491,7 @@ end
 
 function TRAIN_SYSTEM:AnnNotLast()
     return 	(self.AnnStartStationT > 1 and self.AnnPath == 2) or
-			(self.AnnEndStationT < #Metrostroi.EndStations[self.AnnRoute] and self.AnnPath == 1)
+			(self.AnnEndStationT < #Metrostroi.EndStations[self.AnnMap][self.AnnRoute] and self.AnnPath == 1)
 end
 
 function TRAIN_SYSTEM:AnnEnd(next)
@@ -668,11 +702,17 @@ local function PrintToConsole( str )
 	print("[Announcer Debug]:"..str)
 	--print(utf8toibm866(str))
 end
-function TRAIN_SYSTEM:GetSettings()
-	PrintToConsole("Начало получения настроек...")
+
+function TRAIN_SYSTEM:GetLastWagon()
 	PrintToConsole("Полуение вагонов в составе...")
 	self.Train:UpdateWagonList()
-	local LastTrain = self.Train.WagonList[#self.Train.WagonList]
+	return self.Train.WagonList[#self.Train.WagonList]
+end
+function TRAIN_SYSTEM:GetSettings()
+	PrintToConsole("Начало получения настроек...")
+
+	local LastTrain = self:GetLastWagon()
+
 	PrintToConsole(LastTrain.SubwayTrain.Name)
 	local Settings = LastTrain.Announcer.Settings
 
@@ -730,24 +770,38 @@ function TRAIN_SYSTEM:Announcer2()
 		--self.Train:UpdateWagonList()
 		--self.Train.WagonList[#self.Train.WagonList].Announcer
 		if not self.AnnState then
-			self.Train:SetNWString("CustomStr2","-")
-			self.Train:SetNWString("CustomStr3","+")
-			self.Train:SetNWString("CustomStr4","Menu")
-			self.Train:SetNWString("CustomStr5","")
-			--self.Train:SetNWString("CustomStr6","")
-			self.Train:SetNWString("CustomStr7","")
-			self.Train:SetNWString("CustomStr8","")
-			self.Train:SetNWString("CustomStr9","")
-			--self.Train:SetNWString("CustomStr10","")
-			--self.Train:SetNWString("CustomStr11","")
-			--self.Train:SetNWString("CustomStr12","")
-			--self.Train:SetNWString("CustomStr13","")
-			self.Train:TriggerInput("CustomDSet", 0)
-			self.Train:TriggerInput("CustomESet", 0)
-			self.Train:TriggerInput("CustomFSet", 1)
-			self.Train:TriggerInput("CustomGSet", 0)
 			--self.Settings.CurTime = CurTime()
-			self:GetSettings()
+			if not self.Settings then
+				self.AnnState = -199
+			else
+				self:GetSettings()
+				self.Train:SetNWString("CustomStr2","-")
+				self.Train:SetNWString("CustomStr3","+")
+				self.Train:SetNWString("CustomStr4","Menu")
+				self.Train:SetNWString("CustomStr5","")
+				--self.Train:SetNWString("CustomStr6","")
+				self.Train:SetNWString("CustomStr7","")
+				self.Train:SetNWString("CustomStr8","")
+				self.Train:SetNWString("CustomStr9","")
+				--self.Train:SetNWString("CustomStr10","")
+				--self.Train:SetNWString("CustomStr11","")
+				--self.Train:SetNWString("CustomStr12","")
+				--self.Train:SetNWString("CustomStr13","")
+				self.Train:TriggerInput("CustomDSet", 0)
+				self.Train:TriggerInput("CustomESet", 0)
+				self.Train:TriggerInput("CustomFSet", 1)
+				self.Train:TriggerInput("CustomGSet", 0)
+			end
+		else
+			if self.AnnRoute and self.AnnRoute > #Metrostroi.EndStations[self.AnnMap] then
+				self.AnnRoute = #Metrostroi.EndStations[self.AnnMap]
+			end
+		end
+
+		if self.AnnState == -199 then
+			self.Train:SetNWString("CustomStr0","RIU CMOS GET FAILED")
+			self.Train:SetNWString("CustomStr1","ERR 0x01 NOT SUPPORT")
+			self.AnnState = -99
 		end
 
 		if self.AnnState == -2 then
@@ -808,9 +862,9 @@ function TRAIN_SYSTEM:Announcer2()
 			if self.AnnPath and self.AnnPath == 2 then
 				local Start = self.AnnStartStationT
 				self.AnnStartStationT = self.AnnEndStationT
-				self.AnnStartStation = Metrostroi.EndStations[self.AnnRoute][self.AnnStartStationT]
+				self.AnnStartStation = Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnStartStationT]
 				self.AnnEndStationT = Start
-				self.AnnEndStation = Metrostroi.EndStations[self.AnnRoute][self.AnnEndStationT]
+				self.AnnEndStation = Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnEndStationT]
 			end
 		end
 
@@ -828,22 +882,22 @@ function TRAIN_SYSTEM:Announcer2()
 					self.Train:SetNWString("CustomStr0","press MENU button")
 				end
 
-				local Routelength = #Metrostroi.EndStations[self.AnnRoute]
+				local Routelength = #Metrostroi.EndStations[self.AnnMap][self.AnnRoute]
 				if self.AnnCurTime < 1 then
-					self.Train:SetNWString("CustomStr1",Metrostroi.EndStations[self.AnnRoute][1].."->"..Metrostroi.EndStations[self.AnnRoute][Routelength])
+					self.Train:SetNWString("CustomStr1",Metrostroi.EndStations[self.AnnMap][self.AnnRoute][1].."->"..Metrostroi.EndStations[self.AnnMap][self.AnnRoute][Routelength])
 				elseif self.AnnCurTime < 2 then
-					self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnRoute][1]][1])
+					self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnMap][self.AnnRoute][1]][1])
 				elseif self.AnnCurTime < 3 then
 					self.Train:SetNWString("CustomStr1","->")
 				else
-					self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnRoute][Routelength]][1])
+					self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnMap][self.AnnRoute][Routelength]][1])
 				end
 			end
 		end
 
 		if self.AnnState == 2 then
 			if self.Train.Custom2.Value > 0.5 then
-				if self.AnnRoute < #Metrostroi.EndStations then
+				if self.AnnRoute < #Metrostroi.EndStations[self.AnnMap] then
 					self.AnnRoute = self.AnnRoute + 1
 				else
 					self.AnnRoute = 1
@@ -856,7 +910,7 @@ function TRAIN_SYSTEM:Announcer2()
 				if self.AnnRoute > 1 then
 					self.AnnRoute = self.AnnRoute - 1
 				else
-					self.AnnRoute = #Metrostroi.EndStations
+					self.AnnRoute = #Metrostroi.EndStations[self.AnnMap]
 				end
 				self.AnnState = 12
 				self.AnnCurTime = nil
@@ -904,21 +958,21 @@ function TRAIN_SYSTEM:Announcer2()
 
 		if self.AnnState == 3 then
 			if self.Train.Custom2.Value > 0.5 then
-				if self.AnnStartStationT < #Metrostroi.EndStations[self.AnnRoute] then
+				if self.AnnStartStationT < #Metrostroi.EndStations[self.AnnMap][self.AnnRoute] then
 					self.AnnStartStationT = self.AnnStartStationT + 1
 				else
 					self.AnnStartStationT = 1
 				end
-				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnRoute][self.AnnStartStationT]][1])
+				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnStartStationT]][1])
 				self.AnnState = 23
 			end
 			if self.Train.Custom1.Value > 0.5 then
 				if self.AnnStartStationT > 1 then
 					self.AnnStartStationT = self.AnnStartStationT - 1
 				else
-					self.AnnStartStationT = #Metrostroi.EndStations[self.AnnRoute]
+					self.AnnStartStationT = #Metrostroi.EndStations[self.AnnMap][self.AnnRoute]
 				end
-				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnRoute][self.AnnStartStationT]][1])
+				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnStartStationT]][1])
 				self.AnnState = 13
 			end
 			if self.Train.Custom3.Value > 0.5 then
@@ -935,11 +989,11 @@ function TRAIN_SYSTEM:Announcer2()
 			self.AnnState = 3
 		end
 		if self.AnnState == 103 then
-			self.AnnStartStationT = self.Settings.StartStationT or math.random(1,#Metrostroi.EndStations[self.AnnRoute])
-			if self.AnnStartStationT > #Metrostroi.EndStations[self.AnnRoute] then
-				self.AnnStartStationT = math.random(1,#Metrostroi.EndStations[self.AnnRoute])
+			self.AnnStartStationT = self.Settings.StartStationT or math.random(1,#Metrostroi.EndStations[self.AnnMap][self.AnnRoute])
+			if self.AnnStartStationT > #Metrostroi.EndStations[self.AnnMap][self.AnnRoute] then
+				self.AnnStartStationT = math.random(1,#Metrostroi.EndStations[self.AnnMap][self.AnnRoute])
 			end
-			self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnRoute][self.AnnStartStationT]][1])
+			self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnStartStationT]][1])
 			self.AnnCurTimeM = CurTime()
 			self.AnnCurTime = nil
 			self.AnnState = 33
@@ -967,7 +1021,7 @@ function TRAIN_SYSTEM:Announcer2()
 
 		if self.AnnState == 4 then
 			if self.Train.Custom2.Value > 0.5 then
-				if self.AnnEndStationT < #Metrostroi.EndStations[self.AnnRoute] then
+				if self.AnnEndStationT < #Metrostroi.EndStations[self.AnnMap][self.AnnRoute] then
 					self.AnnEndStationT = self.AnnEndStationT + 1
 				else
 					self.AnnEndStationT = 1
@@ -975,25 +1029,25 @@ function TRAIN_SYSTEM:Announcer2()
 
 				if self.AnnEndStationT == self.AnnStartStationT then
 					self.AnnEndStationT = self.AnnEndStationT + 1
-					if self.AnnEndStationT >= #Metrostroi.EndStations[self.AnnRoute] then self.AnnEndStationT = 1 end
+					if self.AnnEndStationT >= #Metrostroi.EndStations[self.AnnMap][self.AnnRoute] then self.AnnEndStationT = 1 end
 				end
 
-				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnRoute][self.AnnEndStationT]][1])
+				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnEndStationT]][1])
 				self.AnnState = 24
 			end
 			if self.Train.Custom1.Value > 0.5 then
 				if self.AnnEndStationT > 1 then
 					self.AnnEndStationT = self.AnnEndStationT - 1
 				else
-					self.AnnEndStationT = #Metrostroi.EndStations[self.AnnRoute]
+					self.AnnEndStationT = #Metrostroi.EndStations[self.AnnMap][self.AnnRoute]
 				end
 
 				if self.AnnEndStationT == self.AnnStartStationT then
 					self.AnnEndStationT = self.AnnEndStationT - 1
-					if self.AnnEndStationT <= 1 then self.AnnEndStationT = #Metrostroi.EndStations[self.AnnRoute] end
+					if self.AnnEndStationT <= 1 then self.AnnEndStationT = #Metrostroi.EndStations[self.AnnMap][self.AnnRoute] end
 				end
 
-				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnRoute][self.AnnEndStationT]][1])
+				self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnEndStationT]][1])
 				self.AnnState = 14
 			end
 			if self.Train.Custom3.Value > 0.5 then
@@ -1011,17 +1065,17 @@ function TRAIN_SYSTEM:Announcer2()
 		end
 
 		if self.AnnState == 104 then
-			self.AnnEndStationT = self.Settings.EndStationT or math.random(#Metrostroi.EndStations[self.AnnRoute],1)
-			if self.AnnEndStationT > #Metrostroi.EndStations[self.AnnRoute] then
-				self.AnnEndStationT = math.random(1,#Metrostroi.EndStations[self.AnnRoute])
+			self.AnnEndStationT = self.Settings.EndStationT or math.random(#Metrostroi.EndStations[self.AnnMap][self.AnnRoute],1)
+			if self.AnnEndStationT > #Metrostroi.EndStations[self.AnnMap][self.AnnRoute] then
+				self.AnnEndStationT = math.random(1,#Metrostroi.EndStations[self.AnnMap][self.AnnRoute])
 			end
 			while self.AnnEndStationT == self.AnnStartStation do
-				self.AnnEndStationT = math.random(#Metrostroi.EndStations[self.AnnRoute],1)
+				self.AnnEndStationT = math.random(#Metrostroi.EndStations[self.AnnMap][self.AnnRoute],1)
 			end
-			self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnRoute][self.AnnEndStationT]][1])
+			self.Train:SetNWString("CustomStr1", Metrostroi.AnnouncerData[Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnEndStationT]][1])
 			self.AnnCurTime = nil
 			self.AnnCurTimeM = CurTime()
-			self.AnnStartStation = Metrostroi.EndStations[self.AnnRoute][self.AnnStartStationT]
+			self.AnnStartStation = Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnStartStationT]
 			self.AnnState = 34
 			self.Train:TriggerInput("CustomDSet", 0)
 			self.Train:TriggerInput("CustomESet", 0)
@@ -1035,13 +1089,13 @@ function TRAIN_SYSTEM:Announcer2()
 			if self.AnnStartStationT > self.AnnEndStationT then
 				local Start = self.AnnStartStationT
 				self.AnnStartStationT = self.AnnEndStationT
-				self.AnnStartStation = Metrostroi.EndStations[self.AnnRoute][self.AnnStartStationT]
+				self.AnnStartStation = Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnStartStationT]
 				self.AnnEndStationT = Start
 				self.AnnPath = 2
 			else
 				self.AnnPath = 1
 			end
-			self.AnnEndStation = Metrostroi.EndStations[self.AnnRoute][self.AnnEndStationT]
+			self.AnnEndStation = Metrostroi.EndStations[self.AnnMap][self.AnnRoute][self.AnnEndStationT]
 			self.Train:TriggerInput("CustomDSet", 0)
 			self.Train:TriggerInput("CustomESet", 0)
 			self.Train:TriggerInput("CustomFSet", 1)
@@ -1115,12 +1169,12 @@ function TRAIN_SYSTEM:Announcer2()
 				local Station = self.Train:ReadCell(49160) > 0 and self.Train:ReadCell(49160) or self.Train:ReadCell(49161)
 				local Path = Metrostroi.PathConverter[self.Train:ReadCell(65510)] or 0
 				if Station and Station ~= 0 and Path and Path ~= 0 then
-					local StatID = Metrostroi.WorkingStations[self.AnnRoute][Station] or Metrostroi.WorkingStations[self.AnnRoute][Station + (Path == 1 and 1 or -1)] or 0
+					local StatID = Metrostroi.WorkingStations[self.AnnMap][self.AnnRoute][Station] or Metrostroi.WorkingStations[self.AnnMap][self.AnnRoute][Station + (Path == 1 and 1 or -1)] or 0
 					if StatID ~= 0 then
 						local Curr,Next
 						if StatID ~= 0 then
-							Curr = Metrostroi.AnnouncerData[Metrostroi.WorkingStations[self.AnnRoute][StatID]]
-							Next = Metrostroi.AnnouncerData[Metrostroi.WorkingStations[self.AnnRoute][StatID + (Path == 1 and 1 or -1)]]
+							Curr = Metrostroi.AnnouncerData[Metrostroi.WorkingStations[self.AnnMap][self.AnnRoute][StatID]]
+							Next = Metrostroi.AnnouncerData[Metrostroi.WorkingStations[self.AnnMap][self.AnnRoute][StatID + (Path == 1 and 1 or -1)]]
 						end
 
 						-- Set announcer settings
@@ -1131,7 +1185,7 @@ function TRAIN_SYSTEM:Announcer2()
 						end
 
 						local dX = self.Train:ReadCell(49165)
-						if 45 < dX and dX < 75 and not self.Arrive and Metrostroi.WorkingStations[self.AnnRoute][Station] then
+						if 45 < dX and dX < 75 and not self.Arrive and Metrostroi.WorkingStations[self.AnnMap][self.AnnRoute][Station] then
 							self:AnnPlayArriving()
 							self.Arrive = true
 							if not self:AnnEnd() then
@@ -1153,33 +1207,33 @@ function TRAIN_SYSTEM:Announcer2()
 					end
 				end
 			end
-			self.AnnStation = Metrostroi.WorkingStations[self.AnnRoute][self.AnnStationT]
+			self.AnnStation = Metrostroi.WorkingStations[self.AnnMap][self.AnnRoute][self.AnnStationT]
 			self.AnnNextT = self.AnnStationT + (self.AnnPath == 1 and 1 or -1)
-			self.AnnNext = Metrostroi.WorkingStations[self.AnnRoute][self.AnnNextT]
-			self.NextNonWorkingStation = ((Metrostroi.WorkingStations[self.AnnRoute][self.AnnStationT] or 0) + (self.AnnPath == 1 and 1 or -1) == 120)
+			self.AnnNext = Metrostroi.WorkingStations[self.AnnMap][self.AnnRoute][self.AnnNextT]
+			self.NextNonWorkingStation = ((Metrostroi.WorkingStations[self.AnnMap][self.AnnRoute][self.AnnStationT] or 0) + (self.AnnPath == 1 and 1 or -1) == 120)
 			and self.AnnStation + (self.AnnPath == 1 and 1 or -1) or nil
 			self.Train:TriggerInput("CustomGSet", self.ScheduleAnnouncement > 0)
 		end
 
 		if (self.AnnState == 7 or self.AnnState == 17 or self.AnnState == 27 or self.AnnState == 37 or self.AnnState == 87 or self.AnnState == 97) and self.AnnState7NeedRedraw then
-			local str1T = (Metrostroi.AnnouncerData[self.AnnStation][2] and " R" or "")..(not self.Arrive and "<" or "")
-			local str1 = "C:"..Metrostroi.AnnouncerData[self.AnnStation][1]
-			if #str1<=20-#str1T then
-				str1 = str1..str1T
+			local Str = "C:"..Metrostroi.AnnouncerData[self.AnnStation][1]
+			local str1T = (self:AnnEnd() and "E" or " ")..(Metrostroi.AnnouncerData[self.AnnStation][2] and "R" or "L")..(not self.Arrive and "<" or " ")
+			if #Str<=17 then
+				str1 = Str..string.rep(" ",17-#Str)..str1T
 			else
-				str1 = str1:sub(1,17-#str1T).."..."..str1T
+				str1 = Str:sub(1,14).."..."..str1T
 			end
 			self.Train:SetNWString("CustomStr0",str1)
 			local str2
 			if self:AnnEnd() then
 				str2 = "Last station"
 			else
-				local str2T = (Metrostroi.AnnouncerData[self.AnnNext][2] and " R" or "")..(self:AnnEnd(true) and " E" or "")..(self.Arrive and "<" or "")
-				str2 = "N:"..Metrostroi.AnnouncerData[self.AnnNext][1]
-				if #str2<=20-#str2T then
-					str2 = str2..str2T
+				local Str = "N:"..Metrostroi.AnnouncerData[self.AnnNext][1]
+				local str2T = (self:AnnEnd(true) and "E" or " ")..(Metrostroi.AnnouncerData[self.AnnNext][2] and "R" or "L")..(self.Arrive and "<" or " ")
+				if #Str<=17 then
+					str2 = Str..string.rep(" ",17-#Str)..str2T
 				else
-					str2 = str2:sub(1,17-#str2T).."..."..str2T
+					str2 = Str:sub(1,14).."..."..str2T
 				end
 			end
 			self.Train:SetNWString("CustomStr1",str2)
@@ -1272,7 +1326,17 @@ function TRAIN_SYSTEM:Announcer2()
 					0000,self.AnnPath==1 and self.AnnEndStation or self.AnnStartStation,0006
 				)
 				self.Arrive = true
-				self.AnnStationT = Metrostroi.WorkingStations[self.AnnRoute][self.AnnPath == 2 and self.AnnEndStation or self.AnnStartStation]
+				self.AnnStationT = Metrostroi.WorkingStations[self.AnnMap][self.AnnRoute][self.AnnPath == 2 and self.AnnEndStation or self.AnnStartStation]
+			end
+			self.Train:PrepareSigns()
+			self.Train.SignsIndex = self.SignsIDs[self.AnnPath == 2 and self.AnnStartStation or self.AnnEndStation] or 1
+			self.Train:SetNWString("FrontText",self.Train.SignsList[self.Train.SignsIndex])
+			local LastTrain = self:GetLastWagon()
+
+			if #self.Train.WagonList > 1 then
+				LastTrain:PrepareSigns()
+				LastTrain.SignsIndex = self.SignsIDs[self.AnnPath == 1 and self.AnnStartStation or self.AnnEndStation] or 1
+				LastTrain:SetNWString("FrontText",self.Train.SignsList[LastTrain.SignsIndex])
 			end
 			--self.Train:TriggerInput("CustomDSet", 0)
 			--self.Train:TriggerInput("CustomESet", 0)
@@ -1337,7 +1401,7 @@ function TRAIN_SYSTEM:Announcer2()
 			self.Train:TriggerInput("CustomGSet", 0)
 		end
 
-		if self.AnnState ~= -2 and self.AnnState ~= -12 and self.AnnState ~= -22 then
+		if self.Settings and self.AnnState ~= -2 and self.AnnState ~= -12 and self.AnnState ~= -22 then
 			self.Settings.Route = self.AnnRoute
 			self.Settings.StartStationT = self.AnnStartStationT
 			self.Settings.StartStation = self.AnnStartStation
@@ -1383,7 +1447,7 @@ function TRAIN_SYSTEM:Think()
 	--	self:Announcer1()
 	-- Build-in glebqip Announcer logic
 	if self.Train.Custom3 then
-		xpcall(function() 
+		xpcall(function()
 		self:Announcer2()
 		end, function(err)
 			print("ERROR:", err)
