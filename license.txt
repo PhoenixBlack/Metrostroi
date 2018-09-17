@@ -1,21 +1,20 @@
 --------------------------------------------------------------------------------
 License for:
-	sys_81_722_asyncinverter.lua		Traction inverter simulation
-	sys_gen_int.lua						Control circuits simulation
-	sys_gen_res.lua						Rheostat simulation
+	\metrostroi\systems\*.lua			System simulation lua files
+	\models\metrostroi_train			New 
 	
 --------------------------------------------------------------------------------
        Copyright (C) 2013-2018 Black Phoenix & FoxWorks Aerospace s.r.o.
                     Last updated: 17th September, 2018
 					
-These files contain proprietary code that belongs to FoxWorks Aerospace s.r.o.
-and are provided for limited personal use with the Metrostroi Subway Simulator.
-The following restrictions apply:
+These files contain proprietary code or assets that belong to FoxWorks Aerospace
+s.r.o. and are provided for limited personal use with the Metrostroi Subway
+Simulator. The following restrictions apply:
 
 - These files and any derivative versions can only be redistributed for use with
   the Metrostroi Subway Simulator
-- These files may only be ran under Garry's Mod Lua interpreter within the
-  context of Metrostroi Subway Simulator
+- These files may only be executed under Garry's Mod Lua interpreter within the
+  context of the Metrostroi Subway Simulator
 - It is forbidden to use this code for any commercial purposes, including but
   not limited to use in industrial or commercial training simulators, simulation
   videogames.
@@ -34,6 +33,38 @@ The following restrictions apply:
 
              A custom license on these files may be obtained by
           contacting FoxWorks Aerospace s.r.o. at contact@foxworks.cz
+		  
+You are welcome to use these files for private purposes, as long as you do not
+distribute the derived versions without permission.
 
 For questions related to obtaining an explicit permission on distributing modified
 versions of these files, please include the modified versions as an attachment.
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------
+License for: other assets and files not covered by license above	
+--------------------------------------------------------------------------------
+Copyright (C) 2013-2018 Metrostroi Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
