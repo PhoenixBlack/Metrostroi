@@ -1,35 +1,37 @@
 --------------------------------------------------------------------------------
 License for:
-	\metrostroi\systems\*.lua			System simulation lua files
-	\models\metrostroi_train			New 
+  \metrostroi\systems\*.lua         System simulation lua files
+  \models\metrostroi_train\*.*      Art assets for the trains
 	
 --------------------------------------------------------------------------------
        Copyright (C) 2013-2018 Black Phoenix & FoxWorks Aerospace s.r.o.
                     Last updated: 17th September, 2018
 					
 These files contain proprietary code or assets that belong to FoxWorks Aerospace
-s.r.o. and are provided for limited personal use with the Metrostroi Subway
-Simulator. The following restrictions apply:
+s.r.o. or its partners and are provided for limited personal use with the
+Metrostroi Subway Simulator. The following restrictions apply:
 
 - These files and any derivative versions can only be redistributed for use with
   the Metrostroi Subway Simulator
 - These files may only be executed under Garry's Mod Lua interpreter within the
   context of the Metrostroi Subway Simulator
-- It is forbidden to use this code for any commercial purposes, including but
+- It is forbidden to use these assets for any commercial purposes, including but
   not limited to use in industrial or commercial training simulators, simulation
   videogames.
-- It is forbidden to use this code for any purposes of professional education,
+- It is forbidden to use these assets for any purposes of professional education,
   including but not limited to use in non-commercial training simulators or
   simulators installed in facilities related to professional education.
 - It is forbidden to make any changes in these files in any derivative projects
   without an explicit written permission from FoxWorks Aerospace s.r.o.
-- It is forbidden to use this code for any non-private purposes, including but
-  not limited to use in museums and exhibitions.
+- It is forbidden to use these assets and code for any non-private purposes,
+  including but not limited to use in museums and exhibitions.
 - Derivative versions of this simulator which use these files and satisfy these
   restrictions are permitted. All derivative versions that use these files must
   include this restrictions information
-- It is forbidden to use this code for any non-private purposes, including but
-  not limited to use in museums and exhibitions.
+- It is forbidden to use these assets and code for any non-private purposes,
+  including but not limited to use in museums and exhibitions.
+- Additional art assets belong to their corresponding authors and are distributed
+  with their permission under the restrictions above.
 
              A custom license on these files may be obtained by
           contacting FoxWorks Aerospace s.r.o. at contact@foxworks.cz
